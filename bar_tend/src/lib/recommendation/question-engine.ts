@@ -87,7 +87,7 @@ export function applyQuestionAnswer(
 
   return {
     state: applyRecommendationSignals(state, extractRecommendationSignals(answer)),
-    acknowledgement: answer.trim() ? '그 답도 접수했어요. 잔이 알아들을 겁니다.' : null,
+    acknowledgement: answer.trim() ? '네, 말씀해 주신 내용도 함께 볼게요.' : null,
     finishRecommendation: false,
   }
 }
@@ -121,7 +121,7 @@ export function formatQuestion(
   question: RecommendationQuestion,
   acknowledgement?: string | null,
 ): string {
-  const context = acknowledgement ? `${acknowledgement}\n` : '후보들이 서로 자기가 맞다고 하네요.\n'
+  const context = acknowledgement ? `${acknowledgement}\n` : '한 가지만 더 여쭤볼게요.\n'
   return `${context}${question.prompt}`
 }
 

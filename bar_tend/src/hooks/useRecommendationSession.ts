@@ -104,7 +104,7 @@ export function useRecommendationSession() {
         return {
           cocktail: null,
           decision: null,
-          reply: '그 조건에 맞는 잔은 지금 목록에 없네요. 없는 술을 있는 척하면 재고 조사가 길어지거든요.',
+          reply: '죄송합니다. 말씀해 주신 조건에 맞는 칵테일은 현재 메뉴에서 찾지 못했어요.',
           expression: 'thinking',
         }
       }
@@ -128,7 +128,7 @@ export function useRecommendationSession() {
             nextQuestion,
             questionCandidates.exactMatch
               ? acknowledgement
-              : '정확히 일치하는 후보는 아직 없습니다. 가까운 후보를 좁히기 위해 조건을 더 확인합니다.',
+              : '완전히 맞는 칵테일은 아직 없네요. 가장 가까운 걸 찾을 수 있게 한 가지만 더 여쭤볼게요.',
           ),
           expression: 'thinking',
         }

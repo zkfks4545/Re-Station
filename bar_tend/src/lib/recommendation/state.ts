@@ -275,7 +275,7 @@ export function buildRecommendationReasons(
     reasons.push({
       code: 'taste-match',
       label: '취향 일치',
-      detail: `${tasteMatches.map((key) => FEATURE_LABELS[key]).join('·')} 취향과 가까워요.`,
+      detail: `${tasteMatches.map((key) => FEATURE_LABELS[key]).join('·')} 취향과 잘 맞아요.`,
       evidence: tasteMatches.map((key) => `${key}:${cocktail.features[key]}`),
     })
   }
@@ -284,7 +284,7 @@ export function buildRecommendationReasons(
     reasons.push({
       code: 'strength-match',
       label: '도수 조건',
-      detail: `요청한 도수 조건(${state.alcoholPreference})을 반영했어요.`,
+      detail: `원하신 도수 조건(${state.alcoholPreference})과 잘 맞아요.`,
       evidence: [`alcohol_strength:${cocktail.features.alcohol_strength}`],
     })
   }
@@ -296,7 +296,7 @@ export function buildRecommendationReasons(
     reasons.push({
       code: 'ingredient-match',
       label: '선호 재료',
-      detail: `${ingredientMatches.join(', ')} 선호를 반영했어요.`,
+      detail: `좋아하신다고 한 ${ingredientMatches.join(', ')}도 들어 있어요.`,
       evidence: ingredientMatches,
     })
   }
@@ -305,7 +305,7 @@ export function buildRecommendationReasons(
     reasons.push({
       code: 'context',
       label: '대화 맥락',
-      detail: '대화에서 파악한 기분과 상황은 다음 질문과 설명 맥락에 보관했어요.',
+      detail: '말씀해 주신 기분과 상황도 함께 참고했어요.',
       evidence: [...state.moods, ...state.situations],
     })
   }

@@ -70,7 +70,7 @@ export function useRestationController() {
     setMessages([
       {
         role: 'bartender',
-        text: '어? 손님이 먼저 찾아오셨네요.\nRe:Station입니다. 편하게 앉으세요. 의자는 아직 퇴근 전이니까요.',
+        text: '어서 오세요. Re:Station입니다.\n오늘은 어떤 걸 찾으세요?',
       },
     ])
   }, [clearPendingWork])
@@ -79,7 +79,7 @@ export function useRestationController() {
     clearPendingWork()
     setErrorMessage(null)
     setInteractionStatus('exiting')
-    bartenderReply('벌써 가세요? 또 오세요, 기다리고 있을게요. 알바니까요.', 'idle', null, 'exiting')
+    bartenderReply('들러주셔서 감사합니다. 조심히 가세요.', 'idle', null, 'exiting')
     timerRegistry.current.schedule(() => {
       setScene('outside')
       setMessages([])
@@ -100,7 +100,7 @@ export function useRestationController() {
     setServedCocktail(null)
     resetRecommendation()
     bartenderReply(
-      '새로운 밤이에요.\n기억은 리셋됐는데... 도감에 모은 칵테일은 건드리지 않았어요.\n(알바생에게 그런 권한은 없거든요.)',
+      '대화와 취향 정보를 초기화했습니다.\n도감에 등록된 칵테일 정보는 유지됩니다.',
       'idle',
     )
   }, [clearPendingWork, resetNight, resetRecommendation, bartenderReply])
@@ -109,7 +109,7 @@ export function useRestationController() {
     if (interactionStatus !== 'idle' || !activeQuestion) return
     resetRecommendation()
     setMessages((prev) => [...prev, { role: 'user', text: '추천 질문 취소' }])
-    bartenderReply('추천 질문은 접어둘게요. 메뉴판도 가끔 쉬어야죠.', 'idle')
+    bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
   }, [activeQuestion, bartenderReply, interactionStatus, resetRecommendation])
 
   const handleSend = useCallback(
@@ -156,7 +156,7 @@ export function useRestationController() {
         } catch {
           setExpression('idle')
           setInteractionStatus('idle')
-          setErrorMessage('잠깐 잔을 놓쳤네요. 다시 한 번 말씀해 주세요.')
+          setErrorMessage('죄송합니다. 방금 말씀은 처리하지 못했어요. 다시 한번 말씀해 주세요.')
         }
       }, 800 + Math.random() * 600)
     },

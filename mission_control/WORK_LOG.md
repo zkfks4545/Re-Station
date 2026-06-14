@@ -1,5 +1,29 @@
 ﻿# 작업 이력
 
+## 2026-06-14 / RST-406 / 자연스러운 런타임 응대 적용
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-406 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 현재 캐릭터가 출력하는 문장에서 고유 말투와 농담은 제거하되 로봇이나 콜센터처럼 들리지 않는 자연스러운 존댓말로 통일한다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/conversation.ts`, `keywords.ts`, `engine.ts`, `engine.test.ts`, `src/lib/recommendation/response.ts`, `response.test.ts`, `question-engine.ts`, `state.ts`, `src/hooks/useRecommendationSession.ts`, `useRestationController.ts`, `mission_control/DECISIONS.md`, `ARCHITECTURE.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 일반 대화, 키워드 응답, 추천 결과·근거, 질문 연결, 입퇴장, 초기화, 안전·오류 안내에서 캐릭터 말투와 기계적·콜센터식 표현을 제거하고 실제 직원이 짧게 응대하는 자연스러운 존댓말로 교체했다. `persona.ts`, `prompts.ts`, `CHARACTER_DESIGN.md`의 캐릭터 프롬프트와 예문은 변경하지 않았다. |
+| 실패한 시도 | 첫 테스트에서 기존 카루아식 문구를 직접 요구하던 회귀 테스트 6개가 실패해, 말투 미적용과 안전 경계를 검증하는 계약으로 교체했다. |
+| 발견한 문제 | 캐릭터 말투가 일반 대화 외에도 추천 근거, 컨트롤러 상태 안내와 오류 메시지에 분산되어 있었다. |
+| 후속 작업 제안 | 향후 말투 계층을 연결할 때 중립 원문을 항상 복구 경로로 유지하고 보존된 프롬프트 예문을 평가 세트로 사용한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 47개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| 프롬프트 예문 보존 | `persona.ts`, `prompts.ts`, `CHARACTER_DESIGN.md` 변경 없음 |
+| `npm.cmd run build` | 통과, JS 298.41 kB |
+
 ## 2026-06-14 / RST-402 / 추천 설문 종료 정책 개선
 
 | 항목 | 내용 |

@@ -7,16 +7,18 @@ import {
   formatRecommendationReply,
 } from './response.js'
 
-describe('recommendation dialogue copy', () => {
-  it('keeps explicit cocktail character copy in dialogue without factual card copy', () => {
+describe('neutral recommendation dialogue copy', () => {
+  it('uses neutral copy for an explicit cocktail without factual card copy', () => {
     const cocktail = getCocktailById('cocktail_classic_001')!
     const reply = formatExplicitCocktailReply(cocktail)
 
-    expect(reply).toContain('메뉴판보다 손님이 빠르시네')
+    expect(reply).toContain('찾으시는군요')
+    expect(reply).toContain('자세한 정보도 함께 보여드릴게요')
+    expect(reply).not.toMatch(/손님|농담|잔/)
     expect(reply).not.toContain(cocktail.description)
   })
 
-  it('uses structured recommendation reasons in Kahlua dialogue', () => {
+  it('uses structured recommendation reasons without character voice', () => {
     const cocktail = getCocktailById('cocktail_classic_008')!
     const state = {
       ...createRecommendationState(),
@@ -25,8 +27,8 @@ describe('recommendation dialogue copy', () => {
     const reply = formatRecommendationReply(createRecommendationDecision(cocktail, state))
 
     expect(reply).toContain(`「${cocktail.name}」`)
-    expect(reply).toContain('탄산감 취향과 가까워요')
-    expect(reply).toContain('눈치가 빠르죠')
+    expect(reply).toContain('탄산감 취향과 잘 맞아요')
+    expect(reply).not.toMatch(/눈치|농담|잔/)
     expect(reply).not.toContain(cocktail.description)
   })
 
@@ -35,7 +37,8 @@ describe('recommendation dialogue copy', () => {
     const reply = formatRandomRecommendationReply(cocktail)
 
     expect(reply).toContain(`「${cocktail.name}」`)
-    expect(reply).toContain('선택권은 방금 제게 넘기셨어요')
+    expect(reply).toContain('제가 하나 골라볼게요')
+    expect(reply).not.toMatch(/선택권|농담/)
     expect(reply).not.toContain(cocktail.description)
   })
 
@@ -47,8 +50,8 @@ describe('recommendation dialogue copy', () => {
       'nearest',
     )
 
-    expect(reply).toContain('완전히 같은 잔은 없어서')
-    expect(reply).toContain('몇 조건은 살짝 양보')
-    expect(reply).not.toContain('눈치가 빠르죠')
+    expect(reply).toContain('완전히 맞는 칵테일은 없어서')
+    expect(reply).toContain('조금 다른 부분이 있을 수 있습니다')
+    expect(reply).not.toMatch(/눈치|농담|잔/)
   })
 })

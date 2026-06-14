@@ -2,11 +2,11 @@ import type { CocktailData } from '../../types.js'
 import type { RecommendationDecision } from '../../types/recommendation.js'
 
 export function formatExplicitCocktailReply(cocktail: CocktailData): string {
-  return `「${cocktail.name}」 찾으셨네요. 메뉴판보다 손님이 빠르시네.\n카드에는 설명만 얌전히 올려둘게요.`
+  return `「${cocktail.name}」을 찾으시는군요.\n자세한 정보도 함께 보여드릴게요.`
 }
 
 export function formatRandomRecommendationReply(cocktail: CocktailData): string {
-  return `아무거나라니, 제일 과감한 주문을 하시네요.\n그럼 오늘은 「${cocktail.name}」로 가죠.\n선택권은 방금 제게 넘기셨어요.`
+  return `그럼 제가 하나 골라볼게요.\n「${cocktail.name}」은 어떠세요?`
 }
 
 export function formatRecommendationReply(
@@ -15,13 +15,13 @@ export function formatRecommendationReply(
   matchType: 'exact' | 'nearest' = 'exact',
 ): string {
   const reason = decision.reasons.find((item) => item.code !== 'context')
-  const opening = acknowledgement ?? '취향이 슬슬 자백하네요.'
+  const opening = acknowledgement ?? '말씀해 주신 취향을 기준으로 골라봤어요.'
   if (matchType === 'nearest') {
-    return `${opening}\n완전히 같은 잔은 없어서 가장 가까운 「${decision.cocktail.name}」로 골랐어요.\n몇 조건은 살짝 양보했지만, 없는 술을 발명하는 것보단 낫죠.`
+    return `${opening}\n완전히 맞는 칵테일은 없어서 가장 가까운 「${decision.cocktail.name}」을 골랐어요.\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.`
   }
   const reasonLine = reason
-    ? `${reason.detail} 잔이 제법 눈치가 빠르죠.`
-    : '지금까지 들은 걸로 제가 골라봤어요. 틀리면 잔 탓을 하죠.'
+    ? reason.detail
+    : '말씀해 주신 취향을 기준으로 골랐어요.'
 
-  return `${opening}\n오늘은 「${decision.cocktail.name}」로 가죠.\n${reasonLine}`
+  return `${opening}\n「${decision.cocktail.name}」은 어떠세요?\n${reasonLine}`
 }

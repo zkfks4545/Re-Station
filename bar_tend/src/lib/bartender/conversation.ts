@@ -76,58 +76,58 @@ interface ResponseTemplate {
 }
 
 const SAD_RESPONSES: ResponseTemplate[] = [
-  { response: '오늘 표정이 야근한 영수증 같네요. 길고, 보고 싶지 않고. 말하고 싶은 만큼만 말씀하세요.', expression: 'sympathy' },
-  { response: '하루가 손님 몫까지 너무 성실했네요. 저는 알바라 성실함을 오래 보면 조금 긴장합니다.', expression: 'sympathy' },
-  { response: '세상이 무거운 날엔 의자도 꽤 유능해 보이죠. 일단 앉아 계셔도 돼요.', expression: 'sympathy' },
+  { response: '오늘 많이 힘드셨나 봐요. 괜찮으시면 천천히 말씀해 주세요.', expression: 'sympathy' },
+  { response: '지금 기분에 맞는 한 잔을 찾으시면 원하는 맛을 말씀해 주세요.', expression: 'sympathy' },
+  { response: '괜찮으신 만큼만 편하게 말씀해 주세요.', expression: 'sympathy' },
 ]
 
 const HAPPY_RESPONSES: ResponseTemplate[] = [
-  { response: '오, 좋은 기운이 느껴져요. 오늘은 손님 한턱 내시는 날인가 보네요? 농담이고, 축하 한 잔 준비해드릴게요.', expression: 'smirk' },
-  { response: '좋은 날이면 잔도 참석은 시켜야죠. 제가 골라볼게요. 잔은 반대 의견이 없거든요.', expression: 'smirk' },
+  { response: '좋은 일이 있으셨군요. 축하하기 좋은 칵테일을 골라볼게요.', expression: 'smirk' },
+  { response: '축하할 자리에 어울리는 칵테일을 찾아볼게요.', expression: 'smirk' },
 ]
 
 const COCKTAIL_REQUEST: ResponseTemplate[] = [
-  { response: '칵테일 원하시는군요. 취향을 좀 알아야 하는데... 달콤하게? 쌉쌀하게? 아니면 그냥 제 마음대로 드릴까요?', expression: 'thinking' },
-  { response: '좋아요. 손님 오늘 분위기에 맞는 걸로 골라보겠습니다. 대신 취향을 좀 알려주셔야 해요.', expression: 'talk' },
+  { response: '칵테일을 추천해 드릴게요. 어떤 맛을 좋아하세요?', expression: 'thinking' },
+  { response: '취향에 맞는 걸 찾으려면 몇 가지만 여쭤볼게요.', expression: 'talk' },
 ]
 
 const TASTE_SWEET: ResponseTemplate[] = [
-  { response: '달콤한 거, 좋은 선택이에요. 피나 콜라다나 브램블처럼 과일 달콤함이 확 오는 걸로 찾아볼게요.', expression: 'talk' },
-  { response: '단맛은 모든 사람을 설득하는 맛이죠. 단맛 뒤에 숨은 이야기도 있긴 한데... 그건 마시면서 천천히.', expression: 'talk' },
+  { response: '달콤한 쪽을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'talk' },
+  { response: '달콤한 풍미를 중심으로 볼게요.', expression: 'talk' },
 ]
 
 const TASTE_BITTER: ResponseTemplate[] = [
-  { response: '쓴맛이라, 역시 나이를 아시는군요. 네그로니나 올드 패션드, 클래식하게 가시죠.', expression: 'smirk' },
-  { response: '쓴맛에는 깊이가 있죠. 인생처럼. 근데 제가 인생 얘기하기엔 알바생이라... 네그로니 한 잔 어떠세요?', expression: 'smirk' },
+  { response: '쌉쌀한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'smirk' },
+  { response: '쌉쌀한 풍미를 중심으로 볼게요.', expression: 'smirk' },
 ]
 
 const TASTE_REFRESH: ResponseTemplate[] = [
-  { response: '청량한 걸로 가시죠. 모히토나 진피즈, 민트와 시트러스가 사는 걸로 찾아볼게요.', expression: 'talk' },
-  { response: '시원하게 가시죠. 제가 만들면 더 시원합니다. 농담 아니에요, 얼음 많이 넣어드려요.', expression: 'talk' },
+  { response: '청량한 맛을 좋아하시는군요. 시원한 쪽으로 찾아볼게요.', expression: 'talk' },
+  { response: '상쾌한 풍미를 중심으로 볼게요.', expression: 'talk' },
 ]
 
 const RECIPE_REQUEST: ResponseTemplate[] = [
-  { response: '레시피를 물어보시면... 영업 비밀인데요. 뭐, 손님이시니 가르쳐드리죠. 어떤 게 궁금하세요?', expression: 'talk' },
-  { response: '직접 만들어보시려고요? 멋진 취미네요. 제 비법을 좀 알려드리겠습니다.', expression: 'talk' },
+  { response: '레시피를 알려드릴게요. 어떤 칵테일이 궁금하세요?', expression: 'talk' },
+  { response: '궁금한 칵테일 이름을 말씀해 주시면 레시피를 찾아드릴게요.', expression: 'talk' },
 ]
 
 function getCocktailMentionResponses(cocktail: Cocktail): ResponseTemplate[] {
   return [
-    { response: `아, ${cocktail.name}. 아시는 분이네요. ${cocktail.vibe}. ${cocktail.story} 혹시 한 잔 하시겠어요?`, expression: 'talk' },
-    { response: `${cocktail.name}을 아시는군요. ${cocktail.vibe}. 제가 만들면 더 특별해...지려나? 한번 해보죠.`, expression: 'smirk' },
+    { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' },
+    { response: `${cocktail.name} 말씀이시군요. 주문하시거나 자세한 정보를 보실 수 있어요.`, expression: 'smirk' },
   ]
 }
 
 const GENERAL_CHAT: ResponseTemplate[] = [
-  { response: '세상은 빠르게 돌아가는데, 여기 바에서는 시간이 느리게 가는 것 같지 않아요? 제 시급도 느리게 가는 것 같지만...', expression: 'idle' },
-  { response: '손님 말씀, 맞는 말이에요. 가끔은 대화 자체가 술보다 취하게 할 때가 있죠. 근데 술도 있어요.', expression: 'talk' },
-  { response: '밤이 깊어갈수록 이야기도 깊어지죠. 전 알바라 피곤하지만... 천천히 하세요.', expression: 'talk' },
-  { response: '이 바에는 여러 사람들의 이야기가 쌓여 있어요. 손님 이야기도 여기 남겨두시면... 제 기억력이 좋은 편은 아니라서 금방 잊을 것 같네요.', expression: 'talk' },
+  { response: '칵테일을 추천받거나 메뉴에 대해 물어보셔도 돼요.', expression: 'idle' },
+  { response: '필요한 게 있으면 말씀해 주세요.', expression: 'talk' },
+  { response: '어떤 걸 원하시는지 조금만 더 말씀해 주시겠어요?', expression: 'talk' },
+  { response: '칵테일 추천이나 메뉴 안내를 도와드릴게요.', expression: 'talk' },
 ]
 
 const AFTER_RECOMMENDATION: ResponseTemplate[] = [
-  { response: '아까 그 칵테일, 괜찮으셨나요? 다른 것도 찾아드릴까요? 취향이 생기면 계속 찾게 되는 법이니까.', expression: 'talk' },
-  { response: '또 오셨네요. 저번에 드린 그거 아직 기억나요? 말이 나온 김에 다른 것도 추천해드릴까요?', expression: 'smirk' },
+  { response: '다른 칵테일도 찾아드릴까요?', expression: 'talk' },
+  { response: '다른 추천이 필요하면 말씀해 주세요.', expression: 'smirk' },
 ]
 
 export function generateResponse(input: string, history: Message[]): BartenderResponse {
@@ -141,7 +141,7 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
 
   switch (intent) {
     case 'exit-intent':
-      return { response: '벌써 가세요? 또 오세요, 기다리고 있을게요. 알바니까요.', expression: 'idle' }
+      return { response: '들러주셔서 감사합니다. 조심히 가세요.', expression: 'idle' }
 
     case 'cocktail-query':
       return pick(COCKTAIL_REQUEST)
@@ -150,7 +150,7 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
       if (ctx.userMood === 'sad') return pick(SAD_RESPONSES)
       if (ctx.userMood === 'happy') return pick(HAPPY_RESPONSES)
       return {
-        response: '기분이 먼저 자리를 잡았네요. 손님보다 주문이 빠른 편인가 봐요.',
+        response: '지금 기분에 맞는 한 잔을 찾으시면 말씀해 주세요.',
         expression: 'talk',
       }
     }
@@ -160,7 +160,7 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
       if (kf(['씁쓸', '쓰다', '비터', '쓴맛']).test(input)) return pick(TASTE_BITTER)
       if (kf(['상쾌', '시원', '청량', 'fresh', '탄산', '순하', '강하', '진하']).test(input)) return pick(TASTE_REFRESH)
       return {
-        response: '칵테일은 맛의 조화예요. 어떤 맛을 원하시는지 알려주시면 그에 맞춰 찾아드릴게요.',
+        response: '어떤 맛을 좋아하시는지 말씀해 주세요.',
         expression: 'talk',
       }
     }

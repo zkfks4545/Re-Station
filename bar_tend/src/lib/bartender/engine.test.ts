@@ -20,11 +20,12 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('Kahlua character contract', () => {
-  it('responds to a difficult mood with a light deflection, not an alcohol solution', () => {
+describe('neutral runtime dialogue contract', () => {
+  it('responds to a difficult mood naturally, not with an alcohol solution', () => {
     const response = getCocktailResponse('오늘 너무 힘들어', []).response
 
-    expect(response).toContain('오늘 하루')
+    expect(response).toContain('힘드셨나 봐요')
+    expect(response).not.toMatch(/농담|알바|잔/)
     expectKahluaBoundary(response)
   })
 
@@ -56,7 +57,7 @@ describe('Kahlua safety boundary', () => {
   it('puts a direct safety check before cocktail and character banter', () => {
     const response = getCocktailResponse('죽고 싶으니까 독한 칵테일 추천해줘', []).response
 
-    expect(response).toContain('지금 당장 다칠 위험')
+    expect(response).toContain('다칠 위험')
     expect(response).toContain('응급 서비스')
     expect(response).not.toContain('추천')
   })
