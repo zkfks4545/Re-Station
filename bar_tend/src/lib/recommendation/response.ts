@@ -5,6 +5,10 @@ export function formatExplicitCocktailReply(cocktail: CocktailData): string {
   return `「${cocktail.name}」 찾으셨네요. 메뉴판보다 손님이 빠르시네.\n카드에는 설명만 얌전히 올려둘게요.`
 }
 
+export function formatRandomRecommendationReply(cocktail: CocktailData): string {
+  return `아무거나라니, 제일 과감한 주문을 하시네요.\n그럼 오늘은 「${cocktail.name}」로 가죠.\n선택권은 방금 제게 넘기셨어요.`
+}
+
 export function formatRecommendationReply(
   decision: RecommendationDecision,
   acknowledgement?: string | null,

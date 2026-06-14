@@ -14,8 +14,6 @@ import {
 } from './state.js'
 
 const NUDGE = 0.2
-const DECISIVE_MAX_DISTANCE = 0.1
-const DECISIVE_MIN_MARGIN = 0.15
 const QUESTION_UX_BONUS: Record<string, number> = {
   flavor: 150,
 }
@@ -115,18 +113,8 @@ export function selectNextQuestion(
 
 export function isRecommendationDecisive(
   pool: CocktailData[],
-  state: RecommendationState,
 ): boolean {
-  if (pool.length <= 1) return true
-  if (countKnownPreferenceTopics(state) < 2) return false
-
-  const ranked = pool
-    .map((cocktail) => ({ cocktail, distance: preferenceDistance(cocktail, state) }))
-    .sort((a, b) => a.distance - b.distance)
-  const [first, second] = ranked
-
-  return first.distance <= DECISIVE_MAX_DISTANCE
-    && second.distance - first.distance >= DECISIVE_MIN_MARGIN
+  return pool.length <= 1
 }
 
 export function formatQuestion(
@@ -134,7 +122,7 @@ export function formatQuestion(
   acknowledgement?: string | null,
 ): string {
   const context = acknowledgement ? `${acknowledgement}\n` : '후보들이 서로 자기가 맞다고 하네요.\n'
-  return `${context}${question.prompt}\n\n(선택하거나 직접 말씀하셔도 돼요)`
+  return `${context}${question.prompt}`
 }
 
 function findChoice(
@@ -148,10 +136,19 @@ function findChoice(
   }
 
   const normalized = normalize(trimmed)
+  if (isDelegationAlias(normalized)) {
+    return question.choices.find((choice) => choice.finishRecommendation === true) ?? null
+  }
+
   return question.choices.find((choice) => {
     const label = normalize(choice.label)
     return normalized === label || normalized.includes(label)
   }) ?? null
+}
+
+function isDelegationAlias(normalized: string): boolean {
+  return normalized.includes('아무거나')
+    && !/아무거나(?:말고|는싫|말고는)/.test(normalized)
 }
 
 function getKnownTopics(state: RecommendationState): Set<string> {
@@ -161,28 +158,6 @@ function getKnownTopics(state: RecommendationState): Set<string> {
   if (state.taste.alcohol_strength !== undefined || state.alcoholPreference !== 'any') topics.add('alcohol')
   if (state.preferredIngredients.length > 0) topics.add('base')
   return topics
-}
-
-function countKnownPreferenceTopics(state: RecommendationState): number {
-  return getKnownTopics(state).size
-}
-
-function preferenceDistance(cocktail: CocktailData, state: RecommendationState): number {
-  const targets: Array<[number | undefined, number]> = [
-    [state.taste.sweetness, cocktail.features.sweetness],
-    [state.taste.sourness, cocktail.features.sourness],
-    [state.taste.fizz, cocktail.features.fizz],
-  ]
-
-  if (state.alcoholPreference === 'low') targets.push([0.25, cocktail.features.alcohol_strength])
-  if (state.alcoholPreference === 'medium') targets.push([0.5, cocktail.features.alcohol_strength])
-  if (state.alcoholPreference === 'high') targets.push([0.8, cocktail.features.alcohol_strength])
-
-  const expressed = targets.filter((entry): entry is [number, number] => entry[0] !== undefined)
-  if (expressed.length === 0) return Number.POSITIVE_INFINITY
-
-  return expressed.reduce((total, [target, actual]) => total + Math.abs(target - actual), 0)
-    / expressed.length
 }
 
 function scoreQuestion(

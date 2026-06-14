@@ -237,6 +237,19 @@ export function resolveCocktailsByRecommendationState(
   }
 }
 
+export function getQuestionCandidatePool(
+  pool: CocktailData[],
+  state: RecommendationState,
+): { cocktails: CocktailData[]; exactMatch: boolean } {
+  const exactMatches = filterCocktailsByRecommendationState(pool, state)
+  if (exactMatches.length > 0) return { cocktails: exactMatches, exactMatch: true }
+
+  return {
+    cocktails: pool.filter((cocktail) => matchesHardConstraints(cocktail, state)),
+    exactMatch: false,
+  }
+}
+
 export function createRecommendationDecision(
   cocktail: CocktailData,
   state: RecommendationState,

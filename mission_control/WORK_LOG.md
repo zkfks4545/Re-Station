@@ -1,5 +1,167 @@
 ﻿# 작업 이력
 
+## 2026-06-14 / RST-402 / 추천 설문 종료 정책 개선
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-402 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 설문이 점수상 명확한 1위나 정확 일치 실패만으로 너무 빨리 종료되지 않도록 종료 정책과 후보 풀 관리를 개선한다. |
+| 수정 파일 | `bar_tend/src/hooks/useRecommendationSession.ts`, `src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `src/lib/recommendation/state.ts`, `state.test.ts`, `mission_control/ARCHITECTURE.md`, `PROJECT_VISION.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 점수 차 기반 조기 종료를 제거하고 실제 후보가 1개일 때만 조기 종료한다. 누적 답변은 매번 전체 후보군에 적용하며, 정확 일치가 없으면 하드 조건을 지키는 후보군에서 남은 항목을 추가 질문한 뒤 최대 3문항 시점에 최근접 결과를 선택한다. 맡기기만 질문 수와 무관하게 즉시 종료한다. |
+| 실패한 시도 | 첫 검증에서 제거된 import와 종료 판정 함수의 미사용 인자가 타입·린트 오류로 발견되어 함수 계약과 호출부를 정리했다. |
+| 발견한 문제 | 이전 세션은 좁혀진 후보 풀만 다음 답변에 재사용하고 정확 일치 실패 시 즉시 종료해, 아키네이터처럼 추가 조건으로 최근접 후보를 구분할 수 없었다. |
+| 후속 작업 제안 | 실제 사용자 로그를 바탕으로 2문항 시점에 남은 후보 요약을 대화에 노출할지 검토한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 47개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 300.68 kB |
+
+## 2026-06-14 / DATA-004 / 칵테일 DB 문체·표기 통일
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | DATA-004 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 칵테일 DB의 레시피, 재료 목록과 설명문 스타일을 하나의 표시 계약으로 통일한다. |
+| 수정 파일 | `bar_tend/src/data/cocktail-db.json`, `src/lib/cocktails/database.ts`, `database.test.ts`, `mission_control/ARCHITECTURE.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | DB 스키마를 1.1.0으로 올리고 레시피를 한국어·ml 중심 표기로 정리했다. 재료 목록은 DB 레시피에서 수량을 제거해 생성하며, 설명문은 중립적인 한 문장 `…칵테일입니다.` 형식으로 통일했다. 레거시 영문 레시피와 장문 스토리의 우선 표시를 제거했다. |
+| 실패한 시도 | 설명문 편차 검색용 `rg` 명령 하나가 PowerShell 인용 문제로 실패해 단순 패턴 검색과 계약 테스트로 재검증했다. |
+| 발견한 문제 | 일부 기존 칵테일은 JSON보다 `database.ts`의 레거시 영문 레시피와 장문 스토리가 우선되어 JSON만 수정해서는 화면 스타일이 통일되지 않았다. |
+| 후속 작업 제안 | 새 칵테일 추가 시 동일 계약 테스트를 유지하고, 구조화 레시피 필드가 필요해지면 문자열 파싱 대신 별도 배열 스키마로 승격한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 45개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 301.12 kB |
+
+## 2026-06-14 / RST-501 / 추천 JSON 문장 중립화
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-501 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 질문 JSON에서 카루아식 말투와 비유를 제거하고 중립적인 질문·선택 확인 문장으로 교체한다. |
+| 수정 파일 | `bar_tend/src/data/recommendation-questions.json`, `src/lib/recommendation/question-engine.test.ts`, `mission_control/ARCHITECTURE.md`, `PROJECT_VISION.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 선택지 라벨과 구조화 신호는 유지하고 `prompt`, `acknowledgement`만 중립화했다. 칵테일 카드용 `cocktail-db.json` 설명은 변경하지 않았다. |
+| 실패한 시도 | 없음 |
+| 발견한 문제 | 추천 JSON의 문장이 데이터 계약과 캐릭터 표현을 동시에 담당해 향후 말투 계층 분리가 어려웠다. |
+| 후속 작업 제안 | 캐릭터 말투가 필요한 지점은 JSON 원문을 변경하지 않고 표현 계층에서 포장한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 44개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 301.09 kB |
+
+## 2026-06-14 / RST-501 / 설문 밖 아무거나 랜덤 추천
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-501 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 활성 추천 질문이 없을 때 `아무거나` 표현을 설문 시작 없이 즉시 랜덤 추천으로 처리한다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/input-router.ts`, `input-router.test.ts`, `src/hooks/useRecommendationSession.ts`, `useRestationController.ts`, `src/lib/recommendation/response.ts`, `response.test.ts`, `mission_control/ARCHITECTURE.md`, `PROJECT_VISION.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 설문 밖 긍정형 `아무거나`는 전체 DB 랜덤 추천으로 분기하고, 설문 중에는 이전 답변을 반영한 맡기기로 유지한다. `아무거나 말고`, `아무거나는 싫어` 같은 부정형은 랜덤 추천으로 오인하지 않는다. |
+| 실패한 시도 | 없음 |
+| 발견한 문제 | 같은 `아무거나` 표현도 활성 추천 상태 유무에 따라 의미가 달라 입력 라우터에서 명시적으로 분기할 필요가 있었다. |
+| 후속 작업 제안 | 랜덤 추천에서 직전에 제공한 칵테일을 제외하는 재추천 정책은 `RST-403`에서 함께 검토한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 44개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 301.07 kB |
+
+## 2026-06-14 / RST-501 / 아무거나 맡기기 별칭
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-501 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 활성 추천 질문에서 `아무거나` 표현을 `카루아에게 맡기기`와 같은 즉시 추천 의도로 파싱한다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `mission_control/ARCHITECTURE.md`, `PROJECT_VISION.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `아무거나`, `그냥 아무거나 골라줘`는 기존 추천 상태를 유지한 채 질문을 종료하고, `아무거나 말고` 같은 부정형은 맡기기로 오인하지 않는다. |
+| 실패한 시도 | 없음 |
+| 발견한 문제 | 사용자가 자연스럽게 `아무거나`라고 답하면 기존에는 일반 자유 입력으로 처리되어 다음 질문이 이어졌다. |
+| 후속 작업 제안 | 추천 질문 선택·취소·완료 흐름 테스트에서 자연어 맡기기 별칭을 포함할 것 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 41개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 300.43 kB |
+
+## 2026-06-14 / RST-501 / 추천 질문 반복 안내 제거
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-501 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 선택지 버튼과 텍스트 입력창이 이미 보이는 추천 질문에서 반복 조작 안내 문구를 제거했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `mission_control/CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 질문 포맷은 직전 반응과 질문 문구만 출력한다. 선택지와 자유 입력 기능은 그대로 유지하고, 안내 문구가 다시 추가되지 않도록 회귀 테스트를 수정했다. |
+| 실패한 시도 | 없음 |
+| 발견한 문제 | `(선택하거나 직접 말씀하셔도 돼요)`가 모든 질문마다 반복되어 대화 리듬을 끊고 설문 느낌을 강화했다. |
+| 후속 작업 제안 | 브라우저에서 안내문 제거 후 질문과 선택지 사이 여백을 수동 확인 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 40개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 300.26 kB |
+
+## 2026-06-14 / RST-701 / 저장소 실패 경계 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-14 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 브라우저 저장소가 차단되거나 저장 데이터가 손상돼도 손님 세션과 도감 흐름이 중단되지 않도록 저장 모듈을 보강하고 회귀 테스트를 추가했다. |
+| 수정 파일 | `bar_tend/src/lib/storage/guest-session-store.ts`, `mission_control/ARCHITECTURE.md`, `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 생성 파일 | `bar_tend/src/lib/storage/storage.test.ts` |
+| 주요 변경 사항 | 세션 저장 실패 예외 흡수, 취향·감정·최근 주제·교환 횟수 필드 검증, 손상 데이터 기본값 복구, 이전 저장 키 마이그레이션과 읽기·쓰기 차단 테스트 |
+| 실패한 시도 | 없음 |
+| 발견한 문제 | 도감 저장은 localStorage 쓰기 실패를 흡수했지만 손님 세션 저장은 예외를 전파해 대화 입력과 밤 초기화를 중단시킬 수 있었다. |
+| 후속 작업 제안 | 추천 질문 선택·취소·완료 흐름을 테스트 가능한 순수 경계로 분리하고 회귀 테스트 추가 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 40개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 300.31 kB |
+
 ## 2026-06-13 / DISC-001-B / JSON 규모 통제와 역할 분리 논의
 
 | 항목 | 내용 |

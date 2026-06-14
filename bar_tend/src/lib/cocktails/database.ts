@@ -703,6 +703,18 @@ function isFuzzyMatch(query: string, target: string): boolean {
   return levenshteinDistance(query, target) <= threshold
 }
 
+function parseRecipeIngredients(recipe: string): string[] {
+  return recipe
+    .split(',')
+    .map((part) => part.trim())
+    .map((part) => part
+      .replace(/\s+바 스푼 \d+개$/, '')
+      .replace(/\s+\d+(?:\.\d+)?(?:~\d+(?:\.\d+)?)?\s*(?:ml|oz|대시|티스푼|개|조각)$/i, '')
+      .replace(/\s+(?:한 꼬집|약간(?: \(선택\))?)$/, '')
+      .trim())
+    .filter((ingredient) => ingredient && !ingredient.startsWith('배합 비공개'))
+}
+
 function createCocktailData(record: CocktailRecord): CocktailData {
   const scale = (n: number) => Math.max(1, Math.min(5, Math.round(n * 5)))
   const legacyMatch = legacyCocktails.find(
@@ -711,10 +723,7 @@ function createCocktailData(record: CocktailRecord): CocktailData {
       (c.nameEn && record.name_en && c.nameEn === record.name_en) ||
       c.name === record.name_ko,
   )
-  const ingredients = record.recipe
-    .split(/,|—/)
-    .map((s) => s.trim())
-    .filter(Boolean)
+  const ingredients = parseRecipeIngredients(record.recipe)
 
   return {
     id: record.id,
@@ -741,10 +750,9 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     },
     aroma: legacyMatch?.aroma ?? [],
     base: record.base_spirit ?? (isSignatureCocktail(record) ? record.bar_name : 'Classic'),
-    ingredients: legacyMatch?.ingredients ?? ingredients,
-    recipe: legacyMatch?.recipe,
-    recipeText: legacyMatch?.recipeText ?? record.recipe,
-    story: legacyMatch?.story ?? record.description,
+    ingredients,
+    recipeText: record.recipe,
+    story: record.description,
     vibe: legacyMatch?.vibe ?? (
       isSignatureCocktail(record)
         ? `Signature @ ${record.bar_name}`

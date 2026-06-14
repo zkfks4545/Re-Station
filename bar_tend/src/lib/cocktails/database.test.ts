@@ -28,6 +28,17 @@ describe('cocktail data contract', () => {
     )).toBe(true)
     expect(findCocktailByName('팔로마 한 잔')?.recipe_source_url).toContain('/paloma/')
   })
+
+  it('uses one neutral DB style for recipes, ingredients, and descriptions', () => {
+    for (const cocktail of cocktails) {
+      expect(cocktail.story).toBe(cocktail.description)
+      expect(cocktail.recipeText).not.toMatch(/\boz\b/i)
+      expect(cocktail.description).toMatch(/칵테일입니다\.$/)
+      expect(cocktail.ingredients.every((ingredient) =>
+        !/\d+(?:\.\d+)?\s*(?:ml|oz|대시|티스푼|개|조각)|바 스푼/i.test(ingredient),
+      )).toBe(true)
+    }
+  })
 })
 
 describe('explicit cocktail lookup', () => {

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { getCocktailById } from '../cocktails/database.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
-import { formatExplicitCocktailReply, formatRecommendationReply } from './response.js'
+import {
+  formatExplicitCocktailReply,
+  formatRandomRecommendationReply,
+  formatRecommendationReply,
+} from './response.js'
 
 describe('recommendation dialogue copy', () => {
   it('keeps explicit cocktail character copy in dialogue without factual card copy', () => {
@@ -23,6 +27,15 @@ describe('recommendation dialogue copy', () => {
     expect(reply).toContain(`「${cocktail.name}」`)
     expect(reply).toContain('탄산감 취향과 가까워요')
     expect(reply).toContain('눈치가 빠르죠')
+    expect(reply).not.toContain(cocktail.description)
+  })
+
+  it('uses distinct copy for a random recommendation', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const reply = formatRandomRecommendationReply(cocktail)
+
+    expect(reply).toContain(`「${cocktail.name}」`)
+    expect(reply).toContain('선택권은 방금 제게 넘기셨어요')
     expect(reply).not.toContain(cocktail.description)
   })
 

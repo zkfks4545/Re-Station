@@ -6,6 +6,7 @@ import {
   createRecommendationState,
   extractRecommendationSignals,
   filterCocktailsByRecommendationState,
+  getQuestionCandidatePool,
   resolveCocktailsByRecommendationState,
 } from './state.js'
 
@@ -65,5 +66,21 @@ describe('recommendation state', () => {
     expect(resolved.exactMatch).toBe(false)
     expect(resolved.cocktails.length).toBeGreaterThan(0)
     expect(resolved.cocktails.every((cocktail) => cocktail.base_spirit === '진')).toBe(true)
+  })
+
+  it('keeps a broader hard-constraint pool for follow-up questions after an exact miss', () => {
+    const state = applyRecommendationSignals(createRecommendationState(), [
+      { field: 'preferredIngredients', value: '진', confidence: 1, source: 'question' },
+      { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'question' },
+      { field: 'taste.sourness', value: 0.2, confidence: 1, source: 'question' },
+      { field: 'taste.fizz', value: 0.8, confidence: 1, source: 'question' },
+    ])
+    const cocktails = getAllCocktailData()
+    const questionCandidates = getQuestionCandidatePool(cocktails, state)
+    const nearest = resolveCocktailsByRecommendationState(cocktails, state)
+
+    expect(questionCandidates.exactMatch).toBe(false)
+    expect(questionCandidates.cocktails.length).toBeGreaterThan(nearest.cocktails.length)
+    expect(questionCandidates.cocktails.every((cocktail) => cocktail.base_spirit === '진')).toBe(true)
   })
 })

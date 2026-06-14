@@ -10,9 +10,10 @@ import {
   pickFromPool,
   selectNextQuestion,
 } from '@/lib/recommendation/question-engine.js'
-import { findCocktailByName } from '@/lib/cocktails/database.js'
+import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
 import {
   formatExplicitCocktailReply,
+  formatRandomRecommendationReply,
   formatRecommendationReply,
 } from '@/lib/recommendation/response.js'
 import {
@@ -22,7 +23,7 @@ import {
   createRecommendationDecision,
   createRecommendationState,
   extractRecommendationSignals,
-  filterCocktailsByRecommendationState,
+  getQuestionCandidatePool,
   resolveCocktailsByRecommendationState,
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
@@ -48,6 +49,18 @@ export function useRecommendationSession() {
     setActiveQuestionId(null)
     setRecommendationState(createRecommendationState())
   }, [])
+
+  const resolveRandomRecommendation = useCallback((): RecommendationResult => {
+    const cocktail = getRandomCocktail()
+    const state = createRecommendationState()
+    resetRecommendation()
+    return {
+      cocktail,
+      decision: createRecommendationDecision(cocktail, state),
+      reply: formatRandomRecommendationReply(cocktail),
+      expression: 'smirk',
+    }
+  }, [resetRecommendation])
 
   const resolveRecommendation = useCallback(
     (text: string, preference: TastePreference): RecommendationResult | null => {
@@ -80,12 +93,10 @@ export function useRecommendationSession() {
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
-      const sourcePool = candidatePool ?? initCandidatePool()
-      const exactPool = filterCocktailsByRecommendationState(sourcePool, nextState)
-      const resolved = exactPool.length > 0
-        ? { cocktails: exactPool, exactMatch: true }
-        : resolveCocktailsByRecommendationState(sourcePool, nextState)
-      const pool = resolved.cocktails
+      const sourcePool = initCandidatePool()
+      const questionCandidates = getQuestionCandidatePool(sourcePool, nextState)
+      const resolved = resolveCocktailsByRecommendationState(sourcePool, nextState)
+      const pool = questionCandidates.cocktails
       const combinedTaste = { ...tasteSnapshot, ...nextState.taste }
 
       if (pool.length === 0) {
@@ -99,8 +110,7 @@ export function useRecommendationSession() {
       }
 
       const nextQuestion = finishRecommendation
-        || !resolved.exactMatch
-        || isRecommendationDecisive(pool, nextState)
+        || isRecommendationDecisive(pool)
         ? null
         : selectNextQuestion(pool, nextState)
 
@@ -114,12 +124,17 @@ export function useRecommendationSession() {
         return {
           cocktail: null,
           decision: null,
-          reply: formatQuestion(nextQuestion, acknowledgement),
+          reply: formatQuestion(
+            nextQuestion,
+            questionCandidates.exactMatch
+              ? acknowledgement
+              : '정확히 일치하는 후보는 아직 없습니다. 가까운 후보를 좁히기 위해 조건을 더 확인합니다.',
+          ),
           expression: 'thinking',
         }
       }
 
-      const cocktail = pickFromPool(pool, combinedTaste)
+      const cocktail = pickFromPool(resolved.cocktails, combinedTaste)
       if (!cocktail) return null
       const decision = createRecommendationDecision(cocktail, nextState)
       resetRecommendation()
@@ -141,6 +156,7 @@ export function useRecommendationSession() {
   return {
     activeQuestion: getQuestionById(activeQuestionId),
     resetRecommendation,
+    resolveRandomRecommendation,
     resolveRecommendation,
   }
 }

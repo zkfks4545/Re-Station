@@ -62,7 +62,7 @@ describe('adaptive recommendation questions', () => {
     const filtered = filterCocktailsByRecommendationState(getAllCocktailData(), result.state)
 
     expect(result.state.preferredIngredients).toEqual(['진'])
-    expect(result.acknowledgement).toContain('깔끔한 척')
+    expect(result.acknowledgement).toBe('진을 선호 베이스로 반영했습니다.')
     expect(filtered.length).toBeGreaterThan(1)
     expect(filtered.length).toBeLessThan(getAllCocktailData().length)
     expect(filtered.every((cocktail) => cocktail.base_spirit === '진')).toBe(true)
@@ -80,7 +80,7 @@ describe('adaptive recommendation questions', () => {
     expect(filtered.every((cocktail) => cocktail.features.fizz >= 0.45)).toBe(true)
   })
 
-  it('accepts free text answers and keeps question copy concise for choice UI', () => {
+  it('accepts free text answers without repeating input guidance in question copy', () => {
     const question = getQuestionById('fizz')
     expect(question).not.toBeNull()
 
@@ -89,7 +89,7 @@ describe('adaptive recommendation questions', () => {
 
     expect(result.state.taste.fizz).toBe(0.1)
     expect(rendered).toContain(question!.prompt)
-    expect(rendered).toContain('직접 말씀하셔도')
+    expect(rendered).not.toContain('직접 말씀하셔도')
     expect(rendered).not.toContain('1. 톡 쏘고 청량하게')
   })
 
@@ -107,6 +107,21 @@ describe('adaptive recommendation questions', () => {
     expect(delegated.finishRecommendation).toBe(true)
     expect(delegated.state).toEqual(createRecommendationState())
     expect(unknown.finishRecommendation).toBe(false)
+  })
+
+  it('treats 아무거나 as asking Kahlua to take over while preserving prior answers', () => {
+    const question = getQuestionById('fizz')!
+    const state = applyRecommendationSignals(createRecommendationState(), [
+      { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'question' },
+    ])
+    const delegated = applyQuestionAnswer(state, question, '그냥 아무거나 골라줘')
+    const rejected = applyQuestionAnswer(state, question, '아무거나 말고 탄산 없이 잔잔하게')
+
+    expect(delegated.finishRecommendation).toBe(true)
+    expect(delegated.state).toEqual(state)
+    expect(delegated.acknowledgement).toBe('현재까지의 응답을 기준으로 추천합니다.')
+    expect(rejected.finishRecommendation).toBe(false)
+    expect(rejected.state.taste.fizz).toBe(0.1)
   })
 
   it('maps every cocktail to at least one answer in every recommendation question', () => {
@@ -170,7 +185,7 @@ describe('adaptive recommendation questions', () => {
     }
   })
 
-  it('stops asking when two answers make one candidate clearly dominant', () => {
+  it('keeps asking when two answers only make one candidate clearly dominant', () => {
     const baseQuestion = getQuestionById('base-spirit')!
     const flavorQuestion = getQuestionById('flavor-profile')!
     const baseState = applyQuestionAnswer(
@@ -182,8 +197,15 @@ describe('adaptive recommendation questions', () => {
     const pool = filterCocktailsByRecommendationState(getAllCocktailData(), state)
 
     expect(pool.length).toBeGreaterThan(1)
-    expect(isRecommendationDecisive(pool, state)).toBe(true)
+    expect(isRecommendationDecisive(pool)).toBe(false)
+    expect(selectNextQuestion(pool, state)).not.toBeNull()
     expect(pool.some((cocktail) => cocktail.name === '데킬라 선라이즈')).toBe(true)
+  })
+
+  it('ends early only when one candidate actually remains', () => {
+    const cocktail = getAllCocktailData()[0]
+
+    expect(isRecommendationDecisive([cocktail])).toBe(true)
   })
 
   it('keeps asking when only a broad base preference is known', () => {
@@ -191,7 +213,7 @@ describe('adaptive recommendation questions', () => {
     const state = applyQuestionAnswer(createRecommendationState(), question, '진').state
     const pool = filterCocktailsByRecommendationState(getAllCocktailData(), state)
 
-    expect(isRecommendationDecisive(pool, state)).toBe(false)
+    expect(isRecommendationDecisive(pool)).toBe(false)
     expect(selectNextQuestion(pool, state)).not.toBeNull()
   })
 })

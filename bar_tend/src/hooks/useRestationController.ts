@@ -27,7 +27,12 @@ export function useRestationController() {
     ingestUserMessage,
     resetNight,
   } = useGuestPreferenceSession()
-  const { activeQuestion, resetRecommendation, resolveRecommendation } = useRecommendationSession()
+  const {
+    activeQuestion,
+    resetRecommendation,
+    resolveRandomRecommendation,
+    resolveRecommendation,
+  } = useRecommendationSession()
 
   const clearPendingWork = useCallback(() => {
     timerRegistry.current.clearAll()
@@ -130,7 +135,9 @@ export function useRestationController() {
       timerRegistry.current.schedule(() => {
         try {
           const recommendation =
-            inputRoute === 'explicit-cocktail' || inputRoute === 'recommendation'
+            inputRoute === 'random-recommendation'
+              ? resolveRandomRecommendation()
+              : inputRoute === 'explicit-cocktail' || inputRoute === 'recommendation'
               ? resolveRecommendation(text, preference)
               : null
           const fallback = getCocktailResponse(text, messages)
@@ -159,6 +166,7 @@ export function useRestationController() {
       ingestUserMessage,
       handleExit,
       resetRecommendation,
+      resolveRandomRecommendation,
       resolveRecommendation,
       preference,
       messages,

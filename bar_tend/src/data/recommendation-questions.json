@@ -2,26 +2,26 @@
   {
     "id": "base-spirit",
     "topic": "base",
-    "prompt": "베이스는 어느 쪽이 당기세요? 술도 출신 성분을 꽤 따지거든요.",
+    "prompt": "선호하는 베이스 기주를 선택해 주세요.",
     "choices": [
       {
         "label": "진",
-        "acknowledgement": "진이군요. 깔끔한 척은 꽤 잘하죠.",
+        "acknowledgement": "진을 선호 베이스로 반영했습니다.",
         "signals": [{ "field": "preferredIngredients", "value": "진", "confidence": 1, "source": "question" }]
       },
       {
         "label": "럼",
-        "acknowledgement": "럼, 알겠어요. 휴양지는 잔 안에 넣죠.",
+        "acknowledgement": "럼을 선호 베이스로 반영했습니다.",
         "signals": [{ "field": "preferredIngredients", "value": "럼", "confidence": 1, "source": "question" }]
       },
       {
         "label": "위스키",
-        "acknowledgement": "위스키군요. 잔이 갑자기 오래 살아 보이네요.",
+        "acknowledgement": "위스키를 선호 베이스로 반영했습니다.",
         "signals": [{ "field": "preferredIngredients", "value": "위스키", "confidence": 1, "source": "question" }]
       },
       {
         "label": "데킬라 또는 보드카",
-        "acknowledgement": "선명하게 가는 쪽, 접수했어요.",
+        "acknowledgement": "데킬라와 보드카를 선호 베이스로 반영했습니다.",
         "signals": [
           { "field": "preferredIngredients", "value": "데킬라", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "보드카", "confidence": 1, "source": "question" }
@@ -29,7 +29,7 @@
       },
       {
         "label": "브랜디·리큐르·시그니처",
-        "acknowledgement": "조금 다른 병들을 열어보죠.",
+        "acknowledgement": "브랜디, 리큐르와 시그니처 칵테일을 후보로 반영했습니다.",
         "signals": [
           { "field": "preferredIngredients", "value": "브랜디", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "리큐르", "confidence": 1, "source": "question" },
@@ -38,7 +38,7 @@
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "제 판단력을 믿으시다니, 서로 대담하네요.",
+        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
         "signals": [],
         "finishRecommendation": true
       }
@@ -47,26 +47,26 @@
   {
     "id": "flavor-profile",
     "topic": "flavor",
-    "prompt": "오늘은 어떤 맛의 인상이 당기세요? 잔의 첫인상부터 정해보죠.",
+    "prompt": "선호하는 맛과 풍미를 선택해 주세요.",
     "choices": [
       {
         "label": "달콤하고 과일향 나게",
-        "acknowledgement": "달콤하고 과일향 있게. 잔이 먼저 친한 척하겠네요.",
+        "acknowledgement": "달콤하고 과일향이 나는 맛을 반영했습니다.",
         "signals": [{ "field": "taste.sweetness", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
         "label": "상큼하고 시트러스하게",
-        "acknowledgement": "상큼하게. 표정이 먼저 깨어나겠네요.",
+        "acknowledgement": "상큼하고 시트러스한 맛을 반영했습니다.",
         "signals": [{ "field": "taste.sourness", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
         "label": "드라이하고 쌉쌀하게",
-        "acknowledgement": "드라이하게. 표정 관리가 쉬운 맛이죠.",
+        "acknowledgement": "드라이하고 쌉쌀한 맛을 반영했습니다.",
         "signals": [{ "field": "taste.sweetness", "value": 0.2, "confidence": 1, "source": "question" }]
       },
       {
         "label": "균형 잡히고 부드럽게",
-        "acknowledgement": "균형 있게. 튀는 재료들은 잠깐 앉혀둘게요.",
+        "acknowledgement": "균형 잡히고 부드러운 맛을 반영했습니다.",
         "signals": [
           { "field": "taste.sweetness", "value": 0.5, "confidence": 1, "source": "question" },
           { "field": "taste.sourness", "value": 0.4, "confidence": 1, "source": "question" }
@@ -74,7 +74,7 @@
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "첫인상까지 제게 맡기시네요.",
+        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
         "signals": [],
         "finishRecommendation": true
       }
@@ -83,26 +83,26 @@
   {
     "id": "alcohol-strength",
     "topic": "alcohol",
-    "prompt": "도수는 가볍게 갈까요, 존재감 있게 갈까요?",
+    "prompt": "선호하는 알코올 도수를 선택해 주세요.",
     "choices": [
       {
         "label": "가볍게",
-        "acknowledgement": "가볍게. 잔도 야근은 싫어하거든요.",
+        "acknowledgement": "낮은 알코올 도수를 반영했습니다.",
         "signals": [{ "field": "alcoholPreference", "value": "low", "confidence": 1, "source": "question" }]
       },
       {
         "label": "적당하게",
-        "acknowledgement": "적당히. 아주 책임감 있는 애매함이네요.",
+        "acknowledgement": "중간 알코올 도수를 반영했습니다.",
         "signals": [{ "field": "alcoholPreference", "value": "medium", "confidence": 1, "source": "question" }]
       },
       {
         "label": "강하게, 천천히",
-        "acknowledgement": "강하게, 대신 천천히요. 잔에 브레이크는 없어서.",
+        "acknowledgement": "높은 알코올 도수를 반영했습니다. 천천히 마시는 것을 권장합니다.",
         "signals": [{ "field": "alcoholPreference", "value": "high", "confidence": 1, "source": "question" }]
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "도수계도 제게 넘기셨네요.",
+        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
         "signals": [],
         "finishRecommendation": true
       }
@@ -111,21 +111,21 @@
   {
     "id": "fizz",
     "topic": "fizz",
-    "prompt": "마시는 느낌은 어느 쪽이 좋아요? 기포가 수다스러울지, 잔잔할지요.",
+    "prompt": "선호하는 탄산감을 선택해 주세요.",
     "choices": [
       {
         "label": "톡 쏘고 청량하게",
-        "acknowledgement": "수다스러운 잔으로 가죠.",
+        "acknowledgement": "청량한 탄산감을 반영했습니다.",
         "signals": [{ "field": "taste.fizz", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
         "label": "탄산 없이 잔잔하게",
-        "acknowledgement": "조용한 잔으로 둘게요.",
+        "acknowledgement": "탄산이 없는 선택을 반영했습니다.",
         "signals": [{ "field": "taste.fizz", "value": 0.1, "confidence": 1, "source": "question" }]
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "기포의 발언권도 제가 정하죠.",
+        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
         "signals": [],
         "finishRecommendation": true
       }
