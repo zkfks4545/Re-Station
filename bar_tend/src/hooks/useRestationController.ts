@@ -29,6 +29,7 @@ export function useRestationController() {
   } = useGuestPreferenceSession()
   const {
     activeQuestion,
+    clearExcludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,
     resolveRecommendation,
@@ -87,9 +88,10 @@ export function useRestationController() {
       setInteractionStatus('idle')
       setSidebarOpen(false)
       setServedCocktail(null)
+      clearExcludedCocktailIds()
       resetRecommendation()
     }, 2000)
-  }, [bartenderReply, clearPendingWork, resetRecommendation])
+  }, [bartenderReply, clearPendingWork, clearExcludedCocktailIds, resetRecommendation])
 
   const handleResetNight = useCallback(() => {
     clearPendingWork()
@@ -98,12 +100,13 @@ export function useRestationController() {
     setExpression('idle')
     setErrorMessage(null)
     setServedCocktail(null)
+    clearExcludedCocktailIds()
     resetRecommendation()
     bartenderReply(
       '대화와 취향 정보를 초기화했습니다.\n도감에 등록된 칵테일 정보는 유지됩니다.',
       'idle',
     )
-  }, [clearPendingWork, resetNight, resetRecommendation, bartenderReply])
+  }, [clearPendingWork, resetNight, clearExcludedCocktailIds, resetRecommendation, bartenderReply])
 
   const handleCancelRecommendation = useCallback(() => {
     if (interactionStatus !== 'idle' || !activeQuestion) return
@@ -175,6 +178,12 @@ export function useRestationController() {
     ],
   )
 
+  const handleReRecommend = useCallback(() => {
+    if (interactionStatus !== 'idle') return
+    setServedCocktail(null)
+    handleSend('다른 걸로 추천해줘')
+  }, [handleSend, interactionStatus])
+
   return {
     scene,
     messages,
@@ -189,6 +198,7 @@ export function useRestationController() {
     unlockedIds,
     handleEnter,
     handleExit,
+    handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
     handleSend,

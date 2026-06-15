@@ -23,6 +23,7 @@ export default function App() {
     unlockedIds,
     handleEnter,
     handleExit,
+    handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
     handleSend,
@@ -132,6 +133,7 @@ export default function App() {
           <CocktailCard
             cocktail={servedCocktail}
             onClose={() => setServedCocktail(null)}
+            onReRecommend={handleReRecommend}
           />
         )}
       </div>

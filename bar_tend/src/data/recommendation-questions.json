@@ -33,6 +33,7 @@
         "signals": [
           { "field": "preferredIngredients", "value": "브랜디", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "리큐르", "confidence": 1, "source": "question" },
+          { "field": "preferredIngredients", "value": "카샤사", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "시그니처", "confidence": 1, "source": "question" }
         ]
       },

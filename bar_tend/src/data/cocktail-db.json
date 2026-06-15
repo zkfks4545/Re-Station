@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "partner_bars": [
     {
       "id": "bar_pukey_hongdae",
@@ -572,6 +572,240 @@
         "alcohol_strength": 0.55,
         "fizz": 0.85,
         "sourness": 0.55
+      }
+    },
+    {
+      "id": "cocktail_classic_030",
+      "name": "Manhattan",
+      "name_en": "Manhattan",
+      "name_ko": "맨해튼",
+      "type": "CLASSIC",
+      "base_spirit": "위스키",
+      "recipe": "라이 위스키 50ml, 스위트 베르무트 20ml, 앙고스투라 비터스 1대시",
+      "description": "라이 위스키와 스위트 베르무트, 비터스의 쌉싸름하고 깊은 풍미가 어우러진 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/manhattan/",
+      "official_category": "The Unforgettables",
+      "features": {
+        "sweetness": 0.3,
+        "alcohol_strength": 0.85,
+        "fizz": 0.0,
+        "sourness": 0.15
+      }
+    },
+    {
+      "id": "cocktail_classic_031",
+      "name": "Mint Julep",
+      "name_en": "Mint Julep",
+      "name_ko": "민트 줄렙",
+      "type": "CLASSIC",
+      "base_spirit": "위스키",
+      "recipe": "버번 위스키 60ml, 민트 약간, 설탕 1티스푼, 물 약간",
+      "description": "버번 위스키에 신선한 민트 향을 더한 시원하고 향긋한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/mint-julep/",
+      "official_category": "The Unforgettables",
+      "features": {
+        "sweetness": 0.35,
+        "alcohol_strength": 0.65,
+        "fizz": 0.0,
+        "sourness": 0.1
+      }
+    },
+    {
+      "id": "cocktail_classic_032",
+      "name": "Bloody Mary",
+      "name_en": "Bloody Mary",
+      "name_ko": "블러디 메리",
+      "type": "CLASSIC",
+      "base_spirit": "보드카",
+      "recipe": "보드카 45ml, 토마토 주스 90ml, 레몬 주스 15ml, 우스터 소스 2대시, 타바스코 약간, 소금·후추 약간",
+      "description": "보드카에 토마토 주스와 향신료를 더한 짭짤하고 스파이시한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/bloody-mary/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.15,
+        "alcohol_strength": 0.35,
+        "fizz": 0.0,
+        "sourness": 0.55
+      }
+    },
+    {
+      "id": "cocktail_classic_033",
+      "name": "Caipirinha",
+      "name_en": "Caipirinha",
+      "name_ko": "카이피리냐",
+      "type": "CLASSIC",
+      "base_spirit": "카샤사",
+      "recipe": "카샤사 60ml, 라임 반 개, 설탕 2티스푼",
+      "description": "카샤사와 라임, 설탕의 단순한 조합이 만들어내는 상큼하고 깔끔한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/caipirinha/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.4,
+        "alcohol_strength": 0.6,
+        "fizz": 0.0,
+        "sourness": 0.7
+      }
+    },
+    {
+      "id": "cocktail_classic_034",
+      "name": "Sazerac",
+      "name_en": "Sazerac",
+      "name_ko": "사제락",
+      "type": "CLASSIC",
+      "base_spirit": "위스키",
+      "recipe": "라이 위스키 45ml, 압생트 약간, 각설탕 1개, 페이쇼 비터스 3대시, 레몬 껍질",
+      "description": "위스키와 압생트가 만든 쌉싸름하고 허브 향이 풍부한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/sazerac/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.2,
+        "alcohol_strength": 0.9,
+        "fizz": 0.0,
+        "sourness": 0.1
+      }
+    },
+    {
+      "id": "cocktail_classic_035",
+      "name": "Singapore Sling",
+      "name_en": "Singapore Sling",
+      "name_ko": "싱가포르 슬링",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 30ml, 체리 브랜디 15ml, 그레나딘 10ml, 라임 주스 10ml, 소다수 약간",
+      "description": "진에 체리 브랜디와 과일 시럽을 더한 화려하고 달콤한 롱 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/singapore-sling/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.65,
+        "alcohol_strength": 0.4,
+        "fizz": 0.6,
+        "sourness": 0.4
+      }
+    },
+    {
+      "id": "cocktail_classic_036",
+      "name": "Tom Collins",
+      "name_en": "Tom Collins",
+      "name_ko": "톰 콜린스",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 45ml, 레몬 주스 30ml, 설탕 시럽 15ml, 소다수 약간",
+      "description": "진에 레몬과 소다수를 더한 청량하고 상쾌한 롱 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/tom-collins/",
+      "official_category": "The Unforgettables",
+      "features": {
+        "sweetness": 0.3,
+        "alcohol_strength": 0.35,
+        "fizz": 0.8,
+        "sourness": 0.7
+      }
+    },
+    {
+      "id": "cocktail_classic_037",
+      "name": "Aperol Spritz",
+      "name_en": "Aperol Spritz",
+      "name_ko": "아페롤 스프리츠",
+      "type": "CLASSIC",
+      "base_spirit": "리큐르",
+      "recipe": "아페롤 60ml, 프로세코 90ml, 소다수 약간",
+      "description": "아페롤의 쌉싸름한 오렌지 풍미에 프로세코가 더해진 가볍고 밝은 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/aperol-spritz/",
+      "official_category": "New Era Drinks",
+      "features": {
+        "sweetness": 0.4,
+        "alcohol_strength": 0.2,
+        "fizz": 0.9,
+        "sourness": 0.35
+      }
+    },
+    {
+      "id": "cocktail_classic_038",
+      "name": "Pisco Sour",
+      "name_en": "Pisco Sour",
+      "name_ko": "피스코 사워",
+      "type": "CLASSIC",
+      "base_spirit": "브랜디",
+      "recipe": "피스코 60ml, 레몬 주스 30ml, 설탕 시럽 20ml, 달걀 흰자 1개, 앙고스투라 비터스 약간",
+      "description": "피스코의 향긋한 포도 향과 레몬 산미, 부드러운 거품이 어우러진 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/pisco-sour/",
+      "official_category": "The Unforgettables",
+      "features": {
+        "sweetness": 0.3,
+        "alcohol_strength": 0.5,
+        "fizz": 0.0,
+        "sourness": 0.8
+      }
+    },
+    {
+      "id": "cocktail_classic_039",
+      "name": "Painkiller",
+      "name_en": "Painkiller",
+      "name_ko": "페인킬러",
+      "type": "CLASSIC",
+      "base_spirit": "럼",
+      "recipe": "럼 60ml, 파인애플 주스 120ml, 오렌지 주스 30ml, 코코넛 크림 30ml, 육두구 약간",
+      "description": "럼에 파인애플과 코코넛의 달콤함이 가득 담긴 열대 과일 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/painkiller/",
+      "official_category": "New Era Drinks",
+      "features": {
+        "sweetness": 0.7,
+        "alcohol_strength": 0.3,
+        "fizz": 0.0,
+        "sourness": 0.3
+      }
+    },
+    {
+      "id": "cocktail_classic_040",
+      "name": "Clover Club",
+      "name_en": "Clover Club",
+      "name_ko": "클로버 클럽",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 45ml, 그레나딘 15ml, 레몬 주스 15ml, 달걀 흰자 1개",
+      "description": "진과 라즈베리 시럽, 레몬 산미, 부드러운 거품이 어우러진 우아한 핑크빛 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/clover-club/",
+      "official_category": "The Unforgettables",
+      "features": {
+        "sweetness": 0.5,
+        "alcohol_strength": 0.55,
+        "fizz": 0.0,
+        "sourness": 0.6
+      }
+    },
+    {
+      "id": "cocktail_classic_041",
+      "name": "Bramble",
+      "name_en": "Bramble",
+      "name_ko": "브램블",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 40ml, 레몬 주스 15ml, 설탕 시럽 10ml, 크렘 드 뮤르 15ml",
+      "description": "진에 블랙베리 리큐르의 진한 베리 향과 레몬 산미가 어우러진 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/bramble/",
+      "official_category": "New Era Drinks",
+      "features": {
+        "sweetness": 0.5,
+        "alcohol_strength": 0.5,
+        "fizz": 0.0,
+        "sourness": 0.6
+      }
+    },
+    {
+      "id": "cocktail_classic_042",
+      "name": "Espresso Martini",
+      "name_en": "Espresso Martini",
+      "name_ko": "에스프레소 마티니",
+      "type": "CLASSIC",
+      "base_spirit": "보드카",
+      "recipe": "보드카 50ml, 깔루아 10ml, 에스프레소 30ml, 설탕 시럽 10ml",
+      "description": "보드카와 깔루아에 에스프레소의 진한 커피 풍미를 더한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/espresso-martini/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.35,
+        "alcohol_strength": 0.75,
+        "fizz": 0.0,
+        "sourness": 0.1
       }
     }
   ]

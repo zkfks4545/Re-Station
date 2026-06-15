@@ -43,11 +43,16 @@ export function useRecommendationSession() {
   const [recommendationState, setRecommendationState] = useState<RecommendationState>(
     createRecommendationState,
   )
+  const [excludedCocktailIds, setExcludedCocktailIds] = useState<string[]>([])
 
   const resetRecommendation = useCallback(() => {
     setCandidatePool(null)
     setActiveQuestionId(null)
     setRecommendationState(createRecommendationState())
+  }, [])
+
+  const clearExcludedCocktailIds = useCallback(() => {
+    setExcludedCocktailIds([])
   }, [])
 
   const resolveRandomRecommendation = useCallback((): RecommendationResult => {
@@ -93,7 +98,21 @@ export function useRecommendationSession() {
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
-      const sourcePool = initCandidatePool()
+      const sourcePool = initCandidatePool().filter(
+        (c) => !excludedCocktailIds.includes(c.id),
+      )
+
+      if (sourcePool.length === 0 && excludedCocktailIds.length > 0) {
+        setExcludedCocktailIds([])
+        resetRecommendation()
+        return {
+          cocktail: null,
+          decision: null,
+          reply: '모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.\n다시 한번 말씀해 주세요.',
+          expression: 'smirk',
+        }
+      }
+
       const questionCandidates = getQuestionCandidatePool(sourcePool, nextState)
       const resolved = resolveCocktailsByRecommendationState(sourcePool, nextState)
       const pool = questionCandidates.cocktails
@@ -137,6 +156,7 @@ export function useRecommendationSession() {
       const cocktail = pickFromPool(resolved.cocktails, combinedTaste)
       if (!cocktail) return null
       const decision = createRecommendationDecision(cocktail, nextState)
+      setExcludedCocktailIds((prev) => [...prev, cocktail.id])
       resetRecommendation()
 
       return {
@@ -150,11 +170,13 @@ export function useRecommendationSession() {
         expression: 'smirk',
       }
     },
-    [activeQuestionId, candidatePool, recommendationState, resetRecommendation],
+    [activeQuestionId, candidatePool, recommendationState, resetRecommendation, excludedCocktailIds],
   )
 
   return {
     activeQuestion: getQuestionById(activeQuestionId),
+    clearExcludedCocktailIds,
+    excludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,
     resolveRecommendation,

@@ -71,9 +71,9 @@ describe('recommendation state', () => {
   it('keeps a broader hard-constraint pool for follow-up questions after an exact miss', () => {
     const state = applyRecommendationSignals(createRecommendationState(), [
       { field: 'preferredIngredients', value: '진', confidence: 1, source: 'question' },
-      { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'question' },
-      { field: 'taste.sourness', value: 0.2, confidence: 1, source: 'question' },
-      { field: 'taste.fizz', value: 0.8, confidence: 1, source: 'question' },
+      { field: 'taste.sweetness', value: 0.9, confidence: 1, source: 'question' },
+      { field: 'taste.sourness', value: 0.0, confidence: 1, source: 'question' },
+      { field: 'taste.fizz', value: 0.9, confidence: 1, source: 'question' },
     ])
     const cocktails = getAllCocktailData()
     const questionCandidates = getQuestionCandidatePool(cocktails, state)

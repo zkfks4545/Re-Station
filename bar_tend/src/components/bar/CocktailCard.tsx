@@ -8,7 +8,7 @@ const tasteLabels = [
   ['alcohol', '도수'],
 ] as const
 
-export default function CocktailCard({ cocktail, onClose }: { cocktail: CocktailData; onClose: () => void }) {
+export default function CocktailCard({ cocktail, onClose, onReRecommend }: { cocktail: CocktailData; onClose: () => void; onReRecommend?: () => void }) {
   if (!cocktail) return null
 
   return (
@@ -73,6 +73,20 @@ export default function CocktailCard({ cocktail, onClose }: { cocktail: Cocktail
             </span>
           ))}
         </div>
+        {onReRecommend && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onReRecommend() }}
+            className="w-full py-2 rounded text-sm transition-all duration-200 cursor-pointer"
+            style={{
+              color: '#b088d0',
+              border: '1px solid rgba(180,136,208,0.25)',
+              background: 'rgba(120,80,180,0.08)',
+              textShadow: '0 0 6px rgba(120,80,180,0.15)',
+            }}
+          >
+            다시 추천받기
+          </button>
+        )}
       </div>
     </div>
   )

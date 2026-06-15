@@ -25,7 +25,7 @@ export function isRecommendationIntent(text: string): boolean {
     patterns.map((p) => /^[a-z]/i.test(p) ? `\\b${p}\\b` : p).join('|'),
     'i',
   )
-  if (kf(['추천', '골라', '마실', '칵테일', '한잔', '뭐 마실', '메뉴', '적당한', '다른\\s*(걸|거|술|칵테일)', '또.*추천', '별로', '다시\\s*찾']).test(text)) return true
+  if (kf(['추천', '골라', '마실', '칵테일', '한잔', '뭐 마실', '메뉴', '적당한', '다른\\s*(걸|거|술|칵테일)', '또.*추천', '별로', '다시\\s*(찾|추천)']).test(text)) return true
   if (kf(['달콤', '달달', '달다', '씁쓸', '쓰다', '비터', '상쾌', '시원', '청량', 'fresh', '시트러스', '탄산', '스파이시']).test(text)) return true
   if (kf(['과일', '베리', '플로럴', '스모키', '허브', '커피', '크리미', '진저', '향']).test(text)) return true
   if (kf(['세게', '약하게', '가볍', '도수', '취하', 'strong', '강한', '독한', '순한']).test(text)) return true

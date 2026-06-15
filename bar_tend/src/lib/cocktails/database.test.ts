@@ -10,7 +10,7 @@ describe('cocktail data contract', () => {
   it('shares one hydrated collection between UI and recommendation', () => {
     expect(getAllCocktailData()).toBe(cocktails)
     expect(initCandidatePool()).toBe(cocktails)
-    expect(cocktails).toHaveLength(31)
+    expect(cocktails).toHaveLength(44)
 
     for (const cocktail of cocktails) {
       expect(cocktail.features).toBeDefined()
@@ -22,7 +22,7 @@ describe('cocktail data contract', () => {
   it('keeps IBA recipe provenance on newly added official cocktails', () => {
     const official = cocktails.filter((cocktail) => cocktail.recipe_source_url)
 
-    expect(official).toHaveLength(24)
+    expect(official).toHaveLength(37)
     expect(official.every((cocktail) =>
       cocktail.recipe_source_url?.startsWith('https://iba-world.com/iba-cocktail/'),
     )).toBe(true)
