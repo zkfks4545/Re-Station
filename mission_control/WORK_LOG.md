@@ -1,5 +1,27 @@
 ﻿# 작업 이력
 
+## 2026-06-15 / RST-403 / 다시 추천받기와 추천 제외 처리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-15 |
+| 작업 ID | RST-403 |
+| 작업자 | Claude Code |
+| 작업 내용 | 카드 UI에 "다시 추천받기" 버튼을 추가하고, 세션 내 이미 추천한 칵테일을 후보군에서 제외한다. |
+| 수정 파일 | `src/hooks/useRecommendationSession.ts`, `src/hooks/useRestationController.ts`, `src/App.tsx`, `src/components/bar/CocktailCard.tsx`, `src/lib/recommendation/question-engine.ts`, `mission_control/*` |
+| 주요 변경 사항 | - `useRecommendationSession`에 `excludedCocktailIds` 상태와 `clearExcludedCocktailIds` 함수 추가<br>- `resolveRecommendation` 호출 시 풀에서 이미 추천된 ID 제외<br>- 추천 성공 시 해당 칵테일 ID를 제외 목록에 추가<br>- CocktailCard에 "다시 추천받기" 버튼 추가 (`onReRecommend`)<br>- 나가기/초기화 시 제외 목록 초기화<br>- 전체 추천 소진 시 제외 목록 리셋 후 안내 메시지 출력 |
+| 발견한 문제 | `handleReRecommend`가 `handleSend`를 참조해야 하므로 정의 순서에 주의해야 함. |
+| 후속 작업 제안 | 재추천 시 기존 취향 정보를 유지할지 새로 수집할지 정책 검토 가능 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test` | 통과, Vitest 47개 |
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, JS 299.33 kB |
+
 ## 2026-06-14 / RST-406 / 자연스러운 런타임 응대 적용
 
 | 항목 | 내용 |

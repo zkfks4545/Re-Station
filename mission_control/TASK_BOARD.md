@@ -28,7 +28,7 @@
 | 6 | WebLLM 말투 포장 계층 | 잠정 보류 |
 | 7 | 테스트와 성능 개선 | 6~9일 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
-| 남은 합계 | WebLLM 잠정 보류를 제외한 현재 잔여 계획 | **21~32일** |
+| 남은 합계 | WebLLM 잠정 보류를 제외한 현재 잔여 계획 | **19~30일** |
 
 ## 상위 프로그램
 
@@ -198,9 +198,10 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | TODO |
+| 상태 | DONE |
 | 예상 | 1~2일 |
 | 완료 조건 | 이전 결과를 가능한 범위에서 제외하고 재추천 |
+| 변경 파일 | `src/hooks/useRecommendationSession.ts`, `src/hooks/useRestationController.ts`, `src/App.tsx`, `src/components/bar/CocktailCard.tsx`, `src/lib/recommendation/question-engine.ts`, `mission_control/*` |
 
 ## 단계 5: 추천 UX와 화면 개편
 
