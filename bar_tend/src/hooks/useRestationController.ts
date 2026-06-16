@@ -134,6 +134,12 @@ export function useRestationController() {
         return
       }
 
+      if (inputRoute === 'recommendation-cancel') {
+        resetRecommendation()
+        bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
+        return
+      }
+
       setExpression('thinking')
       timerRegistry.current.schedule(() => {
         try {

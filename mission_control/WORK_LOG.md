@@ -1,5 +1,72 @@
 ﻿# 작업 이력
 
+## 2026-06-16 / RST-701 / 재추천 후보 제외 경계 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 다시 추천받기 흐름의 핵심인 중복 추천 제외와 전체 후보 소진 리셋 조건을 테스트 가능한 순수 경계로 분리했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `src/hooks/useRecommendationSession.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `createRecommendationSourcePool(excludedCocktailIds)`를 추가해 세션 내 이미 추천된 칵테일을 후보군에서 제외한다. 모든 후보가 제외되면 `exhausted`를 반환하고, 훅은 기존처럼 제외 목록을 리셋한 뒤 안내 메시지를 출력한다. |
+| 발견한 문제 | 재추천 제외 정책은 훅 내부 상태 로직에만 있어 React 훅 없이 직접 검증하기 어려웠다. |
+| 후속 작업 제안 | 추천 완료 UI와 카드 표시, 다시 추천 버튼 클릭 흐름을 브라우저 또는 컴포넌트 테스트 경계로 보호한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 51개 |
+| `npm.cmd run build` | 통과, 메인 JS 302.75 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-16 / RST-701 / 추천 취소 텍스트 라우팅 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 활성 추천 질문 중 버튼이 아니라 텍스트로 취소 의사를 입력해도 추천 질문을 종료하도록 입력 라우팅과 컨트롤러를 보강했다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/input-router.ts`, `input-router.test.ts`, `src/hooks/useRestationController.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `recommendation-cancel` 입력 경로 추가. 활성 추천 중 `취소`, `추천 그만`, `그만 물어봐`를 추천 취소로 처리하고, 컨트롤러는 기존 버튼 취소와 같은 복구 메시지로 추천 상태를 초기화한다. 안전 입력은 추천 취소보다 우선한다. |
+| 발견한 문제 | 기존 취소 흐름은 UI 버튼으로만 연결되어 텍스트 입력 회귀 테스트로 보호되지 않았다. |
+| 후속 작업 제안 | 추천 완료와 다시 추천받기 흐름을 테스트 가능한 경계로 더 분리한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 49개 |
+| `npm.cmd run build` | 통과, 메인 JS 302.65 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-16 / RST-702 / 사이드바 부가 패널 지연 로딩
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-702 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 의존성이 낮은 번들 최적화 작업으로 레시피 정보 탭과 BGM 탭을 초기 메인 번들에서 분리했다. |
+| 수정 파일 | `bar_tend/src/components/sidebar/Sidebar.tsx`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `RecipeInfoTab`과 `BarMusicTab`을 `React.lazy`와 `Suspense`로 지연 로딩한다. 탭 선택 전에는 레시피 검색 코드와 유튜브 플레이어 탭 코드가 별도 chunk로 분리된다. |
+| 측정 결과 | 기존 `dist/assets/index-DCWhaZJu.js` 306.04 kB. 변경 후 `dist/assets/index-DPxVx6W7.js` 302.22 kB, `RecipeInfoTab-WAfFvT0E.js` 3.32 kB, `BarMusicTab-e9Jg6tBS.js` 2.28 kB. 칵테일 DB 31.57 kB와 추천 질문 JSON 5.71 kB는 초기 추천 흐름에 필요하므로 유지한다. |
+| 발견한 문제 | PowerShell 실행 정책으로 `npm run check`와 `npm run lint`가 차단되어 기존 프로젝트 절차대로 `npm.cmd`를 사용했다. |
+| 후속 작업 제안 | 브라우저에서 레시피/BGM 탭 첫 진입 시 Suspense fallback이 자연스러운지 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, 메인 JS 302.22 kB, 레시피/BGM 별도 chunk 생성 |
+| `npm.cmd test` | 통과, Vitest 47개 |
+
 ## 2026-06-16 / DEC-021-B / FSM 말투와 감정 스프라이트 축 추가
 
 | 항목 | 내용 |

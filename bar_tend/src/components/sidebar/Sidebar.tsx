@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import CocktailBookTab from './CocktailBookTab.jsx'
-import RecipeInfoTab from './RecipeInfoTab.jsx'
-import BarMusicTab from './BarMusicTab.jsx'
 import { cocktails } from '@/lib/cocktails/database.js'
 import type { CocktailData } from '@/types.js'
 
 export type SidebarTab = 'codex' | 'recipe' | 'music' | 'reset'
+
+const RecipeInfoTab = lazy(() => import('./RecipeInfoTab.jsx'))
+const BarMusicTab = lazy(() => import('./BarMusicTab.jsx'))
 
 const TABS: { id: SidebarTab; label: string; sub: string }[] = [
   { id: 'codex', label: '도감', sub: 'COCKTAIL BOOK' },
@@ -96,13 +97,17 @@ export default function Sidebar({
             <>
               <h2 className="sidebar-title">레시피 정보</h2>
               <p className="sidebar-muted">모든 칵테일 레시피를 열람</p>
-              <RecipeInfoTab />
+              <Suspense fallback={<p className="sidebar-muted">레시피 정보를 불러오는 중입니다.</p>}>
+                <RecipeInfoTab />
+              </Suspense>
             </>
           )}
           {tab === 'music' && (
             <>
               <h2 className="sidebar-title">유튜브 주크박스</h2>
-              <BarMusicTab />
+              <Suspense fallback={<p className="sidebar-muted">주크박스를 불러오는 중입니다.</p>}>
+                <BarMusicTab />
+              </Suspense>
             </>
           )}
           {tab === 'reset' && (

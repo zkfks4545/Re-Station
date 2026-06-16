@@ -67,6 +67,19 @@ export function initCandidatePool(): CocktailData[] {
   return getAllCocktailData()
 }
 
+export function createRecommendationSourcePool(
+  excludedCocktailIds: string[],
+): { cocktails: CocktailData[]; exhausted: boolean } {
+  const allCocktails = initCandidatePool()
+  const excluded = new Set(excludedCocktailIds)
+  const cocktails = allCocktails.filter((cocktail) => !excluded.has(cocktail.id))
+
+  return {
+    cocktails,
+    exhausted: cocktails.length === 0 && excluded.size > 0,
+  }
+}
+
 export function getQuestionById(id: string | null): RecommendationQuestion | null {
   return RECOMMENDATION_QUESTIONS.find((question) => question.id === id) ?? null
 }

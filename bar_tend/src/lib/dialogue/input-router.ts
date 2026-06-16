@@ -5,10 +5,12 @@ const SAFETY_CONCERN = /죽고\s*싶|자살|자해|해치고\s*싶|다치게\s*�
 const EXIT_INTENT = /나갈게|갈게|바이|끝낼게|잘 있어|다음에|안녕히/
 const RANDOM_RECOMMENDATION = /아무거나/
 const RANDOM_RECOMMENDATION_REJECTION = /아무거나\s*(?:말고|는\s*(?:싫|별로|말고))/
+const RECOMMENDATION_CANCEL = /^(?:추천\s*)?(?:질문\s*)?(?:취소|그만)(?:해|할래|할게|해줘|해도\s*돼)?$|(?:추천|질문).{0,8}(?:취소|그만)|그만\s*(?:물어봐|물어보세요)/
 
 export type InputRoute =
   | 'safety'
   | 'exit'
+  | 'recommendation-cancel'
   | 'random-recommendation'
   | 'explicit-cocktail'
   | 'recommendation'
@@ -28,11 +30,18 @@ export function detectRandomRecommendation(input: string): boolean {
     && !RANDOM_RECOMMENDATION_REJECTION.test(normalized)
 }
 
+export function detectRecommendationCancel(input: string): boolean {
+  return RECOMMENDATION_CANCEL.test(input.trim().toLowerCase())
+}
+
 export function routeUserInput(
   input: string,
   options: { recommendationActive?: boolean } = {},
 ): InputRoute {
   if (detectSafetyConcern(input)) return 'safety'
+  if (options.recommendationActive && detectRecommendationCancel(input)) {
+    return 'recommendation-cancel'
+  }
   if (detectExitIntent(input)) return 'exit'
   if (!options.recommendationActive && detectRandomRecommendation(input)) {
     return 'random-recommendation'

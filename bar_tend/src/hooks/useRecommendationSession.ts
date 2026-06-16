@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react'
 import {
   applyQuestionAnswer,
+  createRecommendationSourcePool,
   formatQuestion,
   getQuestionById,
   ingestTasteSignals,
-  initCandidatePool,
   isRecommendationDecisive,
   isRecommendationIntent,
   pickFromPool,
@@ -98,11 +98,9 @@ export function useRecommendationSession() {
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
-      const sourcePool = initCandidatePool().filter(
-        (c) => !excludedCocktailIds.includes(c.id),
-      )
+      const sourcePool = createRecommendationSourcePool(excludedCocktailIds)
 
-      if (sourcePool.length === 0 && excludedCocktailIds.length > 0) {
+      if (sourcePool.exhausted) {
         setExcludedCocktailIds([])
         resetRecommendation()
         return {
@@ -113,8 +111,8 @@ export function useRecommendationSession() {
         }
       }
 
-      const questionCandidates = getQuestionCandidatePool(sourcePool, nextState)
-      const resolved = resolveCocktailsByRecommendationState(sourcePool, nextState)
+      const questionCandidates = getQuestionCandidatePool(sourcePool.cocktails, nextState)
+      const resolved = resolveCocktailsByRecommendationState(sourcePool.cocktails, nextState)
       const pool = questionCandidates.cocktails
       const combinedTaste = { ...tasteSnapshot, ...nextState.taste }
 

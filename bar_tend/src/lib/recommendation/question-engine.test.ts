@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getAllCocktailData } from '../cocktails/database.js'
 import {
   applyQuestionAnswer,
+  createRecommendationSourcePool,
   formatQuestion,
   getQuestionById,
   isRecommendationDecisive,
@@ -215,5 +216,24 @@ describe('adaptive recommendation questions', () => {
 
     expect(isRecommendationDecisive(pool)).toBe(false)
     expect(selectNextQuestion(pool, state)).not.toBeNull()
+  })
+
+  it('excludes already recommended cocktails from the next source pool', () => {
+    const [first, second] = getAllCocktailData()
+    const sourcePool = createRecommendationSourcePool([first.id, second.id])
+
+    expect(sourcePool.exhausted).toBe(false)
+    expect(sourcePool.cocktails).not.toContain(first)
+    expect(sourcePool.cocktails).not.toContain(second)
+    expect(sourcePool.cocktails.length).toBe(getAllCocktailData().length - 2)
+  })
+
+  it('signals exhaustion when every cocktail has already been recommended', () => {
+    const sourcePool = createRecommendationSourcePool(
+      getAllCocktailData().map((cocktail) => cocktail.id),
+    )
+
+    expect(sourcePool.cocktails).toHaveLength(0)
+    expect(sourcePool.exhausted).toBe(true)
   })
 })

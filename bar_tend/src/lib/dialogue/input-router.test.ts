@@ -18,6 +18,17 @@ describe('user input routing priority', () => {
     expect(routeUserInput('다음에 올게')).toBe('exit')
   })
 
+  it('routes explicit cancellation only while a recommendation is active', () => {
+    expect(routeUserInput('취소', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(routeUserInput('추천 그만', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(routeUserInput('그만 물어봐', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(routeUserInput('취소')).toBe('general')
+  })
+
+  it('keeps safety above active recommendation cancellation', () => {
+    expect(routeUserInput('죽고 싶어서 추천 취소', { recommendationActive: true })).toBe('safety')
+  })
+
   it('routes 아무거나 to a random recommendation outside an active survey', () => {
     expect(routeUserInput('아무거나')).toBe('random-recommendation')
     expect(routeUserInput('그냥 아무거나 골라줘')).toBe('random-recommendation')
