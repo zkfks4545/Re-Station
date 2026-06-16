@@ -1,5 +1,18 @@
 ﻿# 작업 이력
 
+## 2026-06-16 / DEC-021-B / FSM 말투와 감정 스프라이트 축 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | DEC-021-B |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 입력 경로 기반 대사 트리거에 FSM 상태별 말투·발화 리듬·애니메이션과 감정 상태별 표정 스프라이트 축을 추가했다. |
+| 수정 파일 | `mission_control/DECISIONS.md`, `TASK_BOARD.md`, `CURRENT_STATE.md`, `ARCHITECTURE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `route`는 대화 소재, `dialogueState`는 장면 말투·리듬·애니메이션, `affectState`는 감정 표정 스프라이트와 세부 어조를 담당하도록 3축 분리를 명시했다. |
+| 결정 내용 | FSM 상태는 대화 소재를 덮어쓰지 않고 말투와 동작만 조정한다. 감정 상태는 스프라이트와 세부 어조를 고르며, 칵테일 ID는 제조·서빙 대사의 변수로만 결합한다. |
+| 후속 작업 제안 | RST-407 구현 시 `route`, `routeTags`, `dialogueState`, `affectState` 타입과 기본 매핑표를 먼저 만들고, 기본 스프라이트와 no-repeat 회귀 테스트를 함께 추가한다. |
+
 ## 2026-06-16 / DEC-021 / 입력 경로 기반 대사 트리거 방향 승격
 
 | 항목 | 내용 |

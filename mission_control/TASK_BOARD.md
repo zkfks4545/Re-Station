@@ -191,10 +191,10 @@
 | 상태 | TODO |
 | 예상 | 2~3일 |
 | 목적 | 칵테일 ID가 아니라 사용자가 추천 결과에 도달한 입력 경로를 기준으로 대화 소재와 대사 풀을 선택한다. |
-| 범위 | `directCocktailOrder`, `anecdoteOrPersonOrder`, `moodOrder`, `tastePreferenceOrder`, `ingredientOrBaseOrder`, `recommendationInference`, `randomPick` 같은 경로 태그 정의, 추천 결정에 경로 맥락 저장, FSM 상태별 대사 풀 분리, 최근 N개 대사 제외, 템플릿 변수 치환 |
+| 범위 | `directCocktailOrder`, `anecdoteOrPersonOrder`, `moodOrder`, `tastePreferenceOrder`, `ingredientOrBaseOrder`, `recommendationInference`, `randomPick` 같은 경로 태그 정의, 추천 결정에 경로 맥락 저장, FSM 상태별 대사 풀·말투·발화 리듬·애니메이션 클립 분리, 감정 상태별 표정 스프라이트 매핑, 최근 N개 대사 제외, 템플릿 변수 치환 |
 | 기존 구조와 결합 | 추천 엔진은 기존처럼 칵테일과 근거를 확정한다. 대사 트리거 계층은 확정된 `RecommendationDecision`과 입력 경로 태그를 받아 대사 풀만 선택하며 추천 결과를 변경하지 않는다. |
 | 구현 후보 | MVP에서는 TypeScript 규칙 엔진과 작은 대사 풀로 구현하고, 대사량이 늘어나면 Ink 스크립트의 `shuffle`/`cycle` 및 템플릿 변수 치환으로 이전한다. |
-| 완료 조건 | 같은 칵테일이라도 직접 주문, 취향 추론, 재료·베이스 언급, 감정·무드 주문에서 서로 다른 대사 풀을 사용한다. 최근 사용 대사는 제외되며, WebLLM 없이도 기본 대사 풀로 핵심 흐름이 완료된다. |
+| 완료 조건 | 같은 칵테일이라도 직접 주문, 취향 추론, 재료·베이스 언급, 감정·무드 주문에서 서로 다른 대사 풀을 사용한다. `route`는 대화 소재를, `dialogueState`는 말투·리듬·애니메이션을, `affectState`는 표정 스프라이트와 세부 어조를 결정한다. 최근 사용 대사는 제외되며, WebLLM 없이도 기본 대사 풀과 기본 스프라이트로 핵심 흐름이 완료된다. |
 
 ### RST-402: 기분, 상황, 취향 추출 및 추가 질문
 
