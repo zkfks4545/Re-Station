@@ -1,5 +1,48 @@
 ﻿# 작업 이력
 
+## 2026-06-17 / RST-410 / MVP 마감 검수 및 안전 응답 개선
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-410 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | WebLLM 제외 MVP 전 항목 검수 완료. PROJECT_VISION.md의 MVP 성공 기준 8개 항목을 코드 리뷰로 검증했다. |
+| 검수 항목 | 1) 첫 사용자 진입 흐름, 2) 추천 질문 1~3개 범위, 3) 추천 결과 연결성, 4) 카드/대화 분리, 5) 다시 추천받기, 6) WebLLM 불필요, 7) 모바일 대응, 8) 안전·퇴장 처리 |
+| 주요 변경 사항 | **안전 응답 처리 버그 수정:** `useRestationController.ts`에서 `inputRoute === 'safety'`일 때 `resetRecommendation()` 후에도 일반 응답 처리로 fallback하던 문제 수정. 조기 `return` 후 `bartenderReply`로 위기 상담 번호(1393) 안내 메시지를 전송하도록 변경. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `mission_control/*` |
+| 검증 | `npm.cmd run lint` 통과, `npm.cmd run check` 통과, `npm.cmd test` 97/97 통과, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 린트 | 통과 |
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 97개 |
+| 프로덕션 빌드 | 통과, 메인 JS 314.67 kB |
+
+## 2026-06-17 / RST-409 / 시에스타 대사 풀 확장 및 다양성 개선
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-409 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | 시에스타 만담 이벤트의 대사 풀을 4개 브랜치·12개 대사 세트에서 7개 브랜치·22개 대사 세트로 확장했다. 키 기반 중복 방지(`siestaRecentKeysRef`)를 적용해 세션 내 같은 대사 세트 반복을 방지한다. |
+| 주요 변경 사항 | **새로운 브랜치 3개 추가:** `celebration`(축하/기념/생일), `sweet`(달콤/디저트), `sad`(슬프/우울/속상). **기존 브랜치 확장:** `recommendation` 1→3세트, `strong` 1→3세트, `tired` 1→4세트, `default` 1→4세트. **중복 방지:** `selectDialogueSet`이 `recentKeys` Set을 받아 최근 사용한 세트를 제외하고 선택, 모두 소진 시 리셋 후 재선택. **컨트롤러:** `siestaRecentKeysRef` 추가, `createSiestaEvent`에 `recentKeys` 전달, 이벤트 발생 시 키 저장 및 임계치 초과 시 리셋. |
+| 수정 파일 | `bar_tend/src/lib/banter/siesta-event.ts`, `siesta-event.test.ts`, `src/hooks/useRestationController.ts`, `mission_control/*` |
+| 검증 | `npm.cmd run lint` 통과, `npm.cmd run check` 통과, `npm.cmd test` 97/97 통과, `npm.cmd run build` 통과 (메인 JS 314.40 kB) |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 린트 | 통과 |
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 97개 (siesta-event 5→17개) |
+| 프로덕션 빌드 | 통과, 메인 JS 314.40 kB |
+
 ## 2026-06-17 / 전체 변경사항 통합 검증
 
 | 항목 | 내용 |

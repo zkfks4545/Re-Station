@@ -30,6 +30,8 @@
       "base_spirit": "진",
       "recipe": "드라이 진 60ml, 드라이 베르무트 10ml",
       "description": "드라이 진과 베르무트의 깔끔하고 선명한 풍미가 특징인 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/martini/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.1,
         "alcohol_strength": 0.9,
@@ -46,7 +48,9 @@
       "type": "CLASSIC",
       "base_spirit": "럼",
       "recipe": "화이트 럼 45ml, 라임 주스 20ml, 설탕 2티스푼, 민트, 소다수 약간",
-      "description": "화이트 럼에 민트, 라임과 소다수를 더한 청량한 칵테일입니다.",
+      "description": "화이트 럼에 민트, 라임과 소다수를 더한 청량하고 상쾌한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/mojito/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.5,
@@ -64,6 +68,8 @@
       "base_spirit": "위스키",
       "recipe": "버번 위스키 60ml, 앙고스투라 비터스 2대시, 각설탕 1개, 물 약간",
       "description": "버번 위스키의 풍미에 비터스와 설탕의 쌉싸름한 단맛을 더한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/old-fashioned/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.85,
@@ -80,7 +86,9 @@
       "type": "CLASSIC",
       "base_spirit": "데킬라",
       "recipe": "데킬라 50ml, 트리플 섹 20ml, 라임 주스 15ml, 소금 리밍",
-      "description": "데킬라와 오렌지 리큐르에 라임 산미와 소금의 짠맛을 더한 칵테일입니다.",
+      "description": "데킬라와 오렌지 리큐르에 라임 산미와 소금의 짠맛을 더한 산뜻한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/margarita/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
@@ -97,7 +105,9 @@
       "type": "CLASSIC",
       "base_spirit": "진",
       "recipe": "진 30ml, 캄파리 30ml, 스위트 베르무트 30ml",
-      "description": "진, 캄파리와 스위트 베르무트의 쌉싸름하고 균형 잡힌 풍미가 특징인 칵테일입니다.",
+      "description": "진, 캄파리와 스위트 베르무트의 쌉싸름하고 깊은 균형이 특징인 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/negroni/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.25,
         "alcohol_strength": 0.8,
@@ -420,7 +430,7 @@
       "type": "CLASSIC",
       "base_spirit": "럼",
       "recipe": "앰버 자메이카 럼 30ml, 마르티니크 몰라세스 럼 30ml, 오렌지 큐라소 15ml, 오르젯 시럽 15ml, 라임 주스 30ml, 심플 시럽 7.5ml",
-      "description": "두 종류의 럼에 오르젯과 라임을 더한 풍성한 풍미의 칵테일입니다.",
+      "description": "두 종류의 럼에 오르젯과 라임을 더한 풍성하고 화려한 풍미의 칵테일입니다.",
       "recipe_source_url": "https://iba-world.com/iba-cocktail/mai-tai/",
       "official_category": "Contemporary Classics",
       "features": {
@@ -438,7 +448,7 @@
       "type": "CLASSIC",
       "base_spirit": "진",
       "recipe": "진 30ml, 레몬 주스 15ml, 설탕 시럽 15ml, 샴페인 60ml",
-      "description": "진과 레몬, 설탕 시럽에 샴페인을 더한 가볍고 화사한 칵테일입니다.",
+      "description": "진과 레몬, 설탕 시럽에 샴페인을 더한 가볍고 기분 좋은 칵테일입니다.",
       "recipe_source_url": "https://iba-world.com/iba-cocktail/french-75/",
       "official_category": "Contemporary Classics",
       "features": {

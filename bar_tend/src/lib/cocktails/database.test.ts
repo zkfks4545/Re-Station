@@ -22,7 +22,7 @@ describe('cocktail data contract', () => {
   it('keeps IBA recipe provenance on newly added official cocktails', () => {
     const official = cocktails.filter((cocktail) => cocktail.recipe_source_url)
 
-    expect(official).toHaveLength(37)
+    expect(official).toHaveLength(42)
     expect(official.every((cocktail) =>
       cocktail.recipe_source_url?.startsWith('https://iba-world.com/iba-cocktail/'),
     )).toBe(true)

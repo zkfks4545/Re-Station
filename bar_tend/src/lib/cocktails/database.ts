@@ -9,6 +9,7 @@ import type {
 import {
   isSignatureCocktail,
 } from '../../types/cocktail-db.js'
+import { generateNeutralDescription } from './description-gen.js'
 import rawDb from '../../data/cocktail-db.json'
 
 export const cocktailDatabase = rawDb as CocktailDatabase
@@ -723,6 +724,11 @@ function createCocktailData(record: CocktailRecord): CocktailData {
       (c.nameEn && record.name_en && c.nameEn === record.name_en) ||
       c.name === record.name_ko,
   )
+  const description = record.description || generateNeutralDescription(record.recipe, {
+    baseSpirit: record.base_spirit,
+    ingredients: parseRecipeIngredients(record.recipe),
+    features: record.features,
+  })
   const ingredients = parseRecipeIngredients(record.recipe)
 
   return {
@@ -752,13 +758,13 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     base: record.base_spirit ?? (isSignatureCocktail(record) ? record.bar_name : 'Classic'),
     ingredients,
     recipeText: record.recipe,
-    story: record.description,
+    story: description,
     vibe: legacyMatch?.vibe ?? (
       isSignatureCocktail(record)
         ? `Signature @ ${record.bar_name}`
         : 'Classic cocktail'
     ),
-    description: record.description,
+    description,
     popCulture: legacyMatch?.popCulture ?? (
       isSignatureCocktail(record) ? record.bar_location_link : undefined
     ),

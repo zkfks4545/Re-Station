@@ -72,17 +72,35 @@
 
 ## 다음 작업
 
-시에스타 대사 풀과 쿨다운 수치 미세조정 — TODO
+~~시에스타 대사 풀과 쿨다운 수치 미세조정~~ — DONE
 
-RST-408은 DONE이다. `npm.cmd run check`, `npm.cmd test` 85개, `npm.cmd run lint`, `npm.cmd run build`가 통과했다. 추천 첫 문장은 입력 경로뿐 아니라 태그·장면 상태·감정 상태를 반영하며, 최근 사용 라인은 제외된다.
+시에스타 대사 풀을 4개 브랜치·12개 대사 세트에서 **7개 브랜치·22개 대사 세트**로 확장했다. 새로운 브랜치: `celebration`(축하/생일/기념), `sweet`(달콤/디저트), `sad`(슬프/우울/속상). 각 브랜치에 여러 대사 세트를 추가하고 `selectDialogueSet` 키 기반 중복 방지를 적용해 세션 내 같은 대사가 반복되지 않는다. `npm.cmd run lint`, `npm.cmd run check`, `npm.cmd test` 97개, `npm.cmd run build` 모두 통과.
+
+~~WebLLM 제외 MVP 마감 검수~~ — DONE
+
+MVP 성공 기준 전 항목을 검수 완료:
+
+| 기준 | 상태 |
+|---|---|
+| 첫 사용자가 설명 없이 카루아와 대화 시작 | ✅ BarExterior → handleEnter로 즉시 진입 |
+| 카루아가 1~3개 질문 안에서 추천 정보 수집 | ✅ 적응형 JSON 질문 4축, 데이터 기반 조기 종료 |
+| 추천 결과가 기분/상황/취향과 연결 | ✅ 입력 경로 기반 대사 트리거 + 구조화 근거 |
+| 추천 카드에 중립 설명 + 대화창에 카루아 멘트 | ✅ CocktailCard와 대화창 분리 |
+| 다시 추천받기 정상 동작 | ✅ excludedCocktailIds 추적, handleReRecommend |
+| WebLLM 없이 전체 흐름 완료 | ✅ 규칙 엔진만으로 97개 테스트 통과 |
+| 모바일 핵심 흐름 | ✅ 768px/480px breakpoint, 44px 터치 타겟 |
+| 안전 응답 처리 | ✅ `safety` 경로 조기 반환 + 위기 상담 번호 안내 추가 |
+| 퇴장 시 전체 상태 초기화 | ✅ handleExit 2초 지연 후 scene/messages/resetRecommendation 등 정리 |
+
+RST-408은 DONE이다. `npm.cmd run check`, `npm.cmd test` 97개, `npm.cmd run lint`, `npm.cmd run build`가 통과했다. 추천 첫 문장은 입력 경로뿐 아니라 태그·장면 상태·감정 상태를 반영하며, 최근 사용 라인은 제외된다.
 
 MVP 이후 논의 후보로 `DISC-001`을 기록했다. 대화 의미와 행동을 JSON 계약으로 고정하는 `DLG-801`, 자동 검색으로 확정하지 못한 항목을 관리자 검증 큐로 분리하는 `DATA-801`, IBA 우선 검색과 레시피 기반 설명 보강을 다루는 `DATA-802`는 승인 전 구현하지 않는다. DEC-020에 따라 정식 칵테일 DB에는 IBA 공식 또는 관리자 승인 항목만 저장하고, 정보 부족·검색 실패·출처 충돌 항목은 추천 후보로 사용하지 않는다. 공통 DB는 최종형에서 필요할 수 있으나 유저 간 상호작용은 범위가 아니며, 도입 시에는 `official` DB와 관리자 검증 큐만 제공하는 BaaS 또는 얇은 백엔드를 우선 검토한다. JSON에는 대사 전문을 쌓지 않고 최소 의미 계약과 입력 경로 태그만 유지하며, 검색 API는 사실 수집, 코드는 상태·행동 결정과 대사 풀 선택, WebLLM은 검증된 내용의 말투 포장만 담당한다.
 
 ### 권장 순서
 
-1. 시에스타 대사 풀과 쿨다운 수치 미세조정
-2. WebLLM 제외 MVP 마감 검수
-3. 데이터/대사 원고 품질 패스
+1. ~~시에스타 대사 풀과 쿨다운 수치 미세조정~~ (완료)
+2. ~~WebLLM 제외 MVP 마감 검수~~ (완료)
+3. ~~데이터/대사 원고 품질 패스~~ (완료)
 
 ## 먼저 읽을 파일
 
@@ -152,7 +170,7 @@ git stash pop
 ## 검증 기준
 
 - [x] `npm.cmd run lint`
-- [x] `npm.cmd test` — Vitest 85개 통과
+- [x] `npm.cmd test` — Vitest 97개 통과
 - [x] `npm.cmd run check`
 - [x] `npm run build` 또는 `npm.cmd run build`
 - [x] 카루아 초기 메시지 표시

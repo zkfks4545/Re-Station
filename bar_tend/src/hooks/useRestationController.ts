@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCocktailResponse } from '@/lib/bartender/engine.js'
-import { createSiestaEvent, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
+import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { routeUserInput } from '@/lib/dialogue/input-router.js'
+import type { RouteResult } from '@/lib/dialogue/input-router.js'
+import { buildDialogueTurn } from '@/lib/dialogue/turn-builder.js'
+import { validateDialogueTurn } from '@/types/dialogue-turn.js'
+import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
 import type { CocktailData, Expression, Message } from '@/types.js'
@@ -23,6 +27,7 @@ export function useRestationController() {
   const userMessageCountRef = useRef(0)
   const siestaEventCountRef = useRef(0)
   const siestaCooldownRef = useRef(0)
+  const siestaRecentKeysRef = useRef(new Set<string>())
 
   const {
     preference,
@@ -49,6 +54,7 @@ export function useRestationController() {
     userMessageCountRef.current = 0
     siestaEventCountRef.current = 0
     siestaCooldownRef.current = 0
+    siestaRecentKeysRef.current = new Set()
   }, [])
 
   useEffect(() => () => timerRegistry.current.clearAll(), [])
@@ -156,20 +162,33 @@ export function useRestationController() {
       ingestUserMessage(text)
       userMessageCountRef.current += 1
 
-      const inputRoute = routeUserInput(text, { recommendationActive: activeQuestion !== null })
+      const routeResult: RouteResult = routeUserInput(text, { recommendationActive: activeQuestion !== null })
 
-      if (inputRoute === 'safety') {
+      if (routeResult.route === 'safety') {
         resetRecommendation()
+        const turn = buildDialogueTurn(text, routeResult.route, '', 'sympathy')
+        if (!validateDialogueTurn(turn)) return
+        bartenderReply(turn.reply, turn.expression)
+        return
       }
 
-      if (inputRoute === 'exit') {
+      if (routeResult.route === 'exit') {
         handleExit()
         return
       }
 
-      if (inputRoute === 'recommendation-cancel') {
+      if (routeResult.route === 'recommendation-cancel') {
         resetRecommendation()
         bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
+        return
+      }
+
+      if (routeResult.route === 'unknown-cocktail-query' && routeResult.unknownCocktailName) {
+        addUnknownCocktail(routeResult.unknownCocktailName, text)
+        bartenderReply(
+          `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록되지 않았네요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`,
+          'thinking',
+        )
         return
       }
 
@@ -177,25 +196,33 @@ export function useRestationController() {
       timerRegistry.current.schedule(() => {
         try {
           const recommendation =
-            inputRoute === 'random-recommendation'
+            routeResult.route === 'random-recommendation'
               ? resolveRandomRecommendation()
-              : inputRoute === 'explicit-cocktail' || inputRoute === 'recommendation'
+              : routeResult.route === 'explicit-cocktail' || routeResult.route === 'recommendation'
               ? resolveRecommendation(text, preference)
               : null
           const fallback = getCocktailResponse(text, messages)
-          const reply = recommendation?.reply ?? fallback.response
-          const nextExpression = recommendation?.expression ?? fallback.expression
+          const turn = buildDialogueTurn(
+            text,
+            routeResult.route,
+            fallback.response,
+            fallback.expression,
+            recommendation ?? undefined,
+          )
+          if (!validateDialogueTurn(turn)) {
+            throw new Error('Invalid dialogue turn')
+          }
           const cocktail = recommendation?.cocktail ?? null
-          const siestaMessages = createSiestaEvent({
+          const siestaResult = createSiestaEvent({
             inputText: text,
-            replyText: reply,
-            inputRoute,
+            replyText: turn.reply,
+            inputRoute: routeResult.route,
             userMessageCount: userMessageCountRef.current,
             eventCount: siestaEventCountRef.current,
             cooldownTurns: siestaCooldownRef.current,
             recommendationActive: activeQuestion !== null && !cocktail,
             recommendedCocktailName: cocktail?.name,
-          })
+          }, siestaRecentKeysRef.current)
 
           if (cocktail) {
             setScreenShake(true)
@@ -204,14 +231,18 @@ export function useRestationController() {
             setUnlockedIds(ids)
           }
 
-          if (siestaMessages) {
+          if (siestaResult) {
             siestaEventCountRef.current += 1
             siestaCooldownRef.current = SIESTA_EVENT_COOLDOWN_TURNS
+            siestaRecentKeysRef.current.add(siestaResult.key)
+            if (siestaRecentKeysRef.current.size >= MAX_SIESTA_EVENTS_PER_SESSION * 3) {
+              siestaRecentKeysRef.current = new Set()
+            }
           } else if (siestaCooldownRef.current > 0) {
             siestaCooldownRef.current -= 1
           }
 
-          bartenderReply(reply, nextExpression, cocktail, 'idle', siestaMessages ?? [])
+          bartenderReply(turn.reply, turn.expression, cocktail, 'idle', siestaResult?.messages ?? [])
         } catch {
           setExpression('idle')
           setInteractionStatus('idle')

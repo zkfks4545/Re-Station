@@ -94,16 +94,19 @@ const COCKTAIL_REQUEST: ResponseTemplate[] = [
 const TASTE_SWEET: ResponseTemplate[] = [
   { response: '달콤한 쪽을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'talk' },
   { response: '달콤한 풍미를 중심으로 볼게요.', expression: 'talk' },
+  { response: '단맛 위주로 골라볼게요. 기대하셔도 좋아요.', expression: 'smirk' },
 ]
 
 const TASTE_BITTER: ResponseTemplate[] = [
   { response: '쌉쌀한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'smirk' },
   { response: '쌉쌀한 풍미를 중심으로 볼게요.', expression: 'smirk' },
+  { response: '쓴맛도 입맛이네요. 잘 어울리는 걸로 찾아볼게요.', expression: 'smirk' },
 ]
 
 const TASTE_REFRESH: ResponseTemplate[] = [
   { response: '청량한 맛을 좋아하시는군요. 시원한 쪽으로 찾아볼게요.', expression: 'talk' },
   { response: '상쾌한 풍미를 중심으로 볼게요.', expression: 'talk' },
+  { response: '시원하고 가볍게 마실 수 있는 쪽으로 찾아볼게요.', expression: 'talk' },
 ]
 
 const RECIPE_REQUEST: ResponseTemplate[] = [
