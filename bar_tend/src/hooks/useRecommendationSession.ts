@@ -15,6 +15,7 @@ import {
   formatExplicitCocktailReply,
   formatRandomRecommendationReply,
   formatRecommendationReply,
+  selectRecommendationOpening,
 } from '@/lib/recommendation/response.js'
 import {
   addQuestionHistory,
@@ -23,10 +24,12 @@ import {
   createRecommendationDecision,
   createRecommendationState,
   extractRecommendationSignals,
+  inferRecommendationDialogueContext,
   getQuestionCandidatePool,
   resolveCocktailsByRecommendationState,
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
+import type { RecommendationDialogueContext } from '@/types/recommendation.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
 import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
 
@@ -44,6 +47,7 @@ export function useRecommendationSession() {
     createRecommendationState,
   )
   const [excludedCocktailIds, setExcludedCocktailIds] = useState<string[]>([])
+  const [recentDialogueLineIds, setRecentDialogueLineIds] = useState<string[]>([])
 
   const resetRecommendation = useCallback(() => {
     setCandidatePool(null)
@@ -58,14 +62,26 @@ export function useRecommendationSession() {
   const resolveRandomRecommendation = useCallback((): RecommendationResult => {
     const cocktail = getRandomCocktail()
     const state = createRecommendationState()
+    const decision = createRecommendationDecision(
+      cocktail,
+      state,
+      inferRecommendationDialogueContext(state, {
+        route: 'randomPick',
+        routeTags: ['random'],
+        dialogueState: 'serving',
+        affectState: 'playful',
+      }),
+    )
+    const selectedOpening = selectRecommendationOpening(decision, recentDialogueLineIds)
+    setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
     resetRecommendation()
     return {
       cocktail,
-      decision: createRecommendationDecision(cocktail, state),
-      reply: formatRandomRecommendationReply(cocktail),
-      expression: 'smirk',
+      decision,
+      reply: formatRandomRecommendationReply(cocktail, selectedOpening.text),
+      expression: expressionForDialogue('playful'),
     }
-  }, [resetRecommendation])
+  }, [recentDialogueLineIds, resetRecommendation])
 
   const resolveRecommendation = useCallback(
     (text: string, preference: TastePreference): RecommendationResult | null => {
@@ -74,11 +90,17 @@ export function useRecommendationSession() {
         !explicitCocktail && (candidatePool !== null || isRecommendationIntent(text))
 
       if (explicitCocktail) {
+        const dialogue = inferRecommendationDialogueContext(recommendationState, {
+          route: 'directCocktailOrder',
+          routeTags: ['direct-name'],
+          dialogueState: 'serving',
+          affectState: 'confident',
+        })
         return {
           cocktail: explicitCocktail,
-          decision: createRecommendationDecision(explicitCocktail, recommendationState),
+          decision: createRecommendationDecision(explicitCocktail, recommendationState, dialogue),
           reply: formatExplicitCocktailReply(explicitCocktail),
-          expression: 'smirk',
+          expression: expressionForDialogue(dialogue),
         }
       }
 
@@ -154,7 +176,13 @@ export function useRecommendationSession() {
       const cocktail = pickFromPool(resolved.cocktails, combinedTaste)
       if (!cocktail) return null
       const decision = createRecommendationDecision(cocktail, nextState)
+      const selectedOpening = acknowledgement
+        ? null
+        : selectRecommendationOpening(decision, recentDialogueLineIds)
       setExcludedCocktailIds((prev) => [...prev, cocktail.id])
+      if (selectedOpening) {
+        setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
+      }
       resetRecommendation()
 
       return {
@@ -162,13 +190,20 @@ export function useRecommendationSession() {
         decision,
         reply: formatRecommendationReply(
           decision,
-          acknowledgement,
+          acknowledgement ?? selectedOpening?.text,
           resolved.exactMatch ? 'exact' : 'nearest',
         ),
-        expression: 'smirk',
+        expression: expressionForDialogue(decision.dialogue),
       }
     },
-    [activeQuestionId, candidatePool, recommendationState, resetRecommendation, excludedCocktailIds],
+    [
+      activeQuestionId,
+      candidatePool,
+      recommendationState,
+      resetRecommendation,
+      excludedCocktailIds,
+      recentDialogueLineIds,
+    ],
   )
 
   return {
@@ -178,5 +213,25 @@ export function useRecommendationSession() {
     resetRecommendation,
     resolveRandomRecommendation,
     resolveRecommendation,
+  }
+}
+
+function expressionForDialogue(
+  dialogue: RecommendationDialogueContext | RecommendationDialogueContext['affectState'],
+): Expression {
+  const affectState = typeof dialogue === 'string' ? dialogue : dialogue.affectState
+  switch (affectState) {
+    case 'concerned':
+    case 'tired':
+      return 'sympathy'
+    case 'curious':
+    case 'awkward':
+      return 'thinking'
+    case 'confident':
+    case 'playful':
+    case 'warm':
+    case 'neutral':
+    default:
+      return 'smirk'
   }
 }

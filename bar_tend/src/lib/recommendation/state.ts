@@ -1,11 +1,16 @@
 import type { CocktailData } from '../../types.js'
 import type { FeatureKey, TastePreference } from '../../types/cocktail-db.js'
 import type {
+  AffectState,
   AlcoholPreference,
+  DialogueState,
   QuestionHistoryEntry,
   RecommendationDecision,
+  RecommendationDialogueContext,
   RecommendationMood,
   RecommendationReason,
+  RecommendationRoute,
+  RecommendationRouteTag,
   RecommendationSignal,
   RecommendationSituation,
   RecommendationState,
@@ -207,9 +212,11 @@ export function filterCocktailsByRecommendationState(
         || ingredients.some((ingredient) => ingredient === normalizedPreferred)
     })) return false
 
-    return !state.excludedIngredients.some((excluded) =>
-      ingredients.some((ingredient) => ingredient.includes(normalize(excluded))),
-    )
+    return !state.excludedIngredients.some((excluded) => {
+      const normalizedExcluded = normalize(excluded)
+      return normalizedBase.includes(normalizedExcluded)
+        || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))
+    })
   })
 }
 
@@ -253,12 +260,74 @@ export function getQuestionCandidatePool(
 export function createRecommendationDecision(
   cocktail: CocktailData,
   state: RecommendationState,
+  dialogue: RecommendationDialogueContext = inferRecommendationDialogueContext(state),
 ): RecommendationDecision {
   return {
     cocktail,
     state,
     reasons: buildRecommendationReasons(cocktail, state),
+    dialogue,
   }
+}
+
+export function inferRecommendationDialogueContext(
+  state: RecommendationState,
+  overrides: Partial<RecommendationDialogueContext> = {},
+): RecommendationDialogueContext {
+  const routeTags = overrides.routeTags ?? inferRouteTags(state)
+  const route = overrides.route ?? inferRoute(state, routeTags)
+
+  return {
+    route,
+    routeTags,
+    dialogueState: overrides.dialogueState ?? inferDialogueState(route),
+    affectState: overrides.affectState ?? inferAffectState(state, route),
+  }
+}
+
+function inferRoute(state: RecommendationState, routeTags: RecommendationRouteTag[]): RecommendationRoute {
+  if (routeTags.includes('random')) return 'randomPick'
+  if (routeTags.includes('direct-name')) return 'directCocktailOrder'
+  if (routeTags.includes('ingredient') || routeTags.includes('excluded-ingredient')) {
+    return 'ingredientOrBaseOrder'
+  }
+  if (routeTags.includes('mood') || routeTags.includes('situation')) return 'moodOrder'
+  if (routeTags.includes('taste') || routeTags.includes('strength')) return 'tastePreferenceOrder'
+  if (state.questionHistory.length > 0) return 'recommendationInference'
+  return 'recommendationInference'
+}
+
+function inferRouteTags(state: RecommendationState): RecommendationRouteTag[] {
+  const tags: RecommendationRouteTag[] = []
+
+  if (state.moods.length > 0) tags.push('mood')
+  if (state.situations.length > 0) tags.push('situation')
+  if (Object.keys(state.taste).length > 0) tags.push('taste')
+  if (state.alcoholPreference !== 'any') tags.push('strength')
+  if (state.preferredIngredients.length > 0) tags.push('ingredient')
+  if (state.excludedIngredients.length > 0) tags.push('excluded-ingredient')
+  if (state.questionHistory.some((entry) => entry.answer !== undefined)) tags.push('question-answer')
+  if (state.questionHistory.some((entry) => entry.answer?.includes('아무거나'))) tags.push('delegated')
+
+  return unique(tags)
+}
+
+function inferDialogueState(route: RecommendationRoute): DialogueState {
+  if (route === 'directCocktailOrder') return 'serving'
+  return 'recommending'
+}
+
+function inferAffectState(state: RecommendationState, route: RecommendationRoute): AffectState {
+  if (state.moods.some((mood) => ['depressed', 'lonely', 'heartbroken', 'anxious'].includes(mood))) {
+    return 'concerned'
+  }
+  if (state.moods.includes('tired') || state.situations.includes('after-work')) return 'tired'
+  if (state.moods.includes('angry')) return 'awkward'
+  if (state.moods.includes('excited') || state.moods.includes('celebratory')) return 'playful'
+  if (route === 'directCocktailOrder') return 'confident'
+  if (route === 'randomPick') return 'playful'
+  if (route === 'recommendationInference') return 'curious'
+  return 'warm'
 }
 
 export function buildRecommendationReasons(
@@ -329,9 +398,11 @@ function matchesHardConstraints(cocktail: CocktailData, state: RecommendationSta
       || ingredients.some((ingredient) => ingredient === normalizedPreferred)
   })) return false
 
-  return !state.excludedIngredients.some((excluded) =>
-    ingredients.some((ingredient) => ingredient.includes(normalize(excluded))),
-  )
+  return !state.excludedIngredients.some((excluded) => {
+    const normalizedExcluded = normalize(excluded)
+    return normalizedBase.includes(normalizedExcluded)
+      || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))
+  })
 }
 
 function recommendationDistance(cocktail: CocktailData, state: RecommendationState): number {
@@ -359,6 +430,10 @@ function featureDelta(cocktail: CocktailData, taste: TastePreference, key: Featu
 
 function addUnique<T>(items: T[], item: T): void {
   if (!items.includes(item)) items.push(item)
+}
+
+function unique<T>(items: T[]): T[] {
+  return [...new Set(items)]
 }
 
 function normalize(value: string): string {

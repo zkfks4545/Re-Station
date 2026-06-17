@@ -70,6 +70,56 @@ export interface RecommendationState {
   signals: RecommendationSignal[]
 }
 
+export type RecommendationRoute =
+  | 'directCocktailOrder'
+  | 'anecdoteOrPersonOrder'
+  | 'moodOrder'
+  | 'tastePreferenceOrder'
+  | 'ingredientOrBaseOrder'
+  | 'recommendationInference'
+  | 'randomPick'
+
+export type RecommendationRouteTag =
+  | 'direct-name'
+  | 'mood'
+  | 'situation'
+  | 'taste'
+  | 'strength'
+  | 'ingredient'
+  | 'excluded-ingredient'
+  | 'question-answer'
+  | 'delegated'
+  | 'random'
+
+export type DialogueState =
+  | 'idle'
+  | 'listening'
+  | 'thinking'
+  | 'asking'
+  | 'recommending'
+  | 'serving'
+  | 'bantering'
+  | 'safety'
+  | 'error'
+  | 'exiting'
+
+export type AffectState =
+  | 'neutral'
+  | 'warm'
+  | 'curious'
+  | 'confident'
+  | 'playful'
+  | 'concerned'
+  | 'awkward'
+  | 'tired'
+
+export interface RecommendationDialogueContext {
+  route: RecommendationRoute
+  routeTags: RecommendationRouteTag[]
+  dialogueState: DialogueState
+  affectState: AffectState
+}
+
 export interface RecommendationReason {
   code: 'taste-match' | 'strength-match' | 'ingredient-match' | 'context'
   label: string
@@ -81,4 +131,5 @@ export interface RecommendationDecision {
   cocktail: CocktailData
   reasons: RecommendationReason[]
   state: RecommendationState
+  dialogue: RecommendationDialogueContext
 }
