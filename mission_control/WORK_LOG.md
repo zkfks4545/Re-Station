@@ -1,5 +1,169 @@
 ﻿# 작업 이력
 
+## 2026-06-17 / 전체 변경사항 통합 검증
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 / RST-407 / RST-405 통합 검증 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | RST-407(입력 경로 기반 대사 트리거), RST-405(시에스타 만담 이벤트), RST-701(테스트 확장+브라우저 검증)의 미커밋 변경사항 전체를 통합 검증. Git status 기준 14개 modified + 2개 untracked 신규 파일 모두 검증. |
+| 검증 결과 | `tsc --noEmit` 0 errors, `eslint` 0 warnings, `vitest run` 85/85 passed (10 files), `npm run build` 성공(메인 JS 310.67 kB). |
+| 발견한 문제 | 없음. RST-407(response.ts opening line 매칭 + state.ts dialogue context)와 RST-405(siesta-event + controller 연결)가 기존 RST-701 테스트를 전혀 깨지 않음. |
+
+## 2026-06-17 / RST-408 / 입력 경로별 대사 풀 확장
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-408 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 첫 문장 대사 풀을 입력 경로뿐 아니라 경로 태그, 장면 상태, 감정 상태 기준으로 확장했다. |
+| 주요 변경 사항 | `RecommendationOpeningLine`에 `routeTags`, `dialogueState`, `affectState` 조건을 추가하고, 일치도가 높은 문구를 우선 선택하되 최근 사용 라인은 제외하도록 점수 기반 선택기를 적용했다. 피곤·걱정·축하 무드, 도수 조건, 질문 답변, 선호/제외 재료, 직접 주문 serving, 맡기기/추론 문구를 추가했다. 제외 재료만 있는 요청도 `ingredientOrBaseOrder`로 분류한다. |
+| 검증 | `npm.cmd test` 85개, `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 관련 테스트 | 통과, `response`/`state` 30개 |
+| 전체 Vitest | 통과, 85개 |
+| 타입 체크 | 통과 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과 |
+
+## 2026-06-17 / RST-405 / 시에스타 만담 이벤트 엔진 구현
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-405 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 시에스타 저빈도 만담 이벤트 엔진을 추가하고 컨트롤러에 연결했다. |
+| 주요 변경 사항 | `createSiestaEvent`로 세션당 최대 2회, 6턴 쿨다운, 추천 진행 중·안전·퇴장·추천 취소 금지 조건을 적용했다. 본 답변 뒤 시에스타-칼루아-시에스타 3발화 시퀀스를 예약하며, 대화창에 `시에스타`/`칼루아` 화자 라벨을 표시한다. |
+| 검증 | `npm.cmd run check`, `npm.cmd test` 80개, `npm.cmd run lint`, `npm.cmd run build`, Chrome DevTools Protocol 수동 검증 통과 |
+| 수동 검증 | 일반 대화 3턴 후 `시에스타` 2회, `칼루아` 1회, 업무복귀 단어 표시 확인. 안전 입력, 추천 질문 진행 중, 추천 취소, 퇴장, 초기화 구간에서는 시에스타/칼루아 라벨 0회 확인. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 80개 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과 |
+| 브라우저 수동 검증 | 통과 |
+
+## 2026-06-17 / RST-701 / 브라우저 수동 검증 완료
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | Vite dev 서버와 headless Chrome DevTools Protocol을 사용해 HANDOVER의 남은 수동 검증 항목을 실제 브라우저 흐름으로 확인했다. |
+| 검증 항목 | 선택지 클릭, `잘 모르겠어요`, 추천 질문 취소, 입장→자유 대화→추천 질문→추천 카드→다시 추천받기→퇴장, 모바일 폭 선택지 줄바꿈/스크롤, 무알코올 오류 메시지, 제외 재료 결과, 모든 후보 소진 리셋 안내 |
+| 결과 | 모두 통과. 모바일 390px 폭에서 선택지는 2줄로 줄바꿈되며 가로 오버플로 없음. 모든 후보 소진 시 `모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.` 안내가 표시됨. |
+| 참고 | 후보 소진 검증은 실제 버튼 흐름을 유지하되 검증 시간을 줄이기 위해 브라우저 로드 전 `setTimeout`을 0ms로 줄인 상태에서 반복했다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 브라우저 실제 클릭 흐름 | 통과 |
+| 모바일 390px 배치 | 통과 |
+| 무알코올 요청 | 통과 |
+| 제외 재료 요청 | 통과 |
+| 모든 후보 소진 리셋 | 통과 |
+
+## 2026-06-17 / RST-701 / 검수 및 제외 베이스 경계 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-701 테스트 보강분을 검수하고, 제외 재료가 재료 목록뿐 아니라 `base_spirit`에도 적용되도록 추천 필터 경계를 보강했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.ts`, `state.test.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `filterCocktailsByRecommendationState`와 최근접 복구의 hard constraint에서 제외 재료를 `ingredients`와 `base_spirit` 모두에 적용한다. 재료 목록에는 없지만 베이스가 `진`인 후보도 `진 제외` 요청에서 걸러지는 회귀 테스트를 추가했다. |
+| 발견한 문제 | 기존 제외 재료 필터는 현재 데이터에서는 대체로 통과하지만, 향후 데이터 정규화 과정에서 재료 목록과 베이스 필드가 어긋나면 베이스 제외 요청이 누락될 수 있었다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 74개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.60 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-17 / RST-701 / 엣지 케이스 순수 함수 테스트 확장
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | 추천 상태, 응답, 질문 엔진의 미커버 엣지 케이스를 순수 함수 테스트로 추가했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.test.ts`, `response.test.ts`, `question-engine.test.ts`, `mission_control/WORK_LOG.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `TASK_BOARD.md` |
+| 주요 변경 사항 | **state.test.ts (+6):** alcohol preference(high/low/medium) 추출, 빈 신호 반환, low/high 도수 필터, 복합 신호 buildRecommendationReasons, answerLatestQuestion. **response.test.ts (+3):** selectRecommendationOpening 전 라인 최근 시 fallback, formatRecommendationReply acknowledgement 우선, formatRandomRecommendationReply custom opening. **question-engine.test.ts (+3):** isRecommendationIntent 의도/비의도 판별, pickFromPool 취향 기반 선택, formatQuestion null acknowledgement 기본 문구. |
+| 발견한 문제 | `ingestTasteSignals`(question-engine.ts)와 `formatQuestion`의 null acknowledgement 경로는 테스트가 없었고, `selectRecommendationOpening`은 모든 라인이 최근일 때 첫 라인으로 fallback하는 동작이 미검증이었다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 73개 |
+| `npm.cmd run build` | 통과 |
+
+## 2026-06-17 / RST-701 / 추천 UI 렌더링 계약 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 완료 UI와 선택 질문 UI가 주요 버튼과 안내를 계속 렌더링하는지 서버 렌더링 기반 테스트를 추가했다. |
+| 수정 파일 | `bar_tend/src/components/bar/recommendation-ui.test.tsx`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `CocktailCard`의 상세 정보와 `다시 추천받기` 버튼, `ChatInput`의 선택지·`잘 모르겠어요`·추천 질문 취소·비활성 입력 상태를 검증한다. 질문이 없을 때 추천 전용 컨트롤이 숨겨지는지도 보호한다. |
+| 발견한 문제 | 현재 테스트 환경에는 React Testing Library가 없어 실제 클릭 이벤트 시뮬레이션 대신 `react-dom/server` 렌더링 계약을 우선 보호했다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 61개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.54 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-17 / RST-407 / 입력 경로 기반 대사 트리거
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-407 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 결과에 도달한 입력 경로를 `RecommendationDecision`에 저장하고, 경로별 추천 대사와 감정 기반 표정 매핑을 연결했다. |
+| 수정 파일 | `bar_tend/src/types/recommendation.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/response.ts`, `src/hooks/useRecommendationSession.ts`, `src/lib/recommendation/state.test.ts`, `src/lib/recommendation/response.test.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `route`, `routeTags`, `dialogueState`, `affectState` 계약 추가. 감정·무드, 취향, 재료·베이스, 직접 주문, 랜덤 추천 경로를 분리하고 추천 첫 문장 풀을 최근 사용 라인에서 제외한다. `affectState`는 기존 `Expression`으로 매핑해 화면 표정에 반영한다. |
+| 발견한 문제 | 현재 런타임은 자연스러운 존댓말 응대 정책을 유지하므로, 대사 풀은 캐릭터 말투 확장이 아니라 중립 추천 문구의 경로 분리로 구현했다. |
+| 후속 작업 제안 | 추천 완료 UI와 재추천 흐름을 테스트 가능한 경계로 더 분리하고, RST-405 시에스타 이벤트 조건 구현으로 넘어간다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 56개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.54 kB, 레시피/BGM 별도 chunk 유지 |
+
 ## 2026-06-16 / RST-701 / 재추천 후보 제외 경계 테스트
 
 | 항목 | 내용 |

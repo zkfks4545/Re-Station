@@ -23,12 +23,12 @@
 | 1 | 한국어 및 브랜드 기준선 정리 | 완료 |
 | 2 | 데이터 모델과 추천 계약 통합 | 완료 |
 | 3 | 애플리케이션 로직 분리 | 완료 |
-| 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | 13~21일, RST-401/RST-402/RST-404 완료 |
+| 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
 | 6 | WebLLM 말투 포장 계층 | 잠정 보류 |
-| 7 | 테스트와 성능 개선 | 6~9일 |
+| 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
-| 남은 합계 | WebLLM 잠정 보류를 제외한 현재 잔여 계획 | **21~33일** |
+| 남은 합계 | WebLLM 잠정 보류를 제외한 현재 잔여 계획 | **19~30일** |
 
 ## 상위 프로그램
 
@@ -74,6 +74,10 @@
 | DATA-004 | 칵테일 DB 문체·표기 통일 | DONE | 한국어·ml 중심 레시피, 수량 없는 재료 목록, 한 문장 중립 설명문과 DB 우선 표시 계약 적용 |
 | RST-502 | 추천 카드 계약 적용 | DONE | 카드에는 기존 상세 정보와 중립 설명을 표시하고 카루아식 추천 멘트와 추천 이유는 대화창에 표시 |
 | RST-702 | 데이터 지연 로딩과 번들 최적화 | DONE | 레시피/BGM 부가 패널을 lazy chunk로 분리하고 빌드 크기와 검증 결과 기록 |
+| RST-407 | 입력 경로 기반 대사 트리거 | DONE | 추천 결정에 `route`·`routeTags`·`dialogueState`·`affectState`를 저장하고, 직접 주문·감정/무드·취향·재료/베이스·랜덤 경로별 추천 문구와 표정 매핑, 최근 대사 라인 제외를 적용 |
+| RST-701 | 단위 및 흐름 테스트 | DONE | Vitest 74개, 추천 UI 렌더링 계약, 클릭 흐름, 모바일 배치, 무알코올, 제외 재료, 후보 소진 리셋 수동 검증 완료 |
+| RST-405 | 시에스타 만담 이벤트 엔진 | DONE | 세션당 최대 2회, 6턴 쿨다운, 추천 진행 중·안전·퇴장·초기화 비방해, 일반 대화 3턴 후 시에스타-칼루아-시에스타 시퀀스 수동 검증 완료 |
+| RST-408 | 입력 경로별 대사 풀 확장 | DONE | `routeTags`·`dialogueState`·`affectState` 조건 기반 추천 첫 문장 선택, 도수·제외 재료·피곤/걱정/축하·직접 주문 문구 우선순위, 최근 라인 제외 회귀 테스트 완료 |
 
 ## 단계 1: 한국어 및 브랜드 기준선 정리
 
@@ -178,24 +182,40 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | TODO |
+| 상태 | DONE |
 | 예상 | 3~5일 |
 | 목적 | 카루아 중심 흐름을 유지하면서 시에스타가 잠깐 등장하는 관계 만담 제공 |
 | 범위 | 이벤트 발생 조건, 쿨다운, 예고 없는 난입, 카루아/손님 대상 선택, 2~4발화 시퀀스, 업무 복귀 퇴장, 카루아에게 대화권 반환 |
 | 금지 | 추천 질문, 안전 확인, 퇴장, 초기화 중 이벤트 발생 |
 | 완료 조건 | 이벤트 빈도 제한, 모든 이벤트가 난입-만담-업무복귀 구조 충족, 핵심 흐름 비방해, 두 캐릭터 말투 구분, 규칙 엔진 복구 가능 |
+| 진행 | 순수 이벤트 엔진과 쿨다운/세션 빈도 제한을 추가하고, `useRestationController`에서 본 답변 뒤 만담 시퀀스를 예약한다. 추천 진행 중·안전·퇴장·추천 취소에서는 이벤트가 발생하지 않으며, 추천 완료 직후에는 짧은 축하 만담을 허용한다. |
+| 검증 | `npm.cmd run check`, `npm.cmd test` 80개, `npm.cmd run lint`, `npm.cmd run build` 통과. Chrome DevTools Protocol 수동 검증으로 일반 대화 3턴 후 시에스타 2회·칼루아 1회·업무복귀 발화 표시, 추천 질문·안전·추천 취소·퇴장·초기화 구간 비발생 확인. |
+| 변경 파일 | `src/lib/banter/siesta-event.ts`, `src/lib/banter/siesta-event.test.ts`, `src/hooks/useRestationController.ts`, `src/components/bar/DialogueBox.tsx`, `src/components/bar/recommendation-ui.test.tsx` |
 
 ### RST-407: 입력 경로 기반 대사 트리거
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | TODO |
+| 상태 | DONE |
 | 예상 | 2~3일 |
 | 목적 | 칵테일 ID가 아니라 사용자가 추천 결과에 도달한 입력 경로를 기준으로 대화 소재와 대사 풀을 선택한다. |
 | 범위 | `directCocktailOrder`, `anecdoteOrPersonOrder`, `moodOrder`, `tastePreferenceOrder`, `ingredientOrBaseOrder`, `recommendationInference`, `randomPick` 같은 경로 태그 정의, 추천 결정에 경로 맥락 저장, FSM 상태별 대사 풀·말투·발화 리듬·애니메이션 클립 분리, 감정 상태별 표정 스프라이트 매핑, 최근 N개 대사 제외, 템플릿 변수 치환 |
 | 기존 구조와 결합 | 추천 엔진은 기존처럼 칵테일과 근거를 확정한다. 대사 트리거 계층은 확정된 `RecommendationDecision`과 입력 경로 태그를 받아 대사 풀만 선택하며 추천 결과를 변경하지 않는다. |
 | 구현 후보 | MVP에서는 TypeScript 규칙 엔진과 작은 대사 풀로 구현하고, 대사량이 늘어나면 Ink 스크립트의 `shuffle`/`cycle` 및 템플릿 변수 치환으로 이전한다. |
 | 완료 조건 | 같은 칵테일이라도 직접 주문, 취향 추론, 재료·베이스 언급, 감정·무드 주문에서 서로 다른 대사 풀을 사용한다. `route`는 대화 소재를, `dialogueState`는 말투·리듬·애니메이션을, `affectState`는 표정 스프라이트와 세부 어조를 결정한다. 최근 사용 대사는 제외되며, WebLLM 없이도 기본 대사 풀과 기본 스프라이트로 핵심 흐름이 완료된다. |
+| 변경 파일 | `src/types/recommendation.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/response.ts`, `src/hooks/useRecommendationSession.ts`, `src/lib/recommendation/state.test.ts`, `src/lib/recommendation/response.test.ts` |
+
+### RST-408: 입력 경로별 대사 풀 확장
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 예상 | 1~2일 |
+| 목적 | RST-407의 입력 경로·태그·상태 계약을 실제 대사 선택 우선순위에 더 넓게 반영 |
+| 범위 | 감정 상태별 무드 대사, 도수·선택 답변·제외 재료·선호 재료 태그 대사, 직접 주문 serving 대사, 맡기기/추론 대사, 최근 라인 제외 |
+| 완료 조건 | 같은 route 안에서도 `routeTags`, `dialogueState`, `affectState`가 더 구체적인 문구를 우선 선택하고, 최근 사용 라인은 다음 후보로 넘어간다. 제외 재료만 있는 요청도 재료/베이스 경로로 분류된다. |
+| 검증 | `npm.cmd test` 85개, `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과 |
+| 변경 파일 | `src/lib/recommendation/response.ts`, `src/lib/recommendation/response.test.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/state.test.ts` |
 
 ### RST-402: 기분, 상황, 취향 추출 및 추가 질문
 
@@ -308,10 +328,10 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | IN_PROGRESS |
+| 상태 | DONE |
 | 예상 | 4~6일 |
 | 범위 | 추천, 검색, 저장, 재추천, 무알코올, 제외 재료. WebLLM 복구 테스트는 재개 시 추가 |
-| 진행 | 공통 입력 라우터 충돌 테스트, localStorage 차단·손상 데이터·이전 키 마이그레이션 저장 경계 테스트 완료. 활성 추천 중 텍스트 취소 경로와 안전 우선순위 회귀 테스트를 추가했다. 재추천 후보군에서 이미 추천한 칵테일 ID를 제외하고 전체 소진 시 리셋 신호를 주는 순수 경계를 분리해 테스트했다. 다음은 추천 완료 UI 흐름 테스트 |
+| 진행 | 공통 입력 라우터 충돌 테스트, localStorage 차단·손상 데이터·이전 키 마이그레이션 저장 경계 테스트 완료. 활성 추천 중 텍스트 취소 경로와 안전 우선순위 회귀 테스트를 추가했다. 재추천 후보군에서 이미 추천한 칵테일 ID를 제외하고 전체 소진 시 리셋 신호를 주는 순수 경계를 분리해 테스트했다. 추천 카드, 다시 추천받기 버튼, 선택지, 잘 모르겠어요, 추천 질문 취소, 비활성 처리 렌더링 계약 테스트를 추가했다. alcohol preference(high/low/medium) 추출, 빈 신호, 도수 필터, 복합 신호 추천 이유, answerLatestQuestion, isRecommendationIntent, pickFromPool, formatQuestion null acknowledgement, selectRecommendationOpening fallback 등 엣지 케이스 순수 함수 테스트를 추가했다. 제외 재료가 재료 목록뿐 아니라 `base_spirit`에도 적용되도록 보강했다. 브라우저 수동 검증으로 선택지 클릭, 잘 모르겠어요, 추천 취소, 추천 카드, 다시 추천받기, 퇴장, 모바일 줄바꿈/스크롤, 무알코올 오류, 제외 재료, 모든 후보 소진 리셋 안내를 확인했다. Vitest 74개 통과 |
 
 ### RST-702: 데이터 지연 로딩과 번들 최적화
 
