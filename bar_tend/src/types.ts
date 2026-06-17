@@ -59,6 +59,7 @@ export interface CocktailData extends Cocktail {
 export interface Message {
   role: 'user' | 'bartender'
   text: string
+  speaker?: 'karua' | 'siesta'
 }
 
 export interface BartenderResponse {

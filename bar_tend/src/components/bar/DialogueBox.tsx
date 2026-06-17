@@ -1,6 +1,11 @@
 import { useRef, useEffect } from 'react'
 import type { Message } from '../../types.js'
 
+function getSpeakerLabel(message: Message): string | null {
+  if (message.role !== 'bartender' || !message.speaker) return null
+  return message.speaker === 'siesta' ? '시에스타' : '칼루아'
+}
+
 export default function DialogueBox({ messages, isTyping }: { messages: Message[]; isTyping: boolean }) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -17,6 +22,9 @@ export default function DialogueBox({ messages, isTyping }: { messages: Message[
               ? 'text-white/90'
               : 'bg-white/5 text-white/90 border border-white/10'
           }`} style={msg.role === 'user' ? { background: 'rgba(120, 80, 180, 0.08)', borderColor: 'rgba(180, 136, 208, 0.15)' } : {}}>
+            {getSpeakerLabel(msg) && (
+              <div className="mb-1 text-[11px] font-semibold text-amber-200/80">{getSpeakerLabel(msg)}</div>
+            )}
             <pre className="whitespace-pre-wrap font-sans">{msg.text}</pre>
           </div>
         </div>

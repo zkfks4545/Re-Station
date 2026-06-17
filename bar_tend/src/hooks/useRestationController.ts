@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCocktailResponse } from '@/lib/bartender/engine.js'
+import { createSiestaEvent, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { routeUserInput } from '@/lib/dialogue/input-router.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
@@ -19,6 +20,9 @@ export function useRestationController() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
   const timerRegistry = useRef(createTimerRegistry())
+  const userMessageCountRef = useRef(0)
+  const siestaEventCountRef = useRef(0)
+  const siestaCooldownRef = useRef(0)
 
   const {
     preference,
@@ -41,6 +45,12 @@ export function useRestationController() {
     setScreenShake(false)
   }, [])
 
+  const resetSiestaEventSession = useCallback(() => {
+    userMessageCountRef.current = 0
+    siestaEventCountRef.current = 0
+    siestaCooldownRef.current = 0
+  }, [])
+
   useEffect(() => () => timerRegistry.current.clearAll(), [])
 
   const bartenderReply = useCallback(
@@ -49,16 +59,35 @@ export function useRestationController() {
       exp: Expression,
       cocktail?: CocktailData | null,
       finishStatus: InteractionStatus = 'idle',
+      afterMessages: Message[] = [],
     ) => {
       setInteractionStatus('typing')
       setExpression('talk')
       timerRegistry.current.schedule(() => {
         setMessages((prev) => [...prev, { role: 'bartender', text }])
         setExpression(exp)
-        setInteractionStatus(finishStatus)
-        if (cocktail) {
-          timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+
+        if (afterMessages.length === 0) {
+          setInteractionStatus(finishStatus)
+          if (cocktail) {
+            timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+          }
+          return
         }
+
+        let nextDelay = 450
+        afterMessages.forEach((message, index) => {
+          nextDelay += message.text.length * 12 + 300
+          timerRegistry.current.schedule(() => {
+            setMessages((prev) => [...prev, message])
+            if (index === afterMessages.length - 1) {
+              setInteractionStatus(finishStatus)
+              if (cocktail) {
+                timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+              }
+            }
+          }, nextDelay)
+        })
       }, text.length * 15 + 400)
     },
     [],
@@ -66,6 +95,7 @@ export function useRestationController() {
 
   const handleEnter = useCallback(() => {
     clearPendingWork()
+    resetSiestaEventSession()
     setErrorMessage(null)
     setScene('inside')
     setMessages([
@@ -74,10 +104,11 @@ export function useRestationController() {
         text: '어서 오세요. Re:Station입니다.\n오늘은 어떤 걸 찾으세요?',
       },
     ])
-  }, [clearPendingWork])
+  }, [clearPendingWork, resetSiestaEventSession])
 
   const handleExit = useCallback(() => {
     clearPendingWork()
+    resetSiestaEventSession()
     setErrorMessage(null)
     setInteractionStatus('exiting')
     bartenderReply('들러주셔서 감사합니다. 조심히 가세요.', 'idle', null, 'exiting')
@@ -91,10 +122,11 @@ export function useRestationController() {
       clearExcludedCocktailIds()
       resetRecommendation()
     }, 2000)
-  }, [bartenderReply, clearPendingWork, clearExcludedCocktailIds, resetRecommendation])
+  }, [bartenderReply, clearPendingWork, clearExcludedCocktailIds, resetRecommendation, resetSiestaEventSession])
 
   const handleResetNight = useCallback(() => {
     clearPendingWork()
+    resetSiestaEventSession()
     resetNight()
     setMessages([])
     setExpression('idle')
@@ -106,7 +138,7 @@ export function useRestationController() {
       '대화와 취향 정보를 초기화했습니다.\n도감에 등록된 칵테일 정보는 유지됩니다.',
       'idle',
     )
-  }, [clearPendingWork, resetNight, clearExcludedCocktailIds, resetRecommendation, bartenderReply])
+  }, [clearPendingWork, resetSiestaEventSession, resetNight, clearExcludedCocktailIds, resetRecommendation, bartenderReply])
 
   const handleCancelRecommendation = useCallback(() => {
     if (interactionStatus !== 'idle' || !activeQuestion) return
@@ -122,6 +154,7 @@ export function useRestationController() {
       setInteractionStatus('processing')
       setMessages((prev) => [...prev, { role: 'user', text }])
       ingestUserMessage(text)
+      userMessageCountRef.current += 1
 
       const inputRoute = routeUserInput(text, { recommendationActive: activeQuestion !== null })
 
@@ -153,6 +186,16 @@ export function useRestationController() {
           const reply = recommendation?.reply ?? fallback.response
           const nextExpression = recommendation?.expression ?? fallback.expression
           const cocktail = recommendation?.cocktail ?? null
+          const siestaMessages = createSiestaEvent({
+            inputText: text,
+            replyText: reply,
+            inputRoute,
+            userMessageCount: userMessageCountRef.current,
+            eventCount: siestaEventCountRef.current,
+            cooldownTurns: siestaCooldownRef.current,
+            recommendationActive: activeQuestion !== null && !cocktail,
+            recommendedCocktailName: cocktail?.name,
+          })
 
           if (cocktail) {
             setScreenShake(true)
@@ -161,7 +204,14 @@ export function useRestationController() {
             setUnlockedIds(ids)
           }
 
-          bartenderReply(reply, nextExpression, cocktail)
+          if (siestaMessages) {
+            siestaEventCountRef.current += 1
+            siestaCooldownRef.current = SIESTA_EVENT_COOLDOWN_TURNS
+          } else if (siestaCooldownRef.current > 0) {
+            siestaCooldownRef.current -= 1
+          }
+
+          bartenderReply(reply, nextExpression, cocktail, 'idle', siestaMessages ?? [])
         } catch {
           setExpression('idle')
           setInteractionStatus('idle')
