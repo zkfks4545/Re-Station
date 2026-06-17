@@ -6,6 +6,8 @@ import {
   formatQuestion,
   getQuestionById,
   isRecommendationDecisive,
+  isRecommendationIntent,
+  pickFromPool,
   selectNextQuestion,
 } from './question-engine.js'
 import {
@@ -235,5 +237,30 @@ describe('adaptive recommendation questions', () => {
 
     expect(sourcePool.cocktails).toHaveLength(0)
     expect(sourcePool.exhausted).toBe(true)
+  })
+
+  it('detects recommendation intent from various natural inputs', () => {
+    expect(isRecommendationIntent('추천해줘')).toBe(true)
+    expect(isRecommendationIntent('골라줘')).toBe(true)
+    expect(isRecommendationIntent('달달한 칵테일')).toBe(true)
+    expect(isRecommendationIntent('오늘 뭐 마실까')).toBe(true)
+    expect(isRecommendationIntent('안녕하세요')).toBe(false)
+    expect(isRecommendationIntent('날씨 좋네요')).toBe(false)
+  })
+
+  it('picks the best cocktail from a pool using taste preference', () => {
+    const pool = getAllCocktailData()
+    const result = pickFromPool(pool, { sweetness: 0.9 })
+
+    expect(result).not.toBeNull()
+    expect(pool).toContain(result)
+  })
+
+  it('formats question with default lead-in when no acknowledgement exists', () => {
+    const question = getQuestionById('fizz')!
+    const formatted = formatQuestion(question, null)
+
+    expect(formatted).toContain('한 가지만 더 여쭤볼게요.')
+    expect(formatted).toContain(question.prompt)
   })
 })
