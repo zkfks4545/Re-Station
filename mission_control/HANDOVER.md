@@ -1,6 +1,6 @@
 # 인수인계
 
-> 최종 갱신일: 2026-06-18 (기능 검수 및 안전·직접 주문 경계 보완 완료 — check/lint/test/build 통과)
+> 최종 갱신일: 2026-06-18 (RST-000 MVP 범위 완료 정리)
 
 ## 현재 목표
 
@@ -70,16 +70,20 @@
 - [x] **RST-405 시에스타 만담 이벤트 구현 및 수동 검증**: 세션당 최대 2회, 6턴 쿨다운, 추천 진행 중·안전·퇴장·추천 취소 금지 조건을 가진 이벤트 엔진을 추가했다. 본 답변 뒤 시에스타-칼루아-시에스타 3발화 시퀀스를 예약하고 대화창에 화자 라벨을 표시한다. Vitest 80개와 Chrome DevTools Protocol 수동 검증이 통과한다.
 - [x] **RST-408 입력 경로별 대사 풀 확장**: 추천 첫 문장 선택이 `route`뿐 아니라 `routeTags`, `dialogueState`, `affectState`를 점수화해 고른다. 피곤/걱정/축하 무드, 도수 조건, 선택 답변, 선호·제외 재료, 직접 주문 serving, 맡기기/추론 문구를 추가하고 최근 사용 라인 제외를 유지한다. Vitest 85개가 통과한다.
 - [x] **RST-411 기능 검수 및 안전·직접 주문 경계 보완**: 완료 기능을 실제 사용자 흐름 기준으로 재검수했다. 안전 응답이 빈 문자열이 될 수 있는 경계를 `SAFETY_REDIRECT_REPLY`로 보완하고 119/112/1393 안내를 단일 상수로 통일했다. `DialogueTurn.responseGoal`은 intent 기준으로 매핑하도록 수정했다. 추천 질문 중 명시적 칵테일 주문이 들어오면 `resetRecommendation()`으로 설문 상태를 닫는다. Vitest 110개, check/lint/build가 통과한다.
+- [x] **RST-412 mission_control 문서 정합성 정리**: 현재 기준 테스트 수 110개, 메인 JS 321.75 kB, RST-411 이후 다음 작업 후보와 검증 기준을 `CURRENT_STATE.md`, `HANDOVER.md`, `TASK_BOARD.md`, `WORK_LOG.md`에 반영했다.
+- [x] **RST-413 RST-000 상위 프로그램 상태 정리**: RST-000을 MVP 범위 DONE으로 전환하고, WebLLM·데이터 운영·JSON 계약 확장은 MVP 이후 PROPOSED/DEFERRED 범위로 분리했다.
 
 전체 리팩토링은 `TASK_BOARD.md`의 상위 프로그램 `RST-000`과 단계별 `RST-*` 작업을 기준으로 추적한다.
 
 ## 다음 작업
 
+현재 WebLLM 제외 MVP, RST-411 기능 경계 보완, RST-412 문서 정합성 정리, RST-413 상위 프로그램 상태 정리는 완료 상태다. 바로 착수할 필수 구현 작업은 없으며, 다음 단계는 MVP 이후 제안 작업 승인 여부 결정이다.
+
 ~~시에스타 대사 풀과 쿨다운 수치 미세조정~~ — DONE
-
-시에스타 대사 풀을 4개 브랜치·12개 대사 세트에서 **7개 브랜치·22개 대사 세트**로 확장했다. 새로운 브랜치: `celebration`(축하/생일/기념), `sweet`(달콤/디저트), `sad`(슬프/우울/속상). 각 브랜치에 여러 대사 세트를 추가하고 `selectDialogueSet` 키 기반 중복 방지를 적용해 세션 내 같은 대사가 반복되지 않는다. `npm.cmd run lint`, `npm.cmd run check`, `npm.cmd test` 97개, `npm.cmd run build` 모두 통과.
-
 ~~WebLLM 제외 MVP 마감 검수~~ — DONE
+~~기능 경계 재검수 및 안전·직접 주문 보완~~ — DONE
+~~mission_control 문서 정합성 정리~~ — DONE
+~~RST-000 상위 프로그램 상태 정리~~ — DONE
 
 MVP 성공 기준 전 항목을 검수 완료:
 
@@ -101,9 +105,9 @@ MVP 이후 논의 후보로 `DISC-001`을 기록했다. 대화 의미와 행동�
 
 ### 권장 순서
 
-1. ~~시에스타 대사 풀과 쿨다운 수치 미세조정~~ (완료)
-2. ~~WebLLM 제외 MVP 마감 검수~~ (완료)
-3. ~~데이터/대사 원고 품질 패스~~ (완료)
+1. `DLG-801` 승인 여부 논의
+2. `DATA-801`/`DATA-802` 데이터 운영 정책 논의
+3. WebLLM RST-601~606 재개 여부 논의
 
 ## 먼저 읽을 파일
 
@@ -173,9 +177,9 @@ git stash pop
 ## 검증 기준
 
 - [x] `npm.cmd run lint`
-- [x] `npm.cmd test` — Vitest 97개 통과
+- [x] `npm.cmd test -- --run` — Vitest 110개 통과
 - [x] `npm.cmd run check`
-- [x] `npm run build` 또는 `npm.cmd run build`
+- [x] `npm.cmd run build`
 - [x] 카루아 초기 메시지 표시
 - [x] 자유 대화 입력과 좌우 메시지 표시
 - [x] 일반적으로 2~3개의 질문 후 추천, 실제 후보 1개 또는 맡기기만 조기 종료

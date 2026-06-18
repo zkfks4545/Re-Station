@@ -1,5 +1,29 @@
 ﻿# 작업 이력
 
+## 2026-06-18 / RST-413 / RST-000 상위 프로그램 상태 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-413 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-000 상위 프로그램을 MVP 범위 DONE으로 정리하고, WebLLM 및 데이터 운영 확장은 MVP 이후 PROPOSED/DEFERRED 범위로 분리했다. |
+| 주요 변경 사항 | `TASK_BOARD.md`의 RST-000 상태를 DONE으로 전환하고 승인된 MVP 잔여 계획을 0일로 정리했다. `CURRENT_STATE.md`와 `HANDOVER.md`의 다음 수행 후보에서 RST-000을 제거하고 DLG-801, DATA-801/DATA-802, WebLLM 재개 논의로 갱신했다. |
+| 수정 파일 | `mission_control/TASK_BOARD.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 검색으로 RST-000이 다음 수행 후보/권장 순서에 남지 않는지 확인. 코드 변경 없음. |
+
+## 2026-06-18 / RST-412 / mission_control 문서 정합성 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-412 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-411 커밋 이후 `mission_control` 문서의 현재 상태 수치와 다음 작업 안내를 최신 기준으로 정리했다. |
+| 주요 변경 사항 | 현재 기준 테스트 수를 110개로 통일하고, 현재 빌드 메인 JS 크기를 321.75 kB로 반영했다. `HANDOVER.md`의 오래된 다음 작업/권장 순서/검증 기준을 RST-411 이후 상태에 맞게 정리했다. `CURRENT_STATE.md`에 다음 수행 후보를 별도 섹션으로 추가했다. |
+| 수정 파일 | `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 내 현재형 수치 검색으로 `97개`, `306.60 kB`, 오래된 권장 순서 잔여 여부 확인. 과거 `WORK_LOG`의 당시 검증 수치는 사실 기록으로 유지했다. |
+
 ## 2026-06-18 / RST-411 / 기능 검수 및 안전·직접 주문 경계 보완
 
 | 항목 | 내용 |

@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-> 최종 갱신일: 2026-06-18 (기능 검수 완료, 안전 응답·직접 주문 경계 보완)
+> 최종 갱신일: 2026-06-18 (RST-000 MVP 범위 완료 정리)
 
 ## 상태 요약
 
@@ -9,7 +9,7 @@
 | 목표 제품 | Re:Station 카루아 중심 대화형 칵테일 추천 MVP + 시에스타 만담 이벤트 |
 | 현재 구현 | Re:Station 브랜드와 자연스러운 직원 응대를 적용한 추천 프로토타입 |
 | 실제 애플리케이션 경로 | `bar_tend/` |
-| 현재 단계 | MVP 마감 검수 후 기능 경계 보완 완료, WebLLM 제외 MVP 전 항목 통과 |
+| 현재 단계 | RST-000 MVP 범위 완료, MVP 이후 확장 후보는 승인 전 |
 | 기술 방향 | React + Vite + 프론트엔드 단독, WebLLM 잠정 보류 |
 | 추천 원칙 | JSON·DB·규칙 기반으로 추천 결과 확정, 대사 소재는 입력 경로가 결정, WebLLM은 향후 말투 포장만 허용 |
 | 빌드 | 통과: `npm.cmd run build` (`tsc --noEmit` 포함) |
@@ -76,6 +76,8 @@
 - [x] alcohol preference(high/low/medium) 추출, 복합 신호 추천 이유, answerLatestQuestion, isRecommendationIntent, pickFromPool, formatQuestion null acknowledgement, selectRecommendationOpening fallback, 제외 재료의 `base_spirit` 적용 등 엣지 케이스 순수 함수 테스트 추가 (Vitest 61→74)
 - [x] 브라우저 수동 검증으로 선택지 클릭, 잘 모르겠어요, 추천 취소, 추천 카드, 다시 추천받기, 퇴장, 모바일 줄바꿈/스크롤, 무알코올 오류, 제외 재료, 모든 후보 소진 리셋 안내 확인
 - [x] RST-411 기능 검수로 안전 응답 본문 누락 가능성, `DialogueTurn.responseGoal` 매핑, 추천 질문 중 명시적 칵테일 주문 후 설문 잔존 경계를 보완
+- [x] RST-412 문서 정합성 정리로 현재 테스트 수, 빌드 크기, 다음 수행 후보, 인수인계 검증 기준을 최신화
+- [x] RST-413 상위 프로그램 상태 정리로 RST-000을 MVP 범위 DONE으로 전환하고 후속 확장을 PROPOSED/DEFERRED 범위로 분리
 
 ## 현재 구현과 목표의 주요 차이
 
@@ -108,7 +110,7 @@
 | ISSUE-002 | ~~레거시 `Cocktail`과 `CocktailRecord` 모델 이중화~~ | 해결됨. 단일 `CocktailData` 컬렉션 적용 |
 | ISSUE-003 | ~~`App.tsx`에 대화, 추천, 도감, 타이머가 집중됨~~ | 해결됨. 추천 세션과 애플리케이션 조정 훅 분리 |
 | ISSUE-004 | ~~자동 테스트 부족~~ | 해결됨. Vitest 85개 통과 및 RST-701/RST-405 수동 흐름 검증 완료 |
-| ISSUE-005 | ~~초기 JS 번들 593.32 kB 경고~~ | 해결됨. 현재 메인 JS 306.60 kB, 레시피/BGM 탭 별도 chunk |
+| ISSUE-005 | ~~초기 JS 번들 593.32 kB 경고~~ | 해결됨. 현재 메인 JS 321.75 kB, 레시피/BGM 탭 별도 chunk |
 | ISSUE-006 | ~~OpenAI 및 Ollama 모듈은 목표 기술과 불일치~~ | 해결됨. 미사용 모듈 제거 |
 | ISSUE-007 | WebLLM 브라우저 안정성과 출력 품질 미검증 | 말투 포장 전용으로 범위를 제한하고 잠정 보류 |
 | ISSUE-008 | ~~카루아 규칙 응답의 상세 계약 적합성 미검증~~ | 해결됨. RST-404 평가 세트와 안전 경계 추가 |
@@ -120,6 +122,14 @@
 1. ~~시에스타 대사 풀과 쿨다운 미세조정~~ (완료)
 2. ~~WebLLM 제외 MVP 마감 검수~~ (완료)
 3. ~~기능 경계 재검수 및 안전·직접 주문 보완~~ (완료)
+4. ~~`mission_control` 문서 정합성 정리~~ (완료)
+5. ~~`RST-000` 상위 프로그램 상태 정리~~ (완료)
+
+## 다음 수행 후보
+
+1. `DLG-801` 승인 여부 논의
+2. `DATA-801`/`DATA-802` 데이터 운영 정책 논의
+3. WebLLM RST-601~606 재개 여부 논의
 
 ## 향후 논의
 
