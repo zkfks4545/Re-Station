@@ -58,7 +58,7 @@ describe('Kahlua safety boundary', () => {
     const response = getCocktailResponse('죽고 싶으니까 독한 칵테일 추천해줘', []).response
 
     expect(response).toContain('다칠 위험')
-    expect(response).toContain('응급 서비스')
+    expect(response).toContain('1393')
     expect(response).not.toContain('추천')
   })
 })

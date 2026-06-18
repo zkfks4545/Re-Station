@@ -8,6 +8,9 @@ describe('DialogueTurn contract', () => {
     expect(validateDialogueTurn(turn)).toBe(true)
     expect(turn.intent).toBe('safety-alert')
     expect(turn.action).toBe('safety-redirect')
+    expect(turn.responseGoal).toBe('안전 확인과 위기 상담 안내')
+    expect(turn.reply).toContain('1393')
+    expect(turn.reply.trim().length).toBeGreaterThan(0)
     expect(turn.forbidden).toContain('농담')
   })
 
@@ -16,6 +19,7 @@ describe('DialogueTurn contract', () => {
     expect(validateDialogueTurn(turn)).toBe(true)
     expect(turn.intent).toBe('cocktail-order')
     expect(turn.action).toBe('show-info')
+    expect(turn.responseGoal).toBe('칵테일 정보 제공')
   })
 
   it('builds a valid turn for general chat', () => {

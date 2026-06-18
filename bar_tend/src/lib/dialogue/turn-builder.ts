@@ -20,6 +20,9 @@ interface RecommendationOutcome {
   decision?: RecommendationDecision | null
 }
 
+export const SAFETY_REDIRECT_REPLY =
+  '지금은 안전이 먼저예요. 지금 다칠 위험이 있거나 혼자 있기 어렵다면 즉시 119나 112, 또는 자살예방상담전화 1393에 연락해 주세요.\n가까운 사람에게도 바로 연락해 주세요.'
+
 const ROUTE_TO_INTENT: Record<string, DialogueIntent> = {
   safety: 'safety-alert',
   exit: 'exit-intent',
@@ -109,7 +112,7 @@ export function buildDialogueTurn(
   const route = routeToDialogueRoute(inputRoute)
   const routeTag = routeToRouteTag(inputRoute)
   const routeTags: RecommendationRouteTag[] = [routeTag]
-  const reply = outcome?.reply ?? fallbackReply
+  const reply = resolveReply(inputRoute, fallbackReply, outcome?.reply)
   const decision = outcome?.decision
 
   let action = ROUTE_TO_ACTION[inputRoute] ?? 'reply'
@@ -125,7 +128,8 @@ export function buildDialogueTurn(
     'cocktail-order': '칵테일 정보 제공',
     'recommend-request': '취향 기반 추천',
   }
-  const responseGoal = responseGoalMap[inputRoute] ?? '일반 대화 응대'
+  const intent = ROUTE_TO_INTENT[inputRoute] ?? 'general-chat'
+  const responseGoal = responseGoalMap[intent] ?? '일반 대화 응대'
 
   const forbidden: string[] = []
   if (inputRoute === 'safety') {
@@ -144,7 +148,7 @@ export function buildDialogueTurn(
   )
 
   return {
-    intent: ROUTE_TO_INTENT[inputRoute] ?? 'general-chat',
+    intent,
     entities,
     confidence: inputRoute === 'recommendation' ? 0.6 : 0.9,
     route,
@@ -161,4 +165,15 @@ export function buildDialogueTurn(
     reply,
     expression: outcome?.expression ?? fallbackExpression,
   }
+}
+
+function resolveReply(
+  inputRoute: InputRoute,
+  fallbackReply: string,
+  outcomeReply?: string,
+): string {
+  if (outcomeReply) return outcomeReply
+  if (fallbackReply) return fallbackReply
+  if (inputRoute === 'safety') return SAFETY_REDIRECT_REPLY
+  return ''
 }

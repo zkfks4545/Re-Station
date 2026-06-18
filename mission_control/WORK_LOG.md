@@ -1,5 +1,28 @@
 ﻿# 작업 이력
 
+## 2026-06-18 / RST-411 / 기능 검수 및 안전·직접 주문 경계 보완
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-411 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 완료 기능을 실제 사용자 흐름 기준으로 재검수하고, 안전 응답·직접 주문·DialogueTurn 의미 목표 경계에서 발견한 문제를 보완했다. |
+| 검수 항목 | 1) 안전 입력 라우팅과 실제 안내 문구, 2) 안전 응답의 추천/농담 차단, 3) 활성 추천 질문 중 명시적 칵테일 주문, 4) `DialogueTurn.responseGoal` 계약, 5) 관련 회귀 테스트와 빌드 검증 |
+| 발견한 문제 | **안전 응답 본문 누락 가능성:** `safety` 라우트에서 `buildDialogueTurn(..., '', 'sympathy')`가 빈 fallback을 그대로 `reply`로 사용할 수 있었다. **직접 주문 후 설문 잔존:** 추천 질문 중 `모히토 한 잔` 같은 명시적 칵테일 주문은 카드 응답을 반환하지만 추천 상태를 닫지 않아 이전 선택지 버튼이 남을 수 있었다. **responseGoal 매핑 오류:** `responseGoalMap`은 intent 키를 갖지만 실제 조회는 input route로 수행되어 기본값으로 흐를 수 있었다. |
+| 주요 변경 사항 | `SAFETY_REDIRECT_REPLY`를 추가해 안전 응답 본문을 단일 상수로 관리하고 `119`, `112`, `1393` 안내를 포함했다. `getCocktailResponse`도 같은 안전 문구를 사용하도록 통일했다. `buildDialogueTurn`은 안전 fallback이 비어 있어도 안전 안내를 반환하고, `responseGoal`은 `intent` 기준으로 매핑한다. `useRecommendationSession`의 명시적 칵테일 주문 분기에서 `resetRecommendation()`을 호출해 활성 설문 상태를 종료한다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/turn-builder.ts`, `bar_tend/src/lib/bartender/engine.ts`, `bar_tend/src/hooks/useRecommendationSession.ts`, `bar_tend/src/types/dialogue-turn.test.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- --run` 통과(110/110), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 전체 Vitest | 통과, 110개 |
+| 타입 체크 | 통과 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과, 메인 JS 321.75 kB |
+
 ## 2026-06-17 / RST-410 / MVP 마감 검수 및 안전 응답 개선
 
 | 항목 | 내용 |

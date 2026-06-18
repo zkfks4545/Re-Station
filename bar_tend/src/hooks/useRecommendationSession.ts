@@ -96,6 +96,7 @@ export function useRecommendationSession() {
           dialogueState: 'serving',
           affectState: 'confident',
         })
+        resetRecommendation()
         return {
           cocktail: explicitCocktail,
           decision: createRecommendationDecision(explicitCocktail, recommendationState, dialogue),
