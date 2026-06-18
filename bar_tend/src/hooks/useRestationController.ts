@@ -163,32 +163,68 @@ export function useRestationController() {
       userMessageCountRef.current += 1
 
       const routeResult: RouteResult = routeUserInput(text, { recommendationActive: activeQuestion !== null })
+      const failInvalidTurn = () => {
+        setExpression('idle')
+        setInteractionStatus('idle')
+        setErrorMessage('죄송합니다. 방금 말씀은 처리하지 못했어요. 다시 한번 말씀해 주세요.')
+      }
 
       if (routeResult.route === 'safety') {
+        const turn = buildDialogueTurn(text, routeResult.route, '', 'sympathy', null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) {
+          failInvalidTurn()
+          return
+        }
         resetRecommendation()
-        const turn = buildDialogueTurn(text, routeResult.route, '', 'sympathy')
-        if (!validateDialogueTurn(turn)) return
         bartenderReply(turn.reply, turn.expression)
         return
       }
 
       if (routeResult.route === 'exit') {
+        const turn = buildDialogueTurn(text, routeResult.route, '', 'idle', null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) {
+          failInvalidTurn()
+          return
+        }
         handleExit()
         return
       }
 
       if (routeResult.route === 'recommendation-cancel') {
+        const turn = buildDialogueTurn(text, routeResult.route, '', 'idle', null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) {
+          failInvalidTurn()
+          return
+        }
         resetRecommendation()
-        bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
+        bartenderReply(turn.reply, turn.expression)
         return
       }
 
       if (routeResult.route === 'unknown-cocktail-query' && routeResult.unknownCocktailName) {
-        addUnknownCocktail(routeResult.unknownCocktailName, text)
-        bartenderReply(
+        const turn = buildDialogueTurn(
+          text,
+          routeResult.route,
           `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록되지 않았네요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`,
           'thinking',
+          null,
+          {
+            confidence: routeResult.confidence,
+            entities: { cocktailName: routeResult.unknownCocktailName },
+          },
         )
+        if (!validateDialogueTurn(turn)) {
+          failInvalidTurn()
+          return
+        }
+        addUnknownCocktail(routeResult.unknownCocktailName, text)
+        bartenderReply(turn.reply, turn.expression)
         return
       }
 
@@ -208,6 +244,7 @@ export function useRestationController() {
             fallback.response,
             fallback.expression,
             recommendation ?? undefined,
+            { confidence: routeResult.confidence },
           )
           if (!validateDialogueTurn(turn)) {
             throw new Error('Invalid dialogue turn')

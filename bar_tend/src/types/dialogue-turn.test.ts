@@ -29,9 +29,31 @@ describe('DialogueTurn contract', () => {
     expect(turn.action).toBe('reply')
   })
 
+  it('uses a small fallback template when reply text is missing', () => {
+    const turn = buildDialogueTurn('음', 'general', '', 'idle')
+    expect(validateDialogueTurn(turn)).toBe(true)
+    expect(turn.reply).toBe('알겠습니다. 조금 더 자세히 말씀해 주시면 이어서 도와드릴게요.')
+    expect(turn.facts).toContain(turn.reply)
+  })
+
   it('builds a valid turn with entities extracted', () => {
     const turn = buildDialogueTurn('달콤하고 부드러운 칵테일 추천해줘', 'recommendation', '찾아볼게요', 'thinking')
     expect(turn.entities.tastes).toContain('달콤')
+  })
+
+  it('keeps unknown cocktails in a review queue contract', () => {
+    const turn = buildDialogueTurn(
+      '블루문 한 잔 알려줘',
+      'unknown-cocktail-query',
+      '',
+      'thinking',
+      null,
+      { confidence: 0.6, entities: { cocktailName: '블루문' } },
+    )
+    expect(validateDialogueTurn(turn)).toBe(true)
+    expect(turn.action).toBe('queue-for-review')
+    expect(turn.entities.cocktailName).toBe('블루문')
+    expect(turn.reply).toContain('추천 후보로 쓰지는 않을게요')
   })
 
   it('rejects invalid objects', () => {
@@ -39,5 +61,14 @@ describe('DialogueTurn contract', () => {
     expect(validateDialogueTurn(undefined)).toBe(false)
     expect(validateDialogueTurn({})).toBe(false)
     expect(validateDialogueTurn('string')).toBe(false)
+  })
+
+  it('rejects malformed turn candidates before state changes', () => {
+    const turn = buildDialogueTurn('모히토 주문', 'explicit-cocktail', '찾으시는군요', 'smirk')
+    expect(validateDialogueTurn({ ...turn, intent: 'unsafe-made-up-intent' })).toBe(false)
+    expect(validateDialogueTurn({ ...turn, confidence: 1.5 })).toBe(false)
+    expect(validateDialogueTurn({ ...turn, routeTags: ['direct-name', 'invalid-tag'] })).toBe(false)
+    expect(validateDialogueTurn({ ...turn, statePatch: { dialogueState: 'invalid-state' } })).toBe(false)
+    expect(validateDialogueTurn({ ...turn, reply: '' })).toBe(false)
   })
 })

@@ -1,5 +1,41 @@
 ﻿# 작업 이력
 
+## 2026-06-18 / DATA-802 / IBA 우선 검색과 레시피 기반 설명 보강 파이프라인
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DATA-802 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 칵테일 추가 후보를 IBA 공식 레코드, 시그니처 검증 큐, 정보 부족 큐, 출처 충돌 큐로 분류하는 순수 판정 파이프라인을 구현했다. |
+| 주요 변경 사항 | `processRecipeCandidate`를 추가해 IBA URL과 공식 분류가 모두 유효한 후보만 정식 `CocktailRecord`로 정규화한다. 비공식 시그니처 후보는 레시피와 재료가 있어도 관리자 검증 큐로 보내며, 정보 부족과 출처 충돌 항목은 자동 선택 없이 각각 unknown/conflict 큐로 이관한다. 비공식 후보에는 공식·정통·클래식 같은 권위 표현을 생성하지 않는 회귀 테스트를 추가했다. |
+| 수정 파일 | `bar_tend/src/lib/cocktails/ingestion-pipeline.ts`, `bar_tend/src/lib/cocktails/ingestion-pipeline.test.ts`, `bar_tend/src/lib/cocktails/cocktail-db.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- ingestion-pipeline.test.ts --run` 통과(5/5), `npm.cmd test` 통과(123/123), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.87 kB) |
+
+## 2026-06-18 / DATA-801 / 관리자 검증 큐와 미확정 칵테일 처리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DATA-801 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 자동 검색이나 현재 DB로 확정하지 못한 칵테일을 정식 추천 후보가 아니라 관리자 검증 큐로 분리하는 운영 경계를 구현했다. |
+| 주요 변경 사항 | 큐 상태를 `open/approved/rejected/archived`로 확장하고 `unknownCocktail`, `signatureCandidate`, `conflictingSearchResult` 등록 함수를 분리했다. 미확정·출처 충돌 항목은 승인할 수 없고, 레시피와 재료가 있는 시그니처 후보만 승인 후 승격 준비 후보로 노출된다. 큐 조회 결과는 복사본으로 반환해 외부에서 내부 상태를 변형하지 못하게 했다. |
+| 수정 파일 | `bar_tend/src/types/admin-queue.ts`, `bar_tend/src/lib/cocktails/admin-queue-manager.ts`, `bar_tend/src/lib/cocktails/admin-queue-manager.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- admin-queue-manager.test.ts --run` 통과(11/11), `npm.cmd test` 통과(118/118), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.88 kB) |
+
+## 2026-06-18 / DLG-801 / JSON 중심 DialogueTurn 계약
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DLG-801 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 대화 의미, 다음 행동, 상태 변경을 검증 가능한 `DialogueTurn` JSON 계약으로 다루도록 런타임 검증과 기본 복구 템플릿을 보강했다. |
+| 주요 변경 사항 | `validateDialogueTurn`이 intent/action/route/routeTags/statePatch/expression enum, confidence 범위, 필수 문자열과 배열을 검증하도록 강화했다. `buildDialogueTurn`에 action별 기본 복구 템플릿과 confidence/entities 오버라이드를 추가했다. 안전·퇴장·추천 취소·미등록 칵테일 조기 분기는 상태 변경 전에 `DialogueTurn` 검증을 통과하도록 순서를 정리했다. |
+| 수정 파일 | `bar_tend/src/types/dialogue-turn.ts`, `bar_tend/src/lib/dialogue/turn-builder.ts`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/types/dialogue-turn.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts --run` 통과(8/8), `npm.cmd test` 통과(113/113), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.72 kB) |
+
 ## 2026-06-18 / RST-413 / RST-000 상위 프로그램 상태 정리
 
 | 항목 | 내용 |

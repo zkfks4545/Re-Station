@@ -1,4 +1,4 @@
-export type PendingCocktailStatus = 'pending' | 'approved' | 'rejected'
+export type PendingCocktailStatus = 'open' | 'approved' | 'rejected' | 'archived'
 
 export type QueueItemType = 'unknownCocktail' | 'signatureCandidate' | 'conflictingSearchResult'
 
@@ -14,6 +14,8 @@ export interface PendingCocktailCandidate {
   sourceName: 'thecocktaildb' | 'user-submitted' | 'manual'
   confidence: number
   status: PendingCocktailStatus
+  requestContext: string
+  failureReason?: string
   submittedAt: string
   reviewedAt?: string
   reviewNotes?: string
