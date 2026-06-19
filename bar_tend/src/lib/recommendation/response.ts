@@ -46,6 +46,18 @@ const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
     text: '좋은 분위기를 조금 더 살릴 수 있는 쪽으로 골라봤어요.',
   },
   {
+    id: 'mood-awkward',
+    route: 'moodOrder',
+    affectState: 'awkward',
+    text: '기분이 조금 날카로운 날이라면 맛은 또렷하되 과하게 몰아붙이지 않는 쪽으로 볼게요.',
+  },
+  {
+    id: 'mood-warm',
+    route: 'moodOrder',
+    affectState: 'warm',
+    text: '말씀해 주신 분위기에 무리 없이 어울리는 쪽으로 골라봤어요.',
+  },
+  {
     id: 'mood-pause',
     route: 'moodOrder',
     text: '오늘 분위기에서 잠깐 쉬어갈 수 있는 쪽으로 골라봤어요.',
@@ -153,6 +165,18 @@ const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
     route: 'recommendationInference',
     affectState: 'curious',
     text: '답변의 결을 맞춰 보니 이쪽이 가장 가까워 보여요.',
+  },
+  {
+    id: 'inference-awkward',
+    route: 'recommendationInference',
+    affectState: 'awkward',
+    text: '말씀의 온도는 조금 낮춰 두고, 조건에 맞는 잔만 차분히 골라봤어요.',
+  },
+  {
+    id: 'inference-warm',
+    route: 'recommendationInference',
+    affectState: 'warm',
+    text: '지금 흐름에는 부담 없이 이어가기 좋은 쪽이 맞아 보여요.',
   },
   {
     id: 'inference-fit',

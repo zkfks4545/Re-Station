@@ -162,7 +162,8 @@ export function buildDialogueTurn(
   )
   const affectState: AffectState = decision?.dialogue?.affectState ?? (
     inputRoute === 'safety' ? 'concerned' :
-    inputRoute === 'exit' ? 'neutral' : 'neutral'
+    inputRoute === 'exit' ? 'neutral' :
+    affectStateForExpression(outcome?.expression ?? fallbackExpression)
   )
 
   return {
@@ -182,6 +183,28 @@ export function buildDialogueTurn(
     },
     reply,
     expression: outcome?.expression ?? fallbackExpression,
+  }
+}
+
+function affectStateForExpression(expression: Expression): AffectState {
+  switch (expression) {
+    case 'sympathy':
+      return 'concerned'
+    case 'annoyed':
+    case 'stern':
+    case 'disappointed':
+    case 'embarrassed':
+      return 'awkward'
+    case 'thinking':
+    case 'surprised':
+      return 'curious'
+    case 'smirk':
+      return 'playful'
+    case 'talk':
+      return 'warm'
+    case 'idle':
+    default:
+      return 'neutral'
   }
 }
 

@@ -365,6 +365,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | DLG-803 Re:Station 기본 설정과 예외상황 응답 보강 | DONE |
 | WLC-001 1회성 웰컴드링크 버튼과 환영 추천 흐름 | DONE |
 | RST-415 평문 재료 요청 추천 제약 보정 | DONE |
+| RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강 | DONE |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
 | SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
 | SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
@@ -424,6 +425,16 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 추천 경계 | 기주 선호는 완전일치로만 처리해 `진`이 `진저 비어`에 매칭되지 않게 했다. 일반 재료 선호는 `라임`이 `라임 주스`에 걸리도록 포함 매칭한다. 부재료만 알려진 경우에는 베이스 기주 질문을 계속 물어본다. |
 | 품질 보정 | 최종 후보 선택 시 맛 점수가 거의 같으면 재료 수가 적은 칵테일을 우선해 라임 주스 요청에서 다이키리 같은 단순한 클래식이 앞선다. |
 | 검증 | `npm.cmd test -- state.test.ts question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 145개 통과, 메인 JS 337.52 kB |
+
+#### RST-416: 감정 상태와 대사 바리에이션 런타임 연결 보강
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 추가된 감정/표정과 대사 바리에이션이 실제 사용자 입력에서 누락되거나 DialogueTurn 검증에서 막히지 않도록 연결 |
+| 계약 보강 | `DialogueTurn` 검증 허용 표정에 `annoyed`, `stern`, `disappointed`, `embarrassed`를 추가했다. 일반 대화 표정을 `affectState`로 역매핑해 감정 상태와 UI 표정이 어긋나지 않게 했다. |
+| 대사 보강 | 피곤·지침 계열 입력은 `mood-tired` 대사 풀로 들어간다. 불만족/무례 입력은 확장 표정으로 반환되고, 추천 오프닝에는 `awkward/warm` 전용 문구를 추가했다. |
+| 정리 | `dialogue-loader.ts`의 `any` 캐스팅을 `DialoguesData` 타입 캐스팅으로 교체했다. |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts engine.test.ts response.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 151개 통과, 메인 JS 390.53 kB |
 
 #### DLG-803: Re:Station 기본 설정과 예외상황 응답 보강
 

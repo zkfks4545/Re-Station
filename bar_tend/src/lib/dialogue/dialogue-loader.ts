@@ -1,8 +1,10 @@
 import dialoguesData from '../../data/dialogues.json'
-import type { DialogueLine, Expression } from '../../types.js'
+import type { DialogueLine, DialoguesData, Expression } from '../../types.js'
+
+const typedDialoguesData = dialoguesData as DialoguesData
 
 export function pickDialogue(category: string): DialogueLine | null {
-  const cat = (dialoguesData as any).categories?.[category]
+  const cat = typedDialoguesData.categories[category]
   if (!cat?.lines?.length) return null
   const lines = cat.lines as DialogueLine[]
   return lines[Math.floor(Math.random() * lines.length)]

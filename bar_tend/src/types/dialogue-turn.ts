@@ -124,7 +124,18 @@ const AFFECT_STATES: AffectState[] = [
   'tired',
 ]
 
-const EXPRESSIONS: Expression[] = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking']
+const EXPRESSIONS: Expression[] = [
+  'idle',
+  'talk',
+  'surprised',
+  'smirk',
+  'sympathy',
+  'thinking',
+  'annoyed',
+  'stern',
+  'disappointed',
+  'embarrassed',
+]
 const ALCOHOL_PREFERENCES = ['non-alcoholic', 'low', 'medium', 'high']
 
 export interface DialogueTurn {

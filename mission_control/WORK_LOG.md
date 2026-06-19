@@ -1,5 +1,19 @@
 ﻿# 작업 이력
 
+## 2026-06-19 / RST-416 / 감정 상태와 대사 바리에이션 런타임 연결 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-416 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추가된 표정·감정 상태와 대사 바리에이션이 실제 런타임에서 누락되거나 검증에서 막히는 문제를 보완했다. |
+| 주요 변경 사항 | `DialogueTurn` 검증 허용 표정에 `annoyed`, `stern`, `disappointed`, `embarrassed`를 추가했다. 일반 대화 표정을 `affectState`로 역매핑해 `sympathy → concerned`, 무례/당황 계열 → `awkward`, `thinking/surprised → curious`, `smirk → playful`, `talk → warm`으로 상태 패치에 반영한다. |
+| 대사 흐름 보강 | 피곤·지침 계열 입력을 `mood-tired` 대사 풀로 라우팅하도록 키워드 규칙과 fallback 감정 판별을 분리했다. 추천 오프닝에는 `mood-awkward`, `mood-warm`, `inference-awkward`, `inference-warm` 라인을 추가해 `awkward/warm` 상태가 일반 문구로만 떨어지지 않게 했다. |
+| 정리 | `dialogue-loader.ts`의 `any` 캐스팅을 `DialoguesData` 타입 캐스팅으로 교체해 lint 오류를 제거했다. |
+| 수정 파일 | `bar_tend/src/types/dialogue-turn.ts`, `dialogue-turn.test.ts`, `bar_tend/src/lib/dialogue/turn-builder.ts`, `dialogue-loader.ts`, `bar_tend/src/lib/bartender/keywords.ts`, `conversation.ts`, `engine.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `response.test.ts`, `bar_tend/src/types.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts engine.test.ts response.test.ts --run` 통과(60/60), `npm.cmd run check` 통과, `npm.cmd test` 통과(151/151), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 390.53 kB) |
+
 ## 2026-06-19 / RST-415 / 평문 재료 요청 추천 제약 보정
 
 | 항목 | 내용 |

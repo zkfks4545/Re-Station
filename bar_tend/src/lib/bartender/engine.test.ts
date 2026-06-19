@@ -50,6 +50,14 @@ describe('neutral runtime dialogue contract', () => {
     expectKahluaBoundary(response)
   })
 
+  it('routes tired mood to tired-specific dialogue variants', () => {
+    const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
+
+    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게/)
+    expect(result.expression).toBe('sympathy')
+    expectKahluaBoundary(result.response)
+  })
+
   it('keeps every contextual sad-response variant inside the boundary', () => {
     const history: Message[] = [{ role: 'user', text: '오늘 너무 우울해' }]
 
@@ -89,6 +97,12 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(response).toMatch(/피해서|제외/)
     expect(response).toContain('재료')
+  })
+
+  it('returns expanded expressions for rude or boundary-crossing language', () => {
+    expect(getCocktailResponse('시끄러 닥쳐', []).expression).toBe('annoyed')
+    expect(getCocktailResponse('당장 가져와', []).expression).toBe('stern')
+    expect(getCocktailResponse('별로야 마음에 안 들어', []).expression).toBe('disappointed')
   })
 })
 

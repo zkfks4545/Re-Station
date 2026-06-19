@@ -67,6 +67,12 @@ export const keywordRules: KeywordRule[] = [
     dialogueCategory: 'greeting',
   },
   {
+    pattern: new RegExp(koreanFriendly(['피곤', '지쳤', '지침', '퇴근', '졸려', '녹초'])),
+    expression: 'sympathy',
+    response: '피곤해 보이세요. 오늘은 부담 없는 쪽으로 천천히 가볼게요.',
+    dialogueCategory: 'mood-tired',
+  },
+  {
     pattern: new RegExp(koreanFriendly(['힘들', '우울', '슬퍼', '지쳤', '피곤', '외롭', '괴롭', '스트레스'])),
     expression: 'sympathy',
     response: '오늘 많이 힘드셨나 봐요. 괜찮으시면 천천히 말씀해 주세요.',

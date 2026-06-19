@@ -73,7 +73,7 @@ describe('neutral recommendation dialogue copy', () => {
       affectState: 'warm',
     }))
 
-    expect(moodReply).toContain('기분과 상황을 기준으로')
+    expect(moodReply).toContain('무리 없이 어울리는')
     expect(ingredientReply).toContain('좋아하신다고 한 재료')
   })
 
@@ -90,6 +90,44 @@ describe('neutral recommendation dialogue copy', () => {
 
     expect(opening.id).toBe('mood-tired')
     expect(opening.text).toContain('피곤한 날')
+  })
+
+  it('uses awkward and warm mood openings when those affect states are inferred', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const awkward = selectRecommendationOpening(createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'moodOrder',
+      routeTags: ['mood'],
+      dialogueState: 'recommending',
+      affectState: 'awkward',
+    }))
+    const warm = selectRecommendationOpening(createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'moodOrder',
+      routeTags: ['mood'],
+      dialogueState: 'recommending',
+      affectState: 'warm',
+    }))
+
+    expect(awkward.id).toBe('mood-awkward')
+    expect(warm.id).toBe('mood-warm')
+  })
+
+  it('uses awkward and warm inference openings when no route tag is more specific', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const awkward = selectRecommendationOpening(createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'recommendationInference',
+      routeTags: [],
+      dialogueState: 'recommending',
+      affectState: 'awkward',
+    }))
+    const warm = selectRecommendationOpening(createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'recommendationInference',
+      routeTags: [],
+      dialogueState: 'recommending',
+      affectState: 'warm',
+    }))
+
+    expect(awkward.id).toBe('inference-awkward')
+    expect(warm.id).toBe('inference-warm')
   })
 
   it('prioritizes tag-specific openings for strength and excluded ingredient contexts', () => {

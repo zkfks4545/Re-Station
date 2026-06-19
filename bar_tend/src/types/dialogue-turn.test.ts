@@ -29,6 +29,22 @@ describe('DialogueTurn contract', () => {
     expect(turn.action).toBe('reply')
   })
 
+  it('accepts expanded expression states in the dialogue contract', () => {
+    for (const expression of ['annoyed', 'stern', 'disappointed', 'embarrassed'] as const) {
+      const turn = buildDialogueTurn('조금 불편해', 'general', '천천히 맞춰볼게요.', expression)
+      expect(validateDialogueTurn(turn)).toBe(true)
+      expect(turn.expression).toBe(expression)
+      expect(turn.statePatch.affectState).toBe('awkward')
+    }
+  })
+
+  it('maps non-recommendation expressions to affect state patches', () => {
+    expect(buildDialogueTurn('힘들어', 'general', '듣고 있어요.', 'sympathy').statePatch.affectState).toBe('concerned')
+    expect(buildDialogueTurn('잠깐 생각해볼게', 'general', '볼게요.', 'thinking').statePatch.affectState).toBe('curious')
+    expect(buildDialogueTurn('좋네', 'general', '좋아요.', 'smirk').statePatch.affectState).toBe('playful')
+    expect(buildDialogueTurn('안녕하세요', 'general', '어서 오세요.', 'talk').statePatch.affectState).toBe('warm')
+  })
+
   it('uses a small fallback template when reply text is missing', () => {
     const turn = buildDialogueTurn('음', 'general', '', 'idle')
     expect(validateDialogueTurn(turn)).toBe(true)

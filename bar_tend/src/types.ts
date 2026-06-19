@@ -91,7 +91,7 @@ export interface DialoguesData {
 
 export interface ConversationContext {
   greeted: boolean
-  userMood: 'sad' | 'happy' | null
+  userMood: 'sad' | 'happy' | 'tired' | null
   lastTopic: string | null
   mentionedCocktail: Cocktail | null
   recommendedCocktail: Cocktail | null
