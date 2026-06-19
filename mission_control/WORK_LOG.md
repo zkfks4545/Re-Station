@@ -1,5 +1,30 @@
 ﻿# 작업 이력
 
+## 2026-06-19 / SPR-000 / 스프라이트 작업군 진행도와 가이드 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | SPR-000 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | WebLLM 후속 논의보다 카루아·시에스타 스프라이트 작업을 우선 검토하기로 방향을 바꾸고, 스프라이트 작업군의 진행도와 착수 가이드를 `mission_control`에 정리했다. |
+| 진행도 | 만담 개편은 RST-414로 DONE. 스프라이트 구현은 아직 PROPOSED 단계이며 `SPR-001~005`로 분리했다. 현재 카루아는 단일 `character.png`와 CSS 필터 기반 표정만 사용하고, 시에스타는 대사 라벨만 있으며 무대 스프라이트는 없다. |
+| 작업 가이드 | `SPR-001`에서 카루아/시에스타 표정 슬롯과 파일명 계약을 먼저 고정한다. `SPR-002`는 기존 `Expression`과 `BartenderSprite`를 실제 이미지 매핑으로 바꾸고, `SPR-003`은 시에스타를 이벤트 중에만 표시하는 컴포넌트를 만든다. `SPR-004`는 대사 텍스트 파싱이 아니라 구조화된 `spriteCue`/`stageDirection`으로 난입·발화·퇴장·카루아 반환을 연결한다. `SPR-005`는 최종 에셋 제작·정리 기준이며 `SPR-001` 이후 병행 가능하다. 권장 에셋 경로는 `bar_tend/src/assets/characters/karua/`, `bar_tend/src/assets/characters/siesta/`이다. |
+| 수정 파일 | `mission_control/TASK_BOARD.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 갱신 작업. 코드 변경 없음. 직전 RST-414 검증 기준은 Vitest 125개, check, lint 통과 |
+
+## 2026-06-19 / RST-414 / 추천 의도 라우팅과 시에스타 만담 구조 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-414 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 자연어 추천 요청이 미등록 칵테일 문의로 오분류되는 문제를 수정하고, 시에스타 만담이 불쑥 끼어든 뒤 자기 말만 하고 사라지는 느낌을 줄이도록 대사 구조를 보강했다. |
+| 주요 변경 사항 | `routeUserInput`에서 알려진 칵테일명 탐지 이후 추천 의도를 미등록 칵테일 추출보다 먼저 판정하도록 순서를 조정했다. `다음잔은 추천을 받을래` 같은 입력은 이제 추천 흐름으로 들어간다. 시에스타 이벤트는 기존 `시에스타 → 카루아 → 시에스타 퇴장` 3발화에서 `시에스타 → 카루아 → 시에스타 퇴장 → 카루아 대화권 반환` 4발화 구조로 변경했다. 모든 브랜치 대사를 직전 맥락을 받아 짧게 참견하고, 카루아가 손님과의 기존 대화로 다시 이어받는 형태로 전면 수정했다. 시에스타는 인사나 독백 대신 관찰·보충·주의를 던지고, 카루아는 이를 가볍게 받아친 뒤 손님에게 다시 대화권을 돌려준다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/input-router.ts`, `bar_tend/src/lib/dialogue/input-router.test.ts`, `bar_tend/src/lib/banter/siesta-event.ts`, `bar_tend/src/lib/banter/siesta-event.test.ts`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- input-router.test.ts --run` 통과(11/11), `npm.cmd test -- siesta-event.test.ts input-router.test.ts --run` 통과(29/29), `npm.cmd run check` 통과, `npm.cmd test` 통과(125/125), `npm.cmd run lint` 통과 |
+
 ## 2026-06-18 / DATA-802 / IBA 우선 검색과 레시피 기반 설명 보강 파이프라인
 
 | 항목 | 내용 |

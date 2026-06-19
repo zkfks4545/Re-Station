@@ -23,14 +23,21 @@ const baseContext: SiestaEventContext = {
 
 describe('Siesta banter event engine', () => {
   describe('createSiestaEvent', () => {
-    it('creates a short interrupt-banter-exit sequence with distinct speakers', () => {
+    it('creates a short interrupt-banter-exit-return sequence with distinct speakers', () => {
       const result = createSiestaEvent(baseContext)
       expect(result).not.toBeNull()
-      expect(result!.messages).toHaveLength(3)
+      expect(result!.messages).toHaveLength(4)
       expect(result!.messages[0]).toMatchObject({ role: 'bartender', speaker: 'siesta' })
       expect(result!.messages[1]).toMatchObject({ role: 'bartender', speaker: 'karua' })
       expect(result!.messages[2]).toMatchObject({ role: 'bartender', speaker: 'siesta' })
-      expect(result!.messages[2].text.trim().length).toBeGreaterThan(0)
+      expect(result!.messages[3]).toMatchObject({ role: 'bartender', speaker: 'karua' })
+      expect(result!.messages[3].text.trim().length).toBeGreaterThan(0)
+    })
+
+    it('returns the conversation back to Karua after Siesta exits', () => {
+      const result = createSiestaEvent(baseContext)
+      expect(result).not.toBeNull()
+      expect(result!.messages[result!.messages.length - 1]).toMatchObject({ speaker: 'karua' })
     })
 
     it('does not start during active recommendation questions or protected routes', () => {
@@ -130,7 +137,7 @@ describe('Siesta banter event engine', () => {
       const branches: SiestaBranch[] = ['recommendation', 'strong', 'tired', 'celebration', 'sweet', 'sad', 'default']
       for (const branch of branches) {
         const { set, key } = selectDialogueSet(branch, new Set())
-        expect(set).toHaveLength(3)
+        expect(set).toHaveLength(4)
         expect(key).toContain(branch)
         expect(DIALOGUE_POOLS[branch]).toContainEqual(set)
       }
@@ -158,16 +165,18 @@ describe('Siesta banter event engine', () => {
       }
     })
 
-    it('each dialogue set has exactly 3 lines with valid speakers', () => {
+    it('each dialogue set has exactly 4 lines with valid speakers', () => {
       for (const pool of Object.values(DIALOGUE_POOLS)) {
         for (const set of pool) {
-          expect(set).toHaveLength(3)
+          expect(set).toHaveLength(4)
           expect(set[0][0]).toBe('siesta')
           expect(set[1][0]).toBe('karua')
           expect(set[2][0]).toBe('siesta')
+          expect(set[3][0]).toBe('karua')
           expect(set[0][1].trim().length).toBeGreaterThan(0)
           expect(set[1][1].trim().length).toBeGreaterThan(0)
           expect(set[2][1].trim().length).toBeGreaterThan(0)
+          expect(set[3][1].trim().length).toBeGreaterThan(0)
         }
       }
     })

@@ -67,12 +67,12 @@ export function routeUserInput(
   }
   const matched = findCocktailByName(input)
   if (matched) return { route: 'explicit-cocktail', matchedCocktailId: matched.id, confidence: 0.9 }
+  if (options.recommendationActive || isRecommendationIntent(input)) {
+    return { route: 'recommendation', confidence: 0.6 }
+  }
   const unknownName = detectUnknownCocktailQuery(input)
   if (unknownName) {
     return { route: 'unknown-cocktail-query', unknownCocktailName: unknownName, confidence: 0.6 }
-  }
-  if (options.recommendationActive || isRecommendationIntent(input)) {
-    return { route: 'recommendation', confidence: 0.6 }
   }
   return { route: 'general', confidence: 0.5 }
 }

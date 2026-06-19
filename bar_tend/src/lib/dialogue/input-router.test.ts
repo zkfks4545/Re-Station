@@ -15,6 +15,12 @@ describe('user input routing priority', () => {
     expect(r('모히토 추천해줘')).toBe('explicit-cocktail')
   })
 
+  it('routes natural recommendation requests before unknown cocktail extraction', () => {
+    expect(r('다음잔은 추천을 받을래')).toBe('recommendation')
+    expect(r('이번엔 추천을 받을래')).toBe('recommendation')
+    expect(r('마실 만한 걸 추천해줘')).toBe('recommendation')
+  })
+
   it('routes active recommendation answers before general conversation', () => {
     expect(r('잘 모르겠어요', { recommendationActive: true })).toBe('recommendation')
     expect(r('아무거나', { recommendationActive: true })).toBe('recommendation')
