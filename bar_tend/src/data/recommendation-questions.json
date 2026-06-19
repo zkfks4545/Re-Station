@@ -3,6 +3,11 @@
     "id": "base-spirit",
     "topic": "base",
     "prompt": "선호하는 베이스 기주를 선택해 주세요.",
+    "dialogueFlow": {
+      "leadIn": "베이스를 먼저 잡으면 후보가 꽤 또렷해져요.",
+      "continuation": "이제 베이스 쪽도 맞춰볼게요.",
+      "goal": "narrow-candidates"
+    },
     "choices": [
       {
         "label": "진",
@@ -49,6 +54,11 @@
     "id": "flavor-profile",
     "topic": "flavor",
     "prompt": "선호하는 맛과 풍미를 선택해 주세요.",
+    "dialogueFlow": {
+      "leadIn": "먼저 맛의 방향부터 잡아볼게요.",
+      "continuation": "그럼 맛의 방향을 이어서 맞춰볼게요.",
+      "goal": "open-preference"
+    },
     "choices": [
       {
         "label": "달콤하고 과일향 나게",
@@ -85,6 +95,11 @@
     "id": "alcohol-strength",
     "topic": "alcohol",
     "prompt": "선호하는 알코올 도수를 선택해 주세요.",
+    "dialogueFlow": {
+      "leadIn": "마시는 속도까지 생각해서 도수도 맞춰볼게요.",
+      "continuation": "이제 도수 쪽을 무리 없게 정해볼게요.",
+      "goal": "confirm-constraint"
+    },
     "choices": [
       {
         "label": "가볍게",
@@ -113,6 +128,11 @@
     "id": "fizz",
     "topic": "fizz",
     "prompt": "선호하는 탄산감을 선택해 주세요.",
+    "dialogueFlow": {
+      "leadIn": "마지막으로 질감만 잡으면 잔이 거의 좁혀져요.",
+      "continuation": "이제 마시는 질감만 더 맞춰볼게요.",
+      "goal": "narrow-candidates"
+    },
     "choices": [
       {
         "label": "톡 쏘고 청량하게",

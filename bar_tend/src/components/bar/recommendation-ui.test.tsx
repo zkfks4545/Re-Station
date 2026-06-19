@@ -2,9 +2,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { getCocktailById } from '../../lib/cocktails/database.js'
 import { getQuestionById } from '../../lib/recommendation/question-engine.js'
+import { WELCOME_DRINK_FEEDBACK_QUESTION } from '../../lib/recommendation/welcome-drink.js'
 import ChatInput from './ChatInput.js'
 import CocktailCard from './CocktailCard.js'
 import DialogueBox from './DialogueBox.js'
+import WelcomeDrinkButton from './WelcomeDrinkButton.js'
 
 describe('recommendation UI rendering contracts', () => {
   it('renders the recommendation card with details and the re-recommend action', () => {
@@ -45,6 +47,21 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('잘 모르겠어요')
     expect(markup).toContain('추천 질문 취소')
     expect(markup).toContain('바텐더에게 메시지 보내기')
+  })
+
+  it('renders welcome drink feedback as a one-step choice prompt', () => {
+    const markup = renderToStaticMarkup(
+      <ChatInput
+        activeQuestion={WELCOME_DRINK_FEEDBACK_QUESTION}
+        disabled={false}
+        onCancelRecommendation={() => undefined}
+        onSend={() => undefined}
+      />,
+    )
+
+    expect(markup).toContain('웰컴드링크는 괜찮으셨나요?')
+    expect(markup).toContain('좋았어요')
+    expect(markup).toContain('조금 더 가볍게')
   })
 
   it('does not render recommendation-only controls outside an active question', () => {
@@ -110,5 +127,30 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('칼루아')
     expect(markup).toContain('잘 골랐네.')
     expect(markup).not.toContain('좋아요</div>')
+  })
+
+  it('renders the one-time welcome drink action when available', () => {
+    const markup = renderToStaticMarkup(
+      <WelcomeDrinkButton
+        disabled={false}
+        hidden={false}
+        onClick={() => undefined}
+      />,
+    )
+
+    expect(markup).toContain('웰컴드링크')
+    expect(markup).toContain('aria-label="웰컴드링크 받기"')
+  })
+
+  it('hides the welcome drink action after it is no longer available', () => {
+    const markup = renderToStaticMarkup(
+      <WelcomeDrinkButton
+        disabled={false}
+        hidden
+        onClick={() => undefined}
+      />,
+    )
+
+    expect(markup).toBe('')
   })
 })

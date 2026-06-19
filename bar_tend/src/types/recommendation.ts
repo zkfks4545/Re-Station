@@ -47,10 +47,17 @@ export interface RecommendationQuestionChoice {
   finishRecommendation?: boolean
 }
 
+export interface RecommendationQuestionFlow {
+  leadIn: string
+  continuation: string
+  goal: 'open-preference' | 'narrow-candidates' | 'confirm-constraint'
+}
+
 export interface RecommendationQuestion {
   id: string
   topic: string
   prompt: string
+  dialogueFlow?: RecommendationQuestionFlow
   choices: RecommendationQuestionChoice[]
 }
 

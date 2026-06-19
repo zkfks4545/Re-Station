@@ -71,6 +71,31 @@ describe('recommendation state', () => {
     expect(state.excludedIngredients).toEqual(['민트'])
   })
 
+  it('extracts lime juice from natural ingredient requests', () => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      extractRecommendationSignals('심플하게 기주에 라임즙만 들어간걸로 주세요'),
+    )
+
+    expect(state.preferredIngredients).toContain('라임 주스')
+    expect(state.taste.sourness).toBe(0.8)
+  })
+
+  it('matches preferred ingredients against recipe ingredient text', () => {
+    const cocktails = getAllCocktailData()
+    const daiquiri = cocktails.find((cocktail) => cocktail.name_en === 'Daiquiri')
+    const caipirinha = cocktails.find((cocktail) => cocktail.name_en === 'Caipirinha')
+    expect(daiquiri).toBeTruthy()
+    expect(caipirinha).toBeTruthy()
+
+    const state = applyRecommendationSignals(createRecommendationState(), [
+      { field: 'preferredIngredients', value: '라임 주스', confidence: 1, source: 'rule' },
+    ])
+
+    expect(filterCocktailsByRecommendationState([daiquiri!], state)).toEqual([daiquiri])
+    expect(filterCocktailsByRecommendationState([caipirinha!], state)).toEqual([])
+  })
+
   it('keeps hard constraints when recovering from an empty exact match', () => {
     const state = applyRecommendationSignals(createRecommendationState(), [
       { field: 'preferredIngredients', value: '진', confidence: 1, source: 'question' },

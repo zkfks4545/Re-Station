@@ -9,6 +9,46 @@ function koreanFriendly(patterns: string[]): string {
 
 export const keywordRules: KeywordRule[] = [
   {
+    pattern: new RegExp(koreanFriendly(['여기 뭐', '뭐하는 곳', 'Re:Station', '리스테이션', '처음 왔', '처음이야'])),
+    expression: 'talk',
+    response: '여기는 Re:Station이에요. 길게 설명하는 곳은 아니고, 지금 기분이랑 취향에 맞는 한 잔을 같이 고르는 바예요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['시에스타', '사장님', '사장'])),
+    expression: 'smirk',
+    response: '시에스타 사장님은 보통 뒤쪽에서 재고나 잔을 보고 계세요. 가끔 한마디만 두고 다시 일하러 가시고요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['물 좀', '물 주세요', '물 줘', '물 한잔', '물 한 잔'])),
+    expression: 'talk',
+    response: '물 먼저 드릴게요. 한 잔 고르는 건 그 다음에 천천히 해도 괜찮아요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['취했', '너무 취', '많이 마셨', '그만 마셔', '술 그만'])),
+    expression: 'sympathy',
+    response: '그럼 여기서는 더 권하지 않을게요. 물부터 드시고, 조금 쉬었다가 움직이세요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['미성년', '고등학생', '중학생', '학생인데', '술 못 마셔'])),
+    expression: 'talk',
+    response: '알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['무알코올', '논알콜', '논알코올', '알코올 없이', '술 없이'])),
+    expression: 'talk',
+    response: '무알코올 쪽으로 볼게요. 지금 메뉴에서 가능 범위가 좁으면 억지로 술 있는 잔을 권하진 않을게요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['알레르기', '못 먹', '빼고', '제외', '먹으면 안'])),
+    expression: 'thinking',
+    response: '그 재료는 피해서 볼게요. 정확히 어떤 재료를 제외할지 말씀해 주세요.',
+  },
+  {
+    pattern: new RegExp(koreanFriendly(['예약', '영업시간', '주소', '위치', '전화', '결제', '카드 돼', '화장실'])),
+    expression: 'talk',
+    response: '여긴 실제 매장 안내보다는 가상의 바 대화와 칵테일 추천을 위한 공간이에요. 메뉴나 취향 쪽은 바로 도와드릴게요.',
+  },
+  {
     pattern: new RegExp(koreanFriendly(['안녕', '하이', '처음', '방가', '반가워'])),
     expression: 'talk',
     response: '어서 오세요. 오늘은 어떤 걸 찾으세요?',

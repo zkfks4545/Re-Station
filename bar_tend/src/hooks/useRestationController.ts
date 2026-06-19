@@ -8,6 +8,12 @@ import { validateDialogueTurn } from '@/types/dialogue-turn.js'
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
+import {
+  formatWelcomeDrinkFeedbackReply,
+  formatWelcomeDrinkReply,
+  selectWelcomeDrink,
+  WELCOME_DRINK_FEEDBACK_QUESTION,
+} from '@/lib/recommendation/welcome-drink.js'
 import type { CocktailData, Expression, Message } from '@/types.js'
 import { useGuestPreferenceSession } from './useGuestPreferenceSession.js'
 import { useRecommendationSession } from './useRecommendationSession.js'
@@ -21,6 +27,8 @@ export function useRestationController() {
   const [interactionStatus, setInteractionStatus] = useState<InteractionStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [servedCocktail, setServedCocktail] = useState<CocktailData | null>(null)
+  const [welcomeDrinkUsed, setWelcomeDrinkUsed] = useState(false)
+  const [welcomeDrinkFeedbackPending, setWelcomeDrinkFeedbackPending] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
   const timerRegistry = useRef(createTimerRegistry())
@@ -104,6 +112,8 @@ export function useRestationController() {
     resetSiestaEventSession()
     setErrorMessage(null)
     setScene('inside')
+    setWelcomeDrinkUsed(false)
+    setWelcomeDrinkFeedbackPending(false)
     setMessages([
       {
         role: 'bartender',
@@ -125,6 +135,8 @@ export function useRestationController() {
       setInteractionStatus('idle')
       setSidebarOpen(false)
       setServedCocktail(null)
+      setWelcomeDrinkUsed(false)
+      setWelcomeDrinkFeedbackPending(false)
       clearExcludedCocktailIds()
       resetRecommendation()
     }, 2000)
@@ -138,6 +150,8 @@ export function useRestationController() {
     setExpression('idle')
     setErrorMessage(null)
     setServedCocktail(null)
+    setWelcomeDrinkUsed(false)
+    setWelcomeDrinkFeedbackPending(false)
     clearExcludedCocktailIds()
     resetRecommendation()
     bartenderReply(
@@ -147,11 +161,57 @@ export function useRestationController() {
   }, [clearPendingWork, resetSiestaEventSession, resetNight, clearExcludedCocktailIds, resetRecommendation, bartenderReply])
 
   const handleCancelRecommendation = useCallback(() => {
-    if (interactionStatus !== 'idle' || !activeQuestion) return
+    if (interactionStatus !== 'idle' || (!activeQuestion && !welcomeDrinkFeedbackPending)) return
+    if (welcomeDrinkFeedbackPending) {
+      setWelcomeDrinkFeedbackPending(false)
+      setMessages((prev) => [...prev, { role: 'user', text: '웰컴드링크 피드백 건너뛰기' }])
+      bartenderReply(
+        '괜찮아요. 첫 잔은 편하게 두고, 다음 잔이 필요하시면 그때 다시 맞춰볼게요.',
+        'idle',
+      )
+      return
+    }
     resetRecommendation()
     setMessages((prev) => [...prev, { role: 'user', text: '추천 질문 취소' }])
     bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
-  }, [activeQuestion, bartenderReply, interactionStatus, resetRecommendation])
+  }, [
+    activeQuestion,
+    bartenderReply,
+    interactionStatus,
+    resetRecommendation,
+    welcomeDrinkFeedbackPending,
+  ])
+
+  const handleWelcomeDrink = useCallback(() => {
+    if (
+      interactionStatus !== 'idle' ||
+      activeQuestion ||
+      servedCocktail ||
+      welcomeDrinkUsed ||
+      welcomeDrinkFeedbackPending
+    ) return
+
+    const cocktail = selectWelcomeDrink()
+    setErrorMessage(null)
+    setWelcomeDrinkUsed(true)
+    setWelcomeDrinkFeedbackPending(true)
+    resetRecommendation()
+    setMessages((prev) => [...prev, { role: 'user', text: '웰컴드링크' }])
+    setScreenShake(true)
+    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+    const ids = unlockCocktailId(cocktail.id)
+    setUnlockedIds(ids)
+    bartenderReply(formatWelcomeDrinkReply(cocktail), 'smirk', cocktail)
+  }, [
+    activeQuestion,
+    bartenderReply,
+    interactionStatus,
+    resetRecommendation,
+    servedCocktail,
+    setUnlockedIds,
+    welcomeDrinkFeedbackPending,
+    welcomeDrinkUsed,
+  ])
 
   const handleSend = useCallback(
     (text: string) => {
@@ -161,6 +221,12 @@ export function useRestationController() {
       setMessages((prev) => [...prev, { role: 'user', text }])
       ingestUserMessage(text)
       userMessageCountRef.current += 1
+
+      if (welcomeDrinkFeedbackPending) {
+        setWelcomeDrinkFeedbackPending(false)
+        bartenderReply(formatWelcomeDrinkFeedbackReply(text), 'smirk')
+        return
+      }
 
       const routeResult: RouteResult = routeUserInput(text, { recommendationActive: activeQuestion !== null })
       const failInvalidTurn = () => {
@@ -291,6 +357,7 @@ export function useRestationController() {
       interactionStatus,
       activeQuestion,
       ingestUserMessage,
+      welcomeDrinkFeedbackPending,
       handleExit,
       resetRecommendation,
       resolveRandomRecommendation,
@@ -314,7 +381,7 @@ export function useRestationController() {
     expression,
     isBartenderTyping: interactionStatus === 'typing',
     isProcessing: interactionStatus !== 'idle',
-    activeQuestion,
+    activeQuestion: welcomeDrinkFeedbackPending ? WELCOME_DRINK_FEEDBACK_QUESTION : activeQuestion,
     errorMessage,
     servedCocktail,
     sidebarOpen,
@@ -325,7 +392,13 @@ export function useRestationController() {
     handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
+    handleWelcomeDrink,
     handleSend,
+    welcomeDrinkAvailable:
+      !welcomeDrinkUsed &&
+      !welcomeDrinkFeedbackPending &&
+      activeQuestion === null &&
+      servedCocktail === null,
     setServedCocktail,
     setSidebarOpen,
   }

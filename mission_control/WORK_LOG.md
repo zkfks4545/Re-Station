@@ -1,5 +1,56 @@
 ﻿# 작업 이력
 
+## 2026-06-19 / RST-415 / 평문 재료 요청 추천 제약 보정
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-415 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | “심플하게 기주에 라임즙만 들어간 걸로 주세요”처럼 평문으로 요청한 재료가 단순 산미 취향으로만 처리되어 씨 브리즈 같은 엉뚱한 결과로 흐를 수 있는 문제를 보정했다. |
+| 주요 변경 사항 | `extractRecommendationSignals`가 라임즙·라임 주스·레몬즙·민트·소다수 같은 일반 재료를 `preferredIngredients`로 추출하도록 확장했다. 라임즙/레몬즙은 각각 라임 주스/레몬 주스로 정규화하고, 더 구체적인 주스 표현이 있을 때 일반 라임/레몬 신호가 중복 적용되지 않게 했다. 기주 선호는 완전일치, 일반 재료 선호는 재료명 포함 매칭으로 분리해 `진`이 `진저 비어`에 잘못 매칭되는 문제를 막았다. |
+| 추천 품질 보정 | `preferredIngredients`에 부재료만 있는 경우에는 베이스 기주 질문을 계속 물어보도록 `getKnownTopics`를 조정했다. 최종 후보 선택 시 맛 점수가 거의 같으면 재료 수가 적은 칵테일을 우선해 라임 주스 요청에서 다이키리 같은 단순한 클래식이 앞서도록 했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.ts`, `bar_tend/src/lib/recommendation/state.test.ts`, `bar_tend/src/lib/recommendation/question-engine.ts`, `bar_tend/src/lib/recommendation/question-engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- state.test.ts question-engine.test.ts --run` 통과(41/41), `npm.cmd run check` 통과, `npm.cmd test` 통과(145/145), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 337.52 kB) |
+
+## 2026-06-19 / WLC-001 / 1회성 웰컴드링크 버튼과 환영 추천 흐름
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | WLC-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 하단 `나가기` 버튼 옆에 방문당 1회 사용할 수 있는 `웰컴드링크` 버튼을 추가하고, 첫 방문 손님에게 무난한 클래식 칵테일을 바로 제안하는 환영 흐름을 구현했다. |
+| 주요 변경 사항 | `selectWelcomeDrink` 순수 함수를 추가해 클래식 중 도수와 단맛이 과하지 않은 접근성 좋은 후보를 고른다. `WelcomeDrinkButton` 컴포넌트를 추가하고 `useRestationController`에 `welcomeDrinkUsed`, `welcomeDrinkFeedbackPending`, `handleWelcomeDrink`, `welcomeDrinkAvailable`을 연결했다. 웰컴드링크는 일반 추천 설문을 시작하지 않고 카루아 대사와 칵테일 카드를 표시한 뒤, `WELCOME_DRINK_FEEDBACK_QUESTION`으로 괜찮았는지 1문항만 확인한다. 사용 후 버튼은 숨김 처리된다. |
+| 동작 경계 | 방문/세션당 1회만 사용한다. 추천 질문 진행 중, 칵테일 카드 표시 중, 처리/타이핑 중에는 사용할 수 없다. 선택된 칵테일은 기존 카드 표시와 도감 해제 흐름을 재사용하지만 일반 재추천 제외 목록에는 넣지 않는다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/welcome-drink.ts`, `welcome-drink.test.ts`, `bar_tend/src/components/bar/WelcomeDrinkButton.tsx`, `recommendation-ui.test.tsx`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/App.tsx`, `bar_tend/src/index.css`, `mission_control/*` |
+| 검증 | `npm.cmd test -- welcome-drink.test.ts recommendation-ui.test.tsx --run` 통과(14/14), `npm.cmd run check` 통과, `npm.cmd test` 통과(141/141), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 336.80 kB) |
+
+## 2026-06-19 / DLG-803 / Re:Station 기본 설정과 예외상황 응답 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | DLG-803 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | Re:Station이라는 가상의 바 설정을 일반 대화에 반영하고, 물 요청·과음·미성년/음주 불가·무알코올·알레르기/제외 재료·실제 매장 정보 요청 같은 예외상황 응답을 추가했다. |
+| 주요 변경 사항 | `keywords.ts`에 기본 바 안내, 시에스타/사장 안내, 물 요청, 과음 시 추가 음주 중단, 미성년/음주 불가, 무알코올, 알레르기/제외 재료, 예약·영업시간·주소·결제 같은 실제 매장 정보 한계 응답을 추가했다. `conversation.ts`에도 동일 의도군과 응답 풀을 추가해 키워드 규칙을 우회한 표현도 자연스럽게 처리한다. |
+| 안전 경계 | 과음 상태에서는 더 권하지 않고 물과 휴식을 안내한다. 미성년 또는 술을 못 마시는 입력에는 알코올을 안내하지 않는다. 실제 매장 정보는 제공하지 않고 가상의 바 대화와 칵테일 추천 범위로 돌린다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/keywords.ts`, `bar_tend/src/lib/bartender/conversation.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- engine.test.ts --run` 통과(31/31), `npm.cmd run check` 통과, `npm.cmd test` 통과(133/133), `npm.cmd run lint` 통과 |
+
+## 2026-06-19 / DLG-802 / 추천 질문 DialogueFlow JSON 계약 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | DLG-802 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 흐름이 무조건 질문만 반복되는 설문처럼 보이지 않도록, 추천 질문 JSON에 대화 흐름 힌트를 추가했다. |
+| 주요 변경 사항 | `RecommendationQuestion.dialogueFlow` 계약을 추가하고 각 질문에 `leadIn`, `continuation`, `goal`을 기록했다. `formatQuestion`은 고정 문구 대신 질문별 flow 힌트를 사용해 처음 질문과 이전 답변 뒤 이어지는 질문을 다르게 연결한다. 대사 전문이 아니라 대화 목적과 연결문만 JSON에 보관한다. |
+| 수정 파일 | `bar_tend/src/types/recommendation.ts`, `bar_tend/src/data/recommendation-questions.json`, `bar_tend/src/lib/recommendation/question-engine.ts`, `bar_tend/src/lib/recommendation/question-engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run` 통과(20/20), `npm.cmd run check` 통과, `npm.cmd test` 통과(127/127), `npm.cmd run lint` 통과 |
+
 ## 2026-06-19 / SPR-000 / 스프라이트 작업군 진행도와 가이드 정리
 
 | 항목 | 내용 |

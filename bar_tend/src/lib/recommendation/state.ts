@@ -74,7 +74,22 @@ const ALCOHOL_PATTERNS: Array<[AlcoholPreference, RegExp]> = [
   ['high', /도수.*높|독한 술|강한 술|강하게/],
 ]
 
-const INGREDIENT_PATTERNS = ['진', '럼', '위스키', '데킬라', '보드카'] as const
+const BASE_SPIRIT_PATTERNS = ['진', '럼', '위스키', '데킬라', '보드카', '브랜디', '리큐르', '카샤사'] as const
+
+const INGREDIENT_PATTERNS = [
+  ...BASE_SPIRIT_PATTERNS,
+  '라임 주스',
+  '라임즙',
+  '라임',
+  '레몬 주스',
+  '레몬즙',
+  '레몬',
+  '민트',
+  '소다수',
+  '진저 비어',
+  '크랜베리 주스',
+  '자몽',
+] as const
 
 export function createRecommendationState(): RecommendationState {
   return {
@@ -105,8 +120,10 @@ export function extractRecommendationSignals(text: string): RecommendationSignal
     if (pattern.test(text)) signals.push(createSignal('alcoholPreference', preference, text))
   }
   for (const ingredient of INGREDIENT_PATTERNS) {
-    if (new RegExp(`(?:${ingredient}).*(?:베이스|추천|좋아|원해)|(?:베이스|추천).*(?:${ingredient})`).test(text)) {
-      signals.push(createSignal('preferredIngredients', ingredient, text))
+    if (new RegExp(`(?:${ingredient}).*(?:베이스|추천|좋아|원해|넣|들어간|들어 있는|주세요|줘|한잔)|(?:베이스|추천|넣|들어간).*(?:${ingredient})`).test(text)) {
+      const preferredIngredient = normalizePreferredIngredient(ingredient)
+      if (isLessSpecificCitrusSignal(preferredIngredient, text)) continue
+      signals.push(createSignal('preferredIngredients', preferredIngredient, text))
     }
   }
 
@@ -207,9 +224,7 @@ export function filterCocktailsByRecommendationState(
     const ingredients = cocktail.ingredients.map(normalize)
     const normalizedBase = normalize(cocktail.base_spirit ?? '')
     if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {
-      const normalizedPreferred = normalize(preferred)
-      return normalizedBase === normalizedPreferred
-        || ingredients.some((ingredient) => ingredient === normalizedPreferred)
+      return matchesPreferredIngredient(normalizedBase, ingredients, preferred)
     })) return false
 
     return !state.excludedIngredients.some((excluded) => {
@@ -359,7 +374,11 @@ export function buildRecommendationReasons(
   }
 
   const ingredientMatches = state.preferredIngredients.filter((preferred) =>
-    cocktail.ingredients.some((ingredient) => normalize(ingredient).includes(normalize(preferred))),
+    matchesPreferredIngredient(
+      normalize(cocktail.base_spirit ?? ''),
+      cocktail.ingredients.map(normalize),
+      preferred,
+    ),
   )
   if (ingredientMatches.length > 0) {
     reasons.push({
@@ -393,9 +412,7 @@ function matchesHardConstraints(cocktail: CocktailData, state: RecommendationSta
   const ingredients = cocktail.ingredients.map(normalize)
   const normalizedBase = normalize(cocktail.base_spirit ?? '')
   if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {
-    const normalizedPreferred = normalize(preferred)
-    return normalizedBase === normalizedPreferred
-      || ingredients.some((ingredient) => ingredient === normalizedPreferred)
+    return matchesPreferredIngredient(normalizedBase, ingredients, preferred)
   })) return false
 
   return !state.excludedIngredients.some((excluded) => {
@@ -430,6 +447,38 @@ function featureDelta(cocktail: CocktailData, taste: TastePreference, key: Featu
 
 function addUnique<T>(items: T[], item: T): void {
   if (!items.includes(item)) items.push(item)
+}
+
+export function isBaseSpiritPreference(preferred: string): boolean {
+  const normalizedPreferred = normalize(preferred)
+  return BASE_SPIRIT_PATTERNS.some((base) => normalize(base) === normalizedPreferred)
+}
+
+function matchesPreferredIngredient(
+  normalizedBase: string,
+  normalizedIngredients: string[],
+  preferred: string,
+): boolean {
+  const normalizedPreferred = normalize(preferred)
+  if (isBaseSpiritPreference(preferred)) {
+    return normalizedBase === normalizedPreferred
+      || normalizedIngredients.some((ingredient) => ingredient === normalizedPreferred)
+  }
+
+  return normalizedBase === normalizedPreferred
+    || normalizedIngredients.some((ingredient) => ingredient.includes(normalizedPreferred))
+}
+
+function normalizePreferredIngredient(ingredient: string): string {
+  if (ingredient === '라임즙') return '라임 주스'
+  if (ingredient === '레몬즙') return '레몬 주스'
+  return ingredient
+}
+
+function isLessSpecificCitrusSignal(preferredIngredient: string, text: string): boolean {
+  if (preferredIngredient === '라임') return /라임\s*주스|라임즙/.test(text)
+  if (preferredIngredient === '레몬') return /레몬\s*주스|레몬즙/.test(text)
+  return false
 }
 
 function unique<T>(items: T[]): T[] {

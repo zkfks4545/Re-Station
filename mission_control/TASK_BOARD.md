@@ -361,6 +361,10 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | DATA-801 관리자 검증 큐와 미확정 칵테일 처리 | DONE |
 | DATA-802 IBA 우선 검색과 레시피 기반 설명 보강 파이프라인 | DONE |
 | RST-414 추천 의도 라우팅과 시에스타 만담 구조 보강 | DONE |
+| DLG-802 추천 질문 DialogueFlow JSON 계약 | DONE |
+| DLG-803 Re:Station 기본 설정과 예외상황 응답 보강 | DONE |
+| WLC-001 1회성 웰컴드링크 버튼과 환영 추천 흐름 | DONE |
+| RST-415 평문 재료 요청 추천 제약 보정 | DONE |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
 | SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
 | SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
@@ -399,6 +403,49 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 순서 의존성 | 반드시 먼저 수행한다. `SPR-002~004`는 모두 이 슬롯명과 fallback 규칙을 참조한다. 실제 그림이 없어도 placeholder나 기존 `character.png` fallback으로 계약을 먼저 고정할 수 있다. |
 | 결정할 것 | 카루아 기준 디자인을 현재 `character.png`로 유지할지, `character0.png` 계열로 새로 통일할지 결정한다. 시에스타의 키, 화면 위치, 카루아와의 상대적 크기, 기본 등장 위치도 여기서 정한다. |
 | 완료 조건 | 타입, 파일명, fallback 규칙, 모바일/데스크톱 표시 크기 기준이 문서와 코드에 고정됨 |
+
+#### WLC-001: 1회성 웰컴드링크 버튼과 환영 추천 흐름
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 사용자가 말을 꺼내기 전에도 바다운 첫 상호작용을 시작할 수 있도록, 방문당 1회 제공되는 웰컴드링크 버튼을 추가 |
+| 범위 | 하단 `나가기` 옆 버튼, 방문당 1회 상태, 접근성 좋은 클래식 후보 선택, 카루아 환영 대사, 칵테일 카드 표시, 도감 해제, 사용 후 숨김 |
+| 구현 결과 | `selectWelcomeDrink`가 도수와 단맛이 과하지 않은 클래식 후보를 고른다. `WelcomeDrinkButton`은 `welcomeDrinkAvailable`일 때만 표시되며, 클릭 시 일반 추천 설문 없이 웰컴드링크 대사와 카드가 표시된다. 이후 `WELCOME_DRINK_FEEDBACK_QUESTION`으로 괜찮았는지 1문항만 확인한다. |
+| 경계 | 추천 질문 진행 중, 칵테일 카드 표시 중, 처리/타이핑 중에는 사용할 수 없다. 일반 재추천 제외 목록에는 넣지 않는다. |
+| 검증 | `npm.cmd test -- welcome-drink.test.ts recommendation-ui.test.tsx --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 141개 통과, 메인 JS 336.80 kB |
+
+#### RST-415: 평문 재료 요청 추천 제약 보정
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | “라임즙만 들어간 걸로” 같은 평문 요청이 단순 산미 취향으로만 처리되어 실제 재료 조건을 놓치는 문제를 방지 |
+| 구현 결과 | `extractRecommendationSignals`가 라임즙·라임 주스·레몬즙·민트·소다수 등 일반 재료를 `preferredIngredients`로 추출한다. 라임즙/레몬즙은 주스 재료명으로 정규화하고, 더 구체적인 주스 표현이 있으면 일반 라임/레몬 신호를 중복 적용하지 않는다. |
+| 추천 경계 | 기주 선호는 완전일치로만 처리해 `진`이 `진저 비어`에 매칭되지 않게 했다. 일반 재료 선호는 `라임`이 `라임 주스`에 걸리도록 포함 매칭한다. 부재료만 알려진 경우에는 베이스 기주 질문을 계속 물어본다. |
+| 품질 보정 | 최종 후보 선택 시 맛 점수가 거의 같으면 재료 수가 적은 칵테일을 우선해 라임 주스 요청에서 다이키리 같은 단순한 클래식이 앞선다. |
+| 검증 | `npm.cmd test -- state.test.ts question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 145개 통과, 메인 JS 337.52 kB |
+
+#### DLG-803: Re:Station 기본 설정과 예외상황 응답 보강
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 일반 대화에서도 Re:Station이 가상의 바라는 기본 설정이 드러나고, 사용자가 실제 매장 정보나 안전·운영 경계에 가까운 말을 했을 때 자연스럽게 한계를 안내 |
+| 범위 | 바 소개, 시에스타/사장 안내, 물 요청, 과음, 미성년/음주 불가, 무알코올, 알레르기/제외 재료, 예약·영업시간·주소·결제·화장실 같은 실제 매장 정보 요청 |
+| 구현 결과 | `keywordRules`와 `generateResponse` 의도 분기에 기본 설정과 예외상황 응답 풀을 추가했다. 키워드 규칙이 먼저 처리하고, 키워드를 우회한 유사 표현은 `conversation.ts` fallback에서 처리한다. |
+| 안전 경계 | 과음 시 추가 음주를 권하지 않고 물과 휴식을 안내한다. 미성년 또는 술을 못 마시는 입력에는 알코올 안내를 하지 않는다. 실제 매장 안내는 제공하지 않고 가상의 바 대화와 추천 범위로 돌린다. |
+| 검증 | `npm.cmd test -- engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 133개 통과 |
+
+#### DLG-802: 추천 질문 DialogueFlow JSON 계약
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 추천 진행이 질문만 기계적으로 반복되는 흐름이 아니라, 이전 답변을 받아 다음 주제로 자연스럽게 넘어가도록 JSON에 최소 대화 흐름 힌트를 보관 |
+| 범위 | `RecommendationQuestion.dialogueFlow`에 `leadIn`, `continuation`, `goal` 추가. 질문 문구 자체와 선택지 신호는 유지하되, 질문 앞 연결문을 질문별로 다르게 렌더링 |
+| JSON 원칙 | 대사 전문이나 캐릭터 원고를 저장하지 않는다. JSON에는 질문의 대화 목적, 처음 물을 때의 연결문, 이전 답변 뒤 이어갈 때의 연결문만 둔다. |
+| 구현 결과 | `formatQuestion`이 고정 `한 가지만 더 여쭤볼게요.` 대신 `dialogueFlow.leadIn` 또는 `dialogueFlow.continuation`을 사용한다. 모든 추천 질문은 flow 계약을 가진다. |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 127개 통과 |
 
 #### SPR-002: 카루아 표정별 스프라이트 연결
 

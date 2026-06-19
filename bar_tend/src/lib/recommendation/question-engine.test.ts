@@ -14,6 +14,7 @@ import {
   addQuestionHistory,
   applyRecommendationSignals,
   createRecommendationState,
+  extractRecommendationSignals,
   filterCocktailsByRecommendationState,
   resolveCocktailsByRecommendationState,
 } from './state.js'
@@ -33,6 +34,16 @@ describe('adaptive recommendation questions', () => {
 
     expect(question?.topic).not.toBe('flavor')
     expect(question?.topic).not.toBe('base')
+  })
+
+  it('still asks for a base spirit when only a non-base ingredient is known', () => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      extractRecommendationSignals('심플하게 기주에 라임즙만 들어간걸로 주세요'),
+    )
+
+    expect(state.preferredIngredients).toContain('라임 주스')
+    expect(selectNextQuestion(getAllCocktailData(), state)?.topic).toBe('base')
   })
 
   it('does not repeat asked topics and stops after three questions', () => {
@@ -94,6 +105,33 @@ describe('adaptive recommendation questions', () => {
     expect(rendered).toContain(question!.prompt)
     expect(rendered).not.toContain('직접 말씀하셔도')
     expect(rendered).not.toContain('1. 톡 쏘고 청량하게')
+  })
+
+  it('uses JSON dialogue flow hints to connect questions conversationally', () => {
+    const firstQuestion = getQuestionById('flavor-profile')
+    const nextQuestion = getQuestionById('alcohol-strength')
+    expect(firstQuestion).not.toBeNull()
+    expect(nextQuestion).not.toBeNull()
+
+    const firstRendered = formatQuestion(firstQuestion!, null)
+    const nextRendered = formatQuestion(nextQuestion!, '상큼한 맛을 반영했습니다.')
+
+    expect(firstRendered).toContain(firstQuestion!.dialogueFlow!.leadIn)
+    expect(nextRendered).toContain('상큼한 맛을 반영했습니다.')
+    expect(nextRendered).toContain(nextQuestion!.dialogueFlow!.continuation)
+    expect(nextRendered).toContain(nextQuestion!.prompt)
+  })
+
+  it('keeps a dialogue flow contract on every recommendation question', () => {
+    for (const id of ['base-spirit', 'flavor-profile', 'alcohol-strength', 'fizz']) {
+      const question = getQuestionById(id)
+      expect(question).not.toBeNull()
+      expect(question!.dialogueFlow?.leadIn.trim()).toBeTruthy()
+      expect(question!.dialogueFlow?.continuation.trim()).toBeTruthy()
+      expect(['open-preference', 'narrow-candidates', 'confirm-constraint']).toContain(
+        question!.dialogueFlow?.goal,
+      )
+    }
   })
 
   it('ends questioning only when Kahlua is asked to take over', () => {
@@ -256,11 +294,28 @@ describe('adaptive recommendation questions', () => {
     expect(pool).toContain(result)
   })
 
+  it('keeps lime juice requests on simple lime classics', () => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      [
+        ...extractRecommendationSignals('심플하게 기주에 라임즙만 들어간걸로 주세요'),
+        { field: 'alcoholPreference', value: 'medium', confidence: 1, source: 'question' },
+      ],
+    )
+    const resolved = resolveCocktailsByRecommendationState(getAllCocktailData(), state)
+    const cocktail = pickFromPool(resolved.cocktails, state.taste)
+
+    expect(resolved.cocktails.every((item) =>
+      item.ingredients.some((ingredient) => ingredient.includes('라임 주스')),
+    )).toBe(true)
+    expect(cocktail?.name_en).toBe('Daiquiri')
+  })
+
   it('formats question with default lead-in when no acknowledgement exists', () => {
     const question = getQuestionById('fizz')!
     const formatted = formatQuestion(question, null)
 
-    expect(formatted).toContain('한 가지만 더 여쭤볼게요.')
+    expect(formatted).toContain(question.dialogueFlow!.leadIn)
     expect(formatted).toContain(question.prompt)
   })
 })

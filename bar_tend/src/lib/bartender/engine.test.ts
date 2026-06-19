@@ -21,6 +21,27 @@ afterEach(() => {
 })
 
 describe('neutral runtime dialogue contract', () => {
+  it('explains the virtual bar setting without pretending to be a real venue', () => {
+    const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
+
+    expect(response).toContain('Re:Station')
+    expect(response).toMatch(/가상의 바|취향|한 잔/)
+  })
+
+  it('handles real venue questions as virtual bar limitations', () => {
+    const response = getCocktailResponse('예약이랑 결제는 어떻게 해?', []).response
+
+    expect(response).toContain('실제')
+    expect(response).not.toMatch(/예약.*가능|결제.*가능|주소/)
+  })
+
+  it('introduces Siesta as a background bar worker, not a constant speaker', () => {
+    const response = getCocktailResponse('시에스타는 어디 있어?', []).response
+
+    expect(response).toContain('시에스타')
+    expect(response).toMatch(/뒤쪽|일|가끔|사장/)
+  })
+
   it('responds to a difficult mood naturally, not with an alcohol solution', () => {
     const response = getCocktailResponse('오늘 너무 힘들어', []).response
 
@@ -45,6 +66,28 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(response).toContain('천천히')
     expectKahluaBoundary(response)
+  })
+
+  it('stops offering alcohol when the guest says they are already drunk', () => {
+    const response = getCocktailResponse('나 너무 취했어', []).response
+
+    expect(response).toContain('권하지 않을게요')
+    expect(response).toContain('물')
+    expectKahluaBoundary(response)
+  })
+
+  it('does not suggest alcohol to minors or guests who cannot drink', () => {
+    const response = getCocktailResponse('나 미성년자인데 술 못 마셔', []).response
+
+    expect(response).toContain('알코올은 안내하지 않을게요')
+    expect(response).toContain('무알코올')
+  })
+
+  it('asks for exact excluded ingredients for allergy-like constraints', () => {
+    const response = getCocktailResponse('알레르기 있어서 견과류 빼고', []).response
+
+    expect(response).toMatch(/피해서|제외/)
+    expect(response).toContain('재료')
   })
 })
 

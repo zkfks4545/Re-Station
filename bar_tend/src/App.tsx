@@ -5,6 +5,7 @@ import BarCounter from '@/components/bar/BarCounter.jsx'
 import DialogueBox from '@/components/bar/DialogueBox.jsx'
 import ChatInput from '@/components/bar/ChatInput.jsx'
 import CocktailCard from '@/components/bar/CocktailCard.jsx'
+import WelcomeDrinkButton from '@/components/bar/WelcomeDrinkButton.jsx'
 import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useRestationController } from '@/hooks/useRestationController.js'
 
@@ -26,7 +27,9 @@ export default function App() {
     handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
+    handleWelcomeDrink,
     handleSend,
+    welcomeDrinkAvailable,
     setServedCocktail,
     setSidebarOpen,
   } = useRestationController()
@@ -104,24 +107,21 @@ export default function App() {
             )}
           </div>
           <div
-            className="flex justify-end px-4 pb-3 pt-0.5"
+            className="flex justify-end gap-2 px-4 pb-3 pt-0.5"
             style={{
               background:
                 'linear-gradient(to top, rgba(13,10,7,0.95), rgba(13,10,7,0.5))',
             }}
           >
+            <WelcomeDrinkButton
+              disabled={isProcessing || isBartenderTyping}
+              hidden={!welcomeDrinkAvailable}
+              onClick={handleWelcomeDrink}
+            />
             <button
               onClick={handleExit}
               className="exit-btn text-xs transition-all duration-200 cursor-pointer select-none flex items-center gap-1"
-              style={{
-                color: '#b088d0',
-                textShadow: '0 0 6px rgba(120,80,180,0.25)',
-                background: 'rgba(120,80,180,0.06)',
-                border: '1px solid rgba(180,136,208,0.2)',
-                padding: '4px 12px',
-                fontFamily: 'inherit',
-                letterSpacing: '0.12em',
-              }}
+              disabled={isProcessing || isBartenderTyping}
             >
               <span className="opacity-60">[</span>
               나가기

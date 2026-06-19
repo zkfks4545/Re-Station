@@ -11,6 +11,7 @@ import {
   applyRecommendationSignals,
   extractRecommendationSignals,
   filterCocktailsByRecommendationState,
+  isBaseSpiritPreference,
 } from './state.js'
 
 const NUDGE = 0.2
@@ -134,7 +135,12 @@ export function formatQuestion(
   question: RecommendationQuestion,
   acknowledgement?: string | null,
 ): string {
-  const context = acknowledgement ? `${acknowledgement}\n` : '한 가지만 더 여쭤볼게요.\n'
+  const leadIn = acknowledgement
+    ? question.dialogueFlow?.continuation
+    : question.dialogueFlow?.leadIn
+  const context = acknowledgement
+    ? `${acknowledgement}${leadIn ? `\n${leadIn}` : ''}\n`
+    : `${leadIn ?? '한 가지만 더 여쭤볼게요.'}\n`
   return `${context}${question.prompt}`
 }
 
@@ -169,7 +175,7 @@ function getKnownTopics(state: RecommendationState): Set<string> {
   if (state.taste.sweetness !== undefined || state.taste.sourness !== undefined) topics.add('flavor')
   if (state.taste.fizz !== undefined) topics.add('fizz')
   if (state.taste.alcohol_strength !== undefined || state.alcoholPreference !== 'any') topics.add('alcohol')
-  if (state.preferredIngredients.length > 0) topics.add('base')
+  if (state.preferredIngredients.some(isBaseSpiritPreference)) topics.add('base')
   return topics
 }
 
@@ -211,11 +217,16 @@ export function pickFromPool(pool: CocktailData[], preference: TastePreference):
     }
   }
 
-  return [...pool].sort(
-    (a, b) =>
-      scoreCocktailMatch(a, expressed, weights) -
-      scoreCocktailMatch(b, expressed, weights),
-  )[0] ?? pool[0]
+  return [...pool].sort((a, b) => {
+    const scoreDelta = scoreCocktailMatch(a, expressed, weights) -
+      scoreCocktailMatch(b, expressed, weights)
+    if (Math.abs(scoreDelta) > 0.0001) return scoreDelta
+
+    const ingredientCountDelta = a.ingredients.length - b.ingredients.length
+    if (ingredientCountDelta !== 0) return ingredientCountDelta
+
+    return a.name.localeCompare(b.name)
+  })[0] ?? pool[0]
 }
 
 function normalize(value: string): string {
