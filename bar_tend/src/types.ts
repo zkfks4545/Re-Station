@@ -1,4 +1,4 @@
-export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking'
+export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking' | 'annoyed' | 'stern' | 'disappointed'
 
 export interface TasteProfile {
   sweet: number
@@ -71,6 +71,22 @@ export interface KeywordRule {
   pattern: RegExp
   expression: Expression
   response: string
+  dialogueCategory?: string
+}
+
+export interface DialogueLine {
+  text: string
+  expression: Expression
+}
+
+export interface DialogueCategory {
+  description?: string
+  lines: DialogueLine[]
+}
+
+export interface DialoguesData {
+  version: string
+  categories: Record<string, DialogueCategory>
 }
 
 export interface ConversationContext {

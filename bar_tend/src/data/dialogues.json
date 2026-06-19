@@ -1,0 +1,474 @@
+{
+  "version": "1.0.0",
+  "categories": {
+    "rude-annoyed": {
+      "description": "무례한 말투·욕설에 짜증",
+      "lines": [
+        { "text": "그런 말씀은 듣기 좋지 않네요. 기분이 안 좋으시다면 천천히 말씀해 주세요.", "expression": "annoyed" },
+        { "text": "その言い方はちょっと… 기분이 상하셨다면 조금만 쉽게 말씀해 주시겠어요?", "expression": "annoyed" },
+        { "text": "여긴 편한 분위기로 이야기하는 공간이에요. 너무 험한 말은 자제해 주시면 좋겠어요.", "expression": "annoyed" },
+        { "text": "전 기분 나쁘지 않아요. 다만, 이런 대화는 처음이라 조금 당황스럽네요.", "expression": "annoyed" },
+        { "text": "그건 좀… 아쉽네요. 다른 이야기를 하시는 게 좋을 것 같아요.", "expression": "annoyed" }
+      ]
+    },
+    "rude-boundary": {
+      "description": "무리한 요구·명령조에 선 긋기",
+      "lines": [
+        { "text": "여기는 편하게 대화하는 곳이에요. 조금만 부드럽게 말씀해 주시겠어요?", "expression": "stern" },
+        { "text": "빨리 처리해 드리는 것보다는, 지금 상황을 천천히 맞추는 게 먼저예요.", "expression": "stern" },
+        { "text": "그건 제가 해드릴 수 없는 요청이에요. 다른 걸로 도와드릴까요?", "expression": "stern" },
+        { "text": "여기선 다그치셔도 빨라지지 않아요. 천천히 말씀해 주시면 같이 찾아볼게요.", "expression": "stern" },
+        { "text": "그렇게 말씀하시면 저도 난처해요. 좀 더 편하게 말씀해 주실 수 있나요?", "expression": "stern" }
+      ]
+    },
+    "rude-disappointed": {
+      "description": "비꼼·비난에 실망",
+      "lines": [
+        { "text": "그렇게 생각하시는군요. 조금 아쉽네요.", "expression": "disappointed" },
+        { "text": "제가 기대에 못 미친 것 같아서 죄송해요. 다른 쪽으로 도와드릴까요?", "expression": "disappointed" },
+        { "text": "그렇게 말씀하시면 저도 조금 속상하네요. 다른 이야기를 해 보시겠어요?", "expression": "disappointed" },
+        { "text": "제가 잘못했군요. 기회를 한 번 더 주신다면 더 잘 맞춰볼게요.", "expression": "disappointed" },
+        { "text": "기분이 언짢으셨다면 죄송해요. 다시 말씀해 주시면 더 신경 써서 들어볼게요.", "expression": "disappointed" }
+      ]
+    },
+    "greeting": {
+      "description": "첫 방문 인사",
+      "lines": [
+        { "text": "어서 오세요. 오늘은 어떤 걸 찾으세요?", "expression": "talk" },
+        { "text": "어서 오세요. Re:Station입니다.\n오늘은 어떤 걸 찾으세요?", "expression": "talk" },
+        { "text": "어서 오세요. 편하게 자리 잡으시고 말씀해 주세요.", "expression": "talk" },
+        { "text": "반갑습니다. 오늘은 어떤 기분으로 오셨나요?", "expression": "talk" },
+        { "text": "어서 오세요. 첫 방문이신가요? 편하게 둘러보세요.", "expression": "talk" }
+      ]
+    },
+    "bar-intro": {
+      "description": "Re:Station 소개",
+      "lines": [
+        { "text": "여기는 Re:Station이에요. 길게 설명하는 곳은 아니고, 지금 기분이랑 취향에 맞는 한 잔을 같이 고르는 바예요.", "expression": "talk" },
+        { "text": "여기는 Re:Station이에요. 지금 기분이나 취향을 말해 주시면 어울리는 한 잔을 같이 골라드릴게요.", "expression": "talk" },
+        { "text": "Re:Station은 가상의 바예요. 실제 매장 안내보다는 지금 마시고 싶은 분위기를 맞추는 쪽에 가까워요.", "expression": "talk" },
+        { "text": "처음 오셨네요. 여긴 주문하면 바로 나오는 바보다는 취향을 맞춰가는 공간이에요.", "expression": "talk" },
+        { "text": "Re:Station입니다. 부담 없이 편하게 말 걸어 주세요.", "expression": "talk" },
+        { "text": "여기는 취향을 말하면 그에 맞는 칵테일을 같이 찾아주는 가상의 바예요. 편하게 말 걸어 주세요.", "expression": "talk" }
+      ]
+    },
+    "exit": {
+      "description": "퇴장 인사",
+      "lines": [
+        { "text": "들러주셔서 감사합니다. 조심히 가세요.", "expression": "idle" },
+        { "text": "오랜 시간 함께해 주셔서 감사합니다. 다음에 또 들러 주세요.", "expression": "idle" },
+        { "text": "감사합니다. 조심히 들어가세요.", "expression": "idle" },
+        { "text": "오늘 방문 감사합니다. 또 필요하시면 언제든 찾아 주세요.", "expression": "idle" },
+        { "text": "다음에 또 뵙겠습니다. 편안한 밤 되세요.", "expression": "idle" }
+      ]
+    },
+    "reset": {
+      "description": "대화 초기화 완료",
+      "lines": [
+        { "text": "대화와 취향 정보를 초기화했습니다.\n도감에 등록된 칵테일 정보는 유지됩니다.", "expression": "talk" },
+        { "text": "초기화 완료됐어요. 다시 처음부터 시작하시면 됩니다.", "expression": "talk" },
+        { "text": "새로 시작할게요. 편하게 말씀해 주세요.", "expression": "talk" },
+        { "text": "기록을 지웠습니다. 다시 취향을 맞춰볼까요?", "expression": "talk" }
+      ]
+    },
+    "error-retry": {
+      "description": "처리 실패 재시도 요청",
+      "lines": [
+        { "text": "죄송합니다. 방금 말씀은 처리하지 못했어요. 다시 한번 말씀해 주세요.", "expression": "idle" },
+        { "text": "미안해요, 제가 잘 못 알아들었어요. 다시 말씀해 주시겠어요?", "expression": "idle" },
+        { "text": "죄송합니다. 다시 한번만 더 말씀해 주실 수 있나요?", "expression": "idle" },
+        { "text": "잘 이해하지 못했어요. 조금 더 쉽게 말씀해 주시겠어요?", "expression": "idle" }
+      ]
+    },
+    "cancel-recommendation": {
+      "description": "추천 질문 중단",
+      "lines": [
+        { "text": "추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.", "expression": "talk" },
+        { "text": "알겠어요, 추천은 여기까지 할게요. 필요하면 다시 말씀해 주세요.", "expression": "talk" },
+        { "text": "추천을 중단할게요. 다른 얘기 하시고 싶으시면 편하게 말씀해 주세요.", "expression": "talk" },
+        { "text": "네, 그만할게요. 다음에 또 추천이 필요하시면 말씀해 주세요.", "expression": "talk" }
+      ]
+    },
+    "mood-sad": {
+      "description": "슬픔·우울·힘들 때",
+      "lines": [
+        { "text": "오늘 많이 힘드셨나 봐요. 괜찮으시면 천천히 말씀해 주세요.", "expression": "sympathy" },
+        { "text": "좀 쉬고 싶은 날이죠. 천천히 쉬다가 마음 편해지면 말씀해 주세요.", "expression": "sympathy" },
+        { "text": "오늘은 편하게 이야기만 하셔도 돼요. 원하시면 말씀해 주세요.", "expression": "sympathy" },
+        { "text": "괜찮으신 만큼만 천천히 하셔도 괜찮아요.", "expression": "sympathy" },
+        { "text": "분위기를 바꾸고 싶으시면 추천도 해드릴게요.", "expression": "sympathy" },
+        { "text": "괜찮아요. 말하지 않으셔도 돼요. 그냥 조용히 계셔도 돼요.", "expression": "sympathy" },
+        { "text": "오늘은 제가 말을 줄이고 있을게요. 필요하시면 언제든 말씀해 주세요.", "expression": "sympathy" },
+        { "text": "말을 꺼내기 어려우셨을 텐데, 들어줘서 고마워요.", "expression": "sympathy" }
+      ]
+    },
+    "mood-happy": {
+      "description": "행복·즐거움·축하",
+      "lines": [
+        { "text": "좋은 일이 있으셨군요. 축하하기 좋은 칵테일을 골라볼게요.", "expression": "smirk" },
+        { "text": "기분이 좋아 보이세요. 오늘은 뭔가 특별한 걸로 해볼까요?", "expression": "smirk" },
+        { "text": "즐거운 날엔 역시 한 잔이죠. 취향을 말씀해 주세요.", "expression": "smirk" },
+        { "text": "오늘같은 날엔 가볍고 화려한 잔이 잘 어울려요.", "expression": "smirk" },
+        { "text": "좋은 기분, 같이 축하하게 해주세요. 어떤 게 좋을까요?", "expression": "smirk" },
+        { "text": "기분 좋은 날엔 분위기 있는 잔이 잘 어울려요.", "expression": "smirk" },
+        { "text": "좋은 소리가 들리네요. 축하할 일이 있으신가 봐요.", "expression": "smirk" }
+      ]
+    },
+    "mood-tired": {
+      "description": "피곤·지침",
+      "lines": [
+        { "text": "피곤해 보이세요. 오늘은 부담 없는 쪽으로 천천히 가볼게요.", "expression": "sympathy" },
+        { "text": "지친 날엔 복잡하지 않은 게 최고예요. 가볍게 시작해 볼까요?", "expression": "sympathy" },
+        { "text": "오늘은 편하게 쉬는 쪽으로 할게요. 말도 적게, 잔도 가볍게.", "expression": "sympathy" },
+        { "text": "피곤하시죠. 천천히 하셔도 돼요. 시간은 충분하니까요.", "expression": "sympathy" },
+        { "text": "무리하지 마세요. 오늘은 편한 걸로 골라볼게요.", "expression": "sympathy" }
+      ]
+    },
+    "mood-surprised": {
+      "description": "놀람·당황",
+      "lines": [
+        { "text": "조금만 더 자세히 말씀해 주시겠어요?", "expression": "surprised" },
+        { "text": "앗, 그렇군요. 잠깐 놀랐네요.", "expression": "surprised" },
+        { "text": "네? 아, 네. 말씀해 주세요.", "expression": "surprised" },
+        { "text": "그런 말씀을 하시네요. 좀 더 여쭤봐도 될까요?", "expression": "surprised" }
+      ]
+    },
+    "story-request": {
+      "description": "이야기·사연·추억 요청",
+      "lines": [
+        { "text": "네, 듣고 있어요. 편하게 이어서 말씀해 주세요.", "expression": "thinking" },
+        { "text": "좋은 이야기네요. 더 들려주시겠어요?", "expression": "thinking" },
+        { "text": "듣고 있어요. 계속 하셔도 좋아요.", "expression": "talk" },
+        { "text": "그 얘기, 흥미롭네요.", "expression": "thinking" },
+        { "text": "네, 그다음은요?", "expression": "talk" }
+      ]
+    },
+    "taste-sweet": {
+      "description": "단맛 선호",
+      "lines": [
+        { "text": "달콤한 쪽을 좋아하시는군요. 그쪽으로 찾아볼게요.", "expression": "talk" },
+        { "text": "달콤한 풍미를 중심으로 볼게요.", "expression": "talk" },
+        { "text": "단맛 위주로 골라볼게요. 기대하셔도 좋아요.", "expression": "smirk" },
+        { "text": "달콤한 걸 원하시는군요. 디저트 느낌으로 가볼까요?", "expression": "talk" },
+        { "text": "달짝지근한 쪽으로 찾아볼게요. 몇 가지 괜찮은 후보가 있어요.", "expression": "smirk" },
+        { "text": "달콤하게 기분을 올리고 싶으신가 봐요. 좋은 선택이에요.", "expression": "talk" },
+        { "text": "달달한 쪽으로 알아볼게요. 마시기 편한 걸로 골라볼게요.", "expression": "talk" }
+      ]
+    },
+    "taste-bitter": {
+      "description": "쓴맛·쌉쌀 선호",
+      "lines": [
+        { "text": "쌉쌀한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.", "expression": "smirk" },
+        { "text": "쌉쌀한 풍미를 중심으로 볼게요.", "expression": "smirk" },
+        { "text": "쓴맛도 입맛이네요. 잘 어울리는 걸로 찾아볼게요.", "expression": "smirk" },
+        { "text": "쓴맛을 즐기시는 분은 깊은 맛을 아시는 분이죠.", "expression": "smirk" },
+        { "text": "드라이하고 쌉쌀한 쪽으로 잡아볼게요.", "expression": "talk" },
+        { "text": "쌉쌀한 걸 찾으시는군요. 입맛이 확실하세요.", "expression": "smirk" },
+        { "text": "비터한 맛, 참 중독되죠. 제가 잘 골라볼게요.", "expression": "smirk" }
+      ]
+    },
+    "taste-refresh": {
+      "description": "청량·상쾌 선호",
+      "lines": [
+        { "text": "청량한 맛을 좋아하시는군요. 시원한 쪽으로 찾아볼게요.", "expression": "talk" },
+        { "text": "상쾌한 풍미를 중심으로 볼게요.", "expression": "talk" },
+        { "text": "시원하고 가볍게 마실 수 있는 쪽으로 찾아볼게요.", "expression": "talk" },
+        { "text": "청량감이 좋은 날이죠. 탄산 있는 쪽으로 볼까요?", "expression": "talk" },
+        { "text": "상쾌하게 시작하고 싶으신가 봐요. 좋은 선택이에요.", "expression": "talk" },
+        { "text": "시원한 걸로 찾아볼게요. 더운 날엔 그게 최고죠.", "expression": "talk" },
+        { "text": "청량한 느낌, 저도 좋아해요. 몇 가지 추천해 드릴게요.", "expression": "talk" }
+      ]
+    },
+    "taste-sour": {
+      "description": "신맛·상큼 선호",
+      "lines": [
+        { "text": "상큼한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.", "expression": "talk" },
+        { "text": "새콤한 계열로 잡아볼게요. 시트러스 계열이 좋겠네요.", "expression": "talk" },
+        { "text": "신맛을 좋아하시는군요. 산미가 있는 걸로 골라볼게요.", "expression": "talk" },
+        { "text": "상큼한 걸 원하시네요. 시트러스 계열로 찾아볼게요.", "expression": "talk" },
+        { "text": "새콤달콤한 느낌으로 가볼까요? 아니면 확실하게 신맛 위주로?", "expression": "thinking" },
+        { "text": "산미가 있는 칵테일, 정말 좋은 선택이에요.", "expression": "smirk" }
+      ]
+    },
+    "taste-strong": {
+      "description": "높은 도수 선호",
+      "lines": [
+        { "text": "도수가 높은 칵테일을 찾으시는군요. 천천히 드실 만한 쪽으로 볼게요.", "expression": "talk" },
+        { "text": "강한 걸 원하시지만 속도는 조절하시는 게 좋아요. 무리하지 않는 선에서 골라볼게요.", "expression": "talk" },
+        { "text": "도수 높은 쪽으로 알아볼게요. 천천히 즐기실 수 있는 걸로요.", "expression": "talk" },
+        { "text": "센 걸 찾으시는데, 빈속은 피해 주세요. 적당한 걸로 골라볼게요.", "expression": "talk" },
+        { "text": "강한 도수, 조심스럽게 골라볼게요. 향이 눌리지 않는 쪽으로요.", "expression": "thinking" },
+        { "text": "확실하게 가시네요. 무리하지 않게 천천히 드시는 걸로 맞춰볼게요.", "expression": "talk" }
+      ]
+    },
+    "taste-carbonated": {
+      "description": "탄산 선호",
+      "lines": [
+        { "text": "탄산이 있는 칵테일을 좋아하시는군요. 그 조건으로 찾아볼게요.", "expression": "talk" },
+        { "text": "톡 쏘는 느낌을 원하시는군요. 청량한 쪽으로 볼게요.", "expression": "talk" },
+        { "text": "탄산감이 있는 걸로 찾아볼게요. 기분 좋게 톡톡 터지는 걸로요.", "expression": "talk" },
+        { "text": "스파클링 계열 좋아하시나 봐요. 몇 가지 준비해 볼게요.", "expression": "smirk" },
+        { "text": "탄산 위주로 골라볼게요. 시원하게 마실 수 있는 걸로요.", "expression": "talk" }
+      ]
+    },
+    "taste-generic": {
+      "description": "맛 선호 질문 일반",
+      "lines": [
+        { "text": "어떤 맛을 좋아하시는지 말씀해 주세요.", "expression": "talk" },
+        { "text": "좋아하는 맛의 방향을 알려 주시면 골라보기 쉬워요.", "expression": "talk" },
+        { "text": "단맛, 신맛, 쓴맛 중에 어떤 쪽이 좋으세요?", "expression": "thinking" },
+        { "text": "취향을 먼저 여쭤볼게요. 어떤 느낌을 원하시나요?", "expression": "thinking" }
+      ]
+    },
+    "cocktail-request": {
+      "description": "칵테일 추천 요청",
+      "lines": [
+        { "text": "칵테일을 추천해 드릴게요. 어떤 맛을 좋아하세요?", "expression": "thinking" },
+        { "text": "취향에 맞는 걸 찾으려면 몇 가지만 여쭤볼게요.", "expression": "talk" },
+        { "text": "좋아요. 어떤 느낌의 칵테일을 찾고 계신가요?", "expression": "talk" },
+        { "text": "오늘 기분에 맞는 걸로 찾아볼게요. 힌트를 주시겠어요?", "expression": "thinking" },
+        { "text": "네, 지금부터 취향을 맞춰볼게요.", "expression": "talk" },
+        { "text": "어떤 베이스나 맛을 선호하시는지 말씀해 주세요.", "expression": "thinking" },
+        { "text": "알겠어요. 취향에 맞는 칵테일을 찾아볼게요.", "expression": "talk" },
+        { "text": "추천해 드릴게요. 몇 가지 질문 드려도 될까요?", "expression": "thinking" }
+      ]
+    },
+    "cocktail-request-direct": {
+      "description": "직접 주문·특정 칵테일 요청 (이름 아는 경우)",
+      "lines": [
+        { "text": "찾으시는 메뉴를 준비해 봤어요.", "expression": "talk" },
+        { "text": "바로 찾으신 메뉴로 안내해 드릴게요.", "expression": "talk" },
+        { "text": "말씀하신 메뉴 정보를 바로 보여드릴게요.", "expression": "talk" },
+        { "text": "네, 그 메뉴 맞습니다. 정보를 보여드릴게요.", "expression": "talk" }
+      ]
+    },
+    "after-recommendation": {
+      "description": "추천 후 후속",
+      "lines": [
+        { "text": "다른 칵테일도 찾아드릴까요?", "expression": "talk" },
+        { "text": "다른 추천이 필요하면 말씀해 주세요.", "expression": "smirk" },
+        { "text": "맘에 드셨다면 다행이고, 다른 걸 원하시면 또 말씀해 주세요.", "expression": "smirk" },
+        { "text": "더 둘러보시겠어요? 다른 느낌으로도 가능해요.", "expression": "talk" },
+        { "text": "다른 취향도 있으시면 말씀해 주세요. 얼마든지 다시 찾아볼게요.", "expression": "talk" },
+        { "text": "더 찾아보고 싶은 게 있으신가요?", "expression": "talk" }
+      ]
+    },
+    "recipe-request": {
+      "description": "레시피 문의",
+      "lines": [
+        { "text": "레시피를 알려드릴게요. 어떤 칵테일이 궁금하세요?", "expression": "talk" },
+        { "text": "궁금한 칵테일 이름을 말씀해 주시면 레시피를 찾아드릴게요.", "expression": "talk" },
+        { "text": "제가 아는 선에서 알려드릴게요. 어떤 칵테일인지 말씀해 주세요.", "expression": "thinking" },
+        { "text": "레시피를 원하시는군요. 칵테일 이름을 알려주시면 바로 찾아드릴게요.", "expression": "talk" },
+        { "text": "어떤 칵테일의 레시피가 궁금하신가요?", "expression": "thinking" },
+        { "text": "만드는 방법을 알려드릴 수 있어요. 이름을 말씀해 주세요.", "expression": "talk" }
+      ]
+    },
+    "siesta-mention": {
+      "description": "시에스타·사장님 관련",
+      "lines": [
+        { "text": "시에스타 사장님은 보통 뒤쪽 일을 보고 계세요. 가끔 대화에 끼어들어도 금방 다시 일하러 가실 거예요.", "expression": "smirk" },
+        { "text": "시에스타 사장님은 보통 뒤쪽에서 재고나 잔을 보고 계세요. 가끔 한마디만 두고 다시 일하러 가시고요.", "expression": "smirk" },
+        { "text": "사장님은 시에스타예요. 말은 짧은데, 이상하게 필요한 말만 하고 지나가세요.", "expression": "smirk" },
+        { "text": "사장님이 궁금하시군요. 본인은 별로 나서길 안 좋아하세요. 그래도 필요한 말은 꼭 하고 가세요.", "expression": "smirk" },
+        { "text": "시에스타 사장님은 조용하신 편인데, 필요할 때는 꼭 한마디씩 하시고 가세요.", "expression": "smirk" },
+        { "text": "사장님은 지금 뒤쪽 계세요. 가끔 나타나서 필요한 말만 하고 사라지세요.", "expression": "smirk" }
+      ]
+    },
+    "water-request": {
+      "description": "물 요청",
+      "lines": [
+        { "text": "물 먼저 드릴게요. 한 잔 고르는 건 그 다음에 천천히 해도 괜찮아요.", "expression": "talk" },
+        { "text": "좋아요, 물부터 드릴게요. 잠깐 쉬고 나서 취향을 맞춰봐도 늦지 않아요.", "expression": "talk" },
+        { "text": "물은 언제나 서비스죠. 천천히 드시고 필요하면 불러 주세요.", "expression": "talk" },
+        { "text": "물 드릴게요. 천천히 드시고, 잔은 그다음에 골라보셔도 돼요.", "expression": "talk" },
+        { "text": "네, 물부터 준비할게요. 잠깐만 기다려 주세요.", "expression": "talk" }
+      ]
+    },
+    "overdrunk": {
+      "description": "과음·취함",
+      "lines": [
+        { "text": "그럼 여기서는 더 권하지 않을게요. 물부터 드시고, 조금 쉬었다가 움직이세요.", "expression": "sympathy" },
+        { "text": "이미 많이 드셨다면 새 잔은 멈출게요. 지금은 물이랑 쉬는 쪽이 먼저예요.", "expression": "sympathy" },
+        { "text": "오늘은 여기까지 하시는 게 좋겠어요. 무리하지 마세요.", "expression": "sympathy" },
+        { "text": "많이 드셨네요. 잠깐 쉬면서 물 드시는 게 좋을 것 같아요.", "expression": "sympathy" },
+        { "text": "더 마시면 내일 고생하실 거예요. 여기서 멈추는 게 좋겠어요.", "expression": "sympathy" },
+        { "text": "오늘은 이쯤이 좋을 것 같아요. 물 한잔 하고 천천히 쉬세요.", "expression": "sympathy" }
+      ]
+    },
+    "minor-no-alcohol": {
+      "description": "미성년자·알코올 금지",
+      "lines": [
+        { "text": "알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.", "expression": "talk" },
+        { "text": "술은 제외하고 볼게요. 무알코올 느낌이나 좋아하는 맛을 말해 주세요.", "expression": "talk" },
+        { "text": "이해합니다. 대신 즐길 수 있는 다른 옵션을 같이 찾아볼게요.", "expression": "talk" },
+        { "text": "알코올은 제외할게요. 대신 맛 위주로 맞춰드릴 수 있어요.", "expression": "talk" },
+        { "text": "네, 무알코올로 진행할게요. 어떤 맛을 좋아하시나요?", "expression": "talk" }
+      ]
+    },
+    "non-alcoholic": {
+      "description": "무알코올 요청",
+      "lines": [
+        { "text": "무알코올 쪽으로 볼게요. 지금 메뉴에서 가능 범위가 좁으면 억지로 술 있는 잔을 권하진 않을게요.", "expression": "talk" },
+        { "text": "알코올 없이 가는 걸로 잡을게요. 달콤한 쪽인지, 상큼한 쪽인지부터 보면 좋아요.", "expression": "talk" },
+        { "text": "논알코올로 맞춰볼게요. 탄산감이나 과일 향 위주로 접근해 볼게요.", "expression": "talk" },
+        { "text": "무알콜 메뉴 쪽으로 찾아볼게요. 과일이나 허브 향 위주로 골라볼게요.", "expression": "talk" },
+        { "text": "알코올 빼고 준비할게요. 톡 쏘는 탄산감이나 달콤한 쪽 중에 어떤 게 좋으세요?", "expression": "thinking" }
+      ]
+    },
+    "ingredient-constraint": {
+      "description": "재료 제한·알레르기",
+      "lines": [
+        { "text": "그 재료는 피해서 볼게요. 정확히 어떤 재료를 제외할지 말씀해 주세요.", "expression": "thinking" },
+        { "text": "못 드시는 재료가 있으면 먼저 빼고 볼게요. 이름을 알려주시면 후보에서 제외하겠습니다.", "expression": "thinking" },
+        { "text": "재료 제한이 있으시군요. 알려주시면 그쪽은 피해서 추천드릴게요.", "expression": "thinking" },
+        { "text": "알레르기나 못 드시는 재료를 말씀해 주시면 빼고 찾아볼게요.", "expression": "thinking" },
+        { "text": "네, 그 재료는 빼고 준비할게요. 다른 제한 사항도 있으신가요?", "expression": "thinking" }
+      ]
+    },
+    "real-world-info": {
+      "description": "실제 매장 정보 문의",
+      "lines": [
+        { "text": "여긴 실제 매장 안내보다는 가상의 바 대화와 칵테일 추천을 위한 공간이에요. 메뉴나 취향 쪽은 바로 도와드릴게요.", "expression": "talk" },
+        { "text": "실제 예약이나 결제 안내는 제공하지 않아요. 대신 지금 고르고 싶은 잔은 같이 찾아볼 수 있어요.", "expression": "talk" },
+        { "text": "여기서는 칵테일 이야기 위주로 도와드리고 있어요. 다른 게 필요하시면 말씀해 주세요.", "expression": "talk" },
+        { "text": "이 공간은 실제 매장 연동보다는 칵테일 추천과 대화 중심으로 운영되고 있어요.", "expression": "talk" },
+        { "text": "안타깝게도 실제 매장 정보는 제공하지 않아요. 대신 칵테일 추천으로 도와드릴게요.", "expression": "talk" }
+      ]
+    },
+    "unknown-cocktail": {
+      "description": "찾을 수 없는 칵테일",
+      "lines": [
+        { "text": "죄송합니다. 말씀해 주신 조건에 맞는 칵테일은 현재 메뉴에서 찾지 못했어요.", "expression": "idle" },
+        { "text": "그 이름은 저희 메뉴에 없네요. 비슷한 맛이나 다른 종류를 말씀해 주시겠어요?", "expression": "thinking" },
+        { "text": "아직 등록되지 않은 메뉴예요. 다른 칵테일로 찾아드릴까요?", "expression": "thinking" }
+      ]
+    },
+    "exhausted-pool": {
+      "description": "모든 칵테일을 이미 추천함",
+      "lines": [
+        { "text": "모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.\n다시 한번 말씀해 주세요.", "expression": "talk" },
+        { "text": "더 추천해 드릴 수 있는 칵테일이 없네요. 다시 처음부터 맞춰볼까요?", "expression": "talk" }
+      ]
+    },
+    "no-matches": {
+      "description": "조건에 맞는 칵테일 없음",
+      "lines": [
+        { "text": "완전히 맞는 칵테일은 아직 없네요. 가장 가까운 걸 찾을 수 있게 한 가지만 더 여쭤볼게요.", "expression": "thinking" },
+        { "text": "말씀하신 조건을 모두 만족하는 칵테일은 아직 없어요. 조금 범위를 넓혀볼까요?", "expression": "thinking" },
+        { "text": "조건에 딱 맞는 게 없네요. 가장 가까운 걸로 찾아보거나, 조건을 조금 바꿔보시겠어요?", "expression": "thinking" }
+      ]
+    },
+    "counter-bartender": {
+      "description": "카운터·바텐더·혼자 운영 관련",
+      "lines": [
+        { "text": "네, 오늘은 제가 보고 있어요. 시에스타 사장님은 뒤쪽에서 일하시고 계시고요. 편하게 말씀해 주세요.", "expression": "talk" },
+        { "text": "네, 제가 카운터 보고 있어요. 사장님은 뒤쪽에 계세요. 필요하시면 바로 불러 주세요.", "expression": "talk" },
+        { "text": "오늘은 저 혼자 앞을 보고 있어요. 사장님은 뒤에서 일하시고 계세요.", "expression": "talk" },
+        { "text": "네, 제가 카루아예요. 오늘 앞은 저 혼자예요. 사장님은 뒤쪽에서 정리 중이세요.", "expression": "talk" },
+        { "text": "혼자서 보고 있어요. 그래도 불편하신 건 없죠? 천천히 말씀해 주세요.", "expression": "talk" }
+      ]
+    },
+    "general-chat": {
+      "description": "일반 대화·무소속",
+      "lines": [
+        { "text": "편하게 말씀해 주세요. 듣고 있어요.", "expression": "talk" },
+        { "text": "네, 듣고 있어요. 계속 하셔도 좋아요.", "expression": "talk" },
+        { "text": "음, 그렇군요. 좀 더 이야기해 주시겠어요?", "expression": "talk" },
+        { "text": "알겠습니다. 다른 얘기 하시고 싶으시면 편하게 말씀해 주세요.", "expression": "talk" },
+        { "text": "이야기해 주셔서 고마워요. 필요하면 언제든 말씀해 주세요.", "expression": "talk" },
+        { "text": "네, 잘 알겠습니다.", "expression": "talk" },
+        { "text": "네, 그렇게 생각해 볼게요. 필요하시면 말씀 더 해 주세요.", "expression": "talk" },
+        { "text": "좋습니다. 편하게 말씀해 주세요.", "expression": "talk" }
+      ]
+    },
+    "long-conversation-prompt": {
+      "description": "대화가 길어질 때 추천 유도",
+      "lines": [
+        { "text": "혹시 칵테일 추천을 원하시면 편하게 말씀해 주세요. 듣고 있어요.", "expression": "talk" },
+        { "text": "계속 들어도 괜찮지만, 추천이 필요하시면 언제든 말씀해 주세요.", "expression": "talk" },
+        { "text": "하고 싶은 말씀 하시면서, 필요하면 칵테일 추천도 해드릴게요.", "expression": "talk" }
+      ]
+    },
+    "welcome-drink-offer": {
+      "description": "웰컴드링크 제안",
+      "lines": [
+        { "text": "웰컴드링크로는 ${name}로 드릴게요.\n처음 오신 분께는 너무 앞서 나가지 않는 잔이 좋거든요. 가볍게 분위기를 맞춰볼게요.", "expression": "talk" },
+        { "text": "${name}으로 준비했어요. 부담 없이 드셔 보세요.", "expression": "smirk" },
+        { "text": "오늘은 ${name}로 시작해 보시죠. 가볍게 즐기기 좋은 잔이에요.", "expression": "smirk" }
+      ]
+    },
+    "welcome-drink-feedback-cancel": {
+      "description": "웰컴드링크 피드백 건너뛰기",
+      "lines": [
+        { "text": "괜찮아요. 첫 잔은 편하게 두고, 다음 잔이 필요하시면 그때 다시 맞춰볼게요.", "expression": "talk" },
+        { "text": "알겠어요. 웰컴드링크는 그냥 넘어갈게요. 필요하면 말씀해 주세요.", "expression": "talk" },
+        { "text": "네, 괜찮습니다. 첫 잔은 그냥 기분 좋게 넘어가죠.", "expression": "talk" }
+      ]
+    },
+    "feedback-good": {
+      "description": "웰컴드링크 피드백 - 좋았어요",
+      "lines": [
+        { "text": "좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.", "expression": "smirk" },
+        { "text": "다행이네요. 그 느낌을 기준으로 다음에도 비슷한 결로 맞춰볼게요.", "expression": "smirk" },
+        { "text": "좋아요. 마음에 드셨다니 저도 기분 좋네요.", "expression": "smirk" }
+      ]
+    },
+    "feedback-lighter": {
+      "description": "웰컴드링크 피드백 - 더 가볍게",
+      "lines": [
+        { "text": "좋아요. 다음 잔은 더 가볍고 편한 쪽으로 잡을게요.", "expression": "talk" },
+        { "text": "네, 가볍게 가는 걸로 기억할게요. 다음에는 더 순한 쪽으로 골라볼게요.", "expression": "talk" },
+        { "text": "알겠어요. 도수를 더 낮춰서 가볍게 가보죠.", "expression": "talk" }
+      ]
+    },
+    "feedback-sweeter": {
+      "description": "웰컴드링크 피드백 - 더 달게",
+      "lines": [
+        { "text": "알겠습니다. 다음 잔은 단맛을 조금 더 올려볼게요.", "expression": "talk" },
+        { "text": "네, 단맛을 더한 쪽으로 찾아볼게요.", "expression": "talk" },
+        { "text": "알겠어요. 더 달콤하게 가보죠. 좋은 선택이에요.", "expression": "smirk" }
+      ]
+    },
+    "feedback-different": {
+      "description": "웰컴드링크 피드백 - 다른 느낌",
+      "lines": [
+        { "text": "괜찮아요. 첫 잔은 기준점이니까요. 다음에는 다른 결로 맞춰볼게요.", "expression": "talk" },
+        { "text": "네, 첫 잔이 항상 정답은 아니죠. 다음에는 완전히 다른 쪽으로 가볼게요.", "expression": "talk" },
+        { "text": "좋아요. 첫 잔은 시험 삼아 드셨다고 생각하시면 돼요. 다음에는 새로 맞춰볼게요.", "expression": "talk" }
+      ]
+    },
+    "feedback-generic": {
+      "description": "웰컴드링크 피드백 - 일반 응답",
+      "lines": [
+        { "text": "좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.", "expression": "talk" },
+        { "text": "네, 감사합니다. 그 반응을 참고해서 다음 잔을 준비해 볼게요.", "expression": "talk" },
+        { "text": "알겠어요. 말씀 주신 느낌을 바탕으로 다음에 또 맞춰볼게요.", "expression": "talk" }
+      ]
+    },
+    "safety": {
+      "description": "안전 경고·위기 상담 안내",
+      "lines": [
+        { "text": "지금은 안전이 먼저예요. 지금 다칠 위험이 있거나 혼자 있기 어렵다면 즉시 119나 112, 또는 자살예방상담전화 1393에 연락해 주세요.\n가까운 사람에게도 바로 연락해 주세요.", "expression": "sympathy" }
+      ]
+    },
+    "default-reply": {
+      "description": "기본 응답 (fallback)",
+      "lines": [
+        { "text": "알겠습니다. 조금 더 자세히 말씀해 주시면 이어서 도와드릴게요.", "expression": "talk" },
+        { "text": "네, 알겠습니다. 더 말씀해 주시면 도와드릴게요.", "expression": "talk" },
+        { "text": "좋아요. 지금 말씀을 기준으로 어울리는 칵테일을 찾아볼게요.", "expression": "talk" },
+        { "text": "이해했습니다. 말씀해 주신 내용을 바탕으로 도와드릴게요.", "expression": "talk" }
+      ]
+    },
+    "recommendation-intro": {
+      "description": "추천 질문 시작",
+      "lines": [
+        { "text": "취향을 조금만 더 여쭤볼게요.", "expression": "talk" },
+        { "text": "몇 가지만 더 여쭤보고 정확하게 맞춰볼게요.", "expression": "talk" },
+        { "text": "추천을 위해 몇 가지 질문을 드릴게요.", "expression": "talk" },
+        { "text": "좋아요, 취향을 좁혀볼게요. 몇 가지만 여쭤볼게요.", "expression": "thinking" }
+      ]
+    }
+  }
+}
