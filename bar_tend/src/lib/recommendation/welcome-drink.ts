@@ -2,13 +2,6 @@ import type { CocktailData } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
 import { getAllCocktailData } from '../cocktails/database.js'
 
-const TARGET = {
-  sweetness: 0.45,
-  alcohol_strength: 0.45,
-  fizz: 0.45,
-  sourness: 0.45,
-}
-
 export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
   id: 'welcome-drink-feedback',
   topic: 'welcome-feedback',
@@ -54,7 +47,7 @@ export function selectWelcomeDrink(cocktails: CocktailData[] = getAllCocktailDat
   )
   const candidates = approachable.length > 0 ? approachable : cocktails
 
-  return [...candidates].sort((a, b) => welcomeDrinkScore(a) - welcomeDrinkScore(b))[0] ?? cocktails[0]
+  return candidates[Math.floor(Math.random() * candidates.length)] ?? cocktails[0]
 }
 
 export function formatWelcomeDrinkReply(cocktail: CocktailData): string {
@@ -79,17 +72,4 @@ export function formatWelcomeDrinkFeedbackReply(answer: string): string {
     return '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.'
   }
   return '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.'
-}
-
-function welcomeDrinkScore(cocktail: CocktailData): number {
-  const { features } = cocktail
-  const distance =
-    Math.abs(features.sweetness - TARGET.sweetness) +
-    Math.abs(features.alcohol_strength - TARGET.alcohol_strength) * 1.4 +
-    Math.abs(features.fizz - TARGET.fizz) * 0.8 +
-    Math.abs(features.sourness - TARGET.sourness)
-
-  const classicBonus = cocktail.type === 'CLASSIC' ? -0.25 : 0
-  const officialBonus = cocktail.recipe_source_url ? -0.1 : 0
-  return distance + classicBonus + officialBonus
 }
