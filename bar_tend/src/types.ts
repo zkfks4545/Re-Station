@@ -1,4 +1,4 @@
-export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking' | 'annoyed' | 'stern' | 'disappointed'
+export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking' | 'annoyed' | 'stern' | 'disappointed' | 'embarrassed'
 
 export interface TasteProfile {
   sweet: number

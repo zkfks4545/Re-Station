@@ -224,7 +224,8 @@ export function useRestationController() {
 
       if (welcomeDrinkFeedbackPending) {
         setWelcomeDrinkFeedbackPending(false)
-        bartenderReply(formatWelcomeDrinkFeedbackReply(text), 'smirk')
+        const feedback = formatWelcomeDrinkFeedbackReply(text)
+        bartenderReply(feedback.text, feedback.expression)
         return
       }
 

@@ -1,4 +1,4 @@
-import type { CocktailData } from '../../types.js'
+import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
 import { getAllCocktailData } from '../cocktails/database.js'
 
@@ -55,21 +55,24 @@ export function formatWelcomeDrinkReply(cocktail: CocktailData): string {
   return `웰컴드링크로는 ${name}로 드릴게요.\n처음 오신 분께는 너무 앞서 나가지 않는 잔이 좋거든요. 가볍게 분위기를 맞춰볼게요.`
 }
 
-export function formatWelcomeDrinkFeedbackReply(answer: string): string {
+export function formatWelcomeDrinkFeedbackReply(answer: string): { text: string; expression: Expression } {
   const normalized = answer.replace(/\s+/g, '')
   const matched = WELCOME_DRINK_FEEDBACK_QUESTION.choices.find((choice) =>
     normalized.includes(choice.label.replace(/\s+/g, '')),
   )
 
-  if (matched?.acknowledgement) return matched.acknowledgement
+  if (matched?.acknowledgement) {
+    const isNegative = matched.label !== '좋았어요'
+    return { text: matched.acknowledgement, expression: isNegative ? 'embarrassed' : 'smirk' }
+  }
   if (/가볍|약하|낮/.test(answer)) {
-    return '좋아요. 다음 잔은 더 가볍고 편한 쪽으로 잡을게요.'
+    return { text: '좋아요. 다음 잔은 더 가볍고 편한 쪽으로 잡을게요.', expression: 'embarrassed' }
   }
   if (/달|스윗|sweet/i.test(answer)) {
-    return '알겠습니다. 다음 잔은 단맛을 조금 더 올려볼게요.'
+    return { text: '알겠습니다. 다음 잔은 단맛을 조금 더 올려볼게요.', expression: 'embarrassed' }
   }
   if (/좋|괜찮|마음|맛있/.test(answer)) {
-    return '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.'
+    return { text: '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.', expression: 'smirk' }
   }
-  return '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.'
+  return { text: '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.', expression: 'embarrassed' }
 }

@@ -130,7 +130,7 @@ export function useRecommendationSession() {
           cocktail: null,
           decision: null,
           reply: '모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.\n다시 한번 말씀해 주세요.',
-          expression: 'smirk',
+          expression: 'embarrassed',
         }
       }
 
@@ -145,7 +145,7 @@ export function useRecommendationSession() {
           cocktail: null,
           decision: null,
           reply: '죄송합니다. 말씀해 주신 조건에 맞는 칵테일은 현재 메뉴에서 찾지 못했어요.',
-          expression: 'thinking',
+          expression: 'embarrassed',
         }
       }
 

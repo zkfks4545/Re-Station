@@ -11,6 +11,7 @@ const EXPRESSION_LABEL: Record<Expression, string> = {
   annoyed: '짜증',
   stern: '엄숙',
   disappointed: '실망',
+  embarrassed: '당황',
 }
 
 export default function BartenderSprite({ expression }: { expression: Expression }) {

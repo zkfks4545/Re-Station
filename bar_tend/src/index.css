@@ -198,6 +198,10 @@ html::before {
   filter: brightness(0.88) saturate(0.65) sepia(0.12);
 }
 
+.bartender-sprite--embarrassed {
+  filter: brightness(0.95) saturate(0.8) sepia(0.08) contrast(0.95);
+}
+
 .welcome-drink-btn,
 .exit-btn {
   color: #b088d0;

@@ -48,8 +48,16 @@ describe('welcome drink selection', () => {
   })
 
   it('formats welcome drink feedback replies from buttons or free text', () => {
-    expect(formatWelcomeDrinkFeedbackReply('조금 더 가볍게')).toContain('가볍')
-    expect(formatWelcomeDrinkFeedbackReply('맛있고 괜찮았어')).toContain('밸런스')
-    expect(formatWelcomeDrinkFeedbackReply('더 달았으면 좋겠어')).toContain('단맛')
+    const lighter = formatWelcomeDrinkFeedbackReply('조금 더 가볍게')
+    expect(lighter.text).toContain('가볍')
+    expect(lighter.expression).toBe('embarrassed')
+
+    const positive = formatWelcomeDrinkFeedbackReply('맛있고 괜찮았어')
+    expect(positive.text).toContain('밸런스')
+    expect(positive.expression).toBe('smirk')
+
+    const sweeter = formatWelcomeDrinkFeedbackReply('더 달았으면 좋겠어')
+    expect(sweeter.text).toContain('단맛')
+    expect(sweeter.expression).toBe('embarrassed')
   })
 })
