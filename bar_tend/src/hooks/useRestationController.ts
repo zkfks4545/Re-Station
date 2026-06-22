@@ -218,6 +218,7 @@ export function useRestationController() {
       if (interactionStatus !== 'idle') return
       setErrorMessage(null)
       setInteractionStatus('processing')
+      const nextMessages: Message[] = [...messages, { role: 'user', text }]
       setMessages((prev) => [...prev, { role: 'user', text }])
       ingestUserMessage(text)
       userMessageCountRef.current += 1
@@ -304,7 +305,7 @@ export function useRestationController() {
               : routeResult.route === 'explicit-cocktail' || routeResult.route === 'recommendation'
               ? resolveRecommendation(text, preference)
               : null
-          const fallback = getCocktailResponse(text, messages)
+          const fallback = getCocktailResponse(text, nextMessages)
           const turn = buildDialogueTurn(
             text,
             routeResult.route,

@@ -1,5 +1,6 @@
 import type { CocktailData } from '../types.js'
 import type { FeatureKey, TastePreference } from './cocktail-db.js'
+import type { TextPresetRef } from '../lib/dialogue/text-presets.js'
 
 export type RecommendationMood =
   | 'depressed'
@@ -43,13 +44,16 @@ export interface RecommendationSignal {
 export interface RecommendationQuestionChoice {
   label: string
   acknowledgement: string
+  acknowledgementPreset?: TextPresetRef
   signals: RecommendationSignal[]
   finishRecommendation?: boolean
 }
 
 export interface RecommendationQuestionFlow {
   leadIn: string
+  leadInPreset?: TextPresetRef
   continuation: string
+  continuationPreset?: TextPresetRef
   goal: 'open-preference' | 'narrow-candidates' | 'confirm-constraint'
 }
 
@@ -57,6 +61,7 @@ export interface RecommendationQuestion {
   id: string
   topic: string
   prompt: string
+  promptPreset?: TextPresetRef
   dialogueFlow?: RecommendationQuestionFlow
   choices: RecommendationQuestionChoice[]
 }

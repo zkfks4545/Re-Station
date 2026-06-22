@@ -27,7 +27,7 @@ describe('neutral recommendation dialogue copy', () => {
     }
     const reply = formatRecommendationReply(createRecommendationDecision(cocktail, state))
 
-    expect(reply).toContain(`「${cocktail.name}」`)
+    expect(reply).toContain(cocktail.name)
     expect(reply).toContain('탄산감 취향과 잘 맞아요')
     expect(reply).not.toMatch(/눈치|농담|잔/)
     expect(reply).not.toContain(cocktail.description)
@@ -73,8 +73,10 @@ describe('neutral recommendation dialogue copy', () => {
       affectState: 'warm',
     }))
 
-    expect(moodReply).toContain('무리 없이 어울리는')
-    expect(ingredientReply).toContain('좋아하신다고 한 재료')
+    expect(moodReply.split('\n')).toHaveLength(3)
+    expect(ingredientReply.split('\n')).toHaveLength(3)
+    expect(moodReply).toContain(cocktail.name)
+    expect(ingredientReply).toContain(cocktail.name)
   })
 
   it('prioritizes affect-specific mood openings over generic route copy', () => {

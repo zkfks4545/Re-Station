@@ -1,6 +1,6 @@
 # 인수인계
 
-> 최종 갱신일: 2026-06-19 (RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강 완료)
+> 최종 갱신일: 2026-06-22 (DLG-804~806 대화 연결성, 프리셋 JSON, 키워드 JSON 분리 완료)
 
 ## 현재 목표
 
@@ -32,6 +32,10 @@
 - [x] 평문 재료 요청은 취향 힌트만이 아니라 추천 제약으로 반영한다. 예: `라임즙`은 `라임 주스`로 정규화하고, 라임 주스가 들어간 단순 클래식 후보를 우선한다.
 - [x] 새 표정(`annoyed`, `stern`, `disappointed`, `embarrassed`)은 DialogueTurn 검증과 UI 표정 계약 양쪽에서 허용된다.
 - [x] 일반 대화 표정은 `affectState`로 동기화된다. 피곤 입력은 `mood-tired`, 무례/불만족 입력은 `awkward` 계열로 흐른다.
+- [x] 일반 대화 fallback은 현재 사용자 입력을 포함한 메시지 배열로 생성해야 한다. 과거 칵테일 언급이 현재 입력을 덮어쓰면 안 된다.
+- [x] 추천 질문과 추천 응답은 프리셋 참조와 슬롯 치환으로 관리한다. 정확 매칭 추천 응답은 `[reaction] + [recommend] + [explanation]` 문단 블록 조합을 사용한다.
+- [x] 키워드 규칙은 `src/data/keyword-rules.json`의 `patterns`, `expression`, `response`, `dialogueCategory` 구조를 기준으로 관리한다.
+- [x] `persona.ts`는 사용자가 직접 수정한 말투 계약 파일이다. 별도 승인 없이 `persona.json` 어댑터로 바꾸지 않는다.
 
 ## 완료된 작업
 
@@ -89,12 +93,15 @@
 - [x] **WLC-001 1회성 웰컴드링크 버튼**: 하단 `나가기` 옆에 방문당 1회 사용할 수 있는 `웰컴드링크` 버튼을 추가했다. 클릭 시 접근성 좋은 클래식 후보를 골라 카루아 대사와 칵테일 카드를 표시하고, 이후 괜찮았는지 1문항 피드백을 받는다. 사용 후 버튼은 숨긴다. Vitest 141개, check, lint, build가 통과한다.
 - [x] **RST-415 평문 재료 요청 추천 제약 보정**: `라임즙`, `라임 주스`, `레몬즙`, `민트` 같은 평문 재료 요청을 `preferredIngredients`로 추출한다. 기주는 완전일치, 일반 재료는 포함 매칭으로 분리하고, 라임 주스 요청에서는 단순한 다이키리 후보가 앞서도록 회귀 테스트를 추가했다. Vitest 145개, check, lint, build가 통과한다.
 - [x] **RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강**: 확장 표정이 `DialogueTurn` 검증에서 막히지 않게 하고, 일반 대화 표정을 `affectState`로 역매핑한다. `mood-tired` 대사 풀을 실제 피곤 입력에 연결하고, 추천 오프닝에 `awkward/warm` 전용 라인을 추가했다. Vitest 151개, check, lint, build가 통과한다.
+- [x] **DLG-804 일반 대화 입력 연결성 보정**: 현재 입력에 칵테일명이 직접 있을 때만 칵테일 언급 응답을 우선하고, fallback 응답에는 현재 사용자 입력이 포함된 메시지 배열을 전달한다.
+- [x] **DLG-805 추천 질문과 추천 응답 문단 프리셋 전환**: 추천 질문 JSON은 프리셋 참조를 사용하고, 정확 매칭 추천 응답은 `[reaction] + [recommend] + [explanation]` 3블록 문단 프리셋으로 렌더링한다. 카루아/시에스타의 `recommend + tired + light` 예시와 기본 추천 프리셋을 추가했다.
+- [x] **DLG-806 키워드 규칙 JSON 분리와 persona 보존**: `keyword-rules.json`을 추가하고 `keywords.ts`는 JSON을 `KeywordRule[]`로 컴파일한다. `persona.ts` JSON 어댑터 전환은 취소했고, 사용자가 다듬은 현재 상수 문자열 계약을 유지한다. Vitest 154개, lint, build가 통과한다.
 
 전체 리팩토링은 `TASK_BOARD.md`의 상위 프로그램 `RST-000`과 단계별 `RST-*` 작업을 기준으로 추적한다.
 
 ## 다음 작업
 
-현재 WebLLM 제외 MVP, RST-411 기능 경계 보완, RST-412 문서 정합성 정리, RST-413 상위 프로그램 상태 정리, DLG-801 JSON 대화 계약, DLG-802 DialogueFlow JSON 계약, DLG-803 기본 설정과 예외상황 응답, WLC-001 웰컴드링크 버튼, DATA-801 관리자 검증 큐, DATA-802 IBA 우선 파이프라인, RST-414 추천 의도 라우팅과 시에스타 만담 구조 보강, RST-415 평문 재료 요청 추천 제약 보정, RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강은 완료 상태다. 다음 단계는 WebLLM보다 스프라이트 작업군 `SPR-001~005`를 우선 검토한다.
+현재 WebLLM 제외 MVP, RST-411 기능 경계 보완, RST-412 문서 정합성 정리, RST-413 상위 프로그램 상태 정리, DLG-801 JSON 대화 계약, DLG-802 DialogueFlow JSON 계약, DLG-803 기본 설정과 예외상황 응답, DLG-804 일반 대화 입력 연결성 보정, DLG-805 추천 질문과 추천 응답 문단 프리셋 전환, DLG-806 키워드 규칙 JSON 분리, WLC-001 웰컴드링크 버튼, DATA-801 관리자 검증 큐, DATA-802 IBA 우선 파이프라인, RST-414 추천 의도 라우팅과 시에스타 만담 구조 보강, RST-415 평문 재료 요청 추천 제약 보정, RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강은 완료 상태다. 다음 단계는 말투/대사 JSON 정리 작업군 `DLG-807~809`를 먼저 검토하고, 이후 스프라이트 작업군 `SPR-001~005`를 진행한다.
 
 ~~시에스타 대사 풀과 쿨다운 수치 미세조정~~ — DONE
 ~~WebLLM 제외 MVP 마감 검수~~ — DONE
@@ -110,6 +117,9 @@
 ~~WLC-001 1회성 웰컴드링크 버튼~~ — DONE
 ~~RST-415 평문 재료 요청 추천 제약 보정~~ — DONE
 ~~RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강~~ — DONE
+~~DLG-804 일반 대화 입력 연결성 보정~~ — DONE
+~~DLG-805 추천 질문과 추천 응답 문단 프리셋 전환~~ — DONE
+~~DLG-806 키워드 규칙 JSON 분리와 persona 보존~~ — DONE
 
 MVP 성공 기준 전 항목을 검수 완료:
 
@@ -120,7 +130,7 @@ MVP 성공 기준 전 항목을 검수 완료:
 | 추천 결과가 기분/상황/취향과 연결 | ✅ 입력 경로 기반 대사 트리거 + 구조화 근거 |
 | 추천 카드에 중립 설명 + 대화창에 카루아 멘트 | ✅ CocktailCard와 대화창 분리 |
 | 다시 추천받기 정상 동작 | ✅ excludedCocktailIds 추적, handleReRecommend |
-| WebLLM 없이 전체 흐름 완료 | ✅ 규칙 엔진만으로 151개 테스트 통과 |
+| WebLLM 없이 전체 흐름 완료 | ✅ 규칙 엔진만으로 154개 테스트 통과 |
 | 모바일 핵심 흐름 | ✅ 768px/480px breakpoint, 44px 터치 타겟 |
 | 안전 응답 처리 | ✅ `safety` 경로 조기 반환 + 119/112/1393 안내, 빈 응답 방지 |
 | 퇴장 시 전체 상태 초기화 | ✅ handleExit 2초 지연 후 scene/messages/resetRecommendation 등 정리 |
@@ -131,14 +141,17 @@ MVP 이후 논의 후보로 `DISC-001`을 기록했고, 그중 대화 의미와 
 
 ### 권장 순서
 
-1. `SPR-001` 캐릭터 스프라이트 슬롯 계약
-2. `SPR-002` 카루아 표정별 스프라이트 연결
-3. `SPR-003` 시에스타 난입 스프라이트 표시
-4. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
-5. `SPR-005` 캐릭터 에셋 제작·정리 가이드
-6. WebLLM RST-601~606 재개 여부 논의
+1. `DLG-807` 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
+2. `DLG-808` `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
+3. `DLG-809` 화자·상태·요청별 문단 프리셋 계약 확장
+4. `SPR-001` 캐릭터 스프라이트 슬롯 계약
+5. `SPR-002` 카루아 표정별 스프라이트 연결
+6. `SPR-003` 시에스타 난입 스프라이트 표시
+7. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
+8. `SPR-005` 캐릭터 에셋 제작·정리 가이드
+9. WebLLM RST-601~606 재개 여부 논의
 
-이 순서는 의존성이 있다. `SPR-001`에서 슬롯명, 파일명, fallback, 기준 디자인을 고정해야 `SPR-002~004`가 같은 계약을 참조할 수 있다. `SPR-002`는 기존 카루아 `Expression`과 `BartenderSprite`가 있어서 먼저 적용하기 쉽고, 그 패턴을 `SPR-003` 시에스타 표시 구조에 재사용한다. `SPR-004`는 시에스타를 화면에 띄우는 컴포넌트가 있어야 의미가 있으므로 `SPR-003` 뒤에 둔다. `SPR-005`의 최종 에셋 제작은 `SPR-001` 이후 병행 가능하지만, 코드 연결은 placeholder/fallback으로 먼저 진행해도 된다.
+이 순서는 의존성이 있다. 먼저 `DLG-807`에서 현재 `persona.ts` 기준의 말투 금지선과 대표 입력 세트를 고정해야 `DLG-808~809`에서 대사 풀을 안전하게 이관할 수 있다. 그 뒤 `SPR-001`에서 슬롯명, 파일명, fallback, 기준 디자인을 고정해야 `SPR-002~004`가 같은 계약을 참조할 수 있다. `SPR-002`는 기존 카루아 `Expression`과 `BartenderSprite`가 있어서 먼저 적용하기 쉽고, 그 패턴을 `SPR-003` 시에스타 표시 구조에 재사용한다. `SPR-004`는 시에스타를 화면에 띄우는 컴포넌트가 있어야 의미가 있으므로 `SPR-003` 뒤에 둔다. `SPR-005`의 최종 에셋 제작은 `SPR-001` 이후 병행 가능하지만, 코드 연결은 placeholder/fallback으로 먼저 진행해도 된다.
 
 ### 스프라이트 작업 가이드
 
@@ -167,18 +180,21 @@ RST-414에서는 모든 브랜치를 `시에스타 → 카루아 → 시에스�
 | 1 | `mission_control/DECISIONS.md` | 변경하면 안 되는 핵심 결정 |
 | 2 | `mission_control/CHARACTER_DESIGN.md` | 캐릭터 대화 생성과 검수 기준 |
 | 3 | `mission_control/TASK_BOARD.md` | 단계, 완료 조건, 견적 |
-| 4 | `bar_tend/src/lib/bartender/keywords.ts` | 키워드 규칙 응답 |
-| 5 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 템플릿 |
-| 6 | `bar_tend/src/data/recommendation-questions.json` | 질문 문구, 선택지, 상태 갱신 신호 |
-| 7 | `bar_tend/src/lib/recommendation/question-engine.ts` | 적응형 질문 선택과 답변 적용 |
-| 8 | `bar_tend/src/hooks/useRestationController.ts` | 대화, 장면, 도감 연결과 타이머 |
-| 9 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 후보와 활성 질문 진행 |
-| 10 | `bar_tend/src/lib/recommendation/state.ts` | 추천 상태, 신호 검증, 후보 필터, 근거 생성 |
-| 11 | `bar_tend/src/types/recommendation.ts` | JSON 질문과 규칙 입력 해석이 공유할 추천 계약 |
-| 12 | `bar_tend/src/App.tsx` | 화면 렌더링 |
-| 13 | `bar_tend/src/components/bar/ChatInput.tsx` | 선택 질문 버튼, 자유 입력, 취소 UI |
-| 14 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 구조 |
-| 15 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 만담과 향후 스프라이트 큐 연결 지점 |
+| 4 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 계약. JSON 어댑터로 바꾸지 말 것 |
+| 5 | `bar_tend/src/data/keyword-rules.json` | 키워드 규칙 데이터 |
+| 6 | `bar_tend/src/lib/bartender/keywords.ts` | 키워드 JSON을 런타임 규칙으로 컴파일 |
+| 7 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 템플릿과 fallback 연결 |
+| 8 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문/응답 프리셋과 문단 블록 |
+| 9 | `bar_tend/src/data/recommendation-questions.json` | 질문 문구, 선택지, 상태 갱신 신호, 프리셋 참조 |
+| 10 | `bar_tend/src/lib/recommendation/question-engine.ts` | 적응형 질문 선택과 답변 적용 |
+| 11 | `bar_tend/src/hooks/useRestationController.ts` | 대화, 장면, 도감 연결과 타이머 |
+| 12 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 후보와 활성 질문 진행 |
+| 13 | `bar_tend/src/lib/recommendation/state.ts` | 추천 상태, 신호 검증, 후보 필터, 근거 생성 |
+| 14 | `bar_tend/src/types/recommendation.ts` | JSON 질문과 규칙 입력 해석이 공유할 추천 계약 |
+| 15 | `bar_tend/src/App.tsx` | 화면 렌더링 |
+| 16 | `bar_tend/src/components/bar/ChatInput.tsx` | 선택 질문 버튼, 자유 입력, 취소 UI |
+| 17 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 구조 |
+| 18 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 만담과 향후 스프라이트 큐 연결 지점 |
 
 ## 다중 작업 PC 동기화
 
@@ -212,6 +228,7 @@ git stash pop
 - [x] 시에스타 이벤트는 예고 없는 난입으로 시작하고 창고 정리, 청소, 재고 확인 같은 업무 복귀 발화로 끝낸다.
 - [x] 사용자가 시에스타에게 말을 이어도 시에스타가 상시 대화 캐릭터처럼 남아 있지 않게 한다.
 - [ ] 카루아 대사는 농담을 먼저 두고 의미를 직접 해설하지 않는다.
+- [ ] `persona.ts`는 사용자가 다듬은 기준 파일이므로, 말투 JSON화는 별도 승인 전까지 하지 않는다.
 - [x] 카루아 추천 대사는 칵테일 ID만으로 고르지 않고 입력 경로 태그, 현재 FSM 상태, 감정 상태를 함께 본다.
 - [x] FSM 상태는 대화 소재를 바꾸지 않고 말투·발화 리듬·애니메이션 클립만 결정한다.
 - [x] 감정 상태는 표정 스프라이트와 세부 어조를 결정한다.
@@ -230,7 +247,7 @@ git stash pop
 ## 검증 기준
 
 - [x] `npm.cmd run lint`
-- [x] `npm.cmd test` — Vitest 123개 통과
+- [x] `npm.cmd test -- --run` — Vitest 154개 통과
 - [x] `npm.cmd run check`
 - [x] `npm.cmd run build`
 - [x] 카루아 초기 메시지 표시

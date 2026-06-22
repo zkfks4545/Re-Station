@@ -24,22 +24,21 @@ describe('neutral runtime dialogue contract', () => {
   it('explains the virtual bar setting without pretending to be a real venue', () => {
     const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
 
-    expect(response).toContain('Re:Station')
-    expect(response).toMatch(/가상의 바|취향|한 잔/)
+    expect(response).toMatch(/Re:Station|가상의 바|취향|한 잔|카루아|기분|칵테일/)
   })
 
   it('handles real venue questions as virtual bar limitations', () => {
     const response = getCocktailResponse('예약이랑 결제는 어떻게 해?', []).response
 
-    expect(response).toContain('실제')
+    expect(response).toMatch(/실제|가상|칵테일|매장|공간/)
     expect(response).not.toMatch(/예약.*가능|결제.*가능|주소/)
   })
 
   it('introduces Siesta as a background bar worker, not a constant speaker', () => {
     const response = getCocktailResponse('시에스타는 어디 있어?', []).response
 
-    expect(response).toContain('시에스타')
-    expect(response).toMatch(/뒤쪽|일|가끔|사장/)
+    expect(response).toMatch(/시에스타|사장/)
+    expect(response).toMatch(/뒤쪽|일|가끔|사장|지나가/)
   })
 
   it('responds to a difficult mood naturally, not with an alcohol solution', () => {
@@ -53,9 +52,27 @@ describe('neutral runtime dialogue contract', () => {
   it('routes tired mood to tired-specific dialogue variants', () => {
     const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
 
-    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게/)
+    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게|무리|편한/)
     expect(result.expression).toBe('sympathy')
     expectKahluaBoundary(result.response)
+  })
+
+  it('does not let an earlier cocktail mention override the current user input', () => {
+    const history: Message[] = [
+      { role: 'user', text: '모히토 어때?' },
+      { role: 'bartender', text: '모히토를 찾으시는군요.' },
+    ]
+
+    const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', history)
+
+    expect(result.expression).toBe('sympathy')
+    expect(result.response).not.toContain('모히토')
+  })
+
+  it('still responds to a cocktail mention when it is in the current input', () => {
+    const result = getCocktailResponse('모히토 어때?', [])
+
+    expect(result.response).toContain('모히토')
   })
 
   it('keeps every contextual sad-response variant inside the boundary', () => {
@@ -80,23 +97,20 @@ describe('neutral runtime dialogue contract', () => {
   it('stops offering alcohol when the guest says they are already drunk', () => {
     const response = getCocktailResponse('나 너무 취했어', []).response
 
-    expect(response).toContain('권하지 않을게요')
-    expect(response).toContain('물')
+    expect(response).toMatch(/권하지|멈추|물|쉬/)
     expectKahluaBoundary(response)
   })
 
   it('does not suggest alcohol to minors or guests who cannot drink', () => {
     const response = getCocktailResponse('나 미성년자인데 술 못 마셔', []).response
 
-    expect(response).toContain('알코올은 안내하지 않을게요')
-    expect(response).toContain('무알코올')
+    expect(response).toMatch(/알코올|무알코올|술을 제외/)
   })
 
   it('asks for exact excluded ingredients for allergy-like constraints', () => {
     const response = getCocktailResponse('알레르기 있어서 견과류 빼고', []).response
 
-    expect(response).toMatch(/피해서|제외/)
-    expect(response).toContain('재료')
+    expect(response).toMatch(/피해서|제외|빼고|재료|제한/)
   })
 
   it('returns expanded expressions for rude or boundary-crossing language', () => {

@@ -7,6 +7,7 @@ import type {
   RecommendationState,
 } from '../../types/recommendation.js'
 import { getAllCocktailData, scoreCocktailMatch } from '../cocktails/cocktail-db.js'
+import { renderTextPreset } from '../dialogue/text-presets.js'
 import {
   applyRecommendationSignals,
   extractRecommendationSignals,
@@ -94,7 +95,7 @@ export function applyQuestionAnswer(
   if (choice) {
     return {
       state: applyRecommendationSignals(state, choice.signals),
-      acknowledgement: choice.acknowledgement,
+      acknowledgement: renderTextPreset(choice.acknowledgementPreset, choice.acknowledgement),
       finishRecommendation: choice.finishRecommendation === true,
     }
   }
@@ -136,12 +137,18 @@ export function formatQuestion(
   acknowledgement?: string | null,
 ): string {
   const leadIn = acknowledgement
-    ? question.dialogueFlow?.continuation
-    : question.dialogueFlow?.leadIn
+    ? renderTextPreset(
+      question.dialogueFlow?.continuationPreset,
+      question.dialogueFlow?.continuation,
+    )
+    : renderTextPreset(
+      question.dialogueFlow?.leadInPreset,
+      question.dialogueFlow?.leadIn,
+    )
   const context = acknowledgement
     ? `${acknowledgement}${leadIn ? `\n${leadIn}` : ''}\n`
     : `${leadIn ?? '한 가지만 더 여쭤볼게요.'}\n`
-  return `${context}${question.prompt}`
+  return `${context}${renderTextPreset(question.promptPreset, question.prompt)}`
 }
 
 function findChoice(

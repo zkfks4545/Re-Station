@@ -134,6 +134,20 @@ describe('adaptive recommendation questions', () => {
     }
   })
 
+  it('keeps a text preset contract on every recommendation question sentence', () => {
+    for (const id of ['base-spirit', 'flavor-profile', 'alcohol-strength', 'fizz']) {
+      const question = getQuestionById(id)
+      expect(question).not.toBeNull()
+      expect(question!.promptPreset?.id).toBe('question.preference.select')
+      expect(question!.dialogueFlow?.leadInPreset?.id).toBe('question.flow.leadIn')
+      expect(question!.dialogueFlow?.continuationPreset?.id).toBe('question.flow.continuation')
+
+      for (const choice of question!.choices) {
+        expect(choice.acknowledgementPreset?.id).toBeTruthy()
+      }
+    }
+  })
+
   it('ends questioning only when Kahlua is asked to take over', () => {
     const question = getQuestionById('fizz')
     expect(question).not.toBeNull()

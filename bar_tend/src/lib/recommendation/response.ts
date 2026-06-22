@@ -6,6 +6,7 @@ import type {
   RecommendationRoute,
   RecommendationRouteTag,
 } from '../../types/recommendation.js'
+import { renderParagraphPreset } from '../dialogue/text-presets.js'
 
 interface RecommendationOpeningLine {
   id: string
@@ -210,7 +211,47 @@ export function formatRecommendationReply(
     ? reason.detail
     : '말씀해 주신 취향을 기준으로 골랐어요.'
 
-  return `${opening}\n「${decision.cocktail.name}」은 어떠세요?\n${reasonLine}`
+  const paragraph = renderParagraphPreset({
+    speaker: 'karua',
+    intent: 'recommend',
+    state: paragraphStateForDecision(decision),
+    request: paragraphRequestForDecision(decision),
+    seed: `${decision.dialogue.route}:${decision.dialogue.affectState}:${decision.cocktail.id}`,
+    slots: {
+      cocktail_name: decision.cocktail.name,
+      cocktail_name_subject: withSubjectParticle(decision.cocktail.name),
+      taste_desc: reasonLine,
+      reason_desc: reasonLine,
+      effect_desc: reasonLine,
+      closing_desc: reasonLine,
+    },
+  })
+
+  return acknowledgement ? `${acknowledgement}\n${paragraph}` : paragraph
+}
+
+function paragraphStateForDecision(decision: RecommendationDecision): string | undefined {
+  if (decision.dialogue.affectState === 'tired') return 'tired'
+  return undefined
+}
+
+function paragraphRequestForDecision(decision: RecommendationDecision): string | undefined {
+  if (decision.dialogue.affectState === 'tired') return 'light'
+  if (decision.state.alcoholPreference === 'low') return 'light'
+  return undefined
+}
+
+function withSubjectParticle(value: string): string {
+  return `${value}${hasFinalConsonant(value) ? '이' : '가'}`
+}
+
+function hasFinalConsonant(value: string): boolean {
+  const chars = [...value.trim()]
+  const last = chars[chars.length - 1]
+  if (!last) return false
+  const code = last.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
 }
 
 export function selectRecommendationOpening(

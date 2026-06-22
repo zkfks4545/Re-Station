@@ -1,4 +1,4 @@
-import { cocktails } from '../cocktails/database.js'
+import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { detectExitIntent } from '../dialogue/input-router.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import type { Cocktail, Message, BartenderResponse, ConversationContext, Expression } from '../../types.js'
@@ -104,11 +104,12 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
   const ctx = buildConversationContext(history)
   ctx.userMood = detectUserMood(input) ?? ctx.userMood
 
-  if (ctx.mentionedCocktail) {
-    return getCocktailMentionResponse(ctx.mentionedCocktail)
-  }
-
   const intent = detectIntent(input)
+  const currentCocktail = findCocktailByName(input)
+
+  if (currentCocktail && intent === 'general-chat') {
+    return getCocktailMentionResponse(currentCocktail)
+  }
 
   switch (intent) {
     case 'exit-intent':

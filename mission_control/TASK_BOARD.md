@@ -366,6 +366,12 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | WLC-001 1회성 웰컴드링크 버튼과 환영 추천 흐름 | DONE |
 | RST-415 평문 재료 요청 추천 제약 보정 | DONE |
 | RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강 | DONE |
+| DLG-804 일반 대화 입력 연결성 보정 | DONE |
+| DLG-805 추천 질문과 추천 응답 문단 프리셋 전환 | DONE |
+| DLG-806 키워드 규칙 JSON 분리와 persona 보존 | DONE |
+| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | PROPOSED |
+| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | PROPOSED |
+| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | PROPOSED |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
 | SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
 | SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
@@ -379,6 +385,65 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 제휴 바 기능 고도화 | DEFERRED |
 
 ### 제안 작업 상세
+
+#### DLG-804: 일반 대화 입력 연결성 보정
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 이전 대화에서 언급한 칵테일이나 오래된 컨텍스트가 현재 사용자 입력을 덮어써 응답이 어색하게 이어지는 문제를 줄임 |
+| 구현 결과 | 현재 입력에 칵테일명이 직접 포함될 때만 칵테일 언급 응답을 우선한다. fallback 응답 생성 시 현재 사용자 입력을 포함한 메시지 배열을 전달해 방금 입력과 답변이 이어지게 했다. |
+| 검증 | `engine.test.ts`에 이전 칵테일 언급이 현재 피곤 입력을 덮어쓰지 않는 회귀 테스트를 추가했다. 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-805: 추천 질문과 추천 응답 문단 프리셋 전환
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | JSON에 완성 대사를 계속 누적하지 않고, 프리셋과 슬롯을 조합해 질문·추천 대사를 관리 |
+| 구현 결과 | `text-presets.ts`에 문장 프리셋과 문단 프리셋을 추가했다. 추천 질문 JSON은 `promptPreset`, `leadInPreset`, `continuationPreset`, `acknowledgementPreset`을 참조한다. 정확 매칭 추천 응답은 `[reaction] + [recommend] + [explanation]` 3블록 구조로 렌더링한다. |
+| 현재 범위 | `karua`와 `siesta`의 `recommend + tired + light` 예시와 기본 추천 프리셋만 우선 구현했다. 전체 intent와 전체 대사 풀 이관은 DLG-808/DLG-809로 분리한다. |
+| 검증 | `question-engine.test.ts`, `response.test.ts`, 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-806: 키워드 규칙 JSON 분리와 persona 보존
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | `keywords.ts`에 직접 들어 있던 키워드 규칙과 폴백 대사를 JSON 데이터로 분리하되, 사용자가 직접 다듬은 `persona.ts`는 보존 |
+| 구현 결과 | `src/data/keyword-rules.json`을 추가하고 `keywords.ts`는 JSON을 읽어 `KeywordRule[]`로 컴파일한다. `patterns`, `expression`, `response`, `dialogueCategory` 구조를 사용한다. `dialogueCategory`가 있으면 기존 `dialogues.json` 대사 풀이 우선이고 `response`는 폴백이다. |
+| 주의 | `persona.ts`를 JSON 어댑터로 바꾸는 시도는 취소했다. 말투 계약은 현재 `persona.ts`의 상수 문자열을 기준으로 한다. |
+| 검증 | 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-807: 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 현재 `persona.ts`의 말투 계약을 기준으로 실제 런타임 대사들이 상담가식 문장, 직접 위로, 과한 공손함으로 흐르지 않는지 재검수 |
+| 범위 | `dialogues.json`, `conversation.ts`, 추천 질문 프리셋, 추천 응답 문단 프리셋, 안전·예외상황 문구 |
+| 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨 |
+| 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`를 기준 파일로 둔다. |
+
+#### DLG-808: `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
+| 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `minor-no-alcohol`, `non-alcoholic`, `ingredient-constraint` |
+| 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨 |
+| 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. |
+
+#### DLG-809: 화자·상태·요청별 문단 프리셋 계약 확장
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 카루아와 시에스타가 같은 의미 상태를 받아도 서로 다른 말투와 문단 구성을 쓰도록 프리셋 계약을 확장 |
+| 범위 | `greeting`, `welcome_drink`, `ask_preference`, `recommend`, `explain`, `small_talk`, `joke`, `comfort`, `refusal`, `goodbye` 의도와 `state/request` 조합 |
+| 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함 |
+| 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. |
 
 #### RST-414: 추천 의도 라우팅과 시에스타 만담 구조 보강
 

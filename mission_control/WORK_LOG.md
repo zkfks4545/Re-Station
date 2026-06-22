@@ -1,5 +1,46 @@
 ﻿# 작업 이력
 
+## 2026-06-22 / DLG-806 / 키워드 규칙 JSON 분리와 persona 보존
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-806 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | `keywords.ts`에 하드코딩되어 있던 키워드 규칙과 폴백 대사를 JSON 데이터로 분리하고, 사용자가 수정해 둔 `persona.ts`는 코드 상수 방식으로 보존했다. |
+| 주요 변경 사항 | `src/data/keyword-rules.json`을 추가해 `patterns`, `expression`, `response`, `dialogueCategory` 구조로 키워드 규칙을 저장한다. `keywords.ts`는 JSON을 읽어 `RegExp` 기반 `KeywordRule[]`로 컴파일하는 역할만 수행한다. `dialogueCategory`가 있으면 기존 `dialogues.json` 대사 풀이 우선 사용되고, `response`는 폴백으로 남는다. |
+| persona 처리 | 최초에는 `persona.ts`를 `persona.json` 어댑터로 바꿨으나, 사용자가 이미 직접 다듬은 페르소나 파일을 보존해야 하므로 해당 변경을 되돌렸다. `persona.json`은 제거했고, 현재 `persona.ts`의 카루아 말투 계약은 사용자가 수정한 작업트리 버전을 유지한다. |
+| 수정 파일 | `bar_tend/src/data/keyword-rules.json`, `bar_tend/src/lib/bartender/keywords.ts`, `bar_tend/src/lib/bartender/persona.ts`, `bar_tend/src/lib/bartender/prompts.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(`tsc --noEmit` 포함, 메인 JS 397.22 kB) |
+| 후속 작업 제안 | DLG-807 카루아 말투 계약 재검수, DLG-808 `dialogues.json` 대사 풀 정상화 및 문단 프리셋 이관 |
+
+## 2026-06-22 / DLG-805 / 추천 질문과 추천 응답 문단 프리셋 전환
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-805 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 질문 JSON과 추천 결과 대사를 문자열 직접 저장 방식에서 프리셋 참조와 문단 블록 조합 방식으로 전환했다. |
+| 주요 변경 사항 | `text-presets.ts`를 추가해 기존 문장 프리셋과 새 문단 프리셋을 함께 제공한다. 추천 질문 JSON은 `promptPreset`, `leadInPreset`, `continuationPreset`, `acknowledgementPreset`으로 프리셋을 참조하고, `question-engine.ts`가 이를 렌더링한다. |
+| 문단 프리셋 | 추천 결과는 `[reaction] + [recommend] + [explanation]` 3블록 구조를 사용한다. 우선 `karua`와 `siesta`의 `recommend + tired + light` 예시와 기본 추천 프리셋을 추가했다. `formatRecommendationReply`는 정확 매칭 추천에서 `renderParagraphPreset`을 사용하며, `{cocktail_name}`, `{cocktail_name_subject}`, `{taste_desc}`, `{reason_desc}`, `{effect_desc}`, `{closing_desc}` 슬롯을 치환한다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/text-presets.ts`, `bar_tend/src/data/recommendation-questions.json`, `bar_tend/src/types/recommendation.ts`, `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `response.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run` 통과, `npm.cmd test -- response.test.ts --run` 통과, 최종 `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장, DLG-808 기존 `dialogues.json` 카테고리 대사와 프리셋 계층 정리 |
+
+## 2026-06-22 / DLG-804 / 일반 대화 입력 연결성 보정
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-804 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 일반 대화에서 이전 칵테일 언급이 현재 사용자 입력을 덮어쓰거나, fallback 생성 시 최신 사용자 입력이 대화 기록에 반영되지 않아 응답 연결이 어색해지는 문제를 보정했다. |
+| 주요 변경 사항 | `conversation.ts`에서 현재 입력에 실제로 칵테일명이 있을 때만 칵테일 언급 응답을 우선하도록 조정했다. `useRestationController.ts`는 fallback 대화 생성 시 현재 사용자 입력을 포함한 `nextMessages`를 전달해 응답이 방금 입력과 이어지도록 했다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/conversation.ts`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | 관련 회귀 테스트 추가. 최종 `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-807 말투 계약 재검수와 함께 일반 대화 대표 입력 세트의 연결감 수동 검수 |
+
 ## 2026-06-19 / RST-416 / 감정 상태와 대사 바리에이션 런타임 연결 보강
 
 | 항목 | 내용 |

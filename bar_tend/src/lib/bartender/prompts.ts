@@ -4,7 +4,7 @@ import type { Message } from '../../types.js'
 export function buildChatPrompt(input: string, history: Message[]): string {
   const recentHistory = history.slice(-6)
   const context = recentHistory
-    .map(m => `${m.role === 'user' ? '손님' : '바텐더'}: ${m.text}`)
+    .map((m) => `${m.role === 'user' ? '손님' : '바텐더'}: ${m.text}`)
     .join('\n')
 
   return `${bartenderPersona}
