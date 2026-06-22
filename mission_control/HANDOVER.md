@@ -6,6 +6,8 @@
 
 기존 BarBot 프로토타입을 **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**로 개편한다. 시에스타는 낮은 빈도의 짧은 만담 이벤트로 등장한다.
 
+현재는 신규 기능 확장보다 **대사와 캐릭터 일관성 수렴**이 우선이다. DLG-807~DLG-809 완료 전까지 WebLLM 확장, 새로운 추천 알고리즘, 새로운 캐릭터, 추가 이벤트 시스템은 보류한다. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
+
 ## 확정된 핵심 계약
 
 - [x] MVP의 주 대화 캐릭터는 카루아이며, 시에스타는 낮은 빈도의 만담 이벤트로만 등장한다.
@@ -36,6 +38,7 @@
 - [x] 추천 질문과 추천 응답은 프리셋 참조와 슬롯 치환으로 관리한다. 정확 매칭 추천 응답은 `[reaction] + [recommend] + [explanation]` 문단 블록 조합을 사용한다.
 - [x] 키워드 규칙은 `src/data/keyword-rules.json`의 `patterns`, `expression`, `response`, `dialogueCategory` 구조를 기준으로 관리한다.
 - [x] `persona.ts`는 사용자가 직접 수정한 말투 계약 파일이다. 별도 승인 없이 `persona.json` 어댑터로 바꾸지 않는다.
+- [x] 1차 수렴 기간에는 추천 정확도보다 캐릭터 일관성을 우선한다. 카루아는 관찰한 사실을 가볍게 말하고 한 잔을 권하며, 시에스타는 철학이 아니라 생존 경험처럼 말한다.
 
 ## 완료된 작업
 
@@ -178,23 +181,25 @@ RST-414에서는 모든 브랜치를 `시에스타 → 카루아 → 시에스�
 | 순서 | 파일 | 이유 |
 |---|---|---|
 | 1 | `mission_control/DECISIONS.md` | 변경하면 안 되는 핵심 결정 |
-| 2 | `mission_control/CHARACTER_DESIGN.md` | 캐릭터 대화 생성과 검수 기준 |
-| 3 | `mission_control/TASK_BOARD.md` | 단계, 완료 조건, 견적 |
-| 4 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 계약. JSON 어댑터로 바꾸지 말 것 |
-| 5 | `bar_tend/src/data/keyword-rules.json` | 키워드 규칙 데이터 |
-| 6 | `bar_tend/src/lib/bartender/keywords.ts` | 키워드 JSON을 런타임 규칙으로 컴파일 |
-| 7 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 템플릿과 fallback 연결 |
-| 8 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문/응답 프리셋과 문단 블록 |
-| 9 | `bar_tend/src/data/recommendation-questions.json` | 질문 문구, 선택지, 상태 갱신 신호, 프리셋 참조 |
-| 10 | `bar_tend/src/lib/recommendation/question-engine.ts` | 적응형 질문 선택과 답변 적용 |
-| 11 | `bar_tend/src/hooks/useRestationController.ts` | 대화, 장면, 도감 연결과 타이머 |
-| 12 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 후보와 활성 질문 진행 |
-| 13 | `bar_tend/src/lib/recommendation/state.ts` | 추천 상태, 신호 검증, 후보 필터, 근거 생성 |
-| 14 | `bar_tend/src/types/recommendation.ts` | JSON 질문과 규칙 입력 해석이 공유할 추천 계약 |
-| 15 | `bar_tend/src/App.tsx` | 화면 렌더링 |
-| 16 | `bar_tend/src/components/bar/ChatInput.tsx` | 선택 질문 버튼, 자유 입력, 취소 UI |
-| 17 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 구조 |
-| 18 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 만담과 향후 스프라이트 큐 연결 지점 |
+| 2 | `mission_control/CONVERGENCE_PRINCIPLES.md` | DLG-807~809 수렴 기간의 최상위 원칙 |
+| 3 | `mission_control/CHARACTER_DESIGN.md` | 캐릭터 대화 생성과 검수 기준 |
+| 4 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md` | 외부 기획 공유용 구조 보고서 |
+| 5 | `mission_control/TASK_BOARD.md` | 단계, 완료 조건, 견적 |
+| 6 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 계약. JSON 어댑터로 바꾸지 말 것 |
+| 7 | `bar_tend/src/data/keyword-rules.json` | 키워드 규칙 데이터 |
+| 8 | `bar_tend/src/lib/bartender/keywords.ts` | 키워드 JSON을 런타임 규칙으로 컴파일 |
+| 9 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 템플릿과 fallback 연결 |
+| 10 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문/응답 프리셋과 문단 블록 |
+| 11 | `bar_tend/src/data/recommendation-questions.json` | 질문 문구, 선택지, 상태 갱신 신호, 프리셋 참조 |
+| 12 | `bar_tend/src/lib/recommendation/question-engine.ts` | 적응형 질문 선택과 답변 적용 |
+| 13 | `bar_tend/src/hooks/useRestationController.ts` | 대화, 장면, 도감 연결과 타이머 |
+| 14 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 후보와 활성 질문 진행 |
+| 15 | `bar_tend/src/lib/recommendation/state.ts` | 추천 상태, 신호 검증, 후보 필터, 근거 생성 |
+| 16 | `bar_tend/src/types/recommendation.ts` | JSON 질문과 규칙 입력 해석이 공유할 추천 계약 |
+| 17 | `bar_tend/src/App.tsx` | 화면 렌더링 |
+| 18 | `bar_tend/src/components/bar/ChatInput.tsx` | 선택 질문 버튼, 자유 입력, 취소 UI |
+| 19 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 구조 |
+| 20 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 만담과 향후 스프라이트 큐 연결 지점 |
 
 ## 다중 작업 PC 동기화
 
@@ -229,6 +234,8 @@ git stash pop
 - [x] 사용자가 시에스타에게 말을 이어도 시에스타가 상시 대화 캐릭터처럼 남아 있지 않게 한다.
 - [ ] 카루아 대사는 농담을 먼저 두고 의미를 직접 해설하지 않는다.
 - [ ] `persona.ts`는 사용자가 다듬은 기준 파일이므로, 말투 JSON화는 별도 승인 전까지 하지 않는다.
+- [ ] DLG-807~DLG-809 완료 전까지 WebLLM 확장, 새 추천 알고리즘, 새 캐릭터, 추가 이벤트 시스템을 시작하지 않는다.
+- [ ] 새 대사는 상담원도 할 수 있는 말인지, 문제를 해결하려는 말인지, 관찰에서 출발하는지 먼저 검수한다.
 - [x] 카루아 추천 대사는 칵테일 ID만으로 고르지 않고 입력 경로 태그, 현재 FSM 상태, 감정 상태를 함께 본다.
 - [x] FSM 상태는 대화 소재를 바꾸지 않고 말투·발화 리듬·애니메이션 클립만 결정한다.
 - [x] 감정 상태는 표정 스프라이트와 세부 어조를 결정한다.

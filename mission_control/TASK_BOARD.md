@@ -420,10 +420,10 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 항목 | 내용 |
 |---|---|
 | 상태 | PROPOSED |
-| 목적 | 현재 `persona.ts`의 말투 계약을 기준으로 실제 런타임 대사들이 상담가식 문장, 직접 위로, 과한 공손함으로 흐르지 않는지 재검수 |
+| 목적 | `CONVERGENCE_PRINCIPLES.md`와 현재 `persona.ts`를 기준으로 실제 런타임 대사들이 상담가식 문장, 직접 위로, 과한 공손함으로 흐르지 않는지 재검수 |
 | 범위 | `dialogues.json`, `conversation.ts`, 추천 질문 프리셋, 추천 응답 문단 프리셋, 안전·예외상황 문구 |
-| 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨 |
-| 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`를 기준 파일로 둔다. |
+| 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨. 새 대사는 "관찰에서 출발하는가", "상담원도 할 수 있는 말인가" 검수 질문을 통과해야 한다. |
+| 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`와 `CONVERGENCE_PRINCIPLES.md`를 기준 파일로 둔다. |
 
 #### DLG-808: `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
 
@@ -432,8 +432,8 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 상태 | PROPOSED |
 | 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
 | 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `minor-no-alcohol`, `non-alcoholic`, `ingredient-constraint` |
-| 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨 |
-| 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. |
+| 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨. 대사 출처와 사용 경로를 추적할 수 있어야 한다. |
+| 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. 정리 우선순위는 `persona.ts` → `dialogues.json` → `keyword-rules.json` → `text-presets.ts` → `conversation.ts` → `response.ts`다. |
 
 #### DLG-809: 화자·상태·요청별 문단 프리셋 계약 확장
 
@@ -442,8 +442,8 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 상태 | PROPOSED |
 | 목적 | 카루아와 시에스타가 같은 의미 상태를 받아도 서로 다른 말투와 문단 구성을 쓰도록 프리셋 계약을 확장 |
 | 범위 | `greeting`, `welcome_drink`, `ask_preference`, `recommend`, `explain`, `small_talk`, `joke`, `comfort`, `refusal`, `goodbye` 의도와 `state/request` 조합 |
-| 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함 |
-| 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. |
+| 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함. 추천 카드보다 캐릭터 반응이 먼저 보이는 출력 순서를 전제로 한다. |
+| 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. 문장을 조립하지 않고 문단 블록을 조립한다. |
 
 #### RST-414: 추천 의도 라우팅과 시에스타 만담 구조 보강
 
