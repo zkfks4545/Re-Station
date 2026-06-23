@@ -6,7 +6,9 @@
       "name": "Hongdae Punk Bar 'PUKEY'",
       "location_link": "https://maps.google.com/?q=Hongdae+PUKEY+Bar",
       "description": "네온 샷과 거친 일러스트 감성을 내세운 홍대의 펑크 바입니다.",
-      "signature_cocktail_ids": ["cocktail_signature_042"],
+      "signature_cocktail_ids": [
+        "cocktail_signature_042"
+      ],
       "active": true,
       "onboarded_at": "2026-05-01"
     },
@@ -15,7 +17,9 @@
       "name": "Neon Alley Speakeasy",
       "location_link": "https://maps.google.com/?q=Neon+Alley+Speakeasy",
       "description": "사이버펑크 테마의 시그니처 칵테일을 선보이는 스피크이지 바입니다.",
-      "signature_cocktail_ids": ["cocktail_signature_043"],
+      "signature_cocktail_ids": [
+        "cocktail_signature_043"
+      ],
       "active": true,
       "onboarded_at": "2026-05-15"
     }
@@ -35,10 +39,14 @@
       "features": {
         "sweetness": 0.1,
         "alcohol_strength": 0.9,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.2
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
+      "talking_points": [
+        "진과 베르무트만으로 균형을 잡는 잔이라 작은 비율 차이도 성격이 달라집니다.",
+        "드라이한 맛을 좋아하는지 확인하기 좋은 기준점으로 쓰기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_002",
@@ -57,7 +65,11 @@
         "fizz": 0.7,
         "sourness": 0.5
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
+      "talking_points": [
+        "민트와 라임이 먼저 올라와서 피곤한 날에도 부담 없이 말을 열기 좋은 잔입니다.",
+        "소다의 청량감이 있어 달콤함보다 산뜻함을 원하는 손님에게 이어가기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_003",
@@ -73,10 +85,14 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.85,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
+      "talking_points": [
+        "위스키, 설탕, 비터스만으로 깊이를 만드는 잔이라 술 본연의 취향을 묻기 좋습니다.",
+        "천천히 마실수록 단맛보다 향과 질감이 더 잘 드러납니다."
+      ]
     },
     {
       "id": "cocktail_classic_004",
@@ -92,10 +108,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+      "talking_points": [
+        "데킬라와 라임, 소금의 대비가 강해서 취향의 경계를 선명하게 보여주는 잔입니다.",
+        "상큼한 맛을 좋아하지만 너무 가벼운 잔은 싫을 때 꺼내기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_005",
@@ -111,10 +131,14 @@
       "features": {
         "sweetness": 0.25,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.4
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
+      "talking_points": [
+        "진, 캄파리, 베르무트가 같은 무게로 맞물려 쓴맛의 매력을 설명하기 좋습니다.",
+        "첫 모금은 강하지만 얼음이 녹을수록 허브 향이 부드럽게 풀립니다."
+      ]
     },
     {
       "id": "cocktail_classic_006",
@@ -132,7 +156,11 @@
         "alcohol_strength": 0.35,
         "fizz": 0.45,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "캄파리와 베르무트에 소다를 더해 네그로니보다 가볍게 쓴맛을 보여줍니다.",
+        "식전주처럼 입맛을 깨우는 방향의 이야기를 꺼내기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_007",
@@ -148,9 +176,13 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "진, 샤르트뢰즈, 마라스키노, 라임이 같은 비율로 맞물리는 독특한 균형이 포인트입니다.",
+        "허브 향과 산미가 동시에 있어 평범하지 않은 한 잔을 원하는 손님에게 어울립니다."
+      ]
     },
     {
       "id": "cocktail_classic_008",
@@ -168,7 +200,11 @@
         "alcohol_strength": 0.45,
         "fizz": 0.85,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "데킬라와 자몽, 소다가 만나 마르가리타보다 가볍고 밝은 인상을 줍니다.",
+        "쓴맛과 산미가 부드럽게 섞여 상쾌한 쪽 취향을 확인하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_009",
@@ -184,9 +220,13 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "바이올렛 리큐르가 들어가 향과 색 이야기를 함께 꺼내기 좋은 잔입니다.",
+        "진 베이스지만 플로럴한 느낌이 있어 드라이한 진 칵테일과 다른 방향을 보여줍니다."
+      ]
     },
     {
       "id": "cocktail_classic_010",
@@ -202,9 +242,13 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "네그로니의 구조를 위스키로 바꾼 듯한 잔이라 진과 위스키 취향 차이를 설명하기 좋습니다.",
+        "묵직한 단맛과 쌉싸름함이 있어 밤의 분위기에 잘 맞습니다."
+      ]
     },
     {
       "id": "cocktail_classic_011",
@@ -220,9 +264,13 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "진, 트리플 섹, 레몬이 만드는 선명한 산미가 핵심인 잔입니다.",
+        "깔끔한 흰색 이미지와 달리 맛은 또렷해서 첫인상과 실제 맛을 비교하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_012",
@@ -238,9 +286,13 @@
       "features": {
         "sweetness": 0.55,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
-        "sourness": 0.0
-      }
+        "fizz": 0,
+        "sourness": 0
+      },
+      "talking_points": [
+        "보드카와 커피 리큐르만으로 만드는 단순한 구조라 커피 향 취향을 바로 확인할 수 있습니다.",
+        "크림이 없는 커피 칵테일이라 달지만 무겁지 않게 이야기하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_013",
@@ -256,9 +308,13 @@
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.65,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "버번, 아페롤, 아마로, 레몬이 종이비행기처럼 가볍게 떠오르는 균형을 만듭니다.",
+        "단맛, 쓴맛, 산미가 동시에 있어 취향을 좁히는 대화에 쓰기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_014",
@@ -276,7 +332,11 @@
         "alcohol_strength": 0.45,
         "fizz": 0.75,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "진 피즈는 레몬과 소다가 만드는 거품감으로 가볍게 시작하기 좋은 잔입니다.",
+        "도수감보다 청량감을 먼저 느끼는 손님에게 권하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_015",
@@ -292,9 +352,13 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "스카치와 생강, 꿀, 레몬이 들어가 따뜻한 인상을 주는 잔입니다.",
+        "피곤하거나 목이 잠긴 듯한 날에 맛의 분위기를 맞춰 말하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_016",
@@ -310,9 +374,13 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "코냑, 오렌지 리큐르, 레몬의 조합이라 단맛과 산미의 균형을 설명하기 좋습니다.",
+        "브랜디 베이스 입문용으로도, 진한 숏드링크를 원하는 손님에게도 이어갈 수 있습니다."
+      ]
     },
     {
       "id": "cocktail_classic_017",
@@ -328,9 +396,13 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "럼, 라임, 설탕만으로 완성되는 단순한 구조라 균형 이야기를 하기 좋습니다.",
+        "재료가 적어서 손님의 단맛과 산미 취향이 바로 드러나는 잔입니다."
+      ]
     },
     {
       "id": "cocktail_classic_018",
@@ -346,9 +418,13 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "위스키의 묵직함을 레몬과 설탕이 둥글게 잡아주는 잔입니다.",
+        "강한 술을 부드럽게 마시고 싶은지 물어볼 때 좋은 기준이 됩니다."
+      ]
     },
     {
       "id": "cocktail_classic_019",
@@ -364,9 +440,13 @@
       "features": {
         "sweetness": 0.85,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.25
-      }
+      },
+      "talking_points": [
+        "파인애플과 코코넛이 들어가 휴양지 같은 이미지가 분명한 잔입니다.",
+        "달콤하고 크리미한 쪽을 원하는 손님에게 분위기 전환용으로 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_020",
@@ -382,9 +462,13 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "보드카, 오렌지 리큐르, 크랜베리가 만드는 산뜻한 붉은빛이 포인트입니다.",
+        "과일 향은 있지만 너무 달기만 한 잔은 아니라는 이야기를 꺼내기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_021",
@@ -402,7 +486,11 @@
         "alcohol_strength": 0.25,
         "fizz": 0.8,
         "sourness": 0.2
-      }
+      },
+      "talking_points": [
+        "복숭아와 스파클링 와인이 중심이라 가볍고 축하하는 느낌을 줍니다.",
+        "도수가 낮고 부드러운 첫 잔을 찾는 손님에게 자연스럽게 이어집니다."
+      ]
     },
     {
       "id": "cocktail_classic_022",
@@ -420,7 +508,11 @@
         "alcohol_strength": 0.4,
         "fizz": 0.9,
         "sourness": 0.5
-      }
+      },
+      "talking_points": [
+        "보드카와 진저 비어의 조합이라 매콤한 청량감을 이야기하기 좋습니다.",
+        "단순히 시원한 잔보다 톡 쏘는 느낌을 원하는지 확인할 수 있습니다."
+      ]
     },
     {
       "id": "cocktail_classic_023",
@@ -436,9 +528,13 @@
       "features": {
         "sweetness": 0.6,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "럼과 오르젯, 시트러스가 섞여 열대적인 풍미와 견과 향을 함께 냅니다.",
+        "달콤한 티키 계열을 좋아하는지 가늠하기 좋은 잔입니다."
+      ]
     },
     {
       "id": "cocktail_classic_024",
@@ -456,7 +552,11 @@
         "alcohol_strength": 0.4,
         "fizz": 0.8,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "진, 레몬, 샴페인이 만나 산뜻하지만 힘 있는 첫인상을 줍니다.",
+        "기포가 있어 축하나 기분전환의 분위기로 대화를 이어가기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_025",
@@ -472,9 +572,13 @@
       "features": {
         "sweetness": 0.7,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "커피와 위스키, 크림이 함께 있어 디저트와 술 사이의 대화 소재가 됩니다.",
+        "마무리 잔이나 따뜻한 분위기를 원할 때 꺼내기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_026",
@@ -492,7 +596,11 @@
         "alcohol_strength": 0.45,
         "fizz": 0.85,
         "sourness": 0.25
-      }
+      },
+      "talking_points": [
+        "럼과 진저 비어가 만드는 어두운 색과 매콤함이 이름과 잘 맞는 잔입니다.",
+        "달콤하지만 묵직한 청량감을 원하는 손님에게 어울립니다."
+      ]
     },
     {
       "id": "cocktail_classic_027",
@@ -510,7 +618,11 @@
         "alcohol_strength": 0.35,
         "fizz": 0.8,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "브랜디와 진저 에일이 길게 이어져 향은 깊지만 마시기는 편한 잔입니다.",
+        "레몬 껍질 장식처럼 향으로 먼저 기억되는 요소를 이야기하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_028",
@@ -526,9 +638,13 @@
       "features": {
         "sweetness": 0.75,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.3
-      }
+      },
+      "talking_points": [
+        "오렌지와 그레나딘이 층을 만들어 색감 이야기를 꺼내기 좋은 잔입니다.",
+        "데킬라가 들어가지만 과일 향이 앞서 부담을 낮춰줍니다."
+      ]
     },
     {
       "id": "cocktail_classic_029",
@@ -544,9 +660,13 @@
       "features": {
         "sweetness": 0.55,
         "alcohol_strength": 0.3,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "보드카와 크랜베리, 자몽이 만드는 산뜻한 과일 산미가 특징입니다.",
+        "바람이 통하는 듯한 가벼운 한 잔을 원하는 손님에게 맞습니다."
+      ]
     },
     {
       "id": "cocktail_signature_042",
@@ -564,7 +684,11 @@
         "alcohol_strength": 0.9,
         "fizz": 0.8,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "제휴 바의 시그니처라 표준 레시피보다 장소의 개성을 먼저 이야기하기 좋습니다.",
+        "짧고 강한 인상의 샷 계열로 주문 의도를 분명히 확인해야 합니다."
+      ]
     },
     {
       "id": "cocktail_signature_043",
@@ -582,7 +706,11 @@
         "alcohol_strength": 0.55,
         "fizz": 0.85,
         "sourness": 0.55
-      }
+      },
+      "talking_points": [
+        "시그니처 이름처럼 비현실적인 색감과 분위기를 앞세워 말할 수 있는 잔입니다.",
+        "공식 클래식과 달리 제휴 바의 해석이 중심이라는 점을 안내하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_030",
@@ -598,9 +726,13 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.85,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "위스키와 스위트 베르무트가 만드는 단단한 단맛이 도시적인 인상을 줍니다.",
+        "칵테일을 천천히 마시며 향을 보는 손님에게 맞는 이야깃거리입니다."
+      ]
     },
     {
       "id": "cocktail_classic_031",
@@ -616,9 +748,13 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.65,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "민트와 버번이 만나 차갑지만 묵직한 대비를 보여주는 잔입니다.",
+        "허브 향은 좋아하지만 가벼운 롱드링크만 원하지 않을 때 추천하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_032",
@@ -634,9 +770,13 @@
       "features": {
         "sweetness": 0.15,
         "alcohol_strength": 0.35,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.55
-      }
+      },
+      "talking_points": [
+        "토마토와 향신료가 들어가 술보다 음식 같은 인상을 줄 수 있는 잔입니다.",
+        "단맛 중심이 아닌 짭짤하고 스파이시한 취향을 확인하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_033",
@@ -652,9 +792,13 @@
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "카샤사, 라임, 설탕의 단순한 조합이라 재료의 거친 생동감이 잘 드러납니다.",
+        "럼과 비슷해 보이지만 카샤사 특유의 풀 향을 이야기하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_034",
@@ -670,9 +814,13 @@
       "features": {
         "sweetness": 0.2,
         "alcohol_strength": 0.9,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "압생트 향으로 잔을 코팅하는 방식이 있어 제조 과정 자체가 이야깃거리입니다.",
+        "위스키 계열을 좋아하지만 더 향이 복잡한 잔을 원할 때 어울립니다."
+      ]
     },
     {
       "id": "cocktail_classic_035",
@@ -690,7 +838,11 @@
         "alcohol_strength": 0.4,
         "fizz": 0.6,
         "sourness": 0.4
-      }
+      },
+      "talking_points": [
+        "여러 과일과 리큐르가 겹쳐져 화려하고 긴 여운을 만드는 잔입니다.",
+        "색과 향이 풍부해서 바의 분위기를 보여주는 대표적인 롱드링크로 쓰기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_036",
@@ -708,7 +860,11 @@
         "alcohol_strength": 0.35,
         "fizz": 0.8,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "진, 레몬, 설탕, 소다가 만드는 직선적인 청량감이 장점입니다.",
+        "복잡한 향보다 시원하고 깨끗한 잔을 찾는 손님에게 잘 맞습니다."
+      ]
     },
     {
       "id": "cocktail_classic_037",
@@ -726,7 +882,11 @@
         "alcohol_strength": 0.2,
         "fizz": 0.9,
         "sourness": 0.35
-      }
+      },
+      "talking_points": [
+        "아페롤의 쌉싸름함과 프로세코의 기포가 가벼운 식전주 분위기를 만듭니다.",
+        "밝고 낮은 도수의 잔을 원할 때 부담 없이 이야기하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_038",
@@ -742,9 +902,13 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.5,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.8
-      }
+      },
+      "talking_points": [
+        "피스코와 레몬, 달걀 흰자가 만나 향과 거품 질감이 함께 드러납니다.",
+        "부드러운 거품을 좋아하는지 확인하기 좋은 사워 계열 잔입니다."
+      ]
     },
     {
       "id": "cocktail_classic_039",
@@ -760,9 +924,13 @@
       "features": {
         "sweetness": 0.7,
         "alcohol_strength": 0.3,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.3
-      }
+      },
+      "talking_points": [
+        "파인애플, 오렌지, 코코넛이 들어가 달콤한 휴식의 이미지가 강합니다.",
+        "럼의 도수감보다 열대 과일의 풍성함을 먼저 이야기하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_040",
@@ -778,9 +946,13 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.55,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "진, 레몬, 붉은 시럽, 달걀 흰자가 만드는 부드러운 핑크빛이 포인트입니다.",
+        "색은 부드럽지만 산미가 있어 단맛만 원하지 않는 손님에게 맞습니다."
+      ]
     },
     {
       "id": "cocktail_classic_041",
@@ -796,9 +968,13 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.5,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "블랙베리 리큐르가 들어가 진 사워에 과실감을 덧입힌 잔입니다.",
+        "잔 안에서 색이 번지는 모습이 있어 제조 장면과 함께 말하기 좋습니다."
+      ]
     },
     {
       "id": "cocktail_classic_042",
@@ -814,9 +990,33 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "보드카, 커피 리큐르, 에스프레소가 만나 밤과 카페 사이의 분위기를 냅니다.",
+        "졸음을 깨우는 느낌과 술의 긴장감을 함께 이야기할 수 있습니다."
+      ]
+    },
+    {
+      "id": "cocktail_classic_043",
+      "name": "XYZ",
+      "name_en": "XYZ",
+      "name_ko": "XYZ",
+      "type": "CLASSIC",
+      "base_spirit": "럼",
+      "recipe": "화이트 럼 45ml, 트리플 섹 22.5ml, 레몬 주스 22.5ml",
+      "description": "화이트 럼에 오렌지 리큐르와 레몬 산미를 더한 깔끔하고 산뜻한 칵테일입니다.",
+      "features": {
+        "sweetness": 0.35,
+        "alcohol_strength": 0.65,
+        "fizz": 0,
+        "sourness": 0.7
+      },
+      "talking_points": [
+        "XYZ는 마지막을 뜻하는 이름 때문에 세션의 마지막 드링크로 의미를 붙이기 좋습니다.",
+        "럼, 오렌지 리큐르, 레몬이 만드는 짧고 산뜻한 마무리감이 핵심입니다."
+      ]
     }
   ]
 }

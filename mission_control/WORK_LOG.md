@@ -1,5 +1,45 @@
 ﻿# 작업 이력
 
+## 2026-06-23 / DATA-804 / 칵테일별 이야깃거리 필드 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DATA-804 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 현재 DB의 45개 칵테일 전체에 카루아가 칵테일을 내어줄 때 사용할 수 있는 짧은 이야깃거리를 추가했다. |
+| 주요 변경 사항 | `cocktail-db.json` 각 항목에 `talking_points` 2개씩을 추가하고, 런타임 `CocktailData.talkingPoints`로 전달되도록 타입과 변환 계층을 연결했다. 직접 주문, 랜덤 추천, 취향 추천, 최근접 추천 응답에 이야깃거리 한 줄을 포함하도록 추천 대사 포맷터를 갱신했다. |
+| 설계 기준 | 출처 없는 역사·창작자 이야기를 만들지 않고, 레시피·맛·질감·세션 맥락에서 꺼낼 수 있는 비권위 대화 소재로 작성했다. |
+| 수정 파일 | `bar_tend/src/data/cocktail-db.json`, `bar_tend/src/types/cocktail-db.ts`, `bar_tend/src/types.ts`, `bar_tend/src/lib/cocktails/database.ts`, `bar_tend/src/lib/cocktails/database.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `bar_tend/src/lib/recommendation/response.test.ts`, `mission_control/WORK_LOG.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md` |
+| 검증 | `npm.cmd test -- src/lib/recommendation/response.test.ts src/lib/cocktails/database.test.ts` 통과, `npm.cmd run check` 통과 |
+
+## 2026-06-23 / DATA-803 / XYZ 칵테일 DB 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DATA-803 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | XYZ를 현재 `cocktail-db.json` 양식에 맞춰 클래식 칵테일 데이터로 추가했다. |
+| 주요 변경 사항 | `cocktail_classic_043`으로 XYZ를 추가하고, 화이트 럼·트리플 섹·레몬 주스의 IBA sour/daisy 계열 참고 비율을 사용했다. |
+| 출처 처리 | IBA 공식 사이트에서 XYZ 개별 공식 페이지를 확인하지 못했으므로 `recipe_source_url`과 `official_category`는 비워 두었다. 공식 출처 검증 대상은 기존 42개로 유지한다. |
+| 수정 파일 | `bar_tend/src/data/cocktail-db.json`, `bar_tend/src/lib/cocktails/database.test.ts`, `mission_control/WORK_LOG.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md` |
+| 검증 | `npm.cmd test -- src/lib/cocktails/database.test.ts` 통과, `npm.cmd run check` 통과 |
+
+## 2026-06-23 / FLOW-001 / 환상주점 세션 흐름과 XYZ 종료 구조 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | FLOW-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 기존 JSON 칵테일 DB, 대사 DB, 추천 로직은 유지하면서 추천 이후의 사용자 경험과 세션 종료 구조를 정의하는 차기 방향성을 문서화했다. |
+| 주요 변경 사항 | `SESSION_FLOW_SPEC.md`를 추가해 환상주점이 AI 챗봇이나 연애 미연시가 아니며, 자유입력은 열어 두되 진행은 웰컴드링크·추천·주문·XYZ·Farewell Phase·귀가로 닫히는 구조임을 명시했다. |
+| 설계 결정 | `DEC-023`으로 닫힌 세션 흐름과 XYZ 종료 장치를 승인 기록에 추가했다. 호감도와 엔딩 루트는 금지하고, `trust`, `familiarity`, `playfulness`, `tension`은 말투 조절용 세션 분위기 상태로만 사용한다. |
+| 문서 반영 | `README.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `PROJECT_VISION.md`, `CURRENT_LOGIC_FOCUS.md`, `EXTERNAL_STRUCTURE_REPORT.md`에 새 세션 방향성을 연결했다. |
+| 검증 | 문서 작업만 수행했다. 코드 변경은 없어서 빌드나 테스트는 실행하지 않았다. |
+| 후속 작업 제안 | 추천 이후 상태 머신에 `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계를 추가하고, XYZ 발동 조건과 Farewell Phase 라우팅 금지 조건을 별도 구현 작업으로 분리한다. |
+
 ## 2026-06-23 / LOGIC-001 / 시에스타 임시 배제와 카루아 단독 핵심 로직 정리
 
 | 항목 | 내용 |

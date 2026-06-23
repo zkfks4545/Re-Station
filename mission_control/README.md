@@ -17,6 +17,7 @@
 | 4 | `mission_control/TASK_BOARD.md` | 작업 ID, 상태, 완료 조건 |
 | 5 | `mission_control/DECISIONS.md` | 변경하면 안 되는 핵심 결정과 승인된 방향 |
 | 6 | `mission_control/CONVERGENCE_PRINCIPLES.md` | DLG-807~809 수렴 기간의 최상위 원칙 |
+| 7 | `mission_control/SESSION_FLOW_SPEC.md` | XYZ, Farewell Phase, 귀가로 닫히는 세션 흐름 |
 
 ## 선택적 수정 및 검토 파일
 

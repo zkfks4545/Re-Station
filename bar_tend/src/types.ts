@@ -54,6 +54,7 @@ export interface CocktailData extends Cocktail {
   bar_id?: string
   bar_name?: string
   bar_location_link?: string
+  talkingPoints?: string[]
 }
 
 export interface Message {

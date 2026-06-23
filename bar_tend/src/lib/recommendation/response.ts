@@ -187,14 +187,14 @@ const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
 ]
 
 export function formatExplicitCocktailReply(cocktail: CocktailData): string {
-  return `「${cocktail.name}」을 찾으시는군요.\n자세한 정보도 함께 보여드릴게요.`
+  return `「${cocktail.name}」을 찾으시는군요.\n${selectCocktailTalkingPoint(cocktail)}\n자세한 정보도 함께 보여드릴게요.`
 }
 
 export function formatRandomRecommendationReply(
   cocktail: CocktailData,
   opening = '그럼 제가 하나 골라볼게요.',
 ): string {
-  return `${opening}\n「${cocktail.name}」은 어떠세요?`
+  return `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`
 }
 
 export function formatRecommendationReply(
@@ -205,7 +205,7 @@ export function formatRecommendationReply(
   const reason = decision.reasons.find((item) => item.code !== 'context')
   const opening = acknowledgement ?? selectRecommendationOpening(decision).text
   if (matchType === 'nearest') {
-    return `${opening}\n완전히 맞는 칵테일은 없어서 가장 가까운 「${decision.cocktail.name}」을 골랐어요.\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.`
+    return `${opening}\n완전히 맞는 칵테일은 없어서 가장 가까운 「${decision.cocktail.name}」을 골랐어요.\n${selectCocktailTalkingPoint(decision.cocktail)}\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.`
   }
   const reasonLine = reason
     ? reason.detail
@@ -227,7 +227,25 @@ export function formatRecommendationReply(
     },
   })
 
-  return acknowledgement ? `${acknowledgement}\n${paragraph}` : paragraph
+  const reply = `${paragraph}\n${selectCocktailTalkingPoint(decision.cocktail)}`
+
+  return acknowledgement ? `${acknowledgement}\n${reply}` : reply
+}
+
+export function selectCocktailTalkingPoint(cocktail: CocktailData): string {
+  const points = cocktail.talkingPoints?.filter((point) => point.trim().length > 0)
+  if (!points?.length) return `${cocktail.name}은 오늘의 흐름에 맞춰 천천히 이야기해 보기 좋은 칵테일입니다.`
+
+  const index = stableIndex(cocktail.id, points.length)
+  return points[index]
+}
+
+function stableIndex(seed: string, length: number): number {
+  let hash = 0
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  }
+  return hash % length
 }
 
 function paragraphStateForDecision(decision: RecommendationDecision): string | undefined {
