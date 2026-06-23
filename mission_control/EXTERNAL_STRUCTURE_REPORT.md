@@ -1,8 +1,18 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
+> 최종 갱신일: 2026-06-23  
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
+> 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
+
+## 0. 문서 사용법
+
+이 보고서는 외부 AI 또는 기획 협업자에게 전달하는 브리핑 문서다. 내부 작업 로그나 구현 지시서가 아니라, 현재 구조와 기획 경계를 설명하고 외부 기획안을 받아오기 위한 기준 자료로 사용한다.
+
+외부 AI와 기획을 이어갈 때는 이 문서와 함께 `mission_control/CONVERGENCE_PRINCIPLES.md`를 전달한다. 말투 검수가 핵심이면 `mission_control/CHARACTER_DESIGN.md` 또는 `bar_tend/src/lib/bartender/persona.ts`의 관련 부분을 추가로 전달한다.
+
+이 문서를 갱신할 때는 `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`의 작성 원칙과 갱신 기준을 먼저 확인한다.
 
 ## 1. 프로젝트 한줄 요약
 
@@ -22,6 +32,8 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 대화 방식 | 키워드 규칙, 일반 대화 fallback, 추천 질문, 추천 응답 프리셋 |
 | 현재 톤 | 카루아 말투 계약은 존재하지만, 말투는 아직 재검수 대상 |
 | 기획상 주의 | 상담/치료/과한 위로가 아니라 농담과 추천을 통한 환기 |
+
+현재 런타임에서는 카루아 단독 핵심 루프를 먼저 다잡기 위해 시에스타 만담 이벤트를 임시 비활성화했다. 시에스타 설계와 이벤트 엔진은 보존되어 있지만, `SIESTA_EVENTS_ENABLED = false` 상태에서는 화면에 만담이 예약되지 않는다.
 
 ## 3. 반드시 지켜야 하는 핵심 경계
 
@@ -45,13 +57,16 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/App.tsx` | 전체 화면 렌더링 조립 |
-| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 추천 세션, 타이핑 상태, 시에스타 이벤트 연결 |
+| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 추천 세션, 타이핑/제조 상태, 시에스타 이벤트 플래그 |
 | `bar_tend/src/components/entrance/BarExterior.tsx` | 바 외부 입장 화면 |
 | `bar_tend/src/components/bar/BarInterior.tsx` | 바 내부 메인 화면 |
 | `bar_tend/src/components/bar/ChatInput.tsx` | 사용자 입력, 추천 선택지 버튼, 취소 버튼 |
 | `bar_tend/src/components/bar/DialogueBox.tsx` | 대화 표시 |
 | `bar_tend/src/components/bar/CocktailCard.tsx` | 추천 결과 카드 |
-| `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 |
+| `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 정적 스프라이트와 셰이킹 애니메이션 표시 |
+| `bar_tend/src/assets/characters/karua/sprites.ts` | 카루아 정적 이미지와 애니메이션 프레임 import 계약 |
+| `bar_tend/src/assets/characters/karua/static/` | 카루아 정적 PNG 에셋 |
+| `bar_tend/src/assets/characters/karua/animations/shaker/` | 칵테일 제조 셰이킹 프레임과 metadata |
 
 ### 4.2 일반 대화
 
@@ -102,7 +117,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 |---|---|
 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 이벤트 발생 조건과 4발화 만담 생성 |
 | `bar_tend/src/lib/banter/siesta-event.test.ts` | 만담 이벤트 조건과 구조 테스트 |
-| `bar_tend/src/hooks/useRestationController.ts` | 본 답변 뒤 시에스타 이벤트 예약 |
+| `bar_tend/src/hooks/useRestationController.ts` | `SIESTA_EVENTS_ENABLED`가 켜진 경우에만 본 답변 뒤 시에스타 이벤트 예약 |
 
 ## 5. 현재 사용자 입력 처리 흐름
 
@@ -121,9 +136,11 @@ useRestationController
   ↓
 대사 생성
   ↓
+추천 칵테일이 있으면 카루아 제조 애니메이션
+  ↓
 메시지 표시 + 표정 변경 + 필요 시 추천 카드 표시
   ↓
-조건이 맞으면 시에스타 만담 이벤트 예약
+현재는 시에스타 이벤트 비활성화
 ```
 
 중요한 점은 “추천 판단”과 “대사 표현”이 분리되어 있다는 것이다. 추천 엔진은 칵테일과 근거를 결정하고, 대사 계층은 그것을 어떤 말투와 문단으로 보여줄지 결정한다.
@@ -232,7 +249,9 @@ useRestationController
 
 ## 8. 시에스타 구조
 
-시에스타는 상시 선택 가능한 대화 캐릭터가 아니다. 현재 구조는 낮은 빈도의 만담 이벤트다.
+시에스타는 상시 선택 가능한 대화 캐릭터가 아니다. 설계상 구조는 낮은 빈도의 만담 이벤트다.
+
+2026-06-23 현재 런타임에서는 카루아 단독 흐름을 점검하기 위해 시에스타 이벤트가 임시로 꺼져 있다. `bar_tend/src/hooks/useRestationController.ts`의 `SIESTA_EVENTS_ENABLED`를 다시 `true`로 바꾸기 전까지 시에스타 만담은 화면에 나오지 않는다.
 
 현재 만담 구조:
 
@@ -306,6 +325,18 @@ useRestationController
 카드에 캐릭터 말투를 넣지 않는 것이 현재 원칙이다.
 
 ## 10. 데이터 구조
+
+### 10.0 캐릭터 에셋 구조
+
+카루아 에셋은 대화 로직 폴더에서 분리되어 캐릭터 에셋 루트 아래에 있다.
+
+| 위치 | 역할 |
+|---|---|
+| `bar_tend/src/assets/characters/karua/static/` | 정적 카루아 PNG |
+| `bar_tend/src/assets/characters/karua/animations/shaker/` | 제조 셰이킹 프레임과 metadata |
+| `bar_tend/src/assets/characters/karua/sprites.ts` | UI 컴포넌트가 참조하는 단일 import 계약 |
+
+추천 또는 웰컴드링크로 칵테일이 확정되면 `useRestationController`가 `preparing` 상태로 들어가고, `BartenderSprite`가 셰이킹 프레임을 먼저 보여준 뒤 추천 대사와 칵테일 카드가 표시된다.
 
 ### 10.1 칵테일 DB
 
@@ -389,7 +420,7 @@ useRestationController
 
 ### 11.4 시에스타 말투와 카루아 말투의 구조적 분리가 더 필요함
 
-현재 시에스타 만담은 별도 이벤트로 존재하지만, 추천 응답 프리셋에서는 이제 막 시에스타 버전을 넣기 시작한 상태다.
+현재 시에스타 만담은 별도 이벤트 엔진으로 존재하지만 런타임에서는 임시 비활성화되어 있다. 추천 응답 프리셋에서는 이제 막 시에스타 버전을 넣기 시작한 상태다.
 
 기획적으로 정해야 할 것:
 
@@ -469,6 +500,10 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 4. `SPR-001` 캐릭터 스프라이트 슬롯 계약
 5. `SPR-002` 카루아 표정별 스프라이트 연결
 6. `SPR-003` 시에스타 난입 스프라이트 표시
+7. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
+8. `SPR-005` 캐릭터 에셋 제작·정리 가이드
+
+현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준이다.
 7. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
 8. `SPR-005` 캐릭터 에셋 제작·정리 가이드
 

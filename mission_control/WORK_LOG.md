@@ -1,5 +1,35 @@
 ﻿# 작업 이력
 
+## 2026-06-23 / LOGIC-001 / 시에스타 임시 배제와 카루아 단독 핵심 로직 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | LOGIC-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 시에스타를 프로젝트에서 제거하지 않고 런타임 이벤트만 잠시 비활성화했다. 현재 기획 판단 기준을 카루아 단독 핵심 루프, 추천 결정, 제조·서빙 흐름 중심으로 다시 정리했다. |
+| 주요 변경 사항 | `useRestationController.ts`에 `SIESTA_EVENTS_ENABLED = false` 플래그를 추가해 `createSiestaEvent(...)` 호출을 조건부로 바꿨다. 시에스타 이벤트 코드와 테스트는 보존하되 현재 화면 흐름에서는 만담이 예약되지 않는다. |
+| 기획 정리 | `mission_control/CURRENT_LOGIC_FOCUS.md`를 추가해 입장 → 입력 라우팅 → 추천 상태 수집 → 추천 결정 → 카루아 대사/표정 → 제조 애니메이션 → 카드 표시 순서의 카루아 단독 핵심 루프를 명시했다. |
+| 구조 보고서 | 외부 기획용 `EXTERNAL_STRUCTURE_REPORT.md`에 시에스타 런타임 비활성화 상태, 카루아 에셋 구조, 제조 애니메이션 흐름을 최신 상태로 반영했다. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `mission_control/CURRENT_LOGIC_FOCUS.md`, `mission_control/WORK_LOG.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT.md` |
+| 검증 | `npm.cmd run check` 통과, `npm.cmd test -- --run` 통과(154/154), `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-807~809에서 카루아 말투와 대사 데이터 구조를 먼저 수렴한 뒤, 필요 시 `SIESTA_EVENTS_ENABLED`를 다시 켜고 시에스타 이벤트의 런타임 재투입 여부를 검토한다. |
+
+## 2026-06-23 / SPR-006 / 카루아 스프라이트 에셋 구조와 제조 애니메이션 연결
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | SPR-006 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 카루아 정적 스프라이트와 셰이킹 프레임 애니메이션을 `lib/bartender` 로직 영역에서 분리해 캐릭터 에셋 폴더로 이동하고, 칵테일 결과 표시 전에 제조 애니메이션이 먼저 재생되도록 연결했다. |
+| 주요 변경 사항 | `character.png`, `character0.png`는 `src/assets/characters/karua/static/`으로 이동했다. 셰이킹 프레임 팩은 `src/assets/characters/karua/animations/shaker/`로 이동했다. `src/assets/characters/karua/sprites.ts`를 추가해 정적 이미지와 애니메이션 프레임 배열을 한 곳에서 export한다. |
+| 런타임 흐름 | 추천 또는 웰컴드링크로 칵테일이 확정되면 `useRestationController`가 `preparing` 상태로 전환하고 `BartenderSprite`에 `isPreparingCocktail`을 전달한다. `BartenderSprite`는 3개 셰이킹 루프 프레임을 순환 표시하고 종료 프레임을 거친 뒤 추천 대사와 칵테일 카드를 표시한다. 애니메이션 중에는 기존 처리 상태처럼 입력과 버튼을 막는다. |
+| 에셋 구조 | `src/assets/characters/{character}/static/`은 움직이지 않는 PNG, `src/assets/characters/{character}/animations/{action}/`은 프레임 기반 애니메이션, `src/assets/characters/{character}/sprites.ts`는 코드에서 사용할 import 계약을 담당한다. |
+| 수정 파일 | `bar_tend/src/App.tsx`, `bar_tend/src/components/bar/BartenderSprite.tsx`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/index.css`, `bar_tend/src/assets/characters/karua/sprites.ts`, `bar_tend/src/assets/characters/karua/static/*`, `bar_tend/src/assets/characters/karua/animations/shaker/*` |
+| 검증 | `npm.cmd run check` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | 표정별 정적 PNG가 추가되면 `KARUA_STATIC_SPRITES`를 `Record<Expression, string>` 계약으로 확장하고, 누락 표정은 `idle` fallback을 명시한다. 새 애니메이션은 `animations/{action}/`에 프레임과 metadata를 두고 `sprites.ts`에서 배열로 export한다. |
+
 ## 2026-06-22 / DLG-806 / 키워드 규칙 JSON 분리와 persona 보존
 
 | 항목 | 내용 |
@@ -1412,3 +1442,23 @@
 | `npm.cmd test` | 통과, Vitest 28개 |
 | `npm.cmd run check` | 통과 |
 | `npm.cmd run build` | 통과, JS 294.61 kB |
+
+## 2026-06-23 / DOC-003 / 외부 구조 보고서와 작성 가이드
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DOC-003 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 기획용 구조 보고서 작성 이력과 작성 가이드를 mission_control에 기록하고, 향후 외부 AI와 반복적으로 기획을 이어갈 때 보고서를 어떻게 갱신할지 기준을 분리했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/README.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/WORK_LOG.md` |
+| 생성 파일 | `mission_control/README.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md` |
+| 삭제 파일 | 없음 |
+| 주요 변경 사항 | `README.md`를 mission_control 진입점으로 추가했다. `EXTERNAL_STRUCTURE_REPORT_GUIDE.md`를 추가해 외부 구조 보고서의 역할, 작성 원칙, 갱신 조건, 외부 AI에게 요청하기 좋은 것과 요청하지 말아야 할 것을 정리했다. `EXTERNAL_STRUCTURE_REPORT.md` 상단에는 문서 사용법과 작성·갱신 기준 링크를 추가했다. |
+| 후속 작업 제안 | 큰 방향이 바뀌면 `README.md`의 필독/선택 구분도 함께 갱신한다. 외부 AI와 기획을 주고받은 뒤 반영할 내용은 먼저 `EXTERNAL_STRUCTURE_REPORT_GUIDE.md` 기준으로 검수하고, 구현 세부 로그는 `WORK_LOG.md`에 남긴다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 문서 변경 | 코드 변경 없음 |

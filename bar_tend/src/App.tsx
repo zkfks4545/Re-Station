@@ -16,6 +16,7 @@ export default function App() {
     expression,
     isBartenderTyping,
     isProcessing,
+    isPreparingCocktail,
     activeQuestion,
     errorMessage,
     servedCocktail,
@@ -79,7 +80,11 @@ export default function App() {
         </header>
         <div className="flex-1 flex flex-col min-h-0 relative z-20">
           <div className="restation-stage">
-            <BartenderSprite expression={expression} />
+            <BartenderSprite
+              expression={expression}
+              isPreparingCocktail={isPreparingCocktail}
+              isBartenderTyping={isBartenderTyping}
+            />
             <BarCounter />
           </div>
           <div

@@ -59,6 +59,7 @@
 | PLAN-004 | 시에스타 만담 이벤트 계약 | DONE | 저빈도 이벤트 역할, 발생 금지 구간, 대화권 반환 원칙 확정 |
 | PLAN-005 | 시에스타 난입 및 업무 복귀 장면 문법 | DONE | 난입-만담-업무 복귀-쿨다운 상태 흐름 확정 |
 | DOC-001 | 전면 리팩토링 계획 및 문서 상태 동기화 | DONE | 상위 프로그램, 완료 작업, 일정, 테스트 수, 구조 위험, 폐기 ID 정리 |
+| DOC-003 | 외부 구조 보고서와 작성 가이드 | DONE | `EXTERNAL_STRUCTURE_REPORT.md` 작성 이력과 `EXTERNAL_STRUCTURE_REPORT_GUIDE.md` 갱신 기준을 기록하고, `README.md`에서 필독 파일과 선택적 수정·검토 파일을 구분 |
 | RST-101 | 한국어 문자열 손상 조사 | DONE | 전수 조사 결과 손상 없음 확인 |
 | RST-102 | Re:Station 브랜드 교체 | DONE | 사용자 표시 문구와 저장 키 마이그레이션 완료 |
 | RST-201 | 칵테일 단일 데이터 모델 설계 | DONE | 단일 `CocktailData` 계약 적용 |
@@ -614,3 +615,24 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 작업 ID | 처리 |
 |---|---|
 | BAR-001~BAR-004 | `MC-001` 초기 조사에서 임시 제안된 ID. 상세 정의 없이 현재 `RST-*` 단계 계획으로 대체되어 별도 작업으로 추적하지 않음 |
+
+## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 정적 스프라이트와 프레임 애니메이션을 같은 캐릭터 에셋 체계 아래에서 관리하고, 칵테일 결과 표시 전에 제조 애니메이션을 출력한다. |
+| 완료 내용 | `character.png`, `character0.png`를 `bar_tend/src/assets/characters/karua/static/`으로 이동했다. 셰이킹 프레임 팩을 `bar_tend/src/assets/characters/karua/animations/shaker/`로 이동했다. `sprites.ts`를 추가해 정적 스프라이트와 셰이킹 프레임 배열을 코드 계약으로 묶었다. |
+| 런타임 계약 | `useRestationController`는 칵테일 확정 후 `preparing` 상태를 거쳐 `BartenderSprite`에 `isPreparingCocktail`을 전달한다. 제조 애니메이션이 끝난 뒤 추천 대사와 칵테일 카드가 표시된다. |
+| 검증 | `npm.cmd run check`, `npm.cmd run build` 통과 |
+
+### 향후 스프라이트·이미지 에셋 추가 공정
+
+1. 캐릭터별 에셋은 `bar_tend/src/assets/characters/{character}/` 아래에 둔다.
+2. 움직이지 않는 PNG는 `static/`에 둔다. 예: `karua/static/idle.png`, `karua/static/talk.png`.
+3. 프레임 애니메이션은 `animations/{action}/`에 둔다. 예: `karua/animations/shaker/karua_shake_01.png`.
+4. 각 캐릭터 폴더에는 `sprites.ts`를 두고 정적 이미지 맵과 애니메이션 프레임 배열만 export한다. 컴포넌트가 개별 PNG 경로를 직접 많이 import하지 않게 한다.
+5. 표정 스프라이트는 `Expression`과 1:1 매핑을 우선한다. 준비되지 않은 표정은 `idle` fallback을 명시하고, 암묵적 문자열 조합으로 경로를 만들지 않는다.
+6. 애니메이션 팩에는 가능하면 metadata JSON을 함께 둔다. 최소 항목은 `frame_count`, `frame_width`, `frame_height`, `fps` 또는 프레임 간격, `loop` 구간이다.
+7. 새 에셋 추가 후 `npm.cmd run check`와 `npm.cmd run build`로 import 경로와 번들 포함 여부를 확인한다.
+8. 화면 검수 기준은 데스크톱과 모바일에서 stage, chat dock, cocktail card, sidebar/menu를 가리지 않는 것이다.

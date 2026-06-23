@@ -18,7 +18,11 @@ import type { CocktailData, Expression, Message } from '@/types.js'
 import { useGuestPreferenceSession } from './useGuestPreferenceSession.js'
 import { useRecommendationSession } from './useRecommendationSession.js'
 
-type InteractionStatus = 'idle' | 'processing' | 'typing' | 'exiting'
+type InteractionStatus = 'idle' | 'processing' | 'typing' | 'preparing' | 'exiting'
+
+const COCKTAIL_PREPARATION_DELAY_MS = 600
+const COCKTAIL_PREPARATION_DURATION_MS = 1800
+const SIESTA_EVENTS_ENABLED = false
 
 export function useRestationController() {
   const [scene, setScene] = useState<'outside' | 'inside'>('outside')
@@ -27,6 +31,7 @@ export function useRestationController() {
   const [interactionStatus, setInteractionStatus] = useState<InteractionStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [servedCocktail, setServedCocktail] = useState<CocktailData | null>(null)
+  const [isPreparingCocktail, setIsPreparingCocktail] = useState(false)
   const [welcomeDrinkUsed, setWelcomeDrinkUsed] = useState(false)
   const [welcomeDrinkFeedbackPending, setWelcomeDrinkFeedbackPending] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -56,6 +61,7 @@ export function useRestationController() {
     timerRegistry.current.clearAll()
     setInteractionStatus('idle')
     setScreenShake(false)
+    setIsPreparingCocktail(false)
   }, [])
 
   const resetSiestaEventSession = useCallback(() => {
@@ -67,6 +73,18 @@ export function useRestationController() {
 
   useEffect(() => () => timerRegistry.current.clearAll(), [])
 
+  const runCocktailPreparation = useCallback((onPrepared: () => void) => {
+    timerRegistry.current.schedule(() => {
+      setInteractionStatus('preparing')
+      setExpression('smirk')
+      setIsPreparingCocktail(true)
+      timerRegistry.current.schedule(() => {
+        setIsPreparingCocktail(false)
+        onPrepared()
+      }, COCKTAIL_PREPARATION_DURATION_MS)
+    }, COCKTAIL_PREPARATION_DELAY_MS)
+  }, [])
+
   const bartenderReply = useCallback(
     (
       text: string,
@@ -75,9 +93,10 @@ export function useRestationController() {
       finishStatus: InteractionStatus = 'idle',
       afterMessages: Message[] = [],
     ) => {
-      setInteractionStatus('typing')
-      setExpression('talk')
-      timerRegistry.current.schedule(() => {
+      const showReply = () => {
+        setInteractionStatus('typing')
+        setExpression('talk')
+        timerRegistry.current.schedule(() => {
         setMessages((prev) => [...prev, { role: 'bartender', text }])
         setExpression(exp)
 
@@ -102,9 +121,17 @@ export function useRestationController() {
             }
           }, nextDelay)
         })
-      }, text.length * 15 + 400)
+        }, text.length * 15 + 400)
+      }
+
+      if (cocktail) {
+        runCocktailPreparation(showReply)
+        return
+      }
+
+      showReply()
     },
-    [],
+    [runCocktailPreparation],
   )
 
   const handleEnter = useCallback(() => {
@@ -133,6 +160,7 @@ export function useRestationController() {
       setMessages([])
       setExpression('idle')
       setInteractionStatus('idle')
+      setIsPreparingCocktail(false)
       setSidebarOpen(false)
       setServedCocktail(null)
       setWelcomeDrinkUsed(false)
@@ -150,6 +178,7 @@ export function useRestationController() {
     setExpression('idle')
     setErrorMessage(null)
     setServedCocktail(null)
+    setIsPreparingCocktail(false)
     setWelcomeDrinkUsed(false)
     setWelcomeDrinkFeedbackPending(false)
     clearExcludedCocktailIds()
@@ -318,16 +347,18 @@ export function useRestationController() {
             throw new Error('Invalid dialogue turn')
           }
           const cocktail = recommendation?.cocktail ?? null
-          const siestaResult = createSiestaEvent({
-            inputText: text,
-            replyText: turn.reply,
-            inputRoute: routeResult.route,
-            userMessageCount: userMessageCountRef.current,
-            eventCount: siestaEventCountRef.current,
-            cooldownTurns: siestaCooldownRef.current,
-            recommendationActive: activeQuestion !== null && !cocktail,
-            recommendedCocktailName: cocktail?.name,
-          }, siestaRecentKeysRef.current)
+          const siestaResult = SIESTA_EVENTS_ENABLED
+            ? createSiestaEvent({
+                inputText: text,
+                replyText: turn.reply,
+                inputRoute: routeResult.route,
+                userMessageCount: userMessageCountRef.current,
+                eventCount: siestaEventCountRef.current,
+                cooldownTurns: siestaCooldownRef.current,
+                recommendationActive: activeQuestion !== null && !cocktail,
+                recommendedCocktailName: cocktail?.name,
+              }, siestaRecentKeysRef.current)
+            : null
 
           if (cocktail) {
             setScreenShake(true)
@@ -383,6 +414,7 @@ export function useRestationController() {
     expression,
     isBartenderTyping: interactionStatus === 'typing',
     isProcessing: interactionStatus !== 'idle',
+    isPreparingCocktail,
     activeQuestion: welcomeDrinkFeedbackPending ? WELCOME_DRINK_FEEDBACK_QUESTION : activeQuestion,
     errorMessage,
     servedCocktail,

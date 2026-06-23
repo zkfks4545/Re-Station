@@ -166,6 +166,14 @@ html::before {
   box-shadow: 0 0 40px rgba(120, 80, 180, 0.03);
 }
 
+.bartender-sprite--preparing {
+  filter: brightness(1.06) saturate(1.08);
+}
+
+.bartender-sprite__image--shaking {
+  animation: none;
+}
+
 .bartender-sprite--thinking {
   filter: saturate(0.75) brightness(0.9);
 }

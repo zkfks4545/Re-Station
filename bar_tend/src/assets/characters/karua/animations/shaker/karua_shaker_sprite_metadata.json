@@ -1,0 +1,19 @@
+{
+  "name": "karua_shaker_animation",
+  "frame_count": 4,
+  "frame_width": 512,
+  "frame_height": 512,
+  "suggested_frame_duration_ms": {
+    "min": 80,
+    "max": 150,
+    "current": 95
+  },
+  "anchor": "neck base / center chest",
+  "loop_sequence": [
+    "S1.png",
+    "S2.png",
+    "S3.png"
+  ],
+  "finish_frame": "S4.png",
+  "notes": "F4 is a finish transition frame and is not part of the shaking loop."
+}

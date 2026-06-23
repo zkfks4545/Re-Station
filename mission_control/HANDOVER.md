@@ -1,6 +1,6 @@
 # 인수인계
 
-> 최종 갱신일: 2026-06-22 (DLG-804~806 대화 연결성, 프리셋 JSON, 키워드 JSON 분리 완료)
+> 최종 갱신일: 2026-06-23 (mission_control 읽기 가이드와 외부 구조 보고서 작성 기록 반영)
 
 ## 현재 목표
 
@@ -178,28 +178,18 @@ RST-414에서는 모든 브랜치를 `시에스타 → 카루아 → 시에스�
 
 ## 먼저 읽을 파일
 
-| 순서 | 파일 | 이유 |
-|---|---|---|
-| 1 | `mission_control/DECISIONS.md` | 변경하면 안 되는 핵심 결정 |
-| 2 | `mission_control/CONVERGENCE_PRINCIPLES.md` | DLG-807~809 수렴 기간의 최상위 원칙 |
-| 3 | `mission_control/CHARACTER_DESIGN.md` | 캐릭터 대화 생성과 검수 기준 |
-| 4 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md` | 외부 기획 공유용 구조 보고서 |
-| 5 | `mission_control/TASK_BOARD.md` | 단계, 완료 조건, 견적 |
-| 6 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 계약. JSON 어댑터로 바꾸지 말 것 |
-| 7 | `bar_tend/src/data/keyword-rules.json` | 키워드 규칙 데이터 |
-| 8 | `bar_tend/src/lib/bartender/keywords.ts` | 키워드 JSON을 런타임 규칙으로 컴파일 |
-| 9 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 템플릿과 fallback 연결 |
-| 10 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문/응답 프리셋과 문단 블록 |
-| 11 | `bar_tend/src/data/recommendation-questions.json` | 질문 문구, 선택지, 상태 갱신 신호, 프리셋 참조 |
-| 12 | `bar_tend/src/lib/recommendation/question-engine.ts` | 적응형 질문 선택과 답변 적용 |
-| 13 | `bar_tend/src/hooks/useRestationController.ts` | 대화, 장면, 도감 연결과 타이머 |
-| 14 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 후보와 활성 질문 진행 |
-| 15 | `bar_tend/src/lib/recommendation/state.ts` | 추천 상태, 신호 검증, 후보 필터, 근거 생성 |
-| 16 | `bar_tend/src/types/recommendation.ts` | JSON 질문과 규칙 입력 해석이 공유할 추천 계약 |
-| 17 | `bar_tend/src/App.tsx` | 화면 렌더링 |
-| 18 | `bar_tend/src/components/bar/ChatInput.tsx` | 선택 질문 버튼, 자유 입력, 취소 UI |
-| 19 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 스프라이트 표시 구조 |
-| 20 | `bar_tend/src/lib/banter/siesta-event.ts` | 시에스타 만담과 향후 스프라이트 큐 연결 지점 |
+`mission_control` 문서가 많아졌으므로, 새 작업자는 먼저 `mission_control/README.md`를 진입점으로 읽는다. 해당 문서에서 필독 파일과 선택적 수정·검토 파일을 구분한다.
+
+필독 문서:
+
+- `mission_control/README.md`
+- `mission_control/CURRENT_STATE.md`
+- `mission_control/HANDOVER.md`
+- `mission_control/TASK_BOARD.md`
+- `mission_control/DECISIONS.md`
+- `mission_control/CONVERGENCE_PRINCIPLES.md`
+
+선택적 검토 문서는 작업 주제에 따라 연다. 외부 기획 공유나 전체 구조 설명이 필요할 때는 `mission_control/EXTERNAL_STRUCTURE_REPORT.md`를 사용한다. 이 보고서를 새로 쓰거나 갱신할 때는 먼저 `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`를 확인한다.
 
 ## 다중 작업 PC 동기화
 
@@ -273,3 +263,18 @@ git stash pop
 - [x] 무알코올 요청 시 "조건에 맞는 칵테일 없음" 메시지 확인
 - [x] 제외 재료 요청 시 해당 재료 칵테일이 결과에서 제외되는지 확인
 - [x] 모든 후보 소진 시 리셋 안내 메시지 확인
+
+## 2026-06-23 인수인계 추가: 카루아 스프라이트 에셋 구조
+
+SPR-006에서 카루아 이미지 에셋을 로직 폴더에서 분리했다. 현재 정적 스프라이트는 `bar_tend/src/assets/characters/karua/static/`, 셰이킹 프레임 애니메이션은 `bar_tend/src/assets/characters/karua/animations/shaker/`에 있다. 코드에서는 `bar_tend/src/assets/characters/karua/sprites.ts`만 참조해 정적 이미지와 애니메이션 프레임 배열을 가져온다.
+
+현재 칵테일 확정 흐름은 `useRestationController`의 `preparing` 상태를 거친다. 추천 또는 웰컴드링크로 칵테일이 확정되면 카루아 셰이킹 애니메이션이 먼저 재생되고, 그 뒤 추천 대사와 칵테일 카드가 표시된다. 애니메이션 중에는 입력과 버튼이 비활성화된다.
+
+향후 스프라이트/이미지 에셋 추가 규칙:
+
+1. 캐릭터별 루트는 `bar_tend/src/assets/characters/{character}/`를 사용한다.
+2. 정적 PNG는 `static/`, 프레임 애니메이션은 `animations/{action}/`에 둔다.
+3. 각 캐릭터 루트의 `sprites.ts`가 import 계약을 담당한다. UI 컴포넌트가 개별 PNG 경로를 직접 많이 import하지 않게 한다.
+4. 표정별 이미지가 추가되면 `Expression`과 1:1 매핑하고, 누락 슬롯은 `idle` fallback을 명시한다.
+5. 애니메이션 팩에는 metadata JSON을 함께 두고 `frame_count`, 프레임 크기, 프레임 간격 또는 fps, loop 구간을 기록한다.
+6. 새 에셋 추가 후 `npm.cmd run check`, `npm.cmd run build`를 실행한다. 화면 검수는 데스크톱/모바일에서 stage, chat dock, cocktail card를 가리지 않는지 확인한다.
