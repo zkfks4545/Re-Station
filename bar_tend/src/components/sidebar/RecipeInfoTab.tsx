@@ -30,7 +30,11 @@ function tasteStars(n: number): string {
   return '★'.repeat(n) + '☆'.repeat(5 - n)
 }
 
-export default function RecipeInfoTab() {
+export default function RecipeInfoTab({
+  onOrderCocktail,
+}: {
+  onOrderCocktail?: (cocktailName: string) => void
+}) {
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -72,11 +76,19 @@ export default function RecipeInfoTab() {
         {filtered.map((c) => (
           <article key={c.id} className="recipe-card">
             <header className="recipe-card__head">
-              <h3>{c.name}</h3>
-              {c.nameEn && <span style={{ fontSize: 10, color: 'rgba(245,230,211,0.4)' }}>{c.nameEn}</span>}
+              <div className="recipe-card__head-left">
+                <h3>{c.name}</h3>
+                {c.nameEn && <span style={{ fontSize: 10, color: 'rgba(245,230,211,0.4)' }}>{c.nameEn}</span>}
+              </div>
+              <button
+                className="order-btn"
+                onClick={() => onOrderCocktail?.(c.name)}
+                title={`${c.name} 주문하기`}
+              >
+                주문
+              </button>
             </header>
             {c.vibe && <p style={{ margin: '2px 0', fontSize: 10, color: '#C4A35A' }}>{c.vibe}</p>}
-            <p className="recipe-card__desc">{c.story}</p>
             <dl className="recipe-card__meta">
               <dt>베이스</dt>
               <dd>{c.base}</dd>

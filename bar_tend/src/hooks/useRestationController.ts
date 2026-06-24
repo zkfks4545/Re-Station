@@ -85,6 +85,15 @@ export function useRestationController() {
     }, COCKTAIL_PREPARATION_DELAY_MS)
   }, [])
 
+  const typingCompleteFnRef = useRef<() => void>(() => {})
+  const typingCompletedRef = useRef(false)
+
+  const onTypingComplete = useCallback(() => {
+    if (typingCompletedRef.current) return
+    typingCompletedRef.current = true
+    typingCompleteFnRef.current()
+  }, [])
+
   const bartenderReply = useCallback(
     (
       text: string,
@@ -94,34 +103,37 @@ export function useRestationController() {
       afterMessages: Message[] = [],
     ) => {
       const showReply = () => {
+        typingCompletedRef.current = false
         setInteractionStatus('typing')
         setExpression('talk')
-        timerRegistry.current.schedule(() => {
-        setMessages((prev) => [...prev, { role: 'bartender', text }])
-        setExpression(exp)
 
-        if (afterMessages.length === 0) {
-          setInteractionStatus(finishStatus)
-          if (cocktail) {
-            timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+        typingCompleteFnRef.current = () => {
+          setExpression(exp)
+
+          if (afterMessages.length === 0) {
+            setInteractionStatus(finishStatus)
+            if (cocktail) {
+              timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+            }
+            return
           }
-          return
+
+          let nextDelay = 450
+          afterMessages.forEach((message, index) => {
+            nextDelay += message.text.length * 12 + 300
+            timerRegistry.current.schedule(() => {
+              setMessages((prev) => [...prev, message])
+              if (index === afterMessages.length - 1) {
+                setInteractionStatus(finishStatus)
+                if (cocktail) {
+                  timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
+                }
+              }
+            }, nextDelay)
+          })
         }
 
-        let nextDelay = 450
-        afterMessages.forEach((message, index) => {
-          nextDelay += message.text.length * 12 + 300
-          timerRegistry.current.schedule(() => {
-            setMessages((prev) => [...prev, message])
-            if (index === afterMessages.length - 1) {
-              setInteractionStatus(finishStatus)
-              if (cocktail) {
-                timerRegistry.current.schedule(() => setServedCocktail(cocktail), 600)
-              }
-            }
-          }, nextDelay)
-        })
-        }, text.length * 15 + 400)
+        setMessages((prev) => [...prev, { role: 'bartender', text, speaker: 'karua' }])
       }
 
       if (cocktail) {
@@ -141,10 +153,17 @@ export function useRestationController() {
     setScene('inside')
     setWelcomeDrinkUsed(false)
     setWelcomeDrinkFeedbackPending(false)
+    setInteractionStatus('typing')
+    setExpression('talk')
+    typingCompleteFnRef.current = () => {
+      setExpression('idle')
+      setInteractionStatus('idle')
+    }
     setMessages([
       {
         role: 'bartender',
         text: '어서 오세요. Re:Station입니다.\n오늘은 어떤 걸 찾으세요?',
+        speaker: 'karua',
       },
     ])
   }, [clearPendingWork, resetSiestaEventSession])
@@ -428,6 +447,7 @@ export function useRestationController() {
     handleCancelRecommendation,
     handleWelcomeDrink,
     handleSend,
+    onTypingComplete,
     welcomeDrinkAvailable:
       !welcomeDrinkUsed &&
       !welcomeDrinkFeedbackPending &&

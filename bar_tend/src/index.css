@@ -132,6 +132,7 @@ html::before {
   min-height: 140px;
   overflow: visible;
   transition: filter 300ms ease;
+  filter: sepia(0.12) saturate(1.1);
 }
 
 .mood-indicator {
@@ -166,48 +167,8 @@ html::before {
   box-shadow: 0 0 40px rgba(120, 80, 180, 0.03);
 }
 
-.bartender-sprite--preparing {
-  filter: brightness(1.06) saturate(1.08);
-}
-
 .bartender-sprite__image--shaking {
   animation: none;
-}
-
-.bartender-sprite--thinking {
-  filter: saturate(0.75) brightness(0.9);
-}
-
-.bartender-sprite--talk {
-  filter: brightness(1.08);
-}
-
-.bartender-sprite--surprised {
-  filter: brightness(1.15) saturate(1.2);
-}
-
-.bartender-sprite--smirk {
-  filter: sepia(0.12) saturate(1.1);
-}
-
-.bartender-sprite--sympathy {
-  filter: saturate(0.8) sepia(0.08);
-}
-
-.bartender-sprite--annoyed {
-  filter: brightness(0.92) saturate(1.15) sepia(0.06);
-}
-
-.bartender-sprite--stern {
-  filter: brightness(0.85) saturate(0.7) contrast(1.1);
-}
-
-.bartender-sprite--disappointed {
-  filter: brightness(0.88) saturate(0.65) sepia(0.12);
-}
-
-.bartender-sprite--embarrassed {
-  filter: brightness(0.95) saturate(0.8) sepia(0.08) contrast(0.95);
 }
 
 .welcome-drink-btn,
@@ -436,6 +397,108 @@ html::before {
   font-size: 8px;
   color: #b088d0;
   letter-spacing: 0.1em;
+}
+
+.codex-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.codex-detail__back {
+  font-size: 11px;
+  color: rgba(180, 136, 208, 0.6);
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  padding: 2px 0;
+}
+.codex-detail__back:hover {
+  color: #b088d0;
+}
+.codex-detail__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.codex-detail__img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 136, 208, 0.25);
+}
+.codex-detail__name {
+  font-size: 15px;
+  color: #b088d0;
+  margin: 0;
+}
+.codex-detail__name-en {
+  font-size: 10px;
+  color: rgba(245, 230, 211, 0.4);
+}
+.codex-detail__desc {
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.5;
+  margin: 0;
+}
+.codex-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.codex-detail__section-title {
+  font-size: 10px;
+  color: rgba(180, 136, 208, 0.6);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.codex-detail__ingredients {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.8);
+}
+.codex-detail__recipe-text {
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.65);
+  line-height: 1.4;
+  margin: 0;
+}
+.codex-detail__talking-points {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.5;
+}
+.codex-detail__talking-points li {
+  margin-bottom: 4px;
+}
+
+.order-btn {
+  font-size: 10px;
+  padding: 2px 8px;
+  color: #c4a35a;
+  background: rgba(196, 163, 90, 0.1);
+  border: 1px solid rgba(196, 163, 90, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.order-btn:hover {
+  background: rgba(196, 163, 90, 0.2);
+  border-color: rgba(196, 163, 90, 0.5);
+}
+
+.recipe-card__head-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
 .recipe-panel {

@@ -21,12 +21,14 @@ export default function Sidebar({
   onMobileClose,
   onResetNight,
   onViewCocktail,
+  onOrderCocktail,
 }: {
   unlockedIds: Set<string>
   mobileOpen: boolean
   onMobileClose: () => void
   onResetNight: () => void
   onViewCocktail?: (cocktail: CocktailData) => void
+  onOrderCocktail?: (cocktailName: string) => void
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
@@ -98,7 +100,7 @@ export default function Sidebar({
               <h2 className="sidebar-title">레시피 정보</h2>
               <p className="sidebar-muted">모든 칵테일 레시피를 열람</p>
               <Suspense fallback={<p className="sidebar-muted">레시피 정보를 불러오는 중입니다.</p>}>
-                <RecipeInfoTab />
+                <RecipeInfoTab onOrderCocktail={onOrderCocktail} />
               </Suspense>
             </>
           )}

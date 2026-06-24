@@ -30,6 +30,7 @@ export default function App() {
     handleCancelRecommendation,
     handleWelcomeDrink,
     handleSend,
+    onTypingComplete,
     welcomeDrinkAvailable,
     setServedCocktail,
     setSidebarOpen,
@@ -98,7 +99,7 @@ export default function App() {
               borderTop: '1px solid rgba(196,163,90,0.05)',
             }}
           >
-            <DialogueBox messages={messages} isTyping={isBartenderTyping} />
+            <DialogueBox messages={messages} isTyping={isBartenderTyping} onTypingComplete={onTypingComplete} />
             <ChatInput
               onSend={handleSend}
               onCancelRecommendation={handleCancelRecommendation}
@@ -149,6 +150,7 @@ export default function App() {
         onMobileClose={() => setSidebarOpen(false)}
         onResetNight={handleResetNight}
         onViewCocktail={setServedCocktail}
+        onOrderCocktail={(name) => handleSend(`${name} 주세요`)}
       />
     </div>
   )
