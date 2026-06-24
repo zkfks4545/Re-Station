@@ -92,6 +92,7 @@ export default function BartenderSprite({
     >
       <div className="mood-indicator">{activeLabel}</div>
       <img
+        key={isAnimatingCocktail ? 'anim' : `idle-${expression}`}
         src={activeImage}
         alt="Karua"
         className={`bartender-sprite__image ${
