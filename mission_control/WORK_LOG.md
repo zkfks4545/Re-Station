@@ -1,4 +1,16 @@
-﻿# 작업 이력
+# 작업 이력
+
+## 2026-06-24 / DOC-004 / 외부 기획용 구조 보고서 최신화
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-24 |
+| 작업 ID | DOC-004 |
+| 작업자 | Antigravity |
+| 작업 내용 | `mission_control`의 전체 필독 파일 검토 및 프로젝트 현황(세션 마감 상태 머신 및 dryness 독립 피처 등)을 바탕으로 외부 기획용 구조 보고서를 최신화했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md` 파일에 최근 완료된 세션 종료 흐름(`XYZ` 및 `Farewell Phase` 상태 머신) 구현 상태와 `bar_tend/src/lib/session/session-flow.ts` 관련 지도를 보강했다. `dryness` 독립 피처 관리 및 맛 프로필 표시 반별점 스케일링(`DEC-025`, `DEC-026`) 규칙, 45종의 DB 및 칵테일별 `talking_points`와 XYZ 추가 사항을 반영했다. 후속 작업 및 검증 상태(Vitest 160개 통과 등)도 최신 내용으로 갱신했으며, 테이블 중복 기재 오류를 수정했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 정합성 수동 검토 및 기존 빌드/린트 정상 통과 여부 재확인 |
 
 ## 2026-06-23 / DATA-804 / 칵테일별 이야깃거리 필드 추가
 
