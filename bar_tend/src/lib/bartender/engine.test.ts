@@ -8,6 +8,8 @@ const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /다\s*괜찮아/,
   /분명.*잘/,
   /내려놓는 게 답/,
+  /도와드릴게요/,
+  /괜찮아질 거예요/,
 ]
 
 function expectKahluaBoundary(response: string) {

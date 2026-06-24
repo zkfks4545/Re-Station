@@ -35,14 +35,10 @@ function CocktailDetail({
           <p className="codex-detail__recipe-text">{cocktail.recipeText}</p>
         )}
       </div>
-      {cocktail.talkingPoints && cocktail.talkingPoints.length > 0 && (
+      {cocktail.story && (
         <div className="codex-detail__section">
           <h4 className="codex-detail__section-title">이야깃거리</h4>
-          <ul className="codex-detail__talking-points">
-            {cocktail.talkingPoints.map((tp, i) => (
-              <li key={i}>{tp}</li>
-            ))}
-          </ul>
+          <p className="codex-detail__story">{cocktail.story}</p>
         </div>
       )}
     </div>

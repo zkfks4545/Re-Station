@@ -467,15 +467,11 @@ html::before {
   line-height: 1.4;
   margin: 0;
 }
-.codex-detail__talking-points {
+.codex-detail__story {
   margin: 0;
-  padding-left: 16px;
   font-size: 11px;
   color: rgba(245, 230, 211, 0.7);
-  line-height: 1.5;
-}
-.codex-detail__talking-points li {
-  margin-bottom: 4px;
+  line-height: 1.55;
 }
 
 .order-btn {

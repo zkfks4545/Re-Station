@@ -146,8 +146,8 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
       return dialogue('story-request', '듣고 있어요.', 'talk')
 
     case 'mood-talk': {
-      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘 많이 피곤하셨나 봐요.', 'sympathy')
-      if (ctx.userMood === 'sad') return dialogue('mood-sad', '오늘 많이 힘드셨나 봐요.', 'sympathy')
+      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘은 좀 가볍게 가죠.', 'sympathy')
+      if (ctx.userMood === 'sad') return dialogue('mood-sad', '그런 날이 있죠. 무거운 얘기는 천천히.', 'sympathy')
       if (ctx.userMood === 'happy') return dialogue('mood-happy', '좋은 일이 있으셨군요.', 'smirk')
       return {
         response: '지금 기분에 맞는 한 잔을 찾으시면 말씀해 주세요.',
@@ -181,8 +181,8 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
       if (ctx.recommendedCocktail && ctx.lastTopic === 'cocktail-request') {
         return dialogue('after-recommendation', '다른 칵테일도 찾아드릴까요?', 'talk')
       }
-      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘 많이 피곤하셨나 봐요.', 'sympathy')
-      if (ctx.userMood === 'sad') return dialogue('mood-sad', '오늘 많이 힘드셨나 봐요.', 'sympathy')
+      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘은 좀 가볍게 가죠.', 'sympathy')
+      if (ctx.userMood === 'sad') return dialogue('mood-sad', '그런 날이 있죠. 무거운 얘기는 천천히.', 'sympathy')
       return dialogue('general-chat', '편하게 말씀해 주세요.', 'talk')
     }
   }

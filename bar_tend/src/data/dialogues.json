@@ -125,18 +125,18 @@
     "mood-sad": {
       "description": "슬픔·우울·힘들 때",
       "lines": [
-        { "text": "오늘 많이 힘드셨나 봐요. 괜찮으시면 천천히 말씀해 주세요.", "expression": "sympathy" },
-        { "text": "좀 쉬고 싶은 날이죠. 천천히 쉬다가 마음 편해지면 말씀해 주세요.", "expression": "sympathy" },
-        { "text": "오늘은 편하게 이야기만 하셔도 돼요. 원하시면 말씀해 주세요.", "expression": "sympathy" },
-        { "text": "괜찮으신 만큼만 천천히 하셔도 괜찮아요.", "expression": "sympathy" },
-        { "text": "분위기를 바꾸고 싶으시면 추천도 해드릴게요.", "expression": "sympathy" },
-        { "text": "괜찮아요. 말하지 않으셔도 돼요. 그냥 조용히 계셔도 돼요.", "expression": "sympathy" },
-        { "text": "오늘은 제가 말을 줄이고 있을게요. 필요하시면 언제든 말씀해 주세요.", "expression": "sympathy" },
-        { "text": "말을 꺼내기 어려우셨을 텐데, 들어줘서 고마워요.", "expression": "sympathy" },
-        { "text": "힘든 날엔 말을 꺼내는 것도 에너지가 필요한 법이죠. 천천히, 숨을 고르고 계세요.", "expression": "sympathy" },
-        { "text": "제가 할 수 있는 게 있다면, 조용히 들어드리는 것 정도예요. 부담 없이 이야기해 주세요.", "expression": "sympathy" },
-        { "text": "오늘은 그냥 조용히 계셔도 괜찮아요. 분위기만이라도 편하게 만들어 드릴게요.", "expression": "sympathy" },
-        { "text": "말씀 안 하셔도 괜찮아요. 그 옆에 있는 것만으로도 위로가 되길 바랄게요.", "expression": "sympathy" }
+        { "text": "그런 날이 있죠. 묵직한 날은 가볍게 털어내는 게 약이에요.", "expression": "sympathy" },
+        { "text": "아, 연료등 들어왔네요. 오늘은 쉬엄쉬엄 가죠.", "expression": "sympathy" },
+        { "text": "안 섞여도 되는 날이 있고, 안 섞이면 더 좋은 날이 있어요.", "expression": "sympathy" },
+        { "text": "말을 꺼내는 대신 한 잔으로 대신해도 돼요. 말보다 가벼울 거예요.", "expression": "sympathy" },
+        { "text": "모든 날이 좋을 순 없죠. 그냥 오늘은 잔을 좀 오래 붙잡고 있어도 돼요.", "expression": "sympathy" },
+        { "text": "표정에 '오늘은 좀 그렇다'고 적혀 있어요. 알코올 말고, 분위기부터 바꿔볼까요?", "expression": "sympathy" },
+        { "text": "무거운 얘기는 천천히 해도 돼요. 지금은 그냥 한 잔 받아 드시고 숨 좀 고르세요.", "expression": "sympathy" },
+        { "text": "오늘은 쉬는 날로 정하고 들어오신 거 맞죠? 적어도 여기서만큼은 그러기로 해요.", "expression": "sympathy" },
+        { "text": "그냥 한잔만 하고 갈래요? 말이 필요하면 제가 듣고, 말이 필요 없으면 조용히 있을게요.", "expression": "sympathy" },
+        { "text": "묵묵히 계셔도 돼요. 잔은 제가 알아서 채워드릴게요.", "expression": "sympathy" },
+        { "text": "빈손으로 오셨네요. 기분은 좀 무거워 보이는데, 잔은 가볍게 시작해 볼까요?", "expression": "sympathy" },
+        { "text": "오늘은 공기부터 무겁네요. 말보다 술이 먼저여야 할 것 같은 날이에요.", "expression": "sympathy" }
       ]
     },
     "mood-happy": {
@@ -159,16 +159,16 @@
     "mood-tired": {
       "description": "피곤·지침",
       "lines": [
-        { "text": "피곤해 보이세요. 오늘은 부담 없는 쪽으로 천천히 가볼게요.", "expression": "sympathy" },
-        { "text": "지친 날엔 복잡하지 않은 게 최고예요. 가볍게 시작해 볼까요?", "expression": "sympathy" },
-        { "text": "오늘은 편하게 쉬는 쪽으로 할게요. 말도 적게, 잔도 가볍게.", "expression": "sympathy" },
-        { "text": "피곤하시죠. 천천히 하셔도 돼요. 시간은 충분하니까요.", "expression": "sympathy" },
-        { "text": "무리하지 마세요. 오늘은 편한 걸로 골라볼게요.", "expression": "sympathy" },
-        { "text": "오늘 정말 고생 많으셨어요. 여기선 느긋하게 쉬다 가세요.", "expression": "sympathy" },
-        { "text": "눈빛이 많이 피곤해 보여요. 말씀은 짧게 해도 괜찮아요. 편하게 계세요.", "expression": "sympathy" },
-        { "text": "지친 몸으로 오시는 길도 쉽지 않으셨을 텐데, 잘 오셨어요.", "expression": "sympathy" },
-        { "text": "천천히 하셔도 됩니다. 세상 일이 다 급한 건 아니니까요.", "expression": "sympathy" },
-        { "text": "너무 무리하지 마세요. 가끔은 아무것도 안 하는 게 최고의 휴식이에요.", "expression": "sympathy" }
+        { "text": "오늘 고생하셨네요. 적당히 가볍게 풀고 가시죠.", "expression": "sympathy" },
+        { "text": "연료 부족 경고등이 들어온 것 같아요. 너무 무거운 건 피하는 게 좋겠네요.", "expression": "sympathy" },
+        { "text": "퇴근하고 여기까지 오시는 것도 에너지였을 텐데, 일단 자리부터 잡으세요.", "expression": "sympathy" },
+        { "text": "피곤할 땐 취하는 것보다 쉬는 게 먼저긴 한데… 그래도 빈손으로 보내긴 아쉽네요.", "expression": "sympathy" },
+        { "text": "지친 눈으로 들어오시는 거 보면 오늘 뭔가 많았나 봐요. 일단 가볍게 시작해요.", "expression": "sympathy" },
+        { "text": "오늘은 말보다 잔이 먼저인 날이네요. 천천히 가볍게 맞춰볼게요.", "expression": "sympathy" },
+        { "text": "굳이 기운 내실 필요 없어요. 여기선 그냥 느긋하게 계세요.", "expression": "sympathy" },
+        { "text": "피곤한 몸으로 오시는 길이 더 힘드셨을 텐데 자리는 편하게 잡으세요.", "expression": "sympathy" },
+        { "text": "오늘은 부담 가질 필요 없는 메뉴로 골라볼게요. 편하게 기대하고 계세요.", "expression": "sympathy" },
+        { "text": "한잔 드시고 좀 쉬다 가세요. 그게 오늘 손님께 가장 필요한 일 같아요.", "expression": "sympathy" }
       ]
     },
     "mood-surprised": {
@@ -500,21 +500,19 @@
     "general-chat": {
       "description": "일반 대화·무소속",
       "lines": [
-        { "text": "편하게 말씀해 주세요. 듣고 있어요.", "expression": "talk" },
-        { "text": "네, 듣고 있어요. 계속 하셔도 좋아요.", "expression": "talk" },
+        { "text": "듣고 있어요. 계속 하셔도 돼요.", "expression": "talk" },
+        { "text": "네, 그렇군요.", "expression": "talk" },
+        { "text": "아, 그런 얘기였네요.", "expression": "talk" },
         { "text": "음, 그렇군요. 좀 더 이야기해 주시겠어요?", "expression": "talk" },
-        { "text": "알겠습니다. 다른 얘기 하시고 싶으시면 편하게 말씀해 주세요.", "expression": "talk" },
-        { "text": "이야기해 주셔서 고마워요. 필요하면 언제든 말씀해 주세요.", "expression": "talk" },
-        { "text": "네, 잘 알겠습니다.", "expression": "talk" },
-        { "text": "네, 그렇게 생각해 볼게요. 필요하시면 말씀 더 해 주세요.", "expression": "talk" },
-        { "text": "좋습니다. 편하게 말씀해 주세요.", "expression": "talk" },
         { "text": "아, 그렇군요. 그 이야기를 들으니 저도 생각이 많아지네요.", "expression": "thinking" },
-        { "text": "편하게 이야기해 주세요. 오늘은 시간이 많으니까요.", "expression": "talk" },
         { "text": "손님은 참 다양한 이야기를 하시네요. 듣는 재미가 있어요.", "expression": "smirk" },
         { "text": "네, 맞아요. 그 부분이 중요하죠.", "expression": "talk" },
-        { "text": "그렇게 생각하시는군요. 저도 비슷한 경험이 있어서 공감이 가네요.", "expression": "thinking" },
         { "text": "하하, 그렇죠. 가끔은 그런 날도 필요한 법이에요.", "expression": "smirk" },
-        { "text": "음, 그 말이 참 와닿네요. 더 이야기해 주시겠어요?", "expression": "thinking" }
+        { "text": "음, 그 말이 참 와닿네요.", "expression": "thinking" },
+        { "text": "맞아요, 저도 비슷하게 생각한 적 있어요.", "expression": "talk" },
+        { "text": "좋네요. 그 얘기 더 해 주세요.", "expression": "smirk" },
+        { "text": "아, 거기까지 생각이 닿으셨군요.", "expression": "thinking" },
+        { "text": "듣다 보니 또 새로운 시각이네요.", "expression": "thinking" }
       ]
     },
     "long-conversation-prompt": {
