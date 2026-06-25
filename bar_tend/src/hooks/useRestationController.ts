@@ -330,8 +330,9 @@ export function useRestationController() {
       if (interactionStatus !== 'idle') return
       setErrorMessage(null)
       setInteractionStatus('processing')
-      const nextMessages: Message[] = [...messages, { role: 'user', text }]
-      setMessages((prev) => [...prev, { role: 'user', text }])
+      const userMessage: Message = { role: 'user', text }
+      const nextMessages: Message[] = [...messages, userMessage]
+      setMessages((prev) => [...prev, userMessage])
       ingestUserMessage(text)
       userMessageCountRef.current += 1
 
@@ -347,32 +348,28 @@ export function useRestationController() {
         setWelcomeDrinkFeedbackPending(false)
       }
 
-      const failInvalidTurn = () => {
+      const handleInvalidTurn = () => {
         setExpression('idle')
         setInteractionStatus('idle')
         setErrorMessage('죄송합니다. 방금 말은 처리하지 못했어요. 다시 한 번 말씀해 주세요.')
       }
 
+      // --- 안전 처리(Safety route) ---
       if (routeResult.route === 'safety') {
-        const turn = buildDialogueTurn(text, routeResult.route, '', 'sympathy', null, {
+        const turn = buildDialogueTurn(text, 'safety', '', 'sympathy', null, {
           confidence: routeResult.confidence,
         })
-        if (!validateDialogueTurn(turn)) {
-          failInvalidTurn()
-          return
-        }
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         resetRecommendation()
         bartenderReply(turn.reply, turn.expression)
         return
       }
 
+      // --- 세션 마감 처리(Farewell phase) ---
       if (sessionPhase === 'farewell') {
-        const nextFarewellTurnCount = farewellTurnCount + 1
-        setFarewellTurnCount(nextFarewellTurnCount)
-        if (shouldReturnHomeAfterFarewellTurn({
-          phase: sessionPhase,
-          farewellTurnCount: nextFarewellTurnCount,
-        })) {
+        const nextCount = farewellTurnCount + 1
+        setFarewellTurnCount(nextCount)
+        if (shouldReturnHomeAfterFarewellTurn({ phase: sessionPhase, farewellTurnCount: nextCount })) {
           resetRecommendation()
           setSessionPhase('returnHome')
           setServedCocktail(null)
@@ -388,54 +385,39 @@ export function useRestationController() {
         }
       }
 
-      if (
-        routeResult.route === 'general' &&
-        lastServedCocktail?.id === XYZ_COCKTAIL_ID &&
-        !isOrderingClosedPhase(sessionPhase) &&
-        isEjectionConcern(text)
-      ) {
+      // --- XYZ 확인 처리(XYZ clarification) ---
+      if (routeResult.route === 'general' && lastServedCocktail?.id === XYZ_COCKTAIL_ID && !isOrderingClosedPhase(sessionPhase) && isEjectionConcern(text)) {
         const reply = formatWelcomeXyzClarificationReply()
         bartenderReply(reply.text, reply.expression)
         return
       }
 
+      // --- 퇴장 처리(Exit route) ---
       if (routeResult.route === 'exit') {
-        const turn = buildDialogueTurn(text, routeResult.route, '', 'idle', null, {
-          confidence: routeResult.confidence,
-        })
-        if (!validateDialogueTurn(turn)) {
-          failInvalidTurn()
-          return
-        }
+        const turn = buildDialogueTurn(text, 'exit', '', 'idle', null, { confidence: routeResult.confidence })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         handleExit()
         return
       }
 
+      // --- 추천 취소 처리(Recommendation cancel) ---
       if (routeResult.route === 'recommendation-cancel') {
-        const turn = buildDialogueTurn(text, routeResult.route, '', 'idle', null, {
-          confidence: routeResult.confidence,
-        })
-        if (!validateDialogueTurn(turn)) {
-          failInvalidTurn()
-          return
-        }
+        const turn = buildDialogueTurn(text, 'recommendation-cancel', '', 'idle', null, { confidence: routeResult.confidence })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         resetRecommendation()
         bartenderReply(turn.reply, turn.expression)
         return
       }
 
+      // --- 주문 차단 단계 처리(Blocked in ordering-closed phase) ---
       if (isRecommendationBlockedInPhase(sessionPhase, routeResult.route)) {
         resetRecommendation()
         bartenderReply(formatFarewellBlockReply(), 'smirk')
         return
       }
 
-      if (shouldServeXyzNext({
-        phase: sessionPhase,
-        alcoholStarTotal,
-        route: routeResult.route,
-        recommendationActive: activeQuestion !== null,
-      })) {
+      // --- XYZ 마지막 잔 발동 처리(XYZ next trigger) ---
+      if (shouldServeXyzNext({ phase: sessionPhase, alcoholStarTotal, route: routeResult.route, recommendationActive: activeQuestion !== null })) {
         const xyzCocktail = getCocktailById(XYZ_COCKTAIL_ID)
         if (!xyzCocktail) {
           resetRecommendation()
@@ -451,55 +433,37 @@ export function useRestationController() {
         const ids = unlockCocktailId(xyzCocktail.id)
         setUnlockedIds(ids)
         bartenderReply(formatXyzReply(xyzCocktail, { welcomeDrinkUsed }), 'smirk', xyzCocktail)
-        timerRegistry.current.schedule(() => {
-          setSessionPhase('farewell')
-        }, COCKTAIL_PREPARATION_DELAY_MS + COCKTAIL_PREPARATION_DURATION_MS + 900)
+        timerRegistry.current.schedule(() => setSessionPhase('farewell'), COCKTAIL_PREPARATION_DELAY_MS + COCKTAIL_PREPARATION_DURATION_MS + 900)
         return
       }
 
+      // --- 미등록 칵테일 처리(Unknown cocktail query) ---
       if (routeResult.route === 'unknown-cocktail-query' && routeResult.unknownCocktailName) {
-        const turn = buildDialogueTurn(
-          text,
-          routeResult.route,
-          `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록하지 않았어요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`,
-          'thinking',
-          null,
-          {
-            confidence: routeResult.confidence,
-            entities: { cocktailName: routeResult.unknownCocktailName },
-          },
-        )
-        if (!validateDialogueTurn(turn)) {
-          failInvalidTurn()
-          return
-        }
+        const unknownReply = `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록하지 않았어요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`
+        const turn = buildDialogueTurn(text, 'unknown-cocktail-query', unknownReply, 'thinking', null, {
+          confidence: routeResult.confidence,
+          entities: { cocktailName: routeResult.unknownCocktailName },
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         addUnknownCocktail(routeResult.unknownCocktailName, text)
         setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
         bartenderReply(turn.reply, turn.expression)
         return
       }
 
+      // --- 추천 / 일반 대화 처리(Main recommendation or general dialogue, async) ---
       setExpression('thinking')
       timerRegistry.current.schedule(() => {
         try {
-          const recommendation =
-            routeResult.route === 'random-recommendation'
-              ? resolveRandomRecommendation()
-              : routeResult.route === 'explicit-cocktail' || routeResult.route === 'recommendation'
-                ? resolveRecommendation(text, preference)
-                : null
+          const recommendation = routeResult.route === 'random-recommendation'
+            ? resolveRandomRecommendation()
+            : (routeResult.route === 'explicit-cocktail' || routeResult.route === 'recommendation')
+              ? resolveRecommendation(text, preference)
+              : null
           const fallback = getCocktailResponse(text, nextMessages)
-          const turn = buildDialogueTurn(
-            text,
-            routeResult.route,
-            fallback.response,
-            fallback.expression,
-            recommendation ?? undefined,
-            { confidence: routeResult.confidence },
-          )
-          if (!validateDialogueTurn(turn)) {
-            throw new Error('Invalid dialogue turn')
-          }
+          const turn = buildDialogueTurn(text, routeResult.route, fallback.response, fallback.expression, recommendation ?? undefined, { confidence: routeResult.confidence })
+          if (!validateDialogueTurn(turn)) throw new Error('Invalid dialogue turn')
+
           const cocktail = recommendation?.cocktail ?? null
           const isXyzCocktail = cocktail?.id === XYZ_COCKTAIL_ID
           const siestaResult = SIESTA_EVENTS_ENABLED
@@ -520,13 +484,8 @@ export function useRestationController() {
             timerRegistry.current.schedule(() => setScreenShake(false), 500)
             const ids = unlockCocktailId(cocktail.id)
             setUnlockedIds(ids)
-            if (!isXyzCocktail) {
-              setAlcoholStarTotal((count) => count + cocktail.taste.alcohol)
-            }
-            setSessionPhase(nextPhaseAfterServedCocktail({
-              current: sessionPhase,
-              isXyz: isXyzCocktail,
-            }))
+            if (!isXyzCocktail) setAlcoholStarTotal((count) => count + cocktail.taste.alcohol)
+            setSessionPhase(nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }))
           } else {
             setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
           }

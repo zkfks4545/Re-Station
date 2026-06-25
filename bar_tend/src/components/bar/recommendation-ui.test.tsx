@@ -23,8 +23,8 @@ describe('recommendation UI rendering contracts', () => {
 
     expect(markup).toContain(cocktail!.name)
     expect(markup).toContain(cocktail!.description)
-    expect(markup).toContain('베이스')
-    expect(markup).toContain('재료')
+    expect(markup).toContain('설명')
+    expect(markup).toContain('레시피')
     expect(markup).toContain('다시 추천받기')
   })
 

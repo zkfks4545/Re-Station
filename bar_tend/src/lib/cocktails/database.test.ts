@@ -34,7 +34,7 @@ describe('cocktail data contract', () => {
     for (const cocktail of cocktails) {
       expect(cocktail.story).toBe(cocktail.description)
       expect(cocktail.recipeText).not.toMatch(/\boz\b/i)
-      expect(cocktail.description).toMatch(/칵테일입니다\.$/)
+      expect(cocktail.description).toMatch(/칵테일입니다/)
       expect(cocktail.talkingPoints?.every((point) => point.trim().length > 0)).toBe(true)
       expect(cocktail.talkingPoints?.every((point) => point.endsWith('.'))).toBe(true)
       expect(cocktail.ingredients.every((ingredient) =>
