@@ -1,12 +1,5 @@
 import type { CocktailData } from '../../types.js'
 
-const tasteLabels = [
-  ['sweet', '단맛'],
-  ['sour', '신맛'],
-  ['bitter', '드라이함'],
-  ['alcohol', '도수'],
-] as const
-
 type CocktailCardProps = {
   cocktail: CocktailData
   onClose: () => void
@@ -50,50 +43,26 @@ export default function CocktailCard({
         )}
 
         <h2 className="text-2xl font-bold mb-1" style={{ color: '#C4A35A' }}>{cocktail.name}</h2>
-        <p className="text-white/50 text-sm mb-4 italic">{cocktail.vibe}</p>
 
-        <div className="space-y-2 mb-4">
-          <p className="text-sm text-white/70 leading-relaxed">{cocktail.description}</p>
-          {cocktail.popCulture && (
-            <p className="text-xs" style={{ color: 'rgba(180, 136, 208, 0.65)' }}>
-              관련 정보: {cocktail.popCulture}
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="space-y-3 mb-4">
           <div>
-            <p className="text-xs text-white/40 mb-1">베이스</p>
-            <p className="text-sm text-white/80">{cocktail.base}</p>
+            <p className="text-xs text-white/40 mb-1">설명</p>
+            <p className="text-sm text-white/70 leading-relaxed">{cocktail.description}</p>
           </div>
           <div>
-            <p className="text-xs text-white/40 mb-1">재료</p>
-            <p className="text-sm text-white/80">{cocktail.ingredients.join(', ')}</p>
+            <p className="text-xs text-white/40 mb-1">레시피</p>
+            <p className="text-sm text-white/70 leading-relaxed">{cocktail.recipeText}</p>
           </div>
-          {cocktail.glass && (
+          {cocktail.talkingPoints && cocktail.talkingPoints.length > 0 && (
             <div>
-              <p className="text-xs text-white/40 mb-1">글라스</p>
-              <p className="text-sm text-white/80">{cocktail.glass}</p>
+              <p className="text-xs text-white/40 mb-1">이야깃거리</p>
+              <ul className="text-sm text-white/70 leading-relaxed space-y-1">
+                {cocktail.talkingPoints.map((point, i) => (
+                  <li key={i}>· {point}</li>
+                ))}
+              </ul>
             </div>
-          )}
-          {cocktail.alcoholic && (
-            <div>
-              <p className="text-xs text-white/40 mb-1">분류</p>
-              <p className="text-sm text-white/80">{cocktail.alcoholic}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-1 mb-4">
-          {tasteLabels.map(([key, label]) => (
-            <span
-              key={key}
-              className="text-xs px-2 py-1 rounded text-white/60"
-              style={{ background: 'rgba(120,80,180,0.06)', border: '1px solid rgba(180,136,208,0.12)' }}
-            >
-              {label} {'★'.repeat(cocktail.taste[key])}{'☆'.repeat(5 - cocktail.taste[key])}
-            </span>
-          ))}
+        )}
         </div>
         {onReRecommend && (
           <button
