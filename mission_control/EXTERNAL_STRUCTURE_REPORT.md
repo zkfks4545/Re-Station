@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-06-24  
+> 최종 갱신일: 2026-06-25  
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -126,6 +126,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/lib/session/session-flow.ts` | 세션 단계 및 XYZ 마지막 잔 발동/Farewell 정책 제어 |
+| `bar_tend/src/lib/session/farewell-replies.ts` | XYZ, Farewell Phase, 주문 차단, 귀가 관련 세션 응답 포맷 |
 | `bar_tend/src/lib/session/session-flow.test.ts` | 누적 도수 10 초과 시 XYZ 상태 전이 및 배웅 단계 테스트 |
 
 
@@ -166,6 +167,7 @@ useRestationController
 * **XYZ 발동:** 일반 주문/추천으로 마신 칵테일의 누적 도수 별점이 10을 초과하면 다음 주문·추천 요청 시 `cocktail_classic_043` (XYZ) 마지막 잔으로 강제 전이됩니다. (웰컴드링크 도수는 누적 계산에서 제외)
 * **Farewell Phase:** XYZ가 제공된 이후에는 신규 추천, 주문, 재추천이 모두 차단됩니다. 2~3턴(총 3턴) 동안 XYZ의 배경, 유래, 후기, 가벼운 잡담만을 허용하며 이후 자동으로 퇴장 및 귀가 단계로 전환됩니다.
 * **상태값 활용:** 세션 분위기 상태값(`trust`, `familiarity`, `playfulness`, `tension`)은 엔딩 분기나 평가용이 아니며, 오직 카루아의 대사 톤과 반응 조절용으로만 사용됩니다.
+* **구조 정합성:** 주문이 닫힌 단계(`xyz`, `farewell`, `returnHome`)는 `isOrderingClosedPhase`로 명시되어 있습니다. 컨트롤러는 이 함수로 흐름을 판정하고, 실제 종료·차단 응답 문구는 `farewell-replies.ts`가 담당합니다.
 
 ## 6. 현재 대사 구조
 
@@ -323,7 +325,7 @@ useRestationController
 | 감정 상태 | tired, sad, happy 등 |
 | 질문 이력 | 이미 물어본 추천 질문 |
 
-* **드라이함 표기:** 사용자에게 보이는 `쓴맛` 스테이터스 명칭은 `드라이함`으로 정리합니다. 내부 추천 축은 기존 normalized feature를 사용하며, 독립 드라이함 축과 반별점 표시는 이번 복원 범위에서 제외합니다.
+* **드라이함 표기:** 사용자에게 보이는 `쓴맛` 스테이터스 명칭은 `드라이함`으로 정리합니다. 내부 추천 축은 기존 normalized feature를 사용하며, 현재 구조에서는 독립 드라이함 축과 반별점 표시를 제공하지 않습니다.
 
 ### 9.2 질문 정책
 
@@ -455,6 +457,22 @@ useRestationController
 - 시에스타의 대사 톤은 얼마나 건조해야 하는가
 - 카루아가 시에스타를 어떻게 받아치는가
 
+### 11.5 컨트롤러와 세션 도메인의 책임 경계
+
+`useRestationController.ts`는 입장, 퇴장, 입력 라우팅, 추천 세션 연결, 세션 종료, 타이핑/제조 연출을 조율하는 중심 컨트롤러다.
+
+세션 단계와 마감 정책은 `lib/session/session-flow.ts`가 담당한다. 주문이 닫힌 단계는 `isOrderingClosedPhase`가 판정하며, 해당 단계는 `xyz`, `farewell`, `returnHome`이다.
+
+XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/farewell-replies.ts`가 담당한다. 컨트롤러는 이 모듈들이 제공하는 판정과 응답을 사용해 실제 메시지 출력, 타이핑 상태, 카드 표시, 퇴장 지연 같은 화면 흐름을 연결한다.
+
+현재 책임 경계:
+
+- `session-flow.ts`: 세션 단계, 주문 가능 여부, XYZ 발동, Farewell 종료 조건
+- `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
+- `useRestationController.ts`: 입력 처리 흐름 조율, 상태 반영, 메시지 표시와 연출 연결
+
+이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
+
 ## 12. 외부 기획자에게 요청할 기획안 범위
 
 외부 AI에게 구현이 아니라 다음 기획안을 요청하는 것이 적합하다.
@@ -541,11 +559,16 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 
 | 검증 | 상태 |
 |---|---|
-| 타입체크 | 통과 |
-| 전체 테스트 | Vitest 160개 통과 |
-| 린트 | 통과 |
-| 빌드 | 통과 |
-| 메인 JS | 약 390.82 kB |
+| 타입체크 | 통과: `npm.cmd run check` |
+| 세션 응답 테스트 | 통과: `npm.cmd test -- src/lib/session/farewell-replies.test.ts --run` |
+| 세션 흐름 테스트 | 통과: `npm.cmd test -- src/lib/session/session-flow.test.ts --run` |
+| 린트 | 통과: `npm.cmd run lint` |
+| 빌드 | 통과: `npm.cmd run build` |
+| 전체 테스트 | 현재 전체 Vitest 171개 중 168개 통과, 3개 실패 확인 |
+| 전체 테스트 실패 위치 | `recommendation-ui.test.tsx`, `engine.test.ts`, `database.test.ts` |
+| 메인 JS | 빌드 기준 약 416.43 kB |
+
+전체 테스트 실패 3건은 각각 추천 카드 표시 계약, 런타임 대사 금지어 계약, 칵테일 DB 설명문 스타일 계약에 해당한다. 코드 리뷰와 검수 시 이 세 영역은 별도 정합성 점검 대상으로 본다.
 
 ## 16. 기획안 평가 기준
 

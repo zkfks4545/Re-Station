@@ -1,5 +1,29 @@
 # 작업 이력
 
+## 2026-06-25 / DOC-006 / 구조 보고서의 작업 로그성 표현 제거
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | DOC-006 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 구조 보고서가 작업 로그가 아니라 현재 프로젝트 동작 구조, 코드 리뷰, 검수, 공유를 위한 문서라는 기준에 맞도록 표현을 정리했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md`의 파일 지도에서 `REFACTORING_LOG.md` 항목을 제거했다. `11.5` 섹션을 최근 작업 설명이 아니라 컨트롤러와 세션 도메인의 현재 책임 경계 설명으로 바꿨다. 검증 상태 하단의 “이번 리팩토링 범위” 표현을 제거하고 실패 테스트 3건을 별도 정합성 점검 대상으로 설명했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 정리 작업. 코드 변경 없음. |
+
+## 2026-06-25 / DOC-005 / 외부 구조 보고서에 세션 리팩토링 상태 반영
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | DOC-005 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 기획용 구조 보고서에 REF-SESSION-001~002의 컨트롤러 책임 축소와 현재 검증 상태를 반영했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md`의 최종 갱신일을 2026-06-25로 갱신하고, `farewell-replies.ts`, `REFACTORING_LOG.md`, `isOrderingClosedPhase` 기반 주문 종료 단계 판정, 컨트롤러 책임 축소 진행 상황을 추가했다. 전체 Vitest 171개 중 168개 통과/3개 실패 상태와 실패 위치도 최신 확인 결과로 기록했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 변경만 수행. 직전 확인 기준 `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build`, 세션 관련 테스트 2종 통과. 전체 Vitest는 3건 실패 상태로 기록. |
+
 ## 2026-06-25 / REF-SESSION-001~002 / 세션 컨트롤러 책임 축소
 
 | 항목 | 내용 |
