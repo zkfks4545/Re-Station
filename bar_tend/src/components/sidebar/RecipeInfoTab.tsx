@@ -121,7 +121,7 @@ export default function RecipeInfoTab({
             <div className="recipe-features">
               <span className="recipe-feature-pill">단맛 {tasteStars(c.taste.sweet)}</span>
               <span className="recipe-feature-pill">신맛 {tasteStars(c.taste.sour)}</span>
-              <span className="recipe-feature-pill">쓴맛 {tasteStars(c.taste.bitter)}</span>
+              <span className="recipe-feature-pill">드라이함 {tasteStars(c.taste.bitter)}</span>
               <span className="recipe-feature-pill">도수 {tasteStars(c.taste.alcohol)}</span>
               {c.taste.carbonated && <span className="recipe-feature-pill">탄산 ✓</span>}
             </div>

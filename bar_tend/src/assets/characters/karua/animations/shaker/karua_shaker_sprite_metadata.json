@@ -8,12 +8,12 @@
     "max": 150,
     "current": 95
   },
-  "anchor": "head top aligned to idle sprite",
+  "anchor": "eye midpoint aligned to idle sprite on x-axis",
   "loop_sequence": [
     "S1.png",
     "S2.png",
     "S3.png"
   ],
   "finish_frame": "S4.png",
-  "notes": "Top margin aligned to Kaura.png (head top Y=25). 649x649."
+  "notes": "Canvas remains 649x649. Top margin was aligned separately; shaker frames are now x-aligned by the midpoint between both pupils against Kaura.png."
 }

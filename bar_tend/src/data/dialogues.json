@@ -128,13 +128,13 @@
         { "text": "그런 날이 있죠. 묵직한 날은 가볍게 털어내는 게 약이에요.", "expression": "sympathy" },
         { "text": "아, 연료등 들어왔네요. 오늘은 쉬엄쉬엄 가죠.", "expression": "sympathy" },
         { "text": "안 섞여도 되는 날이 있고, 안 섞이면 더 좋은 날이 있어요.", "expression": "sympathy" },
-        { "text": "말을 꺼내는 대신 한 잔으로 대신해도 돼요. 말보다 가벼울 거예요.", "expression": "sympathy" },
+        { "text": "말을 억지로 꺼내지 않아도 돼요. 지금은 천천히 숨을 고르는 쪽이 좋겠어요.", "expression": "sympathy" },
         { "text": "모든 날이 좋을 순 없죠. 그냥 오늘은 잔을 좀 오래 붙잡고 있어도 돼요.", "expression": "sympathy" },
         { "text": "표정에 '오늘은 좀 그렇다'고 적혀 있어요. 알코올 말고, 분위기부터 바꿔볼까요?", "expression": "sympathy" },
         { "text": "무거운 얘기는 천천히 해도 돼요. 지금은 그냥 한 잔 받아 드시고 숨 좀 고르세요.", "expression": "sympathy" },
         { "text": "오늘은 쉬는 날로 정하고 들어오신 거 맞죠? 적어도 여기서만큼은 그러기로 해요.", "expression": "sympathy" },
         { "text": "그냥 한잔만 하고 갈래요? 말이 필요하면 제가 듣고, 말이 필요 없으면 조용히 있을게요.", "expression": "sympathy" },
-        { "text": "묵묵히 계셔도 돼요. 잔은 제가 알아서 채워드릴게요.", "expression": "sympathy" },
+        { "text": "묵묵히 계셔도 돼요. 말은 천천히 하셔도 괜찮아요.", "expression": "sympathy" },
         { "text": "빈손으로 오셨네요. 기분은 좀 무거워 보이는데, 잔은 가볍게 시작해 볼까요?", "expression": "sympathy" },
         { "text": "오늘은 공기부터 무겁네요. 말보다 술이 먼저여야 할 것 같은 날이에요.", "expression": "sympathy" }
       ]
@@ -160,12 +160,12 @@
       "description": "피곤·지침",
       "lines": [
         { "text": "오늘 고생하셨네요. 적당히 가볍게 풀고 가시죠.", "expression": "sympathy" },
-        { "text": "연료 부족 경고등이 들어온 것 같아요. 너무 무거운 건 피하는 게 좋겠네요.", "expression": "sympathy" },
+        { "text": "연료 부족 경고등이 들어온 것 같아요. 너무 무리하지 말고 가볍게 쉬어가요.", "expression": "sympathy" },
         { "text": "퇴근하고 여기까지 오시는 것도 에너지였을 텐데, 일단 자리부터 잡으세요.", "expression": "sympathy" },
         { "text": "피곤할 땐 취하는 것보다 쉬는 게 먼저긴 한데… 그래도 빈손으로 보내긴 아쉽네요.", "expression": "sympathy" },
         { "text": "지친 눈으로 들어오시는 거 보면 오늘 뭔가 많았나 봐요. 일단 가볍게 시작해요.", "expression": "sympathy" },
         { "text": "오늘은 말보다 잔이 먼저인 날이네요. 천천히 가볍게 맞춰볼게요.", "expression": "sympathy" },
-        { "text": "굳이 기운 내실 필요 없어요. 여기선 그냥 느긋하게 계세요.", "expression": "sympathy" },
+        { "text": "굳이 기운 내실 필요 없어요. 여기선 편하게 쉬고 계세요.", "expression": "sympathy" },
         { "text": "피곤한 몸으로 오시는 길이 더 힘드셨을 텐데 자리는 편하게 잡으세요.", "expression": "sympathy" },
         { "text": "오늘은 부담 가질 필요 없는 메뉴로 골라볼게요. 편하게 기대하고 계세요.", "expression": "sympathy" },
         { "text": "한잔 드시고 좀 쉬다 가세요. 그게 오늘 손님께 가장 필요한 일 같아요.", "expression": "sympathy" }
@@ -213,16 +213,16 @@
       ]
     },
     "taste-bitter": {
-      "description": "쓴맛·쌉쌀 선호",
+      "description": "드라이함·쌉쌀함 선호",
       "lines": [
         { "text": "쌉쌀한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.", "expression": "smirk" },
         { "text": "쌉쌀한 풍미를 중심으로 볼게요.", "expression": "smirk" },
-        { "text": "쓴맛도 입맛이네요. 잘 어울리는 걸로 찾아볼게요.", "expression": "smirk" },
-        { "text": "쓴맛을 즐기시는 분은 깊은 맛을 아시는 분이죠.", "expression": "smirk" },
+        { "text": "드라이한 쪽도 입맛이네요. 잘 어울리는 걸로 찾아볼게요.", "expression": "smirk" },
+        { "text": "드라이하고 쌉쌀한 맛을 즐기시는 분은 균형을 잘 보시죠.", "expression": "smirk" },
         { "text": "드라이하고 쌉쌀한 쪽으로 잡아볼게요.", "expression": "talk" },
         { "text": "쌉쌀한 걸 찾으시는군요. 입맛이 확실하세요.", "expression": "smirk" },
         { "text": "비터한 맛, 참 중독되죠. 제가 잘 골라볼게요.", "expression": "smirk" },
-        { "text": "쓴맛은 취향이 타는 맛이죠. 입맛이 고급스러우신 편이에요.", "expression": "smirk" },
+        { "text": "드라이함은 취향이 타는 톤이죠. 입맛이 고급스러우신 편이에요.", "expression": "smirk" },
         { "text": "비터한 맛은 시간이 지날수록 깊어지는 매력이 있어요. 좋은 선택입니다.", "expression": "smirk" },
         { "text": "쌉쌀한 걸 찾으시는 걸 보니 오늘은 깊이 있는 걸 원하시는 모양이에요.", "expression": "smirk" }
       ]
@@ -290,11 +290,11 @@
       "lines": [
         { "text": "어떤 맛을 좋아하시는지 말씀해 주세요.", "expression": "talk" },
         { "text": "좋아하는 맛의 방향을 알려 주시면 골라보기 쉬워요.", "expression": "talk" },
-        { "text": "단맛, 신맛, 쓴맛 중에 어떤 쪽이 좋으세요?", "expression": "thinking" },
+        { "text": "단맛, 신맛, 드라이함 중에 어떤 쪽이 좋으세요?", "expression": "thinking" },
         { "text": "취향을 먼저 여쭤볼게요. 어떤 느낌을 원하시나요?", "expression": "thinking" },
         { "text": "어떤 계열의 맛을 선호하시는지 조금만 알려주시면 방향을 잡기 쉬워요.", "expression": "talk" },
         { "text": "입맛이라는 게 말로 설명하기 어려울 수 있죠. 대충 느낌만 알려주셔도 돼요.", "expression": "thinking" },
-        { "text": "단맛, 신맛, 쓴맛, 짠맛 중에 끌리는 게 있으신가요?", "expression": "thinking" },
+        { "text": "단맛, 신맛, 드라이함, 짠맛 중에 끌리는 게 있으신가요?", "expression": "thinking" },
         { "text": "아니면 특별히 싫어하시는 맛이 있는지부터 여쭤볼게요.", "expression": "talk" }
       ]
     },
@@ -387,13 +387,13 @@
       "lines": [
         { "text": "그럼 여기서는 더 권하지 않을게요. 물부터 드시고, 조금 쉬었다가 움직이세요.", "expression": "sympathy" },
         { "text": "이미 많이 드셨다면 새 잔은 멈출게요. 지금은 물이랑 쉬는 쪽이 먼저예요.", "expression": "sympathy" },
-        { "text": "오늘은 여기까지 하시는 게 좋겠어요. 무리하지 마세요.", "expression": "sympathy" },
+        { "text": "오늘은 여기까지 하시는 게 좋겠어요. 물부터 드시고 잠깐 쉬어가세요.", "expression": "sympathy" },
         { "text": "많이 드셨네요. 잠깐 쉬면서 물 드시는 게 좋을 것 같아요.", "expression": "sympathy" },
         { "text": "더 마시면 내일 고생하실 거예요. 여기서 멈추는 게 좋겠어요.", "expression": "sympathy" },
         { "text": "오늘은 이쯤이 좋을 것 같아요. 물 한잔 하고 천천히 쉬세요.", "expression": "sympathy" },
         { "text": "오늘은 여기까지예요. 더 드시면 내일 고생하실 테니까요. 물 한잔 하시죠.", "expression": "sympathy" },
         { "text": "지금은 잠깐 멈추는 게 좋겠어요. 제가 물을 따라드릴게요.", "expression": "sympathy" },
-        { "text": "손님, 오늘은 이만 마시는 게 좋을 것 같아요. 몸이 먼저니까요.", "expression": "sympathy" },
+        { "text": "손님, 오늘은 이만 마시는 게 좋을 것 같아요. 물부터 드세요. 몸이 먼저니까요.", "expression": "sympathy" },
         { "text": "술은 즐기는 거지, 참는 게 아니잖아요. 오늘은 여기서 멈추는 게 예의일 거예요.", "expression": "sympathy" }
       ]
     },
@@ -402,7 +402,7 @@
       "lines": [
         { "text": "알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.", "expression": "talk" },
         { "text": "술은 제외하고 볼게요. 무알코올 느낌이나 좋아하는 맛을 말해 주세요.", "expression": "talk" },
-        { "text": "이해합니다. 대신 즐길 수 있는 다른 옵션을 같이 찾아볼게요.", "expression": "talk" },
+        { "text": "이해합니다. 알코올은 제외하고, 무알코올로 즐길 수 있는 다른 옵션을 같이 찾아볼게요.", "expression": "talk" },
         { "text": "알코올은 제외할게요. 대신 맛 위주로 맞춰드릴 수 있어요.", "expression": "talk" },
         { "text": "네, 무알코올로 진행할게요. 어떤 맛을 좋아하시나요?", "expression": "talk" },
         { "text": "알코올은 안내해 드릴 수 없어서 죄송해요. 대신 다른 걸로 즐길 수 있는 방법을 찾아볼게요.", "expression": "talk" },

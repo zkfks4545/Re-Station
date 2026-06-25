@@ -48,8 +48,8 @@ export default function BartenderSprite({
 
   useEffect(() => {
     if (!isPreparingCocktail) {
-      setShakeFrameIndex(0)
-      return
+      const timeoutId = window.setTimeout(() => setShakeFrameIndex(0), 0)
+      return () => window.clearTimeout(timeoutId)
     }
 
     const intervalId = window.setInterval(() => {
@@ -64,20 +64,22 @@ export default function BartenderSprite({
     wasPreparingCocktail.current = isPreparingCocktail
 
     if (isPreparingCocktail) {
-      setIsShowingFinishFrame(false)
-      return
+      const timeoutId = window.setTimeout(() => setIsShowingFinishFrame(false), 0)
+      return () => window.clearTimeout(timeoutId)
     }
 
     if (!didFinishMixing) {
       return
     }
 
-    setIsShowingFinishFrame(true)
+    const timeoutId = window.setTimeout(() => setIsShowingFinishFrame(true), 0)
+    return () => window.clearTimeout(timeoutId)
   }, [isPreparingCocktail])
 
   useEffect(() => {
     if (isShowingFinishFrame && !isPreparingCocktail && !isBartenderTyping) {
-      setIsShowingFinishFrame(false)
+      const timeoutId = window.setTimeout(() => setIsShowingFinishFrame(false), 0)
+      return () => window.clearTimeout(timeoutId)
     }
   }, [isBartenderTyping, isPreparingCocktail, isShowingFinishFrame])
 

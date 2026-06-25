@@ -61,6 +61,7 @@ export interface Message {
   role: 'user' | 'bartender'
   text: string
   speaker?: 'karua' | 'siesta'
+  expression?: Expression
 }
 
 export interface BartenderResponse {

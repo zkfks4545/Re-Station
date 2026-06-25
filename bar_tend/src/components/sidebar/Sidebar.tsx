@@ -20,6 +20,7 @@ export default function Sidebar({
   mobileOpen,
   onMobileClose,
   onResetNight,
+  lastServedCocktail,
   onViewCocktail,
   onOrderCocktail,
 }: {
@@ -27,17 +28,13 @@ export default function Sidebar({
   mobileOpen: boolean
   onMobileClose: () => void
   onResetNight: () => void
+  lastServedCocktail?: CocktailData | null
   onViewCocktail?: (cocktail: CocktailData) => void
   onOrderCocktail?: (cocktailName: string) => void
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
   const totalCocktails = cocktails.length
-
-  const handleCodexSelect = (cocktail: CocktailData) => {
-    onViewCocktail?.(cocktail)
-    onMobileClose()
-  }
 
   const handleReset = () => {
     if (!confirmReset) {
@@ -91,7 +88,8 @@ export default function Sidebar({
               </p>
               <CocktailBookTab
                 unlockedIds={unlockedIds}
-                onSelect={handleCodexSelect}
+                featuredCocktail={lastServedCocktail}
+                onSelect={onViewCocktail}
               />
             </>
           )}

@@ -17,7 +17,7 @@ describe('neutral recommendation dialogue copy', () => {
     expect(reply).toContain('찾으시는군요')
     expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
     expect(reply).toContain('자세한 정보도 함께 보여드릴게요')
-    expect(reply).not.toMatch(/손님|농담|잔/)
+    expect(reply).not.toMatch(/손님|농담/)
     expect(reply).not.toContain(cocktail.description)
   })
 

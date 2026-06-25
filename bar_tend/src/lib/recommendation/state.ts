@@ -57,21 +57,22 @@ const SITUATION_PATTERNS: Array<[RecommendationSituation, RegExp]> = [
 ]
 
 const TASTE_PATTERNS: Array<[FeatureKey, number, RegExp]> = [
-  ['sweetness', 0.8, /달콤|달달|단맛|디저트/],
+  ['sweetness', 0.8, /달콤|달달|단맛|디저트|주스|쥬스|juice/i],
   ['sweetness', 0.2, /안\s*달|드라이|쌉쌀|씁쓸|쓴맛/],
+  ['sourness', 0.55, /주스|쥬스|juice/i],
   ['sourness', 0.8, /상큼|새콤|신맛|시트러스|레몬|라임/],
   ['sourness', 0.2, /안\s*신|산미\s*없/],
   ['fizz', 0.8, /탄산|청량|스파클|톡\s*쏘/],
   ['fizz', 0.1, /탄산\s*없|부드럽|스틸/],
-  ['alcohol_strength', 0.8, /도수.*높|독한|강한|세게|쎈/],
-  ['alcohol_strength', 0.2, /도수.*낮|약한|순한|가볍게/],
+  ['alcohol_strength', 0.8, /도수.*높|독한|강한|세게|센\s*(거|것|걸|술)?|쎈/],
+  ['alcohol_strength', 0.2, /도수.*낮|약한|순한|가볍게|주스|쥬스|juice/i],
 ]
 
 const ALCOHOL_PATTERNS: Array<[AlcoholPreference, RegExp]> = [
   ['non-alcoholic', /무알코올|논알|non.?alcohol/],
   ['low', /도수.*낮|약한 술|순한 술|가볍게/],
   ['medium', /도수.*적당|적당한 도수/],
-  ['high', /도수.*높|독한 술|강한 술|강하게/],
+  ['high', /도수.*높|독한 술|독한\s*(거|것|걸)?|강한 술|강하게|센\s*(거|것|걸|술)?|쎈\s*(거|것|걸|술)?/],
 ]
 
 const BASE_SPIRIT_PATTERNS = ['진', '럼', '위스키', '데킬라', '보드카', '브랜디', '리큐르', '카샤사'] as const

@@ -20,14 +20,18 @@ export default function App() {
     activeQuestion,
     errorMessage,
     servedCocktail,
+    lastServedCocktail,
     sidebarOpen,
     screenShake,
     unlockedIds,
+    canReRecommend,
     handleEnter,
     handleExit,
+    handleOrderCocktail,
     handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
+    handleViewCocktail,
     handleWelcomeDrink,
     handleSend,
     onTypingComplete,
@@ -139,7 +143,7 @@ export default function App() {
           <CocktailCard
             cocktail={servedCocktail}
             onClose={() => setServedCocktail(null)}
-            onReRecommend={handleReRecommend}
+            onReRecommend={canReRecommend ? handleReRecommend : undefined}
           />
         )}
       </div>
@@ -149,8 +153,9 @@ export default function App() {
         mobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
         onResetNight={handleResetNight}
-        onViewCocktail={setServedCocktail}
-        onOrderCocktail={(name) => handleSend(`${name} 주세요`)}
+        lastServedCocktail={lastServedCocktail}
+        onViewCocktail={handleViewCocktail}
+        onOrderCocktail={handleOrderCocktail}
       />
     </div>
   )

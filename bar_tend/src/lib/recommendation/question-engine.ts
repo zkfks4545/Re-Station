@@ -28,9 +28,9 @@ export function isRecommendationIntent(text: string): boolean {
     'i',
   )
   if (kf(['추천', '골라', '마실', '칵테일', '한잔', '뭐 마실', '메뉴', '적당한', '다른\\s*(걸|거|술|칵테일)', '또.*추천', '별로', '다시\\s*(찾|추천)']).test(text)) return true
-  if (kf(['달콤', '달달', '달다', '씁쓸', '쓰다', '비터', '상쾌', '시원', '청량', 'fresh', '시트러스', '탄산', '스파이시']).test(text)) return true
-  if (kf(['과일', '베리', '플로럴', '스모키', '허브', '커피', '크리미', '진저', '향']).test(text)) return true
-  if (kf(['세게', '약하게', '가볍', '도수', '취하', 'strong', '강한', '독한', '순한']).test(text)) return true
+  if (kf(['달콤', '달달', '달다', '씁쓸', '쓰다', '비터', '드라이', '상쾌', '시원', '청량', 'fresh', '시트러스', '탄산', '스파이시']).test(text)) return true
+  if (kf(['과일', '주스', '쥬스', '베리', '플로럴', '스모키', '허브', '커피', '크리미', '진저', '향']).test(text)) return true
+  if (kf(['세게', '센\\s*(거|것|걸|술)?', '쎈', '약하게', '가볍', '도수', '취하', 'strong', '강한', '독한', '순한']).test(text)) return true
   if (kf(['신맛', '상큼', '새콤', 'sour', '레몬', '라임', '산뜻']).test(text)) return true
   return false
 }
@@ -38,19 +38,19 @@ export function isRecommendationIntent(text: string): boolean {
 export function ingestTasteSignals(text: string, current: TastePreference): TastePreference {
   const hints: Record<FeatureKey, { up: RegExp[]; down: RegExp[] }> = {
     sweetness: {
-      up: [/달콤|달아|sweet|syrup|시럽|달게|달짝|달달|달다|디저트|단맛/i],
+      up: [/달콤|달아|sweet|syrup|시럽|달게|달짝|달달|달다|디저트|단맛|주스|쥬스|juice/i],
       down: [/안\s*달|드라이|dry|씁쓸|쓰다|bitter|쌉쌀/i],
     },
     alcohol_strength: {
-      up: [/세게|쎄|강하|도수|취하|strong|stiff|독하|진하|하이볼|쎈/i],
-      down: [/약하|가볍|light|soft|논알|순하|약한/i],
+      up: [/세게|센\s*(거|것|걸|술)?|쎄|강하|도수|취하|strong|stiff|독하|진하|하이볼|쎈/i],
+      down: [/약하|가볍|light|soft|논알|순하|약한|주스|쥬스|juice/i],
     },
     fizz: {
       up: [/탄산|톡\s*쏘|스파클|fizz|soda|청량|스파클링|거품|기포|상쾌/i],
       down: [/탄산\s*없|스틸|still|부드럽/i],
     },
     sourness: {
-      up: [/신맛|상큼|새콤|sour|lime|레몬|시트러스|라임|산뜻/i],
+      up: [/신맛|상큼|새콤|sour|lime|레몬|시트러스|라임|산뜻|주스|쥬스|juice/i],
       down: [/안\s*신|무난/i],
     },
   }

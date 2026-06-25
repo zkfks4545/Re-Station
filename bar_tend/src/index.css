@@ -131,8 +131,6 @@ html::before {
   width: 100%;
   min-height: 140px;
   overflow: visible;
-  transition: filter 300ms ease;
-  filter: sepia(0.12) saturate(1.1);
 }
 
 .mood-indicator {
