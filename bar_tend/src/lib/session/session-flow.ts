@@ -28,18 +28,14 @@ export function isOrderRoute(route: InputRoute): boolean {
   return ORDER_ROUTES.includes(route)
 }
 
-export function shouldServeXyzNext(options: {
-  phase: SessionPhase
+export function shouldEnterFarewellAfterServedCocktail(options: {
+  current: SessionPhase
   alcoholStarTotal: number
-  route: InputRoute
-  recommendationActive: boolean
+  isXyz: boolean
 }): boolean {
-  if (!isOrderRoute(options.route)) return false
-  if (options.recommendationActive) return false
-  if (isOrderingClosedPhase(options.phase)) {
-    return false
-  }
-  return options.alcoholStarTotal > ALCOHOL_STARS_BEFORE_XYZ
+  if (options.isXyz) return false
+  if (isOrderingClosedPhase(options.current)) return false
+  return options.alcoholStarTotal >= ALCOHOL_STARS_BEFORE_XYZ
 }
 
 export function isRecommendationBlockedInPhase(phase: SessionPhase, route: InputRoute): boolean {

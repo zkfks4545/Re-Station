@@ -47,6 +47,10 @@ export function formatFarewellBlockReply(): string {
   return '오늘 주문은 여기까지 받을게요.\n이 구간은 더 추천하기보다 마무리 시간이에요. 방금 드신 것에 대한 이야기나 오늘 마신 것 정리는 들어볼게요.'
 }
 
+export function formatAlcoholLimitFarewellReply(): string {
+  return '오늘 주문은 여기까지 받을게요.\n도수 스테이터스가 10에 닿아서, 이제는 더 주문하기보다 마무리 시간으로 넘길게요.'
+}
+
 export function formatReturnHomeReply(): string {
   return '오늘도 거의 비웠어요.\n오늘은 여기까지 하시죠. 조심히 들어가세요.'
 }

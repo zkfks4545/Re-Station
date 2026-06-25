@@ -469,8 +469,8 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 범위 | `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계, XYZ 발동 조건, Farewell Phase 2~3턴 제한, 추가 주문·추천 금지 라우팅 |
 | 완료 조건 | XYZ 발동 조건과 상태 전이가 타입/문서/테스트 기준으로 정의되고, XYZ 이후 신규 추천과 신규 주문이 차단되며 레시피·후기·가벼운 잡담은 허용된다. |
 | 주의 | XYZ는 벌칙이나 엔딩 분기가 아니라 오늘의 마지막 드링크다. 사용자는 평가받지 않는다. |
-| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 XYZ 발동 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 주문 횟수에서 제외하며, 일반 주문/추천 2잔 이후 다음 주문·추천 요청은 `cocktail_classic_043` XYZ로 전환된다. XYZ 이후에는 신규 주문·추천과 다시 추천받기를 차단하고 Farewell Phase 3턴 뒤 귀가로 닫는다. |
-| 검증 | `session-flow.test.ts` 추가, 최종 Vitest 160개, lint, build 통과 |
+| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 Farewell 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하고, 3턴 정도 대화를 이어간 뒤 귀가로 닫는다. |
+| 검증 | `session-flow.test.ts` 기준 서브 이후 도수 한계 Farewell 진입 테스트 통과 |
 
 #### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현
 

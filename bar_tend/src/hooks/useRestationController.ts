@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCocktailResponse } from '@/lib/bartender/engine.js'
 import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
-import { getCocktailById } from '@/lib/cocktails/database.js'
 import { routeUserInput } from '@/lib/dialogue/input-router.js'
 import type { RouteResult } from '@/lib/dialogue/input-router.js'
 import { buildDialogueTurn } from '@/lib/dialogue/turn-builder.js'
@@ -18,16 +17,16 @@ import {
   isOrderingClosedPhase,
   nextPhaseAfterRoute,
   nextPhaseAfterServedCocktail,
+  shouldEnterFarewellAfterServedCocktail,
   shouldReturnHomeAfterFarewellTurn,
-  shouldServeXyzNext,
   XYZ_COCKTAIL_ID,
 } from '@/lib/session/session-flow.js'
 import {
+  formatAlcoholLimitFarewellReply,
   formatFarewellBlockReply,
   formatFarewellConversationReply,
   formatReturnHomeReply,
   formatWelcomeXyzClarificationReply,
-  formatXyzReply,
   isEjectionConcern,
 } from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
@@ -416,27 +415,6 @@ export function useRestationController() {
         return
       }
 
-      // --- XYZ 마지막 잔 발동 처리(XYZ next trigger) ---
-      if (shouldServeXyzNext({ phase: sessionPhase, alcoholStarTotal, route: routeResult.route, recommendationActive: activeQuestion !== null })) {
-        const xyzCocktail = getCocktailById(XYZ_COCKTAIL_ID)
-        if (!xyzCocktail) {
-          resetRecommendation()
-          setSessionPhase('farewell')
-          bartenderReply('마지막 잔 데이터를 찾지 못했어요. 오늘 주문은 여기까지 받을게요.', 'sympathy')
-          return
-        }
-        resetRecommendation()
-        setSessionPhase('xyz')
-        setFarewellTurnCount(0)
-        setScreenShake(true)
-        timerRegistry.current.schedule(() => setScreenShake(false), 500)
-        const ids = unlockCocktailId(xyzCocktail.id)
-        setUnlockedIds(ids)
-        bartenderReply(formatXyzReply(xyzCocktail, { welcomeDrinkUsed }), 'smirk', xyzCocktail)
-        timerRegistry.current.schedule(() => setSessionPhase('farewell'), COCKTAIL_PREPARATION_DELAY_MS + COCKTAIL_PREPARATION_DURATION_MS + 900)
-        return
-      }
-
       // --- 미등록 칵테일 처리(Unknown cocktail query) ---
       if (routeResult.route === 'unknown-cocktail-query' && routeResult.unknownCocktailName) {
         const unknownReply = `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록하지 않았어요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`
@@ -478,14 +456,35 @@ export function useRestationController() {
                 recommendedCocktailName: cocktail?.name,
               }, siestaRecentKeysRef.current)
             : null
+          let afterMessages = siestaResult?.messages ?? []
 
           if (cocktail) {
             setScreenShake(true)
             timerRegistry.current.schedule(() => setScreenShake(false), 500)
             const ids = unlockCocktailId(cocktail.id)
             setUnlockedIds(ids)
-            if (!isXyzCocktail) setAlcoholStarTotal((count) => count + cocktail.taste.alcohol)
-            setSessionPhase(nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }))
+            const nextAlcoholStarTotal = isXyzCocktail
+              ? alcoholStarTotal
+              : alcoholStarTotal + cocktail.taste.alcohol
+            if (!isXyzCocktail) setAlcoholStarTotal(nextAlcoholStarTotal)
+            if (shouldEnterFarewellAfterServedCocktail({
+              current: sessionPhase,
+              alcoholStarTotal: nextAlcoholStarTotal,
+              isXyz: isXyzCocktail,
+            })) {
+              setSessionPhase('farewell')
+              setFarewellTurnCount(0)
+              afterMessages = [
+                ...afterMessages,
+                {
+                  role: 'bartender',
+                  text: formatAlcoholLimitFarewellReply(),
+                  speaker: 'karua',
+                },
+              ]
+            } else {
+              setSessionPhase(nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }))
+            }
           } else {
             setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
           }
@@ -501,7 +500,7 @@ export function useRestationController() {
             siestaCooldownRef.current -= 1
           }
 
-          bartenderReply(turn.reply, turn.expression, cocktail, 'idle', siestaResult?.messages ?? [])
+          bartenderReply(turn.reply, turn.expression, cocktail, 'idle', afterMessages)
         } catch {
           setExpression('idle')
           setInteractionStatus('idle')
@@ -527,7 +526,6 @@ export function useRestationController() {
       sessionPhase,
       setUnlockedIds,
       welcomeDrinkFeedbackPending,
-      welcomeDrinkUsed,
     ],
   )
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatAlcoholLimitFarewellReply,
   formatFarewellBlockReply,
   formatFarewellConversationReply,
   formatReturnHomeReply,
@@ -49,5 +50,12 @@ describe('farewell replies', () => {
   it('keeps order blocking and return-home replies in the session reply module', () => {
     expect(formatFarewellBlockReply()).toContain('오늘 주문은 여기까지')
     expect(formatReturnHomeReply()).toContain('조심히 들어가세요')
+  })
+
+  it('explains alcohol limit farewell as a forced closing phase', () => {
+    const reply = formatAlcoholLimitFarewellReply()
+
+    expect(reply).toContain('도수 스테이터스가 10')
+    expect(reply).toContain('마무리 시간')
   })
 })

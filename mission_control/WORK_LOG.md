@@ -1,5 +1,17 @@
 # 작업 이력
 
+## 2026-06-25 / FLOW-004 / 서브 이후 도수 10 도달 시 Farewell 이행
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | FLOW-004 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 스테이터스가 10 이상에 도달하면 Farewell Phase로 이행하도록 세션 정책을 조정했다. |
+| 주요 변경 사항 | `shouldEnterFarewellAfterServedCocktail`을 추가해 서브 이후 누적 도수 기준을 명시했다. `useRestationController`는 칵테일을 확정하고 도수를 누적한 뒤 10 이상이면 `farewell` 단계로 전환하고, `formatAlcoholLimitFarewellReply`를 후속 메시지로 붙인다. Farewell Phase에서는 기존처럼 신규 주문·추천을 차단하고 몇 턴 대화한 뒤 귀가로 닫는다. |
+| 수정 파일 | `bar_tend/src/lib/session/session-flow.ts`, `bar_tend/src/lib/session/session-flow.test.ts`, `bar_tend/src/lib/session/farewell-replies.ts`, `bar_tend/src/lib/session/farewell-replies.test.ts`, `bar_tend/src/hooks/useRestationController.ts`, `mission_control/CURRENT_STATE.md`, `mission_control/DECISIONS.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/SESSION_FLOW_SPEC.md`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- src/lib/session/session-flow.test.ts src/lib/session/farewell-replies.test.ts --run` 통과, `npm.cmd run check` 통과 |
+
 ## 2026-06-25 / DOC-006 / 구조 보고서의 작업 로그성 표현 제거
 
 | 항목 | 내용 |

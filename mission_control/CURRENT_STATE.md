@@ -13,7 +13,7 @@
 | 추천 원칙 | JSON·DB·규칙 기반으로 추천 결과 확정, 대사 소재는 입력 경로가 결정, WebLLM은 향후 말투 포장만 허용 |
 | 수렴 원칙 | DLG-807~809 완료 전까지 WebLLM 확장, 새 추천 알고리즘, 새 캐릭터, 추가 이벤트 시스템 보류 |
 | 현재 런타임 초점 | 시에스타 이벤트는 `SIESTA_EVENTS_ENABLED = false`로 비활성화하고, 카루아 단독 추천·제조·서빙 루프를 집중 점검 중 |
-| 차기 세션 방향 | 자유입력은 열어 두되 진행은 웰컴드링크·추천·주문·XYZ·Farewell Phase·귀어로 닫는다. 기준 문서는 `SESSION_FLOW_SPEC.md` |
+| 차기 세션 방향 | 자유입력은 열어 두되 진행은 웰컴드링크·추천·주문·XYZ·Farewell Phase·귀가로 닫는다. 기준 문서는 `SESSION_FLOW_SPEC.md` |
 | 문서 진입점 | `mission_control/README.md`에서 필독 파일과 선택적 수정·검토 파일을 구분 |
 | 빌드 | 통과: `npm.cmd run build` (`tsc --noEmit` 포함, 메인 JS 약 416 kB) |
 | 린트 | 통과: `npm.cmd run lint` |
@@ -28,7 +28,7 @@
 - [x] **현재 로드맵에는 하위 프로그램 세부 과제들이 `CURRENT_STATE.md`에 정리되어 있으며, 상위 프로그램은 `README.md`에 나열**
 - [x] **9월 말 기준 확정한 경영 관리 기준**을 `CONVERGENCE_PRINCIPLES.md`에 기록
 - [x] 대사·추천·입력 라우팅·표정 매핑·카드 렌더링 전 도메인 경계를 순수 테스트(현재 Vitest 171개 중 168개 통과, 3개 엣지 케이스로 별개 정합성 검토 진행)
-- [x] `bar_tend/src/lib/session/session-flow.ts` (XYZ/Farewell Phase/리셋 경계)와 `lib/session/farewell-replies.ts` (XYZ/배웅/주문 차단/귀가 문구)를 통한 **세션 종료 로직의 의도 경계 분리**
+- [x] `bar_tend/src/lib/session/session-flow.ts` (서브 이후 도수 한계 기반 Farewell 진입/리셋 경계)와 `lib/session/farewell-replies.ts` (도수 한계/배웅/주문 차단/귀가 문구)를 통한 **세션 종료 로직의 의도 경계 분리**
 - [x] **CAST-001~004 진단**('캐릭터 시나리오와 테스트'): 실행 가능한 리뷰 중 `DX-808`, `DLG-807`, `DLG-808`, `DLG-809`, `STAGE-001` 진행 중
 - [x] **데스크톱/모바일 수동 검증**: 선택지 버튼 클릭, 추천 완료, 다시 추천받기, 화면 배치를 390px 모바일 폭에서 실사용 흐름으로 검증
 - [x] **2025년 4분기 주요 수렴:** 컴백 칵테일, 메뉴 청소, 별점 적용 제로 폐기물 보증 구조의 방향성
