@@ -30,6 +30,7 @@
 | `mission_control/CHARACTER_DESIGN.md` | 카루아/시에스타 말투, 금지 패턴, 캐릭터 검수가 필요할 때 |
 | `mission_control/AI_WORKFLOW.md` | AI 작업 절차, 기록 방식, 협업 규칙을 확인할 때 |
 | `mission_control/WORK_LOG.md` | 과거 작업의 세부 이력, 수정 파일, 검증 결과를 추적할 때 |
+| `mission_control/REFACTORING_LOG.md` | 동작 보존 리팩토링의 문제점, 개선 이유, 변경 내용, 기대 효과를 추적할 때 |
 
 ## 수정 기준
 

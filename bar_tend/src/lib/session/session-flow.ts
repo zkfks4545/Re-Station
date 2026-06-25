@@ -20,6 +20,10 @@ const ORDER_ROUTES: InputRoute[] = [
   'recommendation',
 ]
 
+export function isOrderingClosedPhase(phase: SessionPhase): boolean {
+  return phase === 'xyz' || phase === 'farewell' || phase === 'returnHome'
+}
+
 export function isOrderRoute(route: InputRoute): boolean {
   return ORDER_ROUTES.includes(route)
 }
@@ -32,19 +36,19 @@ export function shouldServeXyzNext(options: {
 }): boolean {
   if (!isOrderRoute(options.route)) return false
   if (options.recommendationActive) return false
-  if (options.phase === 'xyz' || options.phase === 'farewell' || options.phase === 'returnHome') {
+  if (isOrderingClosedPhase(options.phase)) {
     return false
   }
   return options.alcoholStarTotal > ALCOHOL_STARS_BEFORE_XYZ
 }
 
 export function isRecommendationBlockedInPhase(phase: SessionPhase, route: InputRoute): boolean {
-  if (phase !== 'xyz' && phase !== 'farewell' && phase !== 'returnHome') return false
+  if (!isOrderingClosedPhase(phase)) return false
   return isOrderRoute(route)
 }
 
 export function nextPhaseAfterRoute(route: InputRoute, current: SessionPhase): SessionPhase {
-  if (current === 'xyz' || current === 'farewell' || current === 'returnHome') return current
+  if (isOrderingClosedPhase(current)) return current
   if (route === 'recommendation') return 'recommending'
   if (route === 'random-recommendation' || route === 'explicit-cocktail') return 'aftertalk'
   if (route === 'general') return current === 'entry' ? 'conversation' : current

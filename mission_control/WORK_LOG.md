@@ -1,5 +1,17 @@
 # 작업 이력
 
+## 2026-06-25 / REF-SESSION-001~002 / 세션 컨트롤러 책임 축소
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | REF-SESSION-001~002 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 기능과 동작을 바꾸지 않고 세션 종료 응답 생성과 주문 종료 단계 판정을 컨트롤러 밖 도메인 모듈로 분리했다. |
+| 주요 변경 사항 | `formatXyzReply`, `formatFarewellBlockReply`, `formatReturnHomeReply`를 `lib/session/farewell-replies.ts`로 이동했다. `xyz/farewell/returnHome` 조합은 `isOrderingClosedPhase`로 명시했다. 세부 문제점, 개선 이유, 변경 내용, 기대 효과는 `mission_control/REFACTORING_LOG.md`에 기록했다. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/lib/session/farewell-replies.ts`, `bar_tend/src/lib/session/farewell-replies.test.ts`, `bar_tend/src/lib/session/session-flow.ts`, `bar_tend/src/lib/session/session-flow.test.ts`, `mission_control/README.md`, `mission_control/REFACTORING_LOG.md`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- src/lib/session/farewell-replies.test.ts --run` 통과, `npm.cmd test -- src/lib/session/session-flow.test.ts --run` 통과, `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과. 전체 `npm.cmd test -- --run`은 `recommendation-ui.test.tsx`, `engine.test.ts`, `database.test.ts`의 기존 범위 3건 실패를 확인했다. |
+
 ## 2026-06-24 / DOC-004 / 외부 기획용 구조 보고서 최신화
 
 | 항목 | 내용 |

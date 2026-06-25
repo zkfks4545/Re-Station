@@ -15,6 +15,7 @@ import {
 } from '@/lib/recommendation/welcome-drink.js'
 import {
   isRecommendationBlockedInPhase,
+  isOrderingClosedPhase,
   nextPhaseAfterRoute,
   nextPhaseAfterServedCocktail,
   shouldReturnHomeAfterFarewellTurn,
@@ -22,8 +23,11 @@ import {
   XYZ_COCKTAIL_ID,
 } from '@/lib/session/session-flow.js'
 import {
+  formatFarewellBlockReply,
   formatFarewellConversationReply,
+  formatReturnHomeReply,
   formatWelcomeXyzClarificationReply,
+  formatXyzReply,
   isEjectionConcern,
 } from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
@@ -40,24 +44,6 @@ type ServedCocktailMode = 'recommendation' | 'codex'
 const COCKTAIL_PREPARATION_DELAY_MS = 600
 const COCKTAIL_PREPARATION_DURATION_MS = 1800
 const SIESTA_EVENTS_ENABLED = false
-
-function formatXyzReply(cocktail: CocktailData, options: {
-  welcomeDrinkUsed: boolean
-}): string {
-  const name = cocktail.name_ko ?? cocktail.name
-  if (!options.welcomeDrinkUsed) {
-    return `웰컴드링크를 끝내 못 드렸네요. 그건 다음에 제대로 챙길게요.\n오늘은 ${name}로 마무리하겠습니다. 이 이상 주문은 더 받지 않을게요.`
-  }
-  return `오늘의 마지막 서비스입니다. ${name}로 마무리할게요.\n이 이상 주문은 더 받지 않을게요. 천천히 드시고, 곧 귀가 준비하겠습니다.`
-}
-
-function formatFarewellBlockReply(): string {
-  return '오늘 주문은 여기까지 받을게요.\n이 구간은 더 추천하기보다 마무리 시간이에요. 방금 드신 것에 대한 이야기나 오늘 마신 것 정리는 들어볼게요.'
-}
-
-function formatReturnHomeReply(): string {
-  return '오늘도 거의 비웠어요.\n오늘은 여기까지 하시죠. 조심히 들어가세요.'
-}
 
 export function useRestationController() {
   const [scene, setScene] = useState<'outside' | 'inside'>('outside')
@@ -311,9 +297,7 @@ export function useRestationController() {
       servedCocktail ||
       welcomeDrinkUsed ||
       welcomeDrinkFeedbackPending ||
-      sessionPhase === 'xyz' ||
-      sessionPhase === 'farewell' ||
-      sessionPhase === 'returnHome'
+      isOrderingClosedPhase(sessionPhase)
     ) return
 
     const cocktail = selectWelcomeDrink()
@@ -407,9 +391,7 @@ export function useRestationController() {
       if (
         routeResult.route === 'general' &&
         lastServedCocktail?.id === XYZ_COCKTAIL_ID &&
-        sessionPhase !== 'xyz' &&
-        sessionPhase !== 'farewell' &&
-        sessionPhase !== 'returnHome' &&
+        !isOrderingClosedPhase(sessionPhase) &&
         isEjectionConcern(text)
       ) {
         const reply = formatWelcomeXyzClarificationReply()
@@ -606,7 +588,7 @@ export function useRestationController() {
 
   const handleReRecommend = useCallback(() => {
     if (interactionStatus !== 'idle') return
-    if (sessionPhase === 'xyz' || sessionPhase === 'farewell' || sessionPhase === 'returnHome') {
+    if (isOrderingClosedPhase(sessionPhase)) {
       setServedCocktail(null)
       bartenderReply(formatFarewellBlockReply(), 'smirk')
       return
@@ -616,7 +598,7 @@ export function useRestationController() {
     handleSend('다른 걸로 추천해줘')
   }, [bartenderReply, handleSend, interactionStatus, sessionPhase])
 
-  const canReRecommend = sessionPhase !== 'xyz' && sessionPhase !== 'farewell' && sessionPhase !== 'returnHome'
+  const canReRecommend = !isOrderingClosedPhase(sessionPhase)
 
   return {
     scene,
@@ -649,9 +631,7 @@ export function useRestationController() {
       !welcomeDrinkFeedbackPending &&
       activeQuestion === null &&
       servedCocktail === null &&
-      sessionPhase !== 'xyz' &&
-      sessionPhase !== 'farewell' &&
-      sessionPhase !== 'returnHome',
+      !isOrderingClosedPhase(sessionPhase),
     setServedCocktail,
     setSidebarOpen,
   }

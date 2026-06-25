@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   isRecommendationBlockedInPhase,
+  isOrderingClosedPhase,
   MAX_FAREWELL_TURNS,
   nextPhaseAfterServedCocktail,
   shouldReturnHomeAfterFarewellTurn,
@@ -8,6 +9,14 @@ import {
 } from './session-flow.js'
 
 describe('closed Re:Station session flow', () => {
+  it('names the phases where new orders are closed', () => {
+    expect(isOrderingClosedPhase('entry')).toBe(false)
+    expect(isOrderingClosedPhase('aftertalk')).toBe(false)
+    expect(isOrderingClosedPhase('xyz')).toBe(true)
+    expect(isOrderingClosedPhase('farewell')).toBe(true)
+    expect(isOrderingClosedPhase('returnHome')).toBe(true)
+  })
+
   it('serves XYZ before another order once the alcohol star total passes the limit', () => {
     expect(shouldServeXyzNext({
       phase: 'aftertalk',

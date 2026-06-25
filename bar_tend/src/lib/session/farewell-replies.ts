@@ -1,4 +1,5 @@
 import type { Expression } from '../../types.js'
+import type { CocktailData } from '../../types.js'
 
 export function isEjectionConcern(input: string): boolean {
   return /나가라는|나가란|쫓|퇴장|가라는|가란/.test(input)
@@ -30,4 +31,22 @@ export function formatFarewellConversationReply(input: string): { text: string; 
     text: '아직 바로 나가시라는 뜻은 아니에요.\n다만 새 주문은 여기서 멈출게요. 남은 잔 이야기 정도는 조금 더 해도 괜찮습니다.',
     expression: 'talk',
   }
+}
+
+export function formatXyzReply(cocktail: CocktailData, options: {
+  welcomeDrinkUsed: boolean
+}): string {
+  const name = cocktail.name_ko ?? cocktail.name
+  if (!options.welcomeDrinkUsed) {
+    return `웰컴드링크를 끝내 못 드렸네요. 그건 다음에 제대로 챙길게요.\n오늘은 ${name}로 마무리하겠습니다. 이 이상 주문은 더 받지 않을게요.`
+  }
+  return `오늘의 마지막 서비스입니다. ${name}로 마무리할게요.\n이 이상 주문은 더 받지 않을게요. 천천히 드시고, 곧 귀가 준비하겠습니다.`
+}
+
+export function formatFarewellBlockReply(): string {
+  return '오늘 주문은 여기까지 받을게요.\n이 구간은 더 추천하기보다 마무리 시간이에요. 방금 드신 것에 대한 이야기나 오늘 마신 것 정리는 들어볼게요.'
+}
+
+export function formatReturnHomeReply(): string {
+  return '오늘도 거의 비웠어요.\n오늘은 여기까지 하시죠. 조심히 들어가세요.'
 }
