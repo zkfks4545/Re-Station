@@ -531,12 +531,15 @@
     "welcome-drink-offer": {
       "description": "웰컴드링크 제안",
       "lines": [
-        { "text": "웰컴드링크로는 ${name}로 드릴게요.\n처음 오신 분께는 너무 앞서 나가지 않는 잔이 좋거든요. 가볍게 분위기를 맞춰볼게요.", "expression": "talk" },
+        { "text": "웰컴드링크로는 ${name}로 드릴게요.\n첫 잔이라 짧게 이야기 하나 얹어드릴게요.", "expression": "talk" },
         { "text": "${name}으로 준비했어요. 부담 없이 드셔 보세요.", "expression": "smirk" },
         { "text": "오늘은 ${name}로 시작해 보시죠. 가볍게 즐기기 좋은 잔이에요.", "expression": "smirk" },
         { "text": "첫 잔은 ${name}로 준비했어요. 부드럽게 시작하기 좋은 잔이니 부담 없이 드셔 보세요.", "expression": "talk" },
         { "text": "어서 오세요. 웰컴드링크로는 ${name}을 추천드려요. 오늘 분위기와 잘 맞을 거예요.", "expression": "smirk" },
-        { "text": "${name} 먼저 드셔 보시겠어요? 첫 잔은 가볍게, 그리고 편하게.", "expression": "smirk" }
+        { "text": "${name} 먼저 드셔 보시겠어요? 첫 잔은 가볍게, 그리고 편하게.", "expression": "smirk" },
+        { "text": "웰컴드링크가 조금 늦었네요. ${name}로 분위기를 다시 맞춰볼게요.", "expression": "embarrassed" },
+        { "text": "첫 순서는 지나갔지만, 아직 환영 인사는 남아 있었죠. ${name}로 부드럽게 정리해볼게요.", "expression": "smirk" },
+        { "text": "이쯤 되면 웰컴이라기보다 중간 점검이네요. ${name}로 잠깐 숨을 고르죠.", "expression": "thinking" }
       ]
     },
     "welcome-drink-feedback-cancel": {

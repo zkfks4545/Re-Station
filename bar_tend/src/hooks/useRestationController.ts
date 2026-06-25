@@ -10,6 +10,7 @@ import {
   formatWelcomeDrinkFeedbackReply,
   formatWelcomeDrinkReply,
   selectWelcomeDrink,
+  shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
 } from '@/lib/recommendation/welcome-drink.js'
 import {
@@ -20,6 +21,11 @@ import {
   shouldServeXyzNext,
   XYZ_COCKTAIL_ID,
 } from '@/lib/session/session-flow.js'
+import {
+  formatFarewellConversationReply,
+  formatWelcomeXyzClarificationReply,
+  isEjectionConcern,
+} from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
@@ -35,8 +41,13 @@ const COCKTAIL_PREPARATION_DELAY_MS = 600
 const COCKTAIL_PREPARATION_DURATION_MS = 1800
 const SIESTA_EVENTS_ENABLED = false
 
-function formatXyzReply(cocktail: CocktailData): string {
+function formatXyzReply(cocktail: CocktailData, options: {
+  welcomeDrinkUsed: boolean
+}): string {
   const name = cocktail.name_ko ?? cocktail.name
+  if (!options.welcomeDrinkUsed) {
+    return `웰컴드링크를 끝내 못 드렸네요. 그건 다음에 제대로 챙길게요.\n오늘은 ${name}로 마무리하겠습니다. 이 이상 주문은 더 받지 않을게요.`
+  }
   return `오늘의 마지막 서비스입니다. ${name}로 마무리할게요.\n이 이상 주문은 더 받지 않을게요. 천천히 드시고, 곧 귀가 준비하겠습니다.`
 }
 
@@ -316,9 +327,10 @@ export function useRestationController() {
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
-    bartenderReply(formatWelcomeDrinkReply(cocktail), 'smirk', cocktail)
+    bartenderReply(formatWelcomeDrinkReply(cocktail, { alcoholStarTotal }), 'smirk', cocktail)
   }, [
     activeQuestion,
+    alcoholStarTotal,
     bartenderReply,
     interactionStatus,
     resetRecommendation,
@@ -339,14 +351,18 @@ export function useRestationController() {
       ingestUserMessage(text)
       userMessageCountRef.current += 1
 
-      if (welcomeDrinkFeedbackPending) {
+      const routeResult: RouteResult = routeUserInput(text, { recommendationActive: activeQuestion !== null })
+
+      if (welcomeDrinkFeedbackPending && shouldHandleWelcomeDrinkFeedback(routeResult.route, text)) {
         setWelcomeDrinkFeedbackPending(false)
         const feedback = formatWelcomeDrinkFeedbackReply(text)
         bartenderReply(feedback.text, feedback.expression)
         return
       }
+      if (welcomeDrinkFeedbackPending) {
+        setWelcomeDrinkFeedbackPending(false)
+      }
 
-      const routeResult: RouteResult = routeUserInput(text, { recommendationActive: activeQuestion !== null })
       const failInvalidTurn = () => {
         setExpression('idle')
         setInteractionStatus('idle')
@@ -380,6 +396,25 @@ export function useRestationController() {
           moveOutsideAfterDelay(1800)
           return
         }
+        if (routeResult.route === 'general') {
+          resetRecommendation()
+          const reply = formatFarewellConversationReply(text)
+          bartenderReply(reply.text, reply.expression)
+          return
+        }
+      }
+
+      if (
+        routeResult.route === 'general' &&
+        lastServedCocktail?.id === XYZ_COCKTAIL_ID &&
+        sessionPhase !== 'xyz' &&
+        sessionPhase !== 'farewell' &&
+        sessionPhase !== 'returnHome' &&
+        isEjectionConcern(text)
+      ) {
+        const reply = formatWelcomeXyzClarificationReply()
+        bartenderReply(reply.text, reply.expression)
+        return
       }
 
       if (routeResult.route === 'exit') {
@@ -433,7 +468,7 @@ export function useRestationController() {
         timerRegistry.current.schedule(() => setScreenShake(false), 500)
         const ids = unlockCocktailId(xyzCocktail.id)
         setUnlockedIds(ids)
-        bartenderReply(formatXyzReply(xyzCocktail), 'smirk', xyzCocktail)
+        bartenderReply(formatXyzReply(xyzCocktail, { welcomeDrinkUsed }), 'smirk', xyzCocktail)
         timerRegistry.current.schedule(() => {
           setSessionPhase('farewell')
         }, COCKTAIL_PREPARATION_DELAY_MS + COCKTAIL_PREPARATION_DURATION_MS + 900)
@@ -541,6 +576,7 @@ export function useRestationController() {
       handleExit,
       ingestUserMessage,
       interactionStatus,
+      lastServedCocktail?.id,
       messages,
       moveOutsideAfterDelay,
       preference,
@@ -550,6 +586,7 @@ export function useRestationController() {
       sessionPhase,
       setUnlockedIds,
       welcomeDrinkFeedbackPending,
+      welcomeDrinkUsed,
     ],
   )
 

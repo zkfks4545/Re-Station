@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { cocktails } from '@/lib/cocktails/database.js'
+import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 import type { CocktailData } from '@/types.js'
 
 function CocktailDetail({
@@ -52,6 +53,24 @@ function CocktailDetail({
           </ul>
         </div>
       )}
+      <div className="codex-detail__section">
+        <h4 className="codex-detail__section-title">맛 프로필</h4>
+        <div className="flex flex-wrap gap-1">
+          {(['sweet', 'sour', 'bitter', 'alcohol'] as const).map((key) => {
+            const labels: Record<string, string> = { sweet: '단맛', sour: '신맛', bitter: '드라이함', alcohol: '도수' }
+            const val = cocktail.taste[key]
+            return (
+              <span
+                key={key}
+                className="text-xs px-2 py-1 rounded"
+                style={{ background: 'rgba(120,80,180,0.06)', border: '1px solid rgba(180,136,208,0.12)', color: 'rgba(255,255,255,0.6)' }}
+              >
+                {labels[key]} {formatTasteRating(val)}
+              </span>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
 import { getAllCocktailData } from '../cocktails/database.js'
+import type { InputRoute } from '../dialogue/input-router.js'
 
 export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
   id: 'welcome-drink-feedback',
@@ -50,9 +51,24 @@ export function selectWelcomeDrink(cocktails: CocktailData[] = getAllCocktailDat
   return candidates[Math.floor(Math.random() * candidates.length)] ?? cocktails[0]
 }
 
-export function formatWelcomeDrinkReply(cocktail: CocktailData): string {
+function getWelcomeDrinkTalkingPoint(cocktail: CocktailData): string {
+  return cocktail.talkingPoints?.[0] ?? cocktail.description
+}
+
+export function formatWelcomeDrinkReply(cocktail: CocktailData, options: {
+  alcoholStarTotal?: number
+} = {}): string {
   const name = cocktail.name_ko ?? cocktail.name
-  return `웰컴드링크로는 ${name}로 드릴게요.\n처음 오신 분께는 너무 앞서 나가지 않는 잔이 좋거든요. 가볍게 분위기를 맞춰볼게요.`
+  const alcoholStarTotal = options.alcoholStarTotal ?? 0
+  const context =
+    alcoholStarTotal > 10
+      ? '웰컴이라고 부르기엔 꽤 늦었네요. 그래도 아직 안 드린 잔은 안 드린 잔이라서요.'
+      : alcoholStarTotal > 0
+        ? '첫 순서에 드렸어야 했는데, 조금 앞질러 가버렸네요.'
+        : '첫 잔이라 짧게 이야기 하나 얹어드릴게요.'
+  const talkingPoint = getWelcomeDrinkTalkingPoint(cocktail)
+
+  return `웰컴드링크로는 ${name}로 드릴게요.\n${context}\n${talkingPoint}`
 }
 
 export function formatWelcomeDrinkFeedbackReply(answer: string): { text: string; expression: Expression } {
@@ -75,4 +91,15 @@ export function formatWelcomeDrinkFeedbackReply(answer: string): { text: string;
     return { text: '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.', expression: 'smirk' }
   }
   return { text: '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.', expression: 'embarrassed' }
+}
+
+export function isWelcomeDrinkFeedbackAnswer(answer: string): boolean {
+  const normalized = answer.replace(/\s+/g, '')
+  return WELCOME_DRINK_FEEDBACK_QUESTION.choices.some((choice) =>
+    normalized.includes(choice.label.replace(/\s+/g, '')),
+  ) || /가볍|약하|낮|달|스윗|sweet|좋았|괜찮|마음에|맛있|별로|싫|다른\s*느낌|아쉬/.test(answer)
+}
+
+export function shouldHandleWelcomeDrinkFeedback(route: InputRoute, answer: string): boolean {
+  return route === 'general' && isWelcomeDrinkFeedbackAnswer(answer)
 }

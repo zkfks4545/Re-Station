@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { cocktails } from '@/lib/cocktails/database.js'
+import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 
 function normalizeForSearch(s: string): string {
   return s.toLowerCase().replace(/[\s\-_']+/g, '')
@@ -24,10 +25,6 @@ function isFuzzyMatch(query: string, target: string): boolean {
   if (query.length < 2 || target.length < 2) return false
   const threshold = Math.max(1, Math.floor(Math.min(query.length, target.length) * 0.3))
   return levenshteinDistance(query, target) <= threshold
-}
-
-function tasteStars(n: number): string {
-  return '★'.repeat(n) + '☆'.repeat(5 - n)
 }
 
 export default function RecipeInfoTab({
@@ -119,10 +116,10 @@ export default function RecipeInfoTab({
               )}
             </dl>
             <div className="recipe-features">
-              <span className="recipe-feature-pill">단맛 {tasteStars(c.taste.sweet)}</span>
-              <span className="recipe-feature-pill">신맛 {tasteStars(c.taste.sour)}</span>
-              <span className="recipe-feature-pill">드라이함 {tasteStars(c.taste.bitter)}</span>
-              <span className="recipe-feature-pill">도수 {tasteStars(c.taste.alcohol)}</span>
+              <span className="recipe-feature-pill">단맛 {formatTasteRating(c.taste.sweet)}</span>
+              <span className="recipe-feature-pill">신맛 {formatTasteRating(c.taste.sour)}</span>
+              <span className="recipe-feature-pill">드라이함 {formatTasteRating(c.taste.bitter)}</span>
+              <span className="recipe-feature-pill">도수 {formatTasteRating(c.taste.alcohol)}</span>
               {c.taste.carbonated && <span className="recipe-feature-pill">탄산 ✓</span>}
             </div>
           </article>

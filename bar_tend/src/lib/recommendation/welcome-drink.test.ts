@@ -3,7 +3,9 @@ import { getAllCocktailData } from '../cocktails/database.js'
 import {
   formatWelcomeDrinkFeedbackReply,
   formatWelcomeDrinkReply,
+  isWelcomeDrinkFeedbackAnswer,
   selectWelcomeDrink,
+  shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
 } from './welcome-drink.js'
 
@@ -37,7 +39,25 @@ describe('welcome drink selection', () => {
 
     expect(reply).toContain('웰컴드링크')
     expect(reply).toContain(cocktail.name_ko ?? cocktail.name)
+    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
+    expect(reply).not.toContain('앞서 나가지 않는 잔')
     expect(reply).not.toContain('선택해 주세요')
+  })
+
+  it('adjusts the welcome-drink reply after prior orders', () => {
+    const cocktail = selectWelcomeDrink()
+    const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal: 6 })
+
+    expect(reply).toContain('첫 순서')
+    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
+  })
+
+  it('treats a very late welcome drink as a pre-closing reset', () => {
+    const cocktail = selectWelcomeDrink()
+    const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal: 11 })
+
+    expect(reply).toContain('꽤 늦었')
+    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
   })
 
   it('defines a one-step welcome drink feedback question', () => {
@@ -59,5 +79,18 @@ describe('welcome drink selection', () => {
     const sweeter = formatWelcomeDrinkFeedbackReply('더 달았으면 좋겠어')
     expect(sweeter.text).toContain('단맛')
     expect(sweeter.expression).toBe('embarrassed')
+  })
+
+  it('lets explicit orders bypass the welcome drink feedback prompt', () => {
+    expect(shouldHandleWelcomeDrinkFeedback('general', '맛있고 괜찮았어')).toBe(true)
+    expect(shouldHandleWelcomeDrinkFeedback('explicit-cocktail', '마티니 주문')).toBe(false)
+    expect(shouldHandleWelcomeDrinkFeedback('recommendation', '추천해줘')).toBe(false)
+    expect(shouldHandleWelcomeDrinkFeedback('safety', '죽고 싶어')).toBe(false)
+  })
+
+  it('lets small talk bypass the welcome drink feedback prompt', () => {
+    expect(isWelcomeDrinkFeedbackAnswer('조금 더 달게 해줘')).toBe(true)
+    expect(shouldHandleWelcomeDrinkFeedback('general', '오늘 너무 피곤했어')).toBe(false)
+    expect(shouldHandleWelcomeDrinkFeedback('general', '여기 분위기 좋다')).toBe(false)
   })
 })
