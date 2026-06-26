@@ -4,8 +4,8 @@ import {
   isOrderingClosedPhase,
   MAX_FAREWELL_TURNS,
   nextPhaseAfterServedCocktail,
-  shouldEnterFarewellAfterServedCocktail,
   shouldReturnHomeAfterFarewellTurn,
+  shouldServeXyzAfterAlcoholLimit,
 } from './session-flow.js'
 
 describe('closed Re:Station session flow', () => {
@@ -17,14 +17,14 @@ describe('closed Re:Station session flow', () => {
     expect(isOrderingClosedPhase('returnHome')).toBe(true)
   })
 
-  it('enters farewell after a served cocktail brings the alcohol star total to the limit', () => {
-    expect(shouldEnterFarewellAfterServedCocktail({
+  it('serves XYZ after a served cocktail brings the alcohol star total to the limit', () => {
+    expect(shouldServeXyzAfterAlcoholLimit({
       current: 'aftertalk',
       alcoholStarTotal: 10,
       isXyz: false,
     })).toBe(true)
 
-    expect(shouldEnterFarewellAfterServedCocktail({
+    expect(shouldServeXyzAfterAlcoholLimit({
       current: 'aftertalk',
       alcoholStarTotal: 9,
       isXyz: false,
@@ -32,13 +32,13 @@ describe('closed Re:Station session flow', () => {
   })
 
   it('does not use the alcohol limit rule for closed phases or the XYZ drink itself', () => {
-    expect(shouldEnterFarewellAfterServedCocktail({
+    expect(shouldServeXyzAfterAlcoholLimit({
       current: 'farewell',
       alcoholStarTotal: 10,
       isXyz: false,
     })).toBe(false)
 
-    expect(shouldEnterFarewellAfterServedCocktail({
+    expect(shouldServeXyzAfterAlcoholLimit({
       current: 'aftertalk',
       alcoholStarTotal: 10,
       isXyz: true,

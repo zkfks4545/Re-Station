@@ -127,7 +127,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 |---|---|
 | `bar_tend/src/lib/session/session-flow.ts` | 세션 단계 및 XYZ 마지막 잔 발동/Farewell 정책 제어 |
 | `bar_tend/src/lib/session/farewell-replies.ts` | XYZ, Farewell Phase, 주문 차단, 귀가 관련 세션 응답 포맷 |
-| `bar_tend/src/lib/session/session-flow.test.ts` | 서브 이후 누적 도수 10 이상 도달 시 Farewell 진입 및 배웅 단계 테스트 |
+| `bar_tend/src/lib/session/session-flow.test.ts` | 서브 이후 누적 도수 10 이상 도달 시 XYZ 후속 서빙 및 Farewell 단계 테스트 |
 
 
 ## 5. 현재 사용자 입력 처리 흐름
@@ -164,7 +164,7 @@ useRestationController
 입장 ➔ 웰컴드링크 ➔ 대화 ➔ 취향 파악 ➔ 추천 ➔ 주문 ➔ 후일담 ➔ XYZ ➔ Farewell Phase ➔ 귀가
 ```
 
-* **도수 한계:** 웰컴드링크를 제외한 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 Farewell Phase로 이행합니다.
+* **도수 한계:** 웰컴드링크를 제외한 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행합니다.
 * **Farewell Phase:** 이 구간에서는 신규 추천, 주문, 재추천이 모두 차단됩니다. 2~3턴(총 3턴) 동안 XYZ의 배경, 유래, 후기, 가벼운 잡담만을 허용하며 이후 자동으로 퇴장 및 귀가 단계로 전환됩니다.
 * **상태값 활용:** 세션 분위기 상태값(`trust`, `familiarity`, `playfulness`, `tension`)은 엔딩 분기나 평가용이 아니며, 오직 카루아의 대사 톤과 반응 조절용으로만 사용됩니다.
 * **구조 정합성:** 주문이 닫힌 단계(`xyz`, `farewell`, `returnHome`)는 `isOrderingClosedPhase`로 명시되어 있습니다. 컨트롤러는 이 함수로 흐름을 판정하고, 실제 종료·차단 응답 문구는 `farewell-replies.ts`가 담당합니다.
@@ -467,7 +467,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 현재 책임 경계:
 
-- `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 Farewell 진입, Farewell 종료 조건
+- `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 XYZ 후속 서빙, Farewell 종료 조건
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
 - `useRestationController.ts`: 입력 처리 흐름 조율, 상태 반영, 메시지 표시와 연출 연결
 

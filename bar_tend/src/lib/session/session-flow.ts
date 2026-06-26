@@ -28,7 +28,7 @@ export function isOrderRoute(route: InputRoute): boolean {
   return ORDER_ROUTES.includes(route)
 }
 
-export function shouldEnterFarewellAfterServedCocktail(options: {
+export function shouldServeXyzAfterAlcoholLimit(options: {
   current: SessionPhase
   alcoholStarTotal: number
   isXyz: boolean
