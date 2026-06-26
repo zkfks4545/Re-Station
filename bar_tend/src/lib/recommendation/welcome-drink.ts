@@ -2,6 +2,7 @@ import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
 import { getAllCocktailData } from '../cocktails/database.js'
 import type { InputRoute } from '../dialogue/input-router.js'
+import { selectCocktailTalkingPoint } from './response.js'
 
 export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
   id: 'welcome-drink-feedback',
@@ -52,7 +53,7 @@ export function selectWelcomeDrink(cocktails: CocktailData[] = getAllCocktailDat
 }
 
 function getWelcomeDrinkTalkingPoint(cocktail: CocktailData): string {
-  return cocktail.talkingPoints?.[0] ?? cocktail.description
+  return selectCocktailTalkingPoint(cocktail)
 }
 
 export function formatWelcomeDrinkReply(cocktail: CocktailData, options: {

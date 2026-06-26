@@ -8,6 +8,7 @@ import {
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
 } from './welcome-drink.js'
+import { selectCocktailTalkingPoint } from './response.js'
 
 describe('welcome drink selection', () => {
   it('selects an approachable classic cocktail', () => {
@@ -39,9 +40,20 @@ describe('welcome drink selection', () => {
 
     expect(reply).toContain('웰컴드링크')
     expect(reply).toContain(cocktail.name_ko ?? cocktail.name)
-    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
+    expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
     expect(reply).not.toContain('앞서 나가지 않는 잔')
     expect(reply).not.toContain('선택해 주세요')
+  })
+
+  it('uses the same talking point selection as recommendation replies', () => {
+    const cocktail = getAllCocktailData().find((item) => item.id === 'cocktail_classic_001')
+    expect(cocktail).toBeDefined()
+
+    const selectedPoint = selectCocktailTalkingPoint(cocktail!)
+    const reply = formatWelcomeDrinkReply(cocktail!)
+
+    expect(selectedPoint).not.toBe(cocktail!.talkingPoints?.[0])
+    expect(reply).toContain(selectedPoint)
   })
 
   it('adjusts the welcome-drink reply after prior orders', () => {
@@ -49,7 +61,7 @@ describe('welcome drink selection', () => {
     const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal: 6 })
 
     expect(reply).toContain('첫 순서')
-    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
+    expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
   })
 
   it('treats a very late welcome drink as a pre-closing reset', () => {
@@ -57,7 +69,7 @@ describe('welcome drink selection', () => {
     const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal: 11 })
 
     expect(reply).toContain('꽤 늦었')
-    expect(reply).toContain(cocktail.talkingPoints?.[0] ?? cocktail.description)
+    expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
   })
 
   it('defines a one-step welcome drink feedback question', () => {
