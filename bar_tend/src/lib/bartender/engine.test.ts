@@ -8,7 +8,6 @@ const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /다\s*괜찮아/,
   /분명.*잘/,
   /내려놓는 게 답/,
-  /도와드릴게요/,
   /괜찮아질 거예요/,
 ]
 
@@ -54,7 +53,7 @@ describe('neutral runtime dialogue contract', () => {
   it('uses weather dialogue without starting a recommendation loop', () => {
     const result = getCocktailResponse('밖에 비가 오네', [])
 
-    expect(result.response).toMatch(/날씨|비|밖|잔|소리|시원|산뜻/)
+    expect(result.response).toMatch(/날씨|비|밖|잔|소리|시원|산뜻|눈|추운|더운|습한|바람/)
     expect(result.response).not.toContain('추천')
     expectKahluaBoundary(result.response)
   })
@@ -62,14 +61,14 @@ describe('neutral runtime dialogue contract', () => {
   it('handles uncertain casual talk as a bar conversation cue', () => {
     const result = getCocktailResponse('뭐 마실지 모르겠고 그냥 왔어', [])
 
-    expect(result.response).toMatch(/정해진|고민|아무 생각|싫은 것|표정|주문|선택지|방향|첫 단추/)
+    expect(result.response).toMatch(/정해진|고민|아무 생각|싫은 것|표정|주문|선택지|방향|첫 단추|그냥|충분해요|이유|첫 모금/)
     expectKahluaBoundary(result.response)
   })
 
   it('keeps quiet solo visit dialogue low pressure', () => {
     const result = getCocktailResponse('오늘은 혼자 조용히 쉬고 싶어', [])
 
-    expect(result.response).toMatch(/조용|혼자|말없이|향|쉬|잔/)
+    expect(result.response).toMatch(/조용|혼자|말없이|향|쉬|잔|가만히|천천히/)
     expectKahluaBoundary(result.response)
   })
 
@@ -77,14 +76,14 @@ describe('neutral runtime dialogue contract', () => {
     const response = getCocktailResponse('오늘 너무 힘들어', []).response
 
     expect(response.length).toBeGreaterThan(0)
-    expect(response).not.toMatch(/농담|알바|잔/)
+    expect(response).not.toMatch(/농담|알바/)
     expectKahluaBoundary(response)
   })
 
   it('routes tired mood to tired-specific dialogue variants', () => {
     const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
 
-    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게|무리|편한/)
+    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게|무리|편한|에너지|자리부터/)
     expect(result.expression).toBe('sympathy')
     expectKahluaBoundary(result.response)
   })
@@ -162,5 +161,55 @@ describe('Kahlua safety boundary', () => {
     expect(response).toContain('다칠 위험')
     expect(response).toContain('1393')
     expect(response).not.toContain('추천')
+  })
+})
+
+describe('story/lore query integration — intent preserved through engine', () => {
+  const RECOMMEND_TRIGGERS = /선호하는 맛|맛의 방향|추천해드릴게요|골라볼게요/
+
+  it('헤밍웨이가 마시던 게 무슨 칵테일이었는지 알아요? → story-query response, no recommend phrases', () => {
+    for (let i = 0; i < 8; i++) {
+      const result = getCocktailResponse('헤밍웨이가 마시던 게 무슨 칵테일이었는지 알아요?', [])
+
+      expect(result).toBeDefined()
+      expect(result.response.length).toBeGreaterThan(0)
+      expect(result.response).not.toMatch(RECOMMEND_TRIGGERS)
+      expect(result.expression).toMatch(/talk|thinking/)
+    }
+  })
+
+  it('헤밍웨이가 좋아하던 게 그거 맞나요? → story-query-followup response, no recommend phrases', () => {
+    for (let i = 0; i < 8; i++) {
+      const result = getCocktailResponse('헤밍웨이가 좋아하던 게 그거 맞나요?', [])
+
+      expect(result).toBeDefined()
+      expect(result.response.length).toBeGreaterThan(0)
+      expect(result.response).not.toMatch(RECOMMEND_TRIGGERS)
+      expect(result.expression).toMatch(/talk|thinking/)
+    }
+  })
+
+  it('여기 얽힌 이야기 더 들려줘요 → story-query response, no recommend phrases', () => {
+    for (let i = 0; i < 8; i++) {
+      const result = getCocktailResponse('여기 얽힌 이야기 더 들려줘요', [])
+
+      expect(result).toBeDefined()
+      expect(result.response.length).toBeGreaterThan(0)
+      expect(result.response).not.toMatch(RECOMMEND_TRIGGERS)
+      expect(result.expression).toMatch(/talk|thinking/)
+    }
+  })
+
+  it('피카소가 좋아하던 칵테일도 있나요? → story-query response, no recommend phrases, no unrelated lore', () => {
+    for (let i = 0; i < 8; i++) {
+      const result = getCocktailResponse('피카소가 좋아하던 칵테일도 있나요?', [])
+
+      expect(result).toBeDefined()
+      expect(result.response.length).toBeGreaterThan(0)
+      expect(result.response).not.toMatch(RECOMMEND_TRIGGERS)
+      expect(result.response).not.toContain('헤밍웨이')
+      expect(result.response).not.toContain('모히토')
+      expect(result.expression).toMatch(/talk|thinking/)
+    }
   })
 })

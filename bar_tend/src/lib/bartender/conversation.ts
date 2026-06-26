@@ -1,5 +1,6 @@
-import { findCocktailByName } from '../cocktails/database.js'
+import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
+import { formatStoryQueryReply } from '../dialogue/story-query.js'
 import type { Cocktail, Message, BartenderResponse, Expression } from '../../types.js'
 
 const kf = (patterns: string[]) => new RegExp(patterns.map(
@@ -32,6 +33,9 @@ export function generateResponse(input: string, _history: Message[], intent: str
 
     case 'bar-setting':
       return dialogue('bar-intro', '여기는 Re:Station이에요.', 'talk')
+
+    case 'character-query':
+      return dialogue('character-query', '저는 이 곳 Re:Station의 바텐더예요. 말 걸어주셔서 감사해요.', 'talk')
 
     case 'siesta-setting':
       return dialogue('siesta-mention', '시에스타 사장님은 뒤쪽에 계세요.', 'smirk')
@@ -74,7 +78,37 @@ export function generateResponse(input: string, _history: Message[], intent: str
     case 'story-query':
     case 'story-query-followup':
     case 'story-query-cocktail-specific':
+    case 'lore-query': {
+      const storyCocktail = findCocktailByName(input)
+      if (storyCocktail) {
+        const reply = formatStoryQueryReply(storyCocktail)
+        return { response: reply.text, expression: reply.expression }
+      }
+      const personMatch = input.match(/([가-힣]{2,})[이가]\s*(?:마시|좋아하)/)
+      if (personMatch) {
+        const person = personMatch[1]
+        const found = cocktails.find(c =>
+          c.talkingPoints?.some(p => p.includes(person))
+        )
+        if (found) {
+          const reply = formatStoryQueryReply(found)
+          return { response: reply.text, expression: reply.expression }
+        }
+        return {
+          response: `${person}에 대한 이야기는 아직 모아지지 않았네요. 다른 이야기를 들려드릴까요?`,
+          expression: 'talk',
+        }
+      }
       return dialogue('story-request', '듣고 있어요.', 'talk')
+    }
+
+    case 'cocktail-info-query': {
+      const infoCocktail = findCocktailByName(input)
+      if (infoCocktail) {
+        return { response: `「${infoCocktail.name}」은 ${infoCocktail.description}`, expression: 'talk' }
+      }
+      return dialogue('cocktail-request', '자세한 정보를 알려드릴게요.', 'talk')
+    }
 
     case 'mood-talk': {
       const mood = detectUserMood(input)
