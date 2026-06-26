@@ -151,18 +151,18 @@ MVP 이후 논의 후보로 `DISC-001`을 기록했고, 그중 대화 의미와 
 
 ### 권장 순서
 
-1. `FLOW-003` 선택지 이벤트와 자유입력 복귀 정책 구현
-2. `DLG-807` 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
-3. `DLG-808` `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
-4. `DLG-809` 화자·상태·요청별 문단 프리셋 계약 확장
-5. `SPR-001` 캐릭터 스프라이트 슬롯 계약
-6. `SPR-002` 카루아 표정별 스프라이트 연결
-7. `SPR-003` 시에스타 난입 스프라이트 표시
-8. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
-9. `SPR-005` 캐릭터 에셋 제작·정리 가이드
-10. WebLLM RST-601~606 재개 여부 논의
+1. `Phase 1` IntentClassifier 통합 마무리: 추천/대화/이야기/캐릭터/안전 의도 분류를 안정화한다.
+2. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름을 만든다.
+3. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리한다.
+4. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직을 떼어낸다.
+5. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`를 정리한다.
+6. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층을 만든다.
+7. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채운다.
+8. `Phase 7` Dialogue Quality: fallback을 줄이고 bar/character/story 전용 응답을 강화한다.
+9. `Phase 8` Talking Points 확장: lore/talking_points를 더 풍부하게 만든다.
+10. `Phase 9` Character Layer: 카루아 말투, 농담, 반존대, 표정 FSM은 보류하고 구조 안정화 뒤 적용한다.
 
-이 순서는 의존성이 있다. `FLOW-003`에서 자유입력이 항상 짧은 반응 뒤 칵테일·추천·배웅 흐름으로 복귀하도록 고정해야, FLOW-002의 XYZ/Farewell 종료 장치가 무한 잡담에 밀리지 않는다. 그 다음 `DLG-807`에서 현재 `persona.ts` 기준의 말투 금지선과 대표 입력 세트를 고정해야 `DLG-808~809`에서 대사 풀을 안전하게 이관할 수 있다. 이후 `SPR-001`에서 슬롯명, 파일명, fallback, 기준 디자인을 고정해야 `SPR-002~004`가 같은 계약을 참조한다. `SPR-002`는 기존 카루아 `Expression`과 `BartenderSprite`가 있어서 먼저 적용하기 쉽고, 그 패턴을 `SPR-003` 시에스타 표시 구조에 재사용한다. `SPR-004`는 시에스타를 화면에 띄우는 컴포넌트가 있어야 의미가 있으므로 `SPR-003` 뒤에 둔다. `SPR-005`의 최종 에셋 제작은 `SPR-001` 이후 병행 가능하지만, 코드 연결은 placeholder/fallback으로 먼저 진행해도 된다.
+이 순서는 의존성이 있다. 지금 가장 필요한 것은 말투 개선이 아니라 `Context + Action Layer`다. 의도 분류가 맞아도 `그걸로 주세요`, `그 이야기 더 들려줘요`, `아까 그 잔 설명해줘요` 같은 생략 입력이 실제 행동으로 이어지지 않으면 다시 fallback이 늘어난다. `DialogueService` 분리는 그 다음 단계이며, 컨트롤러가 UI 상태와 연출만 담당하도록 만들기 위한 작업이다. `DLG-807~809`, `SPR-001~005`, WebLLM RST-601~606은 위 구조 수렴과 충돌하지 않는 순서로 재검토한다.
 
 ### 스프라이트 작업 가이드
 

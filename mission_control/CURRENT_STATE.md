@@ -115,16 +115,16 @@
 
 ## 다음 수행 후보
 
-1. `FLOW-003` 선택지 이벤트와 자유입력 복귀 정책 구현
-2. `DLG-807` 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
-3. `DLG-808` `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
-4. `DLG-809` 화자·상태·요청별 문단 프리셋 계약 확장
-5. `SPR-001` 캐릭터 스프라이트 슬롯 계약
-6. `SPR-002` 카루아 표정별 스프라이트 연결
-7. `SPR-003` 시에스타 난입 스프라이트 표시
-8. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
-9. `SPR-005` 캐릭터 에셋 제작·정리 가이드
-10. WebLLM RST-601~606 재개 여부 논의
+1. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` 같은 생략 주문이 실제 행동으로 이어지게 한다.
+2. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리한다.
+3. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직을 떼어낸다.
+4. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 갱신 조건을 고정한다.
+5. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층을 둔다.
+6. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 이미 말한 취향 슬롯을 우선 채운다.
+7. `Phase 7` Dialogue Quality: fallback을 줄이고 bar/character/story 전용 응답을 강화한다.
+8. `Phase 8` Talking Points 확장: lore/talking_points를 더 풍부하게 하되 사실성 경계를 유지한다.
+9. `Phase 9` Character Layer: 카루아 말투, 농담, 반존대, 표정 FSM은 의도·행동·응답 출처 안정화 후 적용한다.
+10. 기존 대사/스프라이트 작업군 `DLG-807~809`, `SPR-001~005`, WebLLM RST-601~606 재개 여부는 위 구조 수렴과 충돌하지 않는 순서로 재검토한다.
 
 ## 향후 논의
 

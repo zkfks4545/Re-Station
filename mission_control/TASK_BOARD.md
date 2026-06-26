@@ -652,6 +652,23 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 |---|---|
 | BAR-001~BAR-004 | `MC-001` 초기 조사에서 임시 제안된 ID. 상세 정의 없이 현재 `RST-*` 단계 계획으로 대체되어 별도 작업으로 추적하지 않음 |
 
+## 향후 구조 리팩토링 로드맵
+
+> 2026-06-26 기록. 아래 항목은 현재 구현을 당장 뒤집는 지시가 아니라, 다음 대화/추천 구조 수렴을 위한 작업 대기열이다. 추천 엔진의 결과 결정 책임과 대사 표현 책임 분리는 유지한다.
+
+| Phase | 작업명 | 상태 | 목적 | 메모 |
+|---|---|---|---|---|
+| Phase 1 | IntentClassifier 통합 | 거의 완료 | 입력을 추천/대화/이야기/캐릭터/안전 등으로 안정적으로 분류 | `intent-classifier.ts`와 `input-router.ts`의 중복 판단을 줄이고 단일 의도 계약으로 수렴 |
+| Phase 1.5 | Context + Action Layer | 지금 필요 | `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`를 입력 라우팅과 행동 실행에 연결 |
+| Phase 2 | Response Pipeline | 미착수 | 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리 | 추천 결과, 이야기 응답, 캐릭터 응답 모두 같은 응답 조립 파이프라인을 통과 |
+| Phase 3 | DialogueService 분리 | 미착수 | `useRestationController`에서 대화 로직을 떼어내기 | 컨트롤러는 UI 상태와 연출 조율, 서비스는 의도·맥락·행동·응답을 담당 |
+| Phase 4 | Conversation Context 완성 | 일부 착수 | 대화 중 참조 가능한 컨텍스트 정리 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`의 의미와 갱신 조건 고정 |
+| Phase 5 | Action Layer | 미착수에 가까움 | `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 | 의도 분류 결과가 곧 응답 문자열이 아니라 검증 가능한 행동으로 이어지게 함 |
+| Phase 6 | Slot Filling 추천 FSM | 미착수 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | 기존 추천 엔진은 유지하되, 입력으로 채워진 슬롯을 질문 선택보다 우선 반영 |
+| Phase 7 | Dialogue Quality | 미착수 | fallback 줄이기, bar/character/story 전용 응답 강화 | 말투 개선보다 응답 출처와 의도 적합성 검증을 우선 |
+| Phase 8 | Talking Points 확장 | 일부 착수 | lore/talking_points를 더 풍부하게 만들기 | 칵테일별 이야기, 세계관 lore, 인물·유래 질문 응답의 사실성 경계 유지 |
+| Phase 9 | Character Layer | 보류 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Phase 1~8의 의도·행동·응답 출처가 안정된 뒤 적용 |
+
 ## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
 
 | 항목 | 내용 |
