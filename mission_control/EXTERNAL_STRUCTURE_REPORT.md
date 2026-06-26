@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-06-25  
+> 최종 갱신일: 2026-06-26
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -16,7 +16,7 @@
 
 ## 1. 프로젝트 한줄 요약
 
-Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대화하고, 취향·상태·요청을 바탕으로 칵테일 추천을 받는 React/Vite 기반 프론트엔드 앱이다. 추천 결과는 규칙과 JSON 데이터가 결정하고, 캐릭터 대사는 현재 규칙 기반 대사 풀과 프리셋으로 출력한다.
+Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대화하고, 취향·상태·요청을 바탕으로 칵테일 추천을 받는 React/Vite 기반 프론트엔드 앱이다. 현재 구조는 기본 대화 세션과 `추천받기` 버튼으로 시작하는 추천 세션을 구분하며, 추천 결과는 규칙과 JSON 데이터가 결정하고 캐릭터 대사는 규칙 기반 대사 풀과 프리셋으로 출력한다.
 
 현재 WebLLM은 연결하지 않는다. 향후 도입하더라도 추천 판단이나 상태 변경이 아니라, 이미 확정된 답변의 말투 포장만 담당해야 한다.
 
@@ -29,13 +29,15 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 보조 캐릭터 | 시에스타 |
 | 핵심 경험 | 바에 들어와 짧게 대화하고, 취향에 맞는 칵테일을 추천받는다 |
 | 추천 방식 | DB + 규칙 엔진 + JSON 질문 |
-| 대화 방식 | 키워드 규칙, 일반 대화 fallback, 추천 질문, 추천 응답 프리셋 |
+| 대화 방식 | 기본 대화 세션, `추천받기` 버튼 기반 추천 세션, 입력 라우터, 키워드 규칙, 추천 응답 프리셋 |
 | 현재 톤 | 카루아 말투 계약은 존재하지만, 말투는 아직 재검수 대상 |
 | 기획상 주의 | 상담/치료/과한 위로가 아니라 농담과 추천을 통한 환기 |
 
 현재 런타임에서는 카루아 단독 핵심 루프를 먼저 다잡기 위해 시에스타 만담 이벤트를 임시 비활성화했다. 시에스타 설계와 이벤트 엔진은 보존되어 있지만, `SIESTA_EVENTS_ENABLED = false` 상태에서는 화면에 만담이 예약되지 않는다.
 
 세션 진행 방향성은 `mission_control/SESSION_FLOW_SPEC.md`를 기준으로 이미 구현 완료되어 작동 중이다. 환상주점은 AI 챗봇이나 연애 미연시가 아니며, 자유입력은 허용하되 세션 진행은 웰컴드링크, 추천, 주문, XYZ, 배웅, 귀가로 닫힌 구조를 강제한다.
+
+현재 UI는 별도의 `대화하기` 버튼을 두지 않는다. 입장 후 기본 상태가 대화 세션이며, 사용자는 `추천받기` 버튼으로 추천 세션에 진입한다. 일반 대화가 일정 턴 이상 이어지면 시스템 팝업이 아니라 카루아의 대사 안에서 자연스럽게 추천을 권한다.
 
 ## 3. 반드시 지켜야 하는 핵심 경계
 
@@ -49,8 +51,10 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 8. 시에스타는 상시 대화 캐릭터가 아니라 짧은 만담 이벤트 캐릭터다.
 9. 안전 입력은 항상 추천, 농담, 캐릭터 대사보다 우선한다.
 10. WebLLM은 도입하더라도 말투 포장만 담당한다.
-11. DLG-807~DLG-809 완료 전까지 신규 기능보다 대사와 캐릭터 일관성 수렴을 우선한다.
-12. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
+11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
+12. 현재 향후 구조 우선순위는 `Phase 1.5` Context + Action Layer다.
+13. DLG-807~DLG-809 같은 대사 수렴 작업은 의도·행동·응답 출처가 안정된 뒤 재검토한다.
+14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
 ## 4. 주요 파일 지도
 
@@ -59,7 +63,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/App.tsx` | 전체 화면 렌더링 조립 |
-| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 추천 세션, 타이핑/제조 상태, 시에스타 이벤트 플래그 |
+| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 기본 대화/추천 세션, 최근 칵테일 컨텍스트, 타이핑/제조 상태, 시에스타 이벤트 플래그 |
 | `bar_tend/src/components/entrance/BarExterior.tsx` | 바 외부 입장 화면 |
 | `bar_tend/src/components/bar/BarInterior.tsx` | 바 내부 메인 화면 |
 | `bar_tend/src/components/bar/ChatInput.tsx` | 사용자 입력, 추천 선택지 버튼, 취소 버튼 |
@@ -75,6 +79,8 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/lib/bartender/engine.ts` | 안전 검사, 키워드 규칙, 일반 대화 fallback 연결 |
+| `bar_tend/src/lib/bartender/intent-classifier.ts` | 추천/대화/이야기/캐릭터/안전 의도 분류와 컨텍스트 메타데이터 |
+| `bar_tend/src/lib/bartender/intent-classifier-adapter.ts` | 기존 대화 엔진이 IntentClassifier를 사용하도록 연결 |
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 키워드 규칙으로 컴파일 |
 | `bar_tend/src/data/keyword-rules.json` | 키워드 패턴, 표정, 폴백 응답, 대사 카테고리 |
 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 intent 감지와 fallback 응답 |
@@ -90,7 +96,8 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문 문장 프리셋과 추천 응답 문단 프리셋 |
 | `bar_tend/src/types/dialogue-turn.ts` | 구조화된 대화 턴 계약 |
 | `bar_tend/src/lib/dialogue/turn-builder.ts` | DialogueTurn 구성과 복구 템플릿 |
-| `bar_tend/src/lib/dialogue/input-router.ts` | 안전, 퇴장, 추천, 이름 검색 등 입력 경로 판정 |
+| `bar_tend/src/lib/dialogue/input-router.ts` | 안전, 퇴장, 추천, 주문, 이야기, 유래, 칵테일 정보, 캐릭터 질문, 이름 검색 등 입력 경로 판정 |
+| `bar_tend/src/lib/dialogue/story-query.ts` | 직전/현재 칵테일의 `talkingPoints` 또는 바 세계관 lore 응답 포맷 |
 
 ### 4.4 추천 시스템
 
@@ -137,13 +144,26 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
   ↓
 useRestationController
   ↓
+현재 actionSessionMode 확인
+  - conversation: 일반 대화 기본, 추천 라우트 제한
+  - recommendation: 추천 질문/추천 라우트 허용
+  ↓
 안전 입력 검사
   ↓
-추천 질문 진행 중인지 확인
+웰컴드링크 피드백 또는 추천 질문 진행 중인지 확인
   ↓
-입력 라우터 / 추천 의도 / 칵테일 이름 검색
+입력 라우터
+  - safety / exit / recommendation-cancel
+  - story-query / lore-query / cocktail-info-query / character-query
+  - explicit-cocktail / cocktail-mention / recommendation / general
   ↓
-추천 흐름 또는 일반 대화 흐름
+최근 칵테일 컨텍스트 확인
+  - lastDiscussedCocktailId
+  - lastRecommendedCocktailId
+  - lastServedCocktailId
+  - lastOrderCandidateCocktailId
+  ↓
+행동 또는 응답 경로 선택
   ↓
 대사 생성
   ↓
@@ -155,6 +175,12 @@ useRestationController
 ```
 
 중요한 점은 “추천 판단”과 “대사 표현”이 분리되어 있다는 것이다. 추천 엔진은 칵테일과 근거를 결정하고, 대사 계층은 그것을 어떤 말투와 문단으로 보여줄지 결정한다.
+
+`이야기`, `얽힌`, `유래`, `배경`, `더 들려줘`, `설명해줘` 계열 입력은 일반 경청 fallback으로 보내지 않고 `story-query`, `lore-query`, `cocktail-info-query` 계열로 먼저 분류한다. 직전 추천 칵테일 또는 현재 표시 중인 칵테일 카드가 있으면 해당 칵테일의 `talkingPoints`를 우선 사용하고, 없으면 Re:Station 바 세계관 lore 응답으로 처리한다.
+
+`그걸로 주세요`, `한 잔 주세요`처럼 칵테일명을 생략한 주문형 입력은 `orderCandidateCocktailId`가 있으면 `explicit-cocktail`로 라우팅한다. 이 기능은 아직 완성된 Action Layer가 아니라 컨트롤러 내부 컨텍스트 ref와 입력 라우터 옵션으로 연결된 Phase 1.5의 초기 형태다.
+
+대화 세션은 무한 채팅을 목표로 하지 않는다. 현재 `useRestationController.ts`는 일반 대화 턴을 내부적으로 세고, 약 12턴 이후에는 카루아의 대사 안에서 자연스럽게 추천을 권한다.
 
 ## 5.1 세션 종료 흐름 및 마감 정책 (구현 완료)
 
@@ -248,6 +274,19 @@ useRestationController
 - `siesta + recommend + default`
 
 아직 전체 의도와 전체 감정 상태로 확장되지는 않았다.
+
+### 6.4 이야기/유래/정보 질문 응답
+
+현재 이야기 계열 입력은 일반 대화 fallback보다 먼저 처리한다.
+
+| 입력 계열 | 라우트 | 응답 출처 |
+|---|---|---|
+| “여기 얽힌 이야기 더 들려줘요” | `story-query` | 직전/현재 칵테일의 `talkingPoints`, 없으면 바 세계관 lore |
+| “이름 유래가 뭐예요” | `lore-query` | 칵테일명이 있으면 해당 데이터, 없으면 대화 엔진 intent 응답 |
+| “레시피/재료/도수 알려줘요” | `cocktail-info-query` | 칵테일 설명/정보 응답 |
+| “당신은 누구예요” | `character-query` | 캐릭터 질문 전용 응답 |
+
+추천 멘트, 웰컴드링크 멘트, 사이드바 레시피 주문 멘트는 모두 `selectCocktailTalkingPoint()`를 통해 `cocktail.talkingPoints`를 반영하는 방향으로 정리되어 있다. 다만 전체 Response Pipeline은 아직 미분리 상태라, 응답 선택·템플릿·데이터 삽입·표정 선택은 다음 구조 작업에서 더 명확히 나눠야 한다.
 
 ## 7. 카루아 말투 계약
 
@@ -350,6 +389,10 @@ useRestationController
 
 카드에 캐릭터 말투를 넣지 않는 것이 현재 원칙이다.
 
+추천 대화문은 `formatRecommendationReply()`에서 문단 프리셋과 추천 사유를 조합한 뒤, 해당 칵테일의 `talkingPoints` 중 하나를 안정적으로 선택해 덧붙인다. 직접 주문(`formatExplicitCocktailReply()`), 랜덤 추천(`formatRandomRecommendationReply()`), 웰컴드링크(`formatWelcomeDrinkReply()`)도 같은 `selectCocktailTalkingPoint()`를 사용한다.
+
+레시피 사이드바에서 `주문` 버튼을 누르면 `RecipeInfoTab` → `Sidebar` → `useRestationController.handleOrderCocktail()` → `formatExplicitCocktailReply()` 경로로 처리된다. 따라서 사이드바 주문도 단순 카드 표시가 아니라 칵테일 제조/서빙 흐름과 이야기 포인트를 포함한 대사로 연결된다.
+
 ## 10. 데이터 구조
 
 ### 10.0 캐릭터 에셋 구조
@@ -379,7 +422,7 @@ useRestationController
 | 맛 프로필 | 단맛, 신맛, 드라이함, 도수감 (감칠맛 `savory`는 표시 스테이터스에서 제외) |
 | 베이스 | 진, 럼, 위스키 등 |
 | 출처 | IBA 공식 URL 등 |
-| talking_points | 도감에서 노출할 칵테일의 탄생 배경, 이름 유래, 이야기 (칵테일당 2개씩 수록) |
+| talking_points / talkingPoints | 도감과 대화에서 쓰는 칵테일의 탄생 배경, 이름 유래, 이야기 (정규화 후 런타임에서는 `talkingPoints`로 사용) |
 
 기획상 주의:
 
@@ -430,6 +473,10 @@ useRestationController
 - `comfort`
 - `refusal`
 - `goodbye`
+- `story-query`
+- `lore-query`
+- `cocktail-info-query`
+- `character-query`
 
 ### 11.3 카루아 말투 검수 기준이 테스트로 충분히 고정되지 않음
 
@@ -459,7 +506,7 @@ useRestationController
 
 ### 11.5 컨트롤러와 세션 도메인의 책임 경계
 
-`useRestationController.ts`는 입장, 퇴장, 입력 라우팅, 추천 세션 연결, 세션 종료, 타이핑/제조 연출을 조율하는 중심 컨트롤러다.
+`useRestationController.ts`는 입장, 퇴장, 입력 라우팅, 추천 세션 연결, 최근 칵테일 컨텍스트, 세션 종료, 타이핑/제조 연출을 조율하는 중심 컨트롤러다.
 
 세션 단계와 마감 정책은 `lib/session/session-flow.ts`가 담당한다. 주문이 닫힌 단계는 `isOrderingClosedPhase`가 판정하며, 해당 단계는 `xyz`, `farewell`, `returnHome`이다.
 
@@ -469,9 +516,16 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 - `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 XYZ 후속 서빙, Farewell 종료 조건
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
-- `useRestationController.ts`: 입력 처리 흐름 조율, 상태 반영, 메시지 표시와 연출 연결
+- `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
+- `useRestationController.ts`: 입력 처리 흐름 조율, 컨텍스트 ref 갱신, 상태 반영, 메시지 표시와 연출 연결
 
 이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
+
+### 11.6 Context + Action Layer가 아직 독립 모듈이 아님
+
+`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`는 현재 컨트롤러 내부 ref로 관리된다. 이 덕분에 “그걸로 주세요” 같은 생략 주문과 직전 칵테일 이야기 질문을 어느 정도 처리할 수 있지만, 아직 독립된 Conversation Context나 Action Layer로 분리된 상태는 아니다.
+
+다음 구조 작업에서는 의도 분류 결과가 바로 응답 문자열로 가지 않고 `order`, `serve`, `recommend`, `continueStory` 같은 행동 객체로 이어져야 한다. 그래야 `모히토` → `그걸로 주세요` → 실제 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 같은 흐름을 테스트 가능한 단위로 고정할 수 있다.
 
 ## 12. 외부 기획자에게 요청할 기획안 범위
 
@@ -481,13 +535,14 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 ### 12.1 우선 요청할 것
 
-1. 카루아 말투 기준 재정리
-2. 금지 문장 패턴 목록
-3. 대표 사용자 입력 30~50개
-4. 각 입력에 대한 카루아 반응 방향
-5. `reaction / recommend / explanation` 블록별 대사 샘플
-6. 시에스타와 카루아의 말투 차이
-7. intent별 문단 구조 설계
+1. 대표 사용자 입력 30~50개의 의도 분류 기대값
+2. `story-query / lore-query / cocktail-info-query / character-query`별 응답 출처 기준
+3. `모히토` → `그걸로 주세요` 같은 생략 주문 시나리오 목록
+4. `reaction / recommend / explanation` 블록별 대사 샘플
+5. intent별 문단 구조 설계
+6. 카루아 말투 기준 재정리
+7. 금지 문장 패턴 목록
+8. 시에스타와 카루아의 말투 차이
 
 ### 12.2 요청하지 않는 편이 좋은 것
 
@@ -521,37 +576,40 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 예: speaker=karua, intent=recommend, state=tired, request=light
 
 기획해줄 것:
-1. 카루아 말투 금지 규칙
-2. 카루아 말투 좋은 예시
+1. 대표 입력을 story-query / lore-query / cocktail-info-query / character-query / recommendation / general로 분류하는 기준
+2. "모히토" → "그걸로 주세요"처럼 맥락이 이어지는 입력 시나리오
 3. intent 목록별 문단 블록 구조
 4. tired/sad/happy/recommend/refusal/goodbye 대표 블록 샘플
-5. 같은 상황에서 시에스타 버전은 어떻게 달라져야 하는지
+5. 카루아 말투 금지 규칙과 좋은 예시
+6. 같은 상황에서 시에스타 버전은 어떻게 달라져야 하는지
 
 주의:
 - 술이 감정 문제의 해결책처럼 보이면 안 된다.
 - 직접 위로, 상담, 치료자 말투는 피한다.
 - 추천 결과는 이미 시스템이 정한다고 가정하고, 대사는 표현만 담당한다.
-- DLG-807~DLG-809 완료 전까지 신규 기능 기획은 하지 않는다.
+- 입력 의도와 응답 출처 안정화가 말투 개선보다 우선이다.
 ```
 
 ## 14. 추천 후속 작업 순서
 
-현재 `mission_control`에는 다음 순서로 예정되어 있습니다.
+현재 `mission_control/TASK_BOARD.md`와 `HANDOVER.md`에는 다음 구조 로드맵이 기록되어 있다.
 
-1. `FLOW-003` 선택지 이벤트와 자유입력 복귀 정책 구현 (자유입력 후 추천 복귀 흐름)
-2. `DLG-807` 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
-3. `DLG-808` `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
-4. `DLG-809` 화자·상태·요청별 문단 프리셋 계약 확장
-5. `SPR-001` 캐릭터 스프라이트 슬롯 계약
-6. `SPR-002` 카루아 표정별 스프라이트 연결
-7. `SPR-003` 시에스타 난입 스프라이트 표시
-8. `SPR-004` 시에스타 이벤트 스프라이트 큐 연결
-9. `SPR-005` 캐릭터 에셋 제작·정리 가이드
+1. `Phase 1` IntentClassifier 통합 마무리: 추천/대화/이야기/캐릭터/안전 의도 분류 안정화
+2. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현
+3. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리
+4. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직 분리
+5. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 정리
+6. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
+7. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
+8. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
+9. `Phase 8` Talking Points 확장: lore/talking_points 풍부화
+10. `Phase 9` Character Layer: 카루아 말투, 농담, 반존대, 표정 FSM 반영
 
 * **FLOW-002 (XYZ/Farewell 머신)** 작업은 완료되었습니다.
+* 기존 `DLG-807~809`, `SPR-001~005`, WebLLM RST-601~606은 위 구조 수렴과 충돌하지 않는 순서로 재검토한다.
 * 현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있습니다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준입니다.
 
-외부 기획안은 `DLG-807~809`에 직접 연결되는 것이 가장 좋다.
+외부 기획안은 지금 단계에서는 말투 샘플보다 입력 의도, 응답 출처, 컨텍스트 이어받기 기준에 연결되는 것이 가장 좋다.
 
 ## 15. 현재 검증 상태
 
@@ -560,15 +618,12 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 검증 | 상태 |
 |---|---|
 | 타입체크 | 통과: `npm.cmd run check` |
-| 세션 응답 테스트 | 통과: `npm.cmd test -- src/lib/session/farewell-replies.test.ts --run` |
-| 세션 흐름 테스트 | 통과: `npm.cmd test -- src/lib/session/session-flow.test.ts --run` |
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
-| 전체 테스트 | 현재 전체 Vitest 171개 중 168개 통과, 3개 실패 확인 |
-| 전체 테스트 실패 위치 | `recommendation-ui.test.tsx`, `engine.test.ts`, `database.test.ts` |
-| 메인 JS | 빌드 기준 약 416.43 kB |
+| 전체 테스트 | 통과: `npm.cmd test` 기준 18개 파일, 218개 테스트 |
+| 메인 JS | 빌드 기준 약 443.70 kB, gzip 약 130.74 kB |
 
-전체 테스트 실패 3건은 각각 추천 카드 표시 계약, 런타임 대사 금지어 계약, 칵테일 DB 설명문 스타일 계약에 해당한다. 코드 리뷰와 검수 시 이 세 영역은 별도 정합성 점검 대상으로 본다.
+마지막 확인 시점 기준으로 알려진 Vitest 실패는 없다. 코드 리뷰와 검수 시에는 입력 라우팅, 컨텍스트 이어받기, `talkingPoints` 응답 출처, 세션 마감 정책을 중점 확인한다.
 
 ## 16. 기획안 평가 기준
 
