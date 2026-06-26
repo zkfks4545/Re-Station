@@ -35,6 +35,7 @@ const ROUTE_TO_INTENT: Record<string, DialogueIntent> = {
   'random-recommendation': 'random-request',
   'explicit-cocktail': 'cocktail-order',
   'unknown-cocktail-query': 'cocktail-order',
+  'story-query': 'story-query',
   recommendation: 'recommend-request',
   general: 'general-chat',
 }
@@ -46,6 +47,7 @@ const ROUTE_TO_ACTION: Record<string, DialogueAction> = {
   'random-recommendation': 'recommend',
   'explicit-cocktail': 'show-info',
   'unknown-cocktail-query': 'queue-for-review',
+  'story-query': 'show-info',
   recommendation: 'recommend',
   general: 'reply',
 }
@@ -144,6 +146,7 @@ export function buildDialogueTurn(
     'recommendation-cancel': '추천 질문 중단',
     'random-request': '랜덤 칵테일 추천',
     'cocktail-order': '칵테일 정보 제공',
+    'story-query': '칵테일 이야기 또는 바 세계관 설명',
     'recommend-request': '취향 기반 추천',
   }
   const intent = ROUTE_TO_INTENT[inputRoute] ?? 'general-chat'
