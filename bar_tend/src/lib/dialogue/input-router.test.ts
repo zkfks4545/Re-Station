@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { routeUserInput } from './input-router.js'
 
 describe('user input routing priority', () => {
-  const r = (input: string, opts?: { recommendationActive?: boolean; allowRecommendationRoutes?: boolean }) =>
+  const r = (input: string, opts?: { recommendationActive?: boolean; allowRecommendationRoutes?: boolean; lastDiscussedCocktailId?: string }) =>
     routeUserInput(input, opts).route
 
   it('keeps safety language above exit and recommendation intents', () => {
@@ -71,6 +71,27 @@ describe('user input routing priority', () => {
     expect(r('롱 아일랜드 아이스티 한 잔')).toBe('unknown-cocktail-query')
   })
 
+  it('pronoun reference with lastDiscussedCocktailId skips unknown-cocktail-query', () => {
+    expect(r('이거요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
+    expect(r('그거 알려줘', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
+    expect(r('방금 그거 맞아요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
+    expect(r('저거 좋아요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
+  })
+
+  it('pronoun with specific query patterns still routes to those patterns before pronoun check', () => {
+    expect(r('이 칵테일 정보 좀', { lastDiscussedCocktailId: 'mojito' })).toBe('cocktail-info-query')
+    expect(r('이 칵테일 이야기', { lastDiscussedCocktailId: 'mojito' })).toBe('story-query')
+  })
+
+  it('pronoun reference without lastDiscussedCocktailId still triggers unknown-cocktail-query', () => {
+    expect(r('그거 마시')).toBe('unknown-cocktail-query')
+    expect(r('이거 마시')).toBe('unknown-cocktail-query')
+  })
+
+  it('pronoun with context still allows recommendation intent to route first', () => {
+    expect(r('이거 마실래', { lastDiscussedCocktailId: 'mojito' })).toBe('recommendation')
+  })
+
   it('still routes known cocktails to explicit-cocktail', () => {
     expect(r('모히토 한 잔')).toBe('explicit-cocktail')
     expect(r('마티니 주문')).toBe('explicit-cocktail')
@@ -82,7 +103,7 @@ describe('user input routing priority', () => {
     expect(r('여기 얽힌 이야기를 더 들려줘요', opts)).toBe('story-query')
     expect(r('아무거나')).toBe('random-recommendation')
     expect(r('아무거나', opts)).toBe('general')
-    expect(r('모히토 한 잔', opts)).toBe('general')
+    expect(r('모히토 한 잔', opts)).toBe('explicit-cocktail')
     expect(r('블루 라군 주문', opts)).toBe('general')
     expect(r('죽고 싶어', opts)).toBe('safety')
     expect(r('다음에 올게', opts)).toBe('exit')

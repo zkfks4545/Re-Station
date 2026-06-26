@@ -32,6 +32,7 @@ export function isRecommendationIntent(text: string): boolean {
   if (kf(['과일', '주스', '쥬스', '베리', '플로럴', '스모키', '허브', '커피', '크리미', '진저', '향']).test(text)) return true
   if (kf(['세게', '센\\s*(거|것|걸|술)?', '쎈', '약하게', '가볍', '도수', '취하', 'strong', '강한', '독한', '순한']).test(text)) return true
   if (kf(['신맛', '상큼', '새콤', 'sour', '레몬', '라임', '산뜻']).test(text)) return true
+  if (kf(['부탁', '주세요', '할게요', '해줘', '해주세요', '좋겠']).test(text)) return true
   return false
 }
 

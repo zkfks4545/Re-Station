@@ -128,47 +128,73 @@ describe('IntentClassifier', () => {
     })
   })
 
-  describe('Lore and person query detection', () => {
-    it('identifies historical figure cocktail queries as story-query', () => {
+  describe('Lore and person query false-positive prevention', () => {
+    it('헤밍웨이가 마시던 게 무슨 칵테일이었는지 알아요? → story-query, not recommendation/mood', () => {
       const result = classifier.classify('헤밍웨이가 마시던 게 무슨 칵테일이었는지 알아요?', baseContext)
 
       expect(result.intent).toBe('story-query')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('mood-talk')
     })
 
-    it('identifies historical figure follow-up as story-query-followup', () => {
+    it('헤밍웨이가 좋아하던 게 그거 맞나요? → story-query-followup, not recommendation/mood', () => {
       const result = classifier.classify('헤밍웨이가 좋아하던 게 그거 맞나요?', baseContext)
 
       expect(result.intent).toBe('story-query-followup')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('mood-talk')
     })
 
-    it('identifies cocktail creator questions as story-query', () => {
+    it('이 칵테일은 누가 만들었어요? → story-query, not recommendation/mood', () => {
       const result = classifier.classify('이 칵테일은 누가 만들었어요?', baseContext)
 
       expect(result.intent).toBe('story-query')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('mood-talk')
     })
 
-    it('identifies naming origin questions as story-query', () => {
+    it('이 이름은 왜 붙은 거예요? → story-query, not recommendation/mood', () => {
       const result = classifier.classify('이 이름은 왜 붙은 거예요?', baseContext)
 
       expect(result.intent).toBe('story-query')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('mood-talk')
     })
 
-    it('identifies taste preference as taste-query', () => {
+    it('좋아하는 맛은 단맛이에요. → taste-query, not recommendation/mood', () => {
       const result = classifier.classify('좋아하는 맛은 단맛이에요.', baseContext)
 
       expect(result.intent).toBe('taste-query')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('mood-talk')
     })
 
-    it('routes good news to mood-talk', () => {
+    it('좋은 일이 있었어요. → mood-talk, not recommendation-query', () => {
       const result = classifier.classify('좋은 일이 있었어요.', baseContext)
 
       expect(result.intent).toBe('mood-talk')
+      expect(result.intent).not.toBe('recommendation-query')
     })
+  })
 
-    it('routes preference history questions to story-query', () => {
-      const result = classifier.classify('좋아하던 게 뭐예요?', baseContext)
+  describe('bar-setting localization variants (Korean contraction/spacing)', () => {
+    const variants = [
+      '여긴 뭐하는곳인가요',
+      '여긴 뭐 하는 곳인가요',
+      '여기 뭐하는곳인가요',
+      '여기 뭐 하는 곳인가요',
+      '여기 뭐하는데요',
+      '여긴 뭐하는데요',
+      '여기 어디예요',
+      '여긴 어디죠',
+    ]
 
-      expect(result.intent).toBe('story-query')
+    variants.forEach(input => {
+      it(`'${input}' → bar-setting`, () => {
+        const result = classifier.classify(input, baseContext)
+        expect(result.intent).toBe('bar-setting')
+        expect(result.intent).not.toBe('general-chat')
+      })
     })
   })
 
@@ -176,29 +202,38 @@ describe('IntentClassifier', () => {
     const base = { mentionedCocktails: [], sessionPhase: 'conversation' } as DialogueContext
     const ctx = new IntentClassifier(mockCocktails)
 
-    it('헤밍웨이가 좋아하던 게 뭐예요? → story-query', () => {
+    it('헤밍웨이가 좋아하던 게 뭐예요? → story-query, not recommendation/mood', () => {
       const r = ctx.classify('헤밍웨이가 좋아하던 게 뭐예요?', base)
       expect(r.intent).toBe('story-query')
+      expect(r.intent).not.toBe('recommendation-query')
+      expect(r.intent).not.toBe('mood-talk')
     })
 
-    it('좋아하는 맛은 단맛이에요. → taste-query', () => {
+    it('좋아하는 맛은 단맛이에요. → taste-query, not recommendation/mood', () => {
       const r = ctx.classify('좋아하는 맛은 단맛이에요.', base)
       expect(r.intent).toBe('taste-query')
+      expect(r.intent).not.toBe('recommendation-query')
+      expect(r.intent).not.toBe('mood-talk')
     })
 
     it('좋은 일이 있었어요. → mood-talk (positive variant)', () => {
       const r = ctx.classify('좋은 일이 있었어요.', base)
       expect(r.intent).toBe('mood-talk')
+      expect(r.intent).not.toBe('recommendation-query')
     })
 
     it('여기 분위기 좋아요. → bar-atmosphere', () => {
       const r = ctx.classify('여기 분위기 좋아요.', base)
       expect(r.intent).toBe('bar-atmosphere')
+      expect(r.intent).not.toBe('recommendation-query')
+      expect(r.intent).not.toBe('mood-talk')
     })
 
     it('뭐가 좋아요? → cocktail-query', () => {
       const r = ctx.classify('뭐가 좋아요?', base)
       expect(r.intent).toBe('cocktail-query')
+      expect(r.intent).not.toBe('recommendation-query')
+      expect(r.intent).not.toBe('mood-talk')
     })
   })
 })

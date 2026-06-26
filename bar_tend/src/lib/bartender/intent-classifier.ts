@@ -7,6 +7,9 @@ export type IntentType =
   | 'general-chat'
   | 'cocktail-query'
   | 'story-query'
+  | 'lore-query'
+  | 'cocktail-info-query'
+  | 'character-query'
   | 'story-query-followup'
   | 'story-query-cocktail-specific'
   | 'welcome-drink'
@@ -202,8 +205,10 @@ export class IntentClassifier {
     const routeResult = routeUserInput(input, {
       recommendationActive: context.activeRecommendationSession ?? false,
       allowRecommendationRoutes: true,
+      lastDiscussedCocktailId: context.lastServedCocktail?.id,
+      orderCandidateCocktailId: context.lastServedCocktail?.id,
     })
-    const explicitRoutes = ['safety', 'exit', 'recommendation-cancel']
+    const explicitRoutes = ['safety', 'exit', 'recommendation-cancel', 'explicit-cocktail', 'cocktail-mention']
     const isExplicit = explicitRoutes.includes(routeResult.route)
     return {
       route: isExplicit ? routeResult.route : 'general',
@@ -250,8 +255,10 @@ export class IntentClassifier {
     if (kf(['당장', '빨리 해', '가져와', '내놔', '말 들어', '듣거라', '니가 뭔데']).test(lower)) return ['rude-talk']
     if (kf(['별로', '마음에 안 들어', '실망', '기대 이하', '못하네']).test(lower)) return ['rude-talk']
 
-    if (kf(['여기 뭐', '뭐하는 곳', 'Re:Station', '리스테이션', '처음 왔']).test(lower)) return ['bar-setting']
+    if (kf(['Re:Station', '리스테이션', '처음 왔', '처음이야', '이게 무슨 곳']).test(lower)) return ['bar-setting']
+    if (/(?:여기|여긴|여기가)\s*(?:뭐\s*하는\s*(?:곳|데)|어디)/.test(lower)) return ['bar-setting']
     if (kf(['시에스타', '사장님', '사장']).test(lower)) return ['siesta-setting']
+    if (/당신은\s*(?:그럼|누구|뭐|뭘)|넌\s*(?:뭐|누구)|너는\s*(?:누구|뭐)|바텐더(?:야|니|예요|인가)|네가\s*(?:누구|뭐|뭔데)/.test(lower)) return ['character-query']
     if (kf(['분위기', '음악', '조명', '바 좋', '좋은 곳', '멋지', '예쁘', '아늑']).test(lower)) return ['bar-atmosphere']
     if (kf(['비 오', '비가', '눈 오', '춥', '더워', '날씨', '바람', '습하']).test(lower)) return ['weather-talk']
     if (kf(['모르겠', '뭐하지', '고민', '아무 생각', '그냥 왔', '딱히']).test(lower)) return ['uncertain-talk']
@@ -267,6 +274,8 @@ export class IntentClassifier {
     if (/누가\s*(?:만들|발명|고안|마시|좋아하)/.test(lower)) return ['story-query']
     if (/[가-힣]{2,}[이가]\s*(?:마시|좋아하).*칵테일/.test(lower)) return ['story-query']
     if (/왜\s*(?:이름|불리|붙은)/.test(lower)) return ['story-query']
+    if (/탄생\s*(?:이야기|설명)|기원/.test(lower)) return ['lore-query']
+    if (/정보\s*(?:좀\s*)?(?:알려|줘|뭐야|뭔지)|맛\s*설명|도수|어떤\s*칵테일|이\s*칵테일\s*(?:정보|설명)/.test(lower)) return ['cocktail-info-query']
 
     if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문', '한 잔', '한잔']).test(lower)) return ['cocktail-query']
     if (kf(['달콤', '쓰다', '신맛', '짠맛', '향', '맛', '상큼', '청량', '순하', '강하', '진하', '산미']).test(lower)) return ['taste-query']
@@ -276,6 +285,8 @@ export class IntentClassifier {
     if (/그거\s*맞/.test(lower)) return ['story-query-followup']
     if (/좋아하/.test(lower)) return ['story-query']
     if (kf(['더 알려', '더 들려', '계속 들려']).test(lower)) return ['story-query-followup']
+
+    if (/[가-힣]{2,}[이가]\s*마시/.test(lower)) return ['lore-query']
 
     if (this.detectUnknownCocktailQuery(lower)) return ['unknown-cocktail-request']
 
@@ -465,7 +476,8 @@ export class IntentClassifier {
     return false
   }
 
-  private isStoryQueryBlocked(context: DialogueContext, _intent: IntentType): boolean {
+  private isStoryQueryBlocked(context: DialogueContext, intent: IntentType): boolean {
+    if (!['story-query', 'lore-query', 'cocktail-info-query', 'story-query-followup', 'story-query-cocktail-specific'].includes(intent)) return false
     if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return true
     return false
   }
@@ -501,6 +513,7 @@ export class IntentClassifier {
       'recommendation-cancel': 'recommendation-cancel',
       'random-recommendation': 'random-request',
       'explicit-cocktail': 'order-cocktail',
+      'cocktail-mention': 'cocktail-query',
       'unknown-cocktail-query': 'unknown-cocktail-request',
       'story-query': 'story-query',
       recommendation: 'cocktail-query',
@@ -509,8 +522,31 @@ export class IntentClassifier {
     return map[route] ?? 'general-chat'
   }
 
-  private mapKeywordResultToIntent(keywordMatch: any): IntentType {
-    return keywordMatch?.intent || 'general-chat'
+  private mapKeywordResultToIntent(keywordMatch: string): IntentType {
+    const map: Record<string, IntentType> = {
+      'bar-intro': 'bar-setting',
+      'siesta-mention': 'siesta-setting',
+      'bar-atmosphere': 'bar-atmosphere',
+      'small-talk-weather': 'weather-talk',
+      'guest-uncertain': 'uncertain-talk',
+      'quiet-moment': 'quiet-talk',
+      'water-request': 'water-request',
+      overdrunk: 'overdrunk',
+      'minor-no-alcohol': 'minor-no-alcohol',
+      'non-alcoholic': 'non-alcoholic',
+      'ingredient-constraint': 'ingredient-constraint',
+      'real-world-info': 'real-world-info',
+      'rude-annoyed': 'rude-talk',
+      'rude-boundary': 'rude-talk',
+      greeting: 'recognition',
+      'mood-tired': 'mood-talk',
+      'mood-sad': 'mood-talk',
+      'mood-happy': 'mood-talk',
+      'cocktail-request': 'cocktail-query',
+      'taste-sweet': 'taste-query',
+      'taste-strong': 'taste-query',
+    }
+    return map[keywordMatch] ?? 'general-chat'
   }
 
   private buildSessionHistoryContext(context: DialogueContext): { lastCocktail?: string; lastMood?: string; recentTopics?: string[] } {
