@@ -43,6 +43,36 @@ describe('neutral runtime dialogue contract', () => {
     expect(response).toMatch(/뒤쪽|일|가끔|사장|지나가/)
   })
 
+  it('uses atmosphere dialogue for ordinary bar small talk', () => {
+    const result = getCocktailResponse('여기 분위기 좋다', [])
+
+    expect(result.response).toMatch(/분위기|조명|음악|공기|잔/)
+    expect(['talk', 'smirk', 'thinking']).toContain(result.expression)
+    expectKahluaBoundary(result.response)
+  })
+
+  it('uses weather dialogue without starting a recommendation loop', () => {
+    const result = getCocktailResponse('밖에 비가 오네', [])
+
+    expect(result.response).toMatch(/날씨|비|밖|잔|소리|시원|산뜻/)
+    expect(result.response).not.toContain('추천')
+    expectKahluaBoundary(result.response)
+  })
+
+  it('handles uncertain casual talk as a bar conversation cue', () => {
+    const result = getCocktailResponse('뭐 마실지 모르겠고 그냥 왔어', [])
+
+    expect(result.response).toMatch(/정해진|고민|아무 생각|싫은 것|표정|주문|선택지|방향|첫 단추/)
+    expectKahluaBoundary(result.response)
+  })
+
+  it('keeps quiet solo visit dialogue low pressure', () => {
+    const result = getCocktailResponse('오늘은 혼자 조용히 쉬고 싶어', [])
+
+    expect(result.response).toMatch(/조용|혼자|말없이|향|쉬|잔/)
+    expectKahluaBoundary(result.response)
+  })
+
   it('responds to a difficult mood naturally, not with an alcohol solution', () => {
     const response = getCocktailResponse('오늘 너무 힘들어', []).response
 

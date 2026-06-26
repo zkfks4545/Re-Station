@@ -12,6 +12,30 @@
     "dialogueCategory": "siesta-mention"
   },
   {
+    "patterns": ["분위기", "음악", "조명", "바 좋", "좋은 곳", "멋지", "예쁘", "아늑"],
+    "expression": "smirk",
+    "response": "분위기가 먼저 들어오셨네요. 그럼 잔은 너무 요란하지 않은 쪽이 어울리겠어요.",
+    "dialogueCategory": "bar-atmosphere"
+  },
+  {
+    "patterns": ["비 오", "비가", "눈 오", "춥", "더워", "날씨", "바람", "습하"],
+    "expression": "talk",
+    "response": "밖에서 날씨를 좀 묻혀 오셨네요. 그럼 오늘은 잔 온도부터 잘 맞춰야겠어요.",
+    "dialogueCategory": "small-talk-weather"
+  },
+  {
+    "patterns": ["모르겠", "뭐하지", "고민", "아무 생각", "그냥 왔", "딱히"],
+    "expression": "thinking",
+    "response": "정해진 게 없으면 더 고르기 쉽죠. 일단 너무 멀리 가지 않는 잔부터 볼게요.",
+    "dialogueCategory": "guest-uncertain"
+  },
+  {
+    "patterns": ["조용히", "혼자", "쉬고 싶", "말없이", "가만히", "잠깐 쉬"],
+    "expression": "talk",
+    "response": "그럼 오늘은 말보다 잔이 작게 움직이는 쪽이 좋겠네요.",
+    "dialogueCategory": "quiet-moment"
+  },
+  {
     "patterns": ["물 좀", "물 주세요", "물 줘", "물 한잔", "물 한 잔", "시원한 물"],
     "expression": "talk",
     "response": "물 먼저 드릴게요. 한 잔 고르는 건 그 다음에 천천히 해도 괜찮아요.",

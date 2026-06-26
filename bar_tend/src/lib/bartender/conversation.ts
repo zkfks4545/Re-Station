@@ -12,6 +12,10 @@ function detectIntent(input: string): string {
   if (detectExitIntent(lower)) return 'exit-intent'
   if (kf(['여기 뭐', '뭐하는 곳', 'Re:Station', '리스테이션', '처음 왔']).test(lower)) return 'bar-setting'
   if (kf(['시에스타', '사장님', '사장']).test(lower)) return 'siesta-setting'
+  if (kf(['분위기', '음악', '조명', '바 좋', '좋은 곳', '멋지', '예쁘', '아늑']).test(lower)) return 'bar-atmosphere'
+  if (kf(['비 오', '비가', '눈 오', '춥', '더워', '날씨', '바람', '습하']).test(lower)) return 'weather-talk'
+  if (kf(['모르겠', '뭐하지', '고민', '아무 생각', '그냥 왔', '딱히']).test(lower)) return 'uncertain-talk'
+  if (kf(['조용히', '혼자', '쉬고 싶', '말없이', '가만히', '잠깐 쉬']).test(lower)) return 'quiet-talk'
   if (kf(['물 좀', '물 주세요', '물 줘', '물 한잔', '물 한 잔', '시원한 물']).test(lower)) return 'water-request'
   if (kf(['취했', '너무 취', '많이 마셨', '그만 마셔', '술 그만', '더 못 마시']).test(lower)) return 'overdrunk'
   if (kf(['미성년', '고등학생', '중학생', '학생인데', '술 못 마셔', '청소년']).test(lower)) return 'minor-or-no-alcohol'
@@ -120,6 +124,18 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
 
     case 'siesta-setting':
       return dialogue('siesta-mention', '시에스타 사장님은 뒤쪽에 계세요.', 'smirk')
+
+    case 'bar-atmosphere':
+      return dialogue('bar-atmosphere', '분위기를 먼저 보셨네요.', 'smirk')
+
+    case 'weather-talk':
+      return dialogue('small-talk-weather', '밖 날씨가 잔 고르기 좋은 핑계가 되겠네요.', 'talk')
+
+    case 'uncertain-talk':
+      return dialogue('guest-uncertain', '정해진 게 없으면 싫은 것부터 빼보죠.', 'thinking')
+
+    case 'quiet-talk':
+      return dialogue('quiet-moment', '오늘은 조용한 쪽으로 가죠.', 'talk')
 
     case 'water-request':
       return dialogue('water-request', '물 먼저 드릴게요.', 'talk')
