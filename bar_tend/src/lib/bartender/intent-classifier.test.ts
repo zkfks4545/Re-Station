@@ -159,10 +159,46 @@ describe('IntentClassifier', () => {
       expect(result.intent).toBe('taste-query')
     })
 
-    it('does not route good news to mood-talk', () => {
+    it('routes good news to mood-talk', () => {
       const result = classifier.classify('좋은 일이 있었어요.', baseContext)
 
-      expect(result.intent).not.toBe('mood-talk')
+      expect(result.intent).toBe('mood-talk')
+    })
+
+    it('routes preference history questions to story-query', () => {
+      const result = classifier.classify('좋아하던 게 뭐예요?', baseContext)
+
+      expect(result.intent).toBe('story-query')
+    })
+  })
+
+  describe('좋아 keyword context branching', () => {
+    const base = { mentionedCocktails: [], sessionPhase: 'conversation' } as DialogueContext
+    const ctx = new IntentClassifier(mockCocktails)
+
+    it('헤밍웨이가 좋아하던 게 뭐예요? → story-query', () => {
+      const r = ctx.classify('헤밍웨이가 좋아하던 게 뭐예요?', base)
+      expect(r.intent).toBe('story-query')
+    })
+
+    it('좋아하는 맛은 단맛이에요. → taste-query', () => {
+      const r = ctx.classify('좋아하는 맛은 단맛이에요.', base)
+      expect(r.intent).toBe('taste-query')
+    })
+
+    it('좋은 일이 있었어요. → mood-talk (positive variant)', () => {
+      const r = ctx.classify('좋은 일이 있었어요.', base)
+      expect(r.intent).toBe('mood-talk')
+    })
+
+    it('여기 분위기 좋아요. → bar-atmosphere', () => {
+      const r = ctx.classify('여기 분위기 좋아요.', base)
+      expect(r.intent).toBe('bar-atmosphere')
+    })
+
+    it('뭐가 좋아요? → cocktail-query', () => {
+      const r = ctx.classify('뭐가 좋아요?', base)
+      expect(r.intent).toBe('cocktail-query')
     })
   })
 })
