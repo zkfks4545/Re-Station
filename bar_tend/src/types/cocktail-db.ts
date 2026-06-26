@@ -24,6 +24,8 @@ export interface CocktailRecordBase {
   /** Provenance for an official standardized recipe */
   recipe_source_url?: string
   official_category?: string
+  /** Short non-authoritative prompts Karua can use as bar conversation material */
+  talking_points?: string[]
 }
 
 export interface ClassicCocktailRecord extends CocktailRecordBase {

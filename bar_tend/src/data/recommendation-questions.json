@@ -3,25 +3,58 @@
     "id": "base-spirit",
     "topic": "base",
     "prompt": "선호하는 베이스 기주를 선택해 주세요.",
+    "promptPreset": {
+      "id": "question.preference.select",
+      "slots": { "target": "베이스 기주" }
+    },
+    "dialogueFlow": {
+      "leadIn": "베이스를 먼저 잡으면 후보가 꽤 좁아져요.",
+      "leadInPreset": {
+        "id": "question.flow.leadIn",
+        "slots": { "text": "베이스를 먼저 잡으면 후보가 꽤 좁아져요." }
+      },
+      "continuation": "이제 베이스 쪽도 맞춰볼게요.",
+      "continuationPreset": {
+        "id": "question.flow.continuation",
+        "slots": { "text": "이제 베이스 쪽도 맞춰볼게요." }
+      },
+      "goal": "narrow-candidates"
+    },
     "choices": [
       {
         "label": "진",
         "acknowledgement": "진을 선호 베이스로 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "진", "target": "선호 베이스" }
+        },
         "signals": [{ "field": "preferredIngredients", "value": "진", "confidence": 1, "source": "question" }]
       },
       {
         "label": "럼",
         "acknowledgement": "럼을 선호 베이스로 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "럼", "target": "선호 베이스" }
+        },
         "signals": [{ "field": "preferredIngredients", "value": "럼", "confidence": 1, "source": "question" }]
       },
       {
         "label": "위스키",
         "acknowledgement": "위스키를 선호 베이스로 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "위스키", "target": "선호 베이스" }
+        },
         "signals": [{ "field": "preferredIngredients", "value": "위스키", "confidence": 1, "source": "question" }]
       },
       {
         "label": "데킬라 또는 보드카",
         "acknowledgement": "데킬라와 보드카를 선호 베이스로 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "데킬라와 보드카", "target": "선호 베이스" }
+        },
         "signals": [
           { "field": "preferredIngredients", "value": "데킬라", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "보드카", "confidence": 1, "source": "question" }
@@ -29,7 +62,11 @@
       },
       {
         "label": "브랜디·리큐르·시그니처",
-        "acknowledgement": "브랜디, 리큐르와 시그니처 칵테일을 후보로 반영했습니다.",
+        "acknowledgement": "브랜디, 리큐르, 시그니처 칵테일을 후보로 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "브랜디, 리큐르, 시그니처 칵테일", "target": "후보" }
+        },
         "signals": [
           { "field": "preferredIngredients", "value": "브랜디", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "리큐르", "confidence": 1, "source": "question" },
@@ -39,7 +76,10 @@
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
+        "acknowledgement": "현재까지의 답변을 기준으로 추천합니다.",
+        "acknowledgementPreset": {
+          "id": "answer.delegated"
+        },
         "signals": [],
         "finishRecommendation": true
       }
@@ -48,26 +88,59 @@
   {
     "id": "flavor-profile",
     "topic": "flavor",
-    "prompt": "선호하는 맛과 풍미를 선택해 주세요.",
+    "prompt": "선호하는 맛과 톤을 선택해 주세요.",
+    "promptPreset": {
+      "id": "question.preference.select",
+      "slots": { "target": "맛과 톤" }
+    },
+    "dialogueFlow": {
+      "leadIn": "먼저 맛의 방향부터 잡아볼게요.",
+      "leadInPreset": {
+        "id": "question.flow.leadIn",
+        "slots": { "text": "먼저 맛의 방향부터 잡아볼게요." }
+      },
+      "continuation": "그럼 맛의 방향도 이어서 맞춰볼게요.",
+      "continuationPreset": {
+        "id": "question.flow.continuation",
+        "slots": { "text": "그럼 맛의 방향도 이어서 맞춰볼게요." }
+      },
+      "goal": "open-preference"
+    },
     "choices": [
       {
-        "label": "달콤하고 과일향 나게",
-        "acknowledgement": "달콤하고 과일향이 나는 맛을 반영했습니다.",
+        "label": "달콤하고 과일감 있게",
+        "acknowledgement": "달콤하고 과일감 있는 맛을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "달콤하고 과일감 있는 맛", "target": "취향" }
+        },
         "signals": [{ "field": "taste.sweetness", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
         "label": "상큼하고 시트러스하게",
         "acknowledgement": "상큼하고 시트러스한 맛을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "상큼하고 시트러스한 맛", "target": "취향" }
+        },
         "signals": [{ "field": "taste.sourness", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
-        "label": "드라이하고 쌉쌀하게",
-        "acknowledgement": "드라이하고 쌉쌀한 맛을 반영했습니다.",
+        "label": "드라이하고 씁쓸하게",
+        "acknowledgement": "드라이하고 씁쓸한 맛을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "드라이하고 씁쓸한 맛", "target": "취향" }
+        },
         "signals": [{ "field": "taste.sweetness", "value": 0.2, "confidence": 1, "source": "question" }]
       },
       {
-        "label": "균형 잡히고 부드럽게",
-        "acknowledgement": "균형 잡히고 부드러운 맛을 반영했습니다.",
+        "label": "균형 있고 부드럽게",
+        "acknowledgement": "균형 있고 부드러운 맛을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "균형 있고 부드러운 맛", "target": "취향" }
+        },
         "signals": [
           { "field": "taste.sweetness", "value": 0.5, "confidence": 1, "source": "question" },
           { "field": "taste.sourness", "value": 0.4, "confidence": 1, "source": "question" }
@@ -75,7 +148,10 @@
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
+        "acknowledgement": "현재까지의 답변을 기준으로 추천합니다.",
+        "acknowledgementPreset": {
+          "id": "answer.delegated"
+        },
         "signals": [],
         "finishRecommendation": true
       }
@@ -85,25 +161,61 @@
     "id": "alcohol-strength",
     "topic": "alcohol",
     "prompt": "선호하는 알코올 도수를 선택해 주세요.",
+    "promptPreset": {
+      "id": "question.preference.select",
+      "slots": { "target": "알코올 도수" }
+    },
+    "dialogueFlow": {
+      "leadIn": "마시는 속도까지 생각해서 도수를 맞춰볼게요.",
+      "leadInPreset": {
+        "id": "question.flow.leadIn",
+        "slots": { "text": "마시는 속도까지 생각해서 도수를 맞춰볼게요." }
+      },
+      "continuation": "이제 도수 쪽을 무리 없게 정해볼게요.",
+      "continuationPreset": {
+        "id": "question.flow.continuation",
+        "slots": { "text": "이제 도수 쪽을 무리 없게 정해볼게요." }
+      },
+      "goal": "confirm-constraint"
+    },
     "choices": [
       {
         "label": "가볍게",
         "acknowledgement": "낮은 알코올 도수를 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "낮은 알코올 도수", "target": "조건" }
+        },
         "signals": [{ "field": "alcoholPreference", "value": "low", "confidence": 1, "source": "question" }]
       },
       {
         "label": "적당하게",
         "acknowledgement": "중간 알코올 도수를 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "중간 알코올 도수", "target": "조건" }
+        },
         "signals": [{ "field": "alcoholPreference", "value": "medium", "confidence": 1, "source": "question" }]
       },
       {
-        "label": "강하게, 천천히",
+        "label": "강하게 천천히",
         "acknowledgement": "높은 알코올 도수를 반영했습니다. 천천히 마시는 것을 권장합니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.appliedWithCaution",
+          "slots": {
+            "value": "높은 알코올 도수",
+            "target": "조건",
+            "caution": "천천히 마시는 것을 권장합니다."
+          }
+        },
         "signals": [{ "field": "alcoholPreference", "value": "high", "confidence": 1, "source": "question" }]
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
+        "acknowledgement": "현재까지의 답변을 기준으로 추천합니다.",
+        "acknowledgementPreset": {
+          "id": "answer.delegated"
+        },
         "signals": [],
         "finishRecommendation": true
       }
@@ -113,20 +225,48 @@
     "id": "fizz",
     "topic": "fizz",
     "prompt": "선호하는 탄산감을 선택해 주세요.",
+    "promptPreset": {
+      "id": "question.preference.select",
+      "slots": { "target": "탄산감" }
+    },
+    "dialogueFlow": {
+      "leadIn": "마지막으로 질감만 잡으면 거의 좁혀져요.",
+      "leadInPreset": {
+        "id": "question.flow.leadIn",
+        "slots": { "text": "마지막으로 질감만 잡으면 거의 좁혀져요." }
+      },
+      "continuation": "이제 마시는 질감만 맞춰볼게요.",
+      "continuationPreset": {
+        "id": "question.flow.continuation",
+        "slots": { "text": "이제 마시는 질감만 맞춰볼게요." }
+      },
+      "goal": "narrow-candidates"
+    },
     "choices": [
       {
         "label": "톡 쏘고 청량하게",
         "acknowledgement": "청량한 탄산감을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "청량한 탄산감", "target": "취향" }
+        },
         "signals": [{ "field": "taste.fizz", "value": 0.8, "confidence": 1, "source": "question" }]
       },
       {
-        "label": "탄산 없이 잔잔하게",
+        "label": "탄산 없이 묵직하게",
         "acknowledgement": "탄산이 없는 선택을 반영했습니다.",
+        "acknowledgementPreset": {
+          "id": "answer.preference.applied",
+          "slots": { "value": "탄산이 없는 선택", "target": "취향" }
+        },
         "signals": [{ "field": "taste.fizz", "value": 0.1, "confidence": 1, "source": "question" }]
       },
       {
         "label": "카루아에게 맡기기",
-        "acknowledgement": "현재까지의 응답을 기준으로 추천합니다.",
+        "acknowledgement": "현재까지의 답변을 기준으로 추천합니다.",
+        "acknowledgementPreset": {
+          "id": "answer.delegated"
+        },
         "signals": [],
         "finishRecommendation": true
       }

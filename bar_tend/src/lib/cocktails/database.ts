@@ -9,6 +9,7 @@ import type {
 import {
   isSignatureCocktail,
 } from '../../types/cocktail-db.js'
+import { generateNeutralDescription } from './description-gen.js'
 import rawDb from '../../data/cocktail-db.json'
 
 export const cocktailDatabase = rawDb as CocktailDatabase
@@ -129,8 +130,8 @@ const legacyCocktails: Cocktail[] = [
       { ingredient: '스위트 베르무트', measure: '1 oz' },
     ],
     recipeText: 'Stir into glass over ice, garnish and serve.',
-    story: '네그로니는 1919년 이탈리아 피렌체에서 카밀로 네그로니 백작이 주문한 칵테일이에요. 쓴맛이 강하지만 그 속에 숨겨진 깊은 매력이 있죠. 어른의 맛을 아는 분들이 자주 찾는 칵테일입니다. 한 잔 하시겠어요?',
-    vibe: '쓴맛 속에 숨겨진 깊은 매력',
+    story: '네그로니는 1919년 이탈리아 피렌체에서 카밀로 네그로니 백작이 주문한 칵테일이에요. 드라이하고 쌉쌀하지만 그 속에 숨겨진 깊은 매력이 있죠. 어른의 맛을 아는 분들이 자주 찾는 칵테일입니다. 한 잔 하시겠어요?',
+    vibe: '드라이함 속에 숨겨진 깊은 매력',
     image: 'https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg',
     glass: 'Old-fashioned glass',
     category: 'Ordinary Drink',
@@ -723,6 +724,11 @@ function createCocktailData(record: CocktailRecord): CocktailData {
       (c.nameEn && record.name_en && c.nameEn === record.name_en) ||
       c.name === record.name_ko,
   )
+  const description = record.description || generateNeutralDescription(record.recipe, {
+    baseSpirit: record.base_spirit,
+    ingredients: parseRecipeIngredients(record.recipe),
+    features: record.features,
+  })
   const ingredients = parseRecipeIngredients(record.recipe)
 
   return {
@@ -737,6 +743,7 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     base_spirit: record.base_spirit,
     recipe_source_url: record.recipe_source_url,
     official_category: record.official_category,
+    talkingPoints: record.talking_points,
     bar_id: isSignatureCocktail(record) ? record.bar_id : undefined,
     bar_name: isSignatureCocktail(record) ? record.bar_name : undefined,
     bar_location_link: isSignatureCocktail(record) ? record.bar_location_link : undefined,
@@ -752,13 +759,13 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     base: record.base_spirit ?? (isSignatureCocktail(record) ? record.bar_name : 'Classic'),
     ingredients,
     recipeText: record.recipe,
-    story: record.description,
+    story: description,
     vibe: legacyMatch?.vibe ?? (
       isSignatureCocktail(record)
         ? `Signature @ ${record.bar_name}`
         : 'Classic cocktail'
     ),
-    description: record.description,
+    description,
     popCulture: legacyMatch?.popCulture ?? (
       isSignatureCocktail(record) ? record.bar_location_link : undefined
     ),

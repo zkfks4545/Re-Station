@@ -1,6 +1,7 @@
-import { cocktails } from '../cocktails/database.js'
+import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { detectExitIntent } from '../dialogue/input-router.js'
-import type { Cocktail, Message, BartenderResponse, ConversationContext } from '../../types.js'
+import { pickDialogue } from '../dialogue/dialogue-loader.js'
+import type { Cocktail, Message, BartenderResponse, ConversationContext, Expression } from '../../types.js'
 
 const kf = (patterns: string[]) => new RegExp(patterns.map(
   (p) => (/^[a-z]/i.test(p) ? `\\b${p}\\b` : p)
@@ -9,11 +10,35 @@ const kf = (patterns: string[]) => new RegExp(patterns.map(
 function detectIntent(input: string): string {
   const lower = input.toLowerCase()
   if (detectExitIntent(lower)) return 'exit-intent'
-  if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문']).test(lower)) return 'cocktail-query'
-  if (kf(['달콤', '쓰다', '신맛', '짠맛', '향', '맛', '상큼', '청량', '순하', '강하', '진하']).test(lower)) return 'taste-query'
-  if (kf(['어떻게', '재료', '만들', '레시피', '뭐가 들']).test(lower)) return 'recipe-query'
-  if (kf(['힘들', '우울', '슬퍼', '행복', '기분', '외롭', '지쳤', '스트레스']).test(lower)) return 'mood-talk'
+  if (kf(['여기 뭐', '뭐하는 곳', 'Re:Station', '리스테이션', '처음 왔']).test(lower)) return 'bar-setting'
+  if (kf(['시에스타', '사장님', '사장']).test(lower)) return 'siesta-setting'
+  if (kf(['분위기', '음악', '조명', '바 좋', '좋은 곳', '멋지', '예쁘', '아늑']).test(lower)) return 'bar-atmosphere'
+  if (kf(['비 오', '비가', '눈 오', '춥', '더워', '날씨', '바람', '습하']).test(lower)) return 'weather-talk'
+  if (kf(['모르겠', '뭐하지', '고민', '아무 생각', '그냥 왔', '딱히']).test(lower)) return 'uncertain-talk'
+  if (kf(['조용히', '혼자', '쉬고 싶', '말없이', '가만히', '잠깐 쉬']).test(lower)) return 'quiet-talk'
+  if (kf(['물 좀', '물 주세요', '물 줘', '물 한잔', '물 한 잔', '시원한 물']).test(lower)) return 'water-request'
+  if (kf(['취했', '너무 취', '많이 마셨', '그만 마셔', '술 그만', '더 못 마시']).test(lower)) return 'overdrunk'
+  if (kf(['미성년', '고등학생', '중학생', '학생인데', '술 못 마셔', '청소년']).test(lower)) return 'minor-or-no-alcohol'
+  if (kf(['무알코올', '논알콜', '논알코올', '알코올 없이', '술 없이', '논알콜릭']).test(lower)) return 'non-alcoholic'
+  if (kf(['알레르기', '못 먹', '빼고', '제외', '먹으면 안', '알러지']).test(lower)) return 'ingredient-constraint'
+  if (kf(['예약', '영업시간', '주소', '위치', '전화', '결제', '카드 돼', '화장실', '와이파이']).test(lower)) return 'real-world-info'
+  if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문', '한 잔', '한잔']).test(lower)) return 'cocktail-query'
+  if (kf(['달콤', '쓰다', '신맛', '짠맛', '향', '맛', '상큼', '청량', '순하', '강하', '진하', '산미']).test(lower)) return 'taste-query'
+  if (kf(['어떻게', '재료', '만들', '레시피', '뭐가 들', '조리법', '방법']).test(lower)) return 'recipe-query'
+  if (kf(['힘들', '우울', '슬퍼', '행복', '기분', '외롭', '지쳤', '스트레스', '속상', '답답']).test(lower)) return 'mood-talk'
+  if (kf(['이야기', '사연', '비밀', '옛날', '추억', '유래', '뒷이야기']).test(lower)) return 'story-talk'
+  if (kf(['시끄러', '닥쳐', '꺼져', '짜증나', '열받아', '화나']).test(lower)) return 'rude-talk'
+  if (kf(['당장', '빨리 해', '가져와', '내놔', '말 들어', '듣거라', '니가 뭔데']).test(lower)) return 'rude-talk'
+  if (kf(['별로', '마음에 안 들어', '실망', '기대 이하', '못하네']).test(lower)) return 'rude-talk'
   return 'general-chat'
+}
+
+function detectUserMood(input: string): ConversationContext['userMood'] {
+  const t = input.toLowerCase()
+  if (kf(['피곤', '지쳤', '지침', '퇴근', '졸려', '녹초']).test(t)) return 'tired'
+  if (kf(['힘들', '우울', '슬퍼', '외롭', '스트레스', '괴롭', '속상', '답답']).test(t)) return 'sad'
+  if (kf(['좋아', '행복', '신나', '축하', '기쁘', '즐거', '최고', '재밌', '웃기']).test(t)) return 'happy'
+  return null
 }
 
 export function buildConversationContext(history: Message[]): ConversationContext {
@@ -34,15 +59,14 @@ export function buildConversationContext(history: Message[]): ConversationContex
     if (msg.role === 'user') {
       ctx.totalUserMessages++
 
-      if (kf(['안녕', '하이', '방가', '처음', '반가워']).test(t)) ctx.greeted = true
-      if (kf(['힘들', '우울', '슬퍼', '외롭', '스트레스', '피곤', '괴롭', '지쳤']).test(t)) ctx.userMood = 'sad'
-      if (kf(['좋아', '행복', '신나', '축하', '기쁘', '즐거', '최고']).test(t)) ctx.userMood = 'happy'
-      if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문']).test(t)) ctx.lastTopic = 'cocktail-request'
-      if (kf(['달콤', '달아', '시럽', '달게', '달짝']).test(t)) ctx.lastTopic = 'taste-sweet'
-      if (kf(['씁쓸', '쓰다', '비터', '쓴맛']).test(t)) ctx.lastTopic = 'taste-bitter'
-      if (kf(['상쾌', '시원', '청량', 'fresh', '탄산', '기포']).test(t)) ctx.lastTopic = 'taste-refresh'
-      if (kf(['이야기', '사연', '비밀', '옛날', '추억', '유래']).test(t)) ctx.lastTopic = 'story'
-      if (kf(['어떻게', '재료', '만들', '레시피', '뭐가 들']).test(t)) ctx.lastTopic = 'recipe'
+      if (kf(['안녕', '하이', '방가', '처음', '반가워', '안녕하세']).test(t)) ctx.greeted = true
+      ctx.userMood = detectUserMood(t) ?? ctx.userMood
+      if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문', '한 잔', '한잔']).test(t)) ctx.lastTopic = 'cocktail-request'
+      if (kf(['달콤', '달아', '시럽', '달게', '달짝', '달달']).test(t)) ctx.lastTopic = 'taste-sweet'
+      if (kf(['씁쓸', '쓰다', '비터', '쓴맛', '쌉쌀']).test(t)) ctx.lastTopic = 'taste-bitter'
+      if (kf(['상쾌', '시원', '청량', 'fresh', '탄산', '기포', '톡쏘']).test(t)) ctx.lastTopic = 'taste-refresh'
+      if (kf(['이야기', '사연', '비밀', '옛날', '추억', '유래', '뒷이야기']).test(t)) ctx.lastTopic = 'story'
+      if (kf(['어떻게', '재료', '만들', '레시피', '뭐가 들', '조리법', '방법']).test(t)) ctx.lastTopic = 'recipe'
 
       for (const c of cocktails) {
         if (t.includes(c.name.toLowerCase())) {
@@ -66,89 +90,81 @@ export function buildConversationContext(history: Message[]): ConversationContex
   return ctx
 }
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
-
-interface ResponseTemplate {
-  response: string
-  expression: BartenderResponse['expression']
-}
-
-const SAD_RESPONSES: ResponseTemplate[] = [
-  { response: '오늘 많이 힘드셨나 봐요. 괜찮으시면 천천히 말씀해 주세요.', expression: 'sympathy' },
-  { response: '지금 기분에 맞는 한 잔을 찾으시면 원하는 맛을 말씀해 주세요.', expression: 'sympathy' },
-  { response: '괜찮으신 만큼만 편하게 말씀해 주세요.', expression: 'sympathy' },
-]
-
-const HAPPY_RESPONSES: ResponseTemplate[] = [
-  { response: '좋은 일이 있으셨군요. 축하하기 좋은 칵테일을 골라볼게요.', expression: 'smirk' },
-  { response: '축하할 자리에 어울리는 칵테일을 찾아볼게요.', expression: 'smirk' },
-]
-
-const COCKTAIL_REQUEST: ResponseTemplate[] = [
-  { response: '칵테일을 추천해 드릴게요. 어떤 맛을 좋아하세요?', expression: 'thinking' },
-  { response: '취향에 맞는 걸 찾으려면 몇 가지만 여쭤볼게요.', expression: 'talk' },
-]
-
-const TASTE_SWEET: ResponseTemplate[] = [
-  { response: '달콤한 쪽을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'talk' },
-  { response: '달콤한 풍미를 중심으로 볼게요.', expression: 'talk' },
-]
-
-const TASTE_BITTER: ResponseTemplate[] = [
-  { response: '쌉쌀한 맛을 좋아하시는군요. 그쪽으로 찾아볼게요.', expression: 'smirk' },
-  { response: '쌉쌀한 풍미를 중심으로 볼게요.', expression: 'smirk' },
-]
-
-const TASTE_REFRESH: ResponseTemplate[] = [
-  { response: '청량한 맛을 좋아하시는군요. 시원한 쪽으로 찾아볼게요.', expression: 'talk' },
-  { response: '상쾌한 풍미를 중심으로 볼게요.', expression: 'talk' },
-]
-
-const RECIPE_REQUEST: ResponseTemplate[] = [
-  { response: '레시피를 알려드릴게요. 어떤 칵테일이 궁금하세요?', expression: 'talk' },
-  { response: '궁금한 칵테일 이름을 말씀해 주시면 레시피를 찾아드릴게요.', expression: 'talk' },
-]
-
-function getCocktailMentionResponses(cocktail: Cocktail): ResponseTemplate[] {
-  return [
-    { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' },
-    { response: `${cocktail.name} 말씀이시군요. 주문하시거나 자세한 정보를 보실 수 있어요.`, expression: 'smirk' },
+function getCocktailMentionResponse(cocktail: Cocktail): BartenderResponse {
+  const templates = [
+    { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' as const },
+    { response: `${cocktail.name} 말씀이시군요. 주문하시거나 자세한 정보를 보실 수 있어요.`, expression: 'smirk' as const },
+    { response: `${cocktail.name}은 좋은 선택이에요. ${cocktail.vibe}`, expression: 'smirk' as const },
   ]
+  return templates[Math.floor(Math.random() * templates.length)]
 }
 
-const GENERAL_CHAT: ResponseTemplate[] = [
-  { response: '칵테일을 추천받거나 메뉴에 대해 물어보셔도 돼요.', expression: 'idle' },
-  { response: '필요한 게 있으면 말씀해 주세요.', expression: 'talk' },
-  { response: '어떤 걸 원하시는지 조금만 더 말씀해 주시겠어요?', expression: 'talk' },
-  { response: '칵테일 추천이나 메뉴 안내를 도와드릴게요.', expression: 'talk' },
-]
-
-const AFTER_RECOMMENDATION: ResponseTemplate[] = [
-  { response: '다른 칵테일도 찾아드릴까요?', expression: 'talk' },
-  { response: '다른 추천이 필요하면 말씀해 주세요.', expression: 'smirk' },
-]
+function dialogue(category: string, fallback: string, expression: Expression): BartenderResponse {
+  const picked = pickDialogue(category)
+  return picked ? { response: picked.text, expression: picked.expression } : { response: fallback, expression }
+}
 
 export function generateResponse(input: string, history: Message[]): BartenderResponse {
   const ctx = buildConversationContext(history)
-
-  if (ctx.mentionedCocktail) {
-    return pick(getCocktailMentionResponses(ctx.mentionedCocktail))
-  }
+  ctx.userMood = detectUserMood(input) ?? ctx.userMood
 
   const intent = detectIntent(input)
+  const currentCocktail = findCocktailByName(input)
+
+  if (currentCocktail && intent === 'general-chat') {
+    return getCocktailMentionResponse(currentCocktail)
+  }
 
   switch (intent) {
     case 'exit-intent':
       return { response: '들러주셔서 감사합니다. 조심히 가세요.', expression: 'idle' }
 
+    case 'bar-setting':
+      return dialogue('bar-intro', '여기는 Re:Station이에요.', 'talk')
+
+    case 'siesta-setting':
+      return dialogue('siesta-mention', '시에스타 사장님은 뒤쪽에 계세요.', 'smirk')
+
+    case 'bar-atmosphere':
+      return dialogue('bar-atmosphere', '분위기를 먼저 보셨네요.', 'smirk')
+
+    case 'weather-talk':
+      return dialogue('small-talk-weather', '밖 날씨가 잔 고르기 좋은 핑계가 되겠네요.', 'talk')
+
+    case 'uncertain-talk':
+      return dialogue('guest-uncertain', '정해진 게 없으면 싫은 것부터 빼보죠.', 'thinking')
+
+    case 'quiet-talk':
+      return dialogue('quiet-moment', '오늘은 조용한 쪽으로 가죠.', 'talk')
+
+    case 'water-request':
+      return dialogue('water-request', '물 먼저 드릴게요.', 'talk')
+
+    case 'overdrunk':
+      return dialogue('overdrunk', '그럼 여기서는 더 권하지 않을게요.', 'sympathy')
+
+    case 'minor-or-no-alcohol':
+      return dialogue('minor-no-alcohol', '알코올은 안내하지 않을게요.', 'talk')
+
+    case 'non-alcoholic':
+      return dialogue('non-alcoholic', '무알코올 쪽으로 볼게요.', 'talk')
+
+    case 'ingredient-constraint':
+      return dialogue('ingredient-constraint', '그 재료는 피해서 볼게요.', 'thinking')
+
+    case 'real-world-info':
+      return dialogue('real-world-info', '여긴 가상의 바예요.', 'talk')
+
     case 'cocktail-query':
-      return pick(COCKTAIL_REQUEST)
+      return dialogue('cocktail-request', '칵테일을 추천해 드릴게요.', 'thinking')
+
+    case 'story-talk':
+      return dialogue('story-request', '듣고 있어요.', 'talk')
 
     case 'mood-talk': {
-      if (ctx.userMood === 'sad') return pick(SAD_RESPONSES)
-      if (ctx.userMood === 'happy') return pick(HAPPY_RESPONSES)
+      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘은 좀 가볍게 가죠.', 'sympathy')
+      if (ctx.userMood === 'sad') return dialogue('mood-sad', '그런 날이 있죠. 무거운 얘기는 천천히.', 'sympathy')
+      if (ctx.userMood === 'happy') return dialogue('mood-happy', '좋은 일이 있으셨군요.', 'smirk')
       return {
         response: '지금 기분에 맞는 한 잔을 찾으시면 말씀해 주세요.',
         expression: 'talk',
@@ -156,9 +172,9 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
     }
 
     case 'taste-query': {
-      if (kf(['달콤', '달아', '시럽', '달게', '단']).test(input)) return pick(TASTE_SWEET)
-      if (kf(['씁쓸', '쓰다', '비터', '쓴맛']).test(input)) return pick(TASTE_BITTER)
-      if (kf(['상쾌', '시원', '청량', 'fresh', '탄산', '순하', '강하', '진하']).test(input)) return pick(TASTE_REFRESH)
+      if (kf(['달콤', '달아', '시럽', '달게', '단']).test(input)) return dialogue('taste-sweet', '달콤한 쪽으로 찾아볼게요.', 'talk')
+      if (kf(['씁쓸', '쓰다', '비터', '쓴맛']).test(input)) return dialogue('taste-bitter', '쌉쌀한 쪽으로 찾아볼게요.', 'smirk')
+      if (kf(['상쾌', '시원', '청량', 'fresh', '탄산', '순하', '강하', '진하']).test(input)) return dialogue('taste-refresh', '청량한 쪽으로 찾아볼게요.', 'talk')
       return {
         response: '어떤 맛을 좋아하시는지 말씀해 주세요.',
         expression: 'talk',
@@ -166,14 +182,24 @@ export function generateResponse(input: string, history: Message[]): BartenderRe
     }
 
     case 'recipe-query':
-      return pick(RECIPE_REQUEST)
+      return dialogue('recipe-request', '레시피를 알려드릴게요.', 'talk')
+
+    case 'rude-talk': {
+      if (kf(['시끄러', '닥쳐', '꺼져', '짜증나', '열받아', '화나']).test(input)) return dialogue('rude-annoyed', '그런 말씀은 듣기 좋지 않네요.', 'annoyed')
+      if (kf(['당장', '빨리 해', '가져와', '내놔', '말 들어', '듣거라', '니가 뭔데']).test(input)) return dialogue('rude-boundary', '여기는 편하게 대화하는 곳이에요.', 'stern')
+      return dialogue('rude-disappointed', '그렇게 생각하시는군요. 조금 아쉽네요.', 'disappointed')
+    }
 
     default: {
-      if (ctx.recommendedCocktail && ctx.lastTopic === 'cocktail-request') {
-        return pick(AFTER_RECOMMENDATION)
+      if (ctx.totalUserMessages >= 4 && ctx.lastTopic === null) {
+        return dialogue('long-conversation-prompt', '혹시 칵테일 추천을 원하시면 편하게 말씀해 주세요.', 'talk')
       }
-      if (ctx.userMood === 'sad') return pick(SAD_RESPONSES)
-      return pick(GENERAL_CHAT)
+      if (ctx.recommendedCocktail && ctx.lastTopic === 'cocktail-request') {
+        return dialogue('after-recommendation', '다른 칵테일도 찾아드릴까요?', 'talk')
+      }
+      if (ctx.userMood === 'tired') return dialogue('mood-tired', '오늘은 좀 가볍게 가죠.', 'sympathy')
+      if (ctx.userMood === 'sad') return dialogue('mood-sad', '그런 날이 있죠. 무거운 얘기는 천천히.', 'sympathy')
+      return dialogue('general-chat', '편하게 말씀해 주세요.', 'talk')
     }
   }
 }

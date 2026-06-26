@@ -5,6 +5,7 @@ import BarCounter from '@/components/bar/BarCounter.jsx'
 import DialogueBox from '@/components/bar/DialogueBox.jsx'
 import ChatInput from '@/components/bar/ChatInput.jsx'
 import CocktailCard from '@/components/bar/CocktailCard.jsx'
+import WelcomeDrinkButton from '@/components/bar/WelcomeDrinkButton.jsx'
 import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useRestationController } from '@/hooks/useRestationController.js'
 
@@ -15,18 +16,29 @@ export default function App() {
     expression,
     isBartenderTyping,
     isProcessing,
+    isPreparingCocktail,
     activeQuestion,
+    actionSessionMode,
     errorMessage,
     servedCocktail,
+    lastServedCocktail,
     sidebarOpen,
     screenShake,
     unlockedIds,
+    canReRecommend,
     handleEnter,
     handleExit,
+    handleOrderCocktail,
     handleReRecommend,
     handleResetNight,
     handleCancelRecommendation,
+    handleViewCocktail,
+    handleWelcomeDrink,
+    handleStartConversation,
+    handleStartRecommendation,
     handleSend,
+    onTypingComplete,
+    welcomeDrinkAvailable,
     setServedCocktail,
     setSidebarOpen,
   } = useRestationController()
@@ -76,7 +88,11 @@ export default function App() {
         </header>
         <div className="flex-1 flex flex-col min-h-0 relative z-20">
           <div className="restation-stage">
-            <BartenderSprite expression={expression} />
+            <BartenderSprite
+              expression={expression}
+              isPreparingCocktail={isPreparingCocktail}
+              isBartenderTyping={isBartenderTyping}
+            />
             <BarCounter />
           </div>
           <div
@@ -90,12 +106,17 @@ export default function App() {
               borderTop: '1px solid rgba(196,163,90,0.05)',
             }}
           >
-            <DialogueBox messages={messages} isTyping={isBartenderTyping} />
+            <DialogueBox messages={messages} isTyping={isBartenderTyping} onTypingComplete={onTypingComplete} />
             <ChatInput
               onSend={handleSend}
               onCancelRecommendation={handleCancelRecommendation}
               activeQuestion={activeQuestion}
-              disabled={isProcessing || isBartenderTyping}
+              disabled={isProcessing || isBartenderTyping || actionSessionMode === 'idle'}
+              placeholder={
+                actionSessionMode === 'idle'
+                  ? '먼저 대화하기나 추천받기를 골라주세요.'
+                  : undefined
+              }
             />
             {errorMessage && (
               <p className="px-6 pb-3 text-xs text-red-300" role="alert">
@@ -104,24 +125,41 @@ export default function App() {
             )}
           </div>
           <div
-            className="flex justify-end px-4 pb-3 pt-0.5"
+            className="flex justify-end gap-2 px-4 pb-3 pt-0.5"
             style={{
               background:
                 'linear-gradient(to top, rgba(13,10,7,0.95), rgba(13,10,7,0.5))',
             }}
           >
+            <div className="session-mode-controls" role="group" aria-label="현재 행동 선택">
+              <button
+                type="button"
+                className={`session-mode-btn ${actionSessionMode === 'conversation' ? 'session-mode-btn--active' : ''}`}
+                onClick={handleStartConversation}
+                disabled={isProcessing || isBartenderTyping}
+                aria-pressed={actionSessionMode === 'conversation'}
+              >
+                대화하기
+              </button>
+              <button
+                type="button"
+                className={`session-mode-btn ${actionSessionMode === 'recommendation' ? 'session-mode-btn--active' : ''}`}
+                onClick={handleStartRecommendation}
+                disabled={isProcessing || isBartenderTyping}
+                aria-pressed={actionSessionMode === 'recommendation'}
+              >
+                추천받기
+              </button>
+            </div>
+            <WelcomeDrinkButton
+              disabled={isProcessing || isBartenderTyping}
+              hidden={!welcomeDrinkAvailable}
+              onClick={handleWelcomeDrink}
+            />
             <button
               onClick={handleExit}
               className="exit-btn text-xs transition-all duration-200 cursor-pointer select-none flex items-center gap-1"
-              style={{
-                color: '#b088d0',
-                textShadow: '0 0 6px rgba(120,80,180,0.25)',
-                background: 'rgba(120,80,180,0.06)',
-                border: '1px solid rgba(180,136,208,0.2)',
-                padding: '4px 12px',
-                fontFamily: 'inherit',
-                letterSpacing: '0.12em',
-              }}
+              disabled={isProcessing || isBartenderTyping}
             >
               <span className="opacity-60">[</span>
               나가기
@@ -133,7 +171,7 @@ export default function App() {
           <CocktailCard
             cocktail={servedCocktail}
             onClose={() => setServedCocktail(null)}
-            onReRecommend={handleReRecommend}
+            onReRecommend={canReRecommend ? handleReRecommend : undefined}
           />
         )}
       </div>
@@ -143,7 +181,9 @@ export default function App() {
         mobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
         onResetNight={handleResetNight}
-        onViewCocktail={setServedCocktail}
+        lastServedCocktail={lastServedCocktail}
+        onViewCocktail={handleViewCocktail}
+        onOrderCocktail={handleOrderCocktail}
       />
     </div>
   )

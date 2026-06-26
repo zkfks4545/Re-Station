@@ -1,0 +1,128 @@
+[
+  {
+    "patterns": ["여기 뭐", "뭐하는 곳", "Re:Station", "리스테이션", "처음 왔", "처음이야"],
+    "expression": "talk",
+    "response": "여기는 Re:Station이에요. 지금 기분이랑 취향에 맞는 한 잔을 같이 고르는 바예요.",
+    "dialogueCategory": "bar-intro"
+  },
+  {
+    "patterns": ["시에스타", "사장님", "사장"],
+    "expression": "smirk",
+    "response": "시에스타 사장님은 보통 뒤쪽에서 이곳을 보고 계세요. 가끔 한마디만 얹고 다시 일하러 가시고요.",
+    "dialogueCategory": "siesta-mention"
+  },
+  {
+    "patterns": ["분위기", "음악", "조명", "바 좋", "좋은 곳", "멋지", "예쁘", "아늑"],
+    "expression": "smirk",
+    "response": "분위기가 먼저 들어오셨네요. 그럼 잔은 너무 요란하지 않은 쪽이 어울리겠어요.",
+    "dialogueCategory": "bar-atmosphere"
+  },
+  {
+    "patterns": ["비 오", "비가", "눈 오", "춥", "더워", "날씨", "바람", "습하"],
+    "expression": "talk",
+    "response": "밖에서 날씨를 좀 묻혀 오셨네요. 그럼 오늘은 잔 온도부터 잘 맞춰야겠어요.",
+    "dialogueCategory": "small-talk-weather"
+  },
+  {
+    "patterns": ["모르겠", "뭐하지", "고민", "아무 생각", "그냥 왔", "딱히"],
+    "expression": "thinking",
+    "response": "정해진 게 없으면 더 고르기 쉽죠. 일단 너무 멀리 가지 않는 잔부터 볼게요.",
+    "dialogueCategory": "guest-uncertain"
+  },
+  {
+    "patterns": ["조용히", "혼자", "쉬고 싶", "말없이", "가만히", "잠깐 쉬"],
+    "expression": "talk",
+    "response": "그럼 오늘은 말보다 잔이 작게 움직이는 쪽이 좋겠네요.",
+    "dialogueCategory": "quiet-moment"
+  },
+  {
+    "patterns": ["물 좀", "물 주세요", "물 줘", "물 한잔", "물 한 잔", "시원한 물"],
+    "expression": "talk",
+    "response": "물 먼저 드릴게요. 한 잔 고르는 건 그 다음에 천천히 해도 괜찮아요.",
+    "dialogueCategory": "water-request"
+  },
+  {
+    "patterns": ["취했", "너무 취", "많이 마셨", "그만 마셔", "술 그만", "더 못 마시"],
+    "expression": "sympathy",
+    "response": "그럼 여기서는 더 권하지 않을게요. 물부터 드시고 조금 쉬었다가 움직이세요.",
+    "dialogueCategory": "overdrunk"
+  },
+  {
+    "patterns": ["미성년", "고등학생", "중학생", "학생인데", "술 못 마셔", "청소년"],
+    "expression": "talk",
+    "response": "알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.",
+    "dialogueCategory": "minor-no-alcohol"
+  },
+  {
+    "patterns": ["무알코올", "논알콜", "논알코올", "알코올 없이", "술 없이", "논알콜릭"],
+    "expression": "talk",
+    "response": "무알코올 쪽으로 볼게요. 지금 메뉴에서 가능한 범위가 좁으면 술이 들어간 잔은 권하지 않을게요.",
+    "dialogueCategory": "non-alcoholic"
+  },
+  {
+    "patterns": ["알레르기", "못 먹", "빼고", "제외", "먹으면 안", "알러지"],
+    "expression": "thinking",
+    "response": "그 재료는 피해서 볼게요. 정확히 어떤 재료를 제외할지 말씀해 주세요.",
+    "dialogueCategory": "ingredient-constraint"
+  },
+  {
+    "patterns": ["예약", "영업시간", "주소", "위치", "전화", "결제", "카드 돼", "화장실", "와이파이"],
+    "expression": "talk",
+    "response": "여긴 실제 매장 안내보다는 가상의 바 대화와 칵테일 추천을 위한 공간이에요. 메뉴와 취향 쪽은 바로 도와드릴게요.",
+    "dialogueCategory": "real-world-info"
+  },
+  {
+    "patterns": ["시끄러", "닥쳐", "꺼져", "짜증나", "열받아", "화나"],
+    "expression": "annoyed",
+    "response": "그런 말은 듣기 좋지 않네요. 기분이 안 좋으시다면 천천히 말해 주세요.",
+    "dialogueCategory": "rude-annoyed"
+  },
+  {
+    "patterns": ["당장", "빨리 해", "가져와", "내놔", "말 들어", "듣거라", "니가 뭔데"],
+    "expression": "stern",
+    "response": "여기는 편하게 대화하는 곳이에요. 조금만 부드럽게 말씀해 주시겠어요?",
+    "dialogueCategory": "rude-boundary"
+  },
+  {
+    "patterns": ["안녕", "하이", "처음", "방가", "반가워"],
+    "expression": "talk",
+    "response": "어서 오세요. 오늘은 어떤 걸 찾으세요?",
+    "dialogueCategory": "greeting"
+  },
+  {
+    "patterns": ["피곤", "지쳤", "지침", "퇴근", "졸려", "녹초"],
+    "expression": "sympathy",
+    "response": "아, 연료등 켜졌네요. 그럼 오늘은 무거운 건 빼고, 부담 없는 쪽으로 가죠.",
+    "dialogueCategory": "mood-tired"
+  },
+  {
+    "patterns": ["힘들", "우울", "슬퍼", "외롭", "괴롭", "스트레스"],
+    "expression": "sympathy",
+    "response": "그런 날 있죠. 인생은 안 섞여도 술은 섞이니까... 일단 한 잔 방향부터 볼까요?",
+    "dialogueCategory": "mood-sad"
+  },
+  {
+    "patterns": ["좋아", "행복", "신나", "축하", "최고", "기쁘", "즐거"],
+    "expression": "smirk",
+    "response": "오, 오늘은 잔도 야근할 명분이 생겼네요. 축하용으로 좀 밝은 쪽 볼게요.",
+    "dialogueCategory": "mood-happy"
+  },
+  {
+    "patterns": ["추천", "뭐가 좋아", "칵테일", "마실", "주문"],
+    "expression": "talk",
+    "response": "좋아요. 손님 취향을 팔아넘기진 않고, 적당히 해석해서 한 잔 골라볼게요.",
+    "dialogueCategory": "cocktail-request"
+  },
+  {
+    "patterns": ["달콤", "달아", "시럽", "달게", "달짝"],
+    "expression": "talk",
+    "response": "달달한 쪽이요? 오늘 혀라도 복지 받게 해주자는 거죠. 그쪽으로 볼게요.",
+    "dialogueCategory": "taste-sweet"
+  },
+  {
+    "patterns": ["강하", "독하", "진하", "세게", "도수"],
+    "expression": "smirk",
+    "response": "강한 거요? 잔이 아니라 결심을 주문하신 것 같은데... 일단 천천히 마실 쪽으로 볼게요.",
+    "dialogueCategory": "taste-strong"
+  }
+]

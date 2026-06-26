@@ -23,12 +23,13 @@
 | 1 | 한국어 및 브랜드 기준선 정리 | 완료 |
 | 2 | 데이터 모델과 추천 계약 통합 | 완료 |
 | 3 | 애플리케이션 로직 분리 | 완료 |
-| 4 | 카루아 규칙 기반 MVP 완성, 상세 계약 감사, 시에스타 이벤트 | 11~18일, RST-401/RST-402/RST-404 완료 |
+| 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
 | 6 | WebLLM 말투 포장 계층 | 잠정 보류 |
-| 7 | 테스트와 성능 개선 | 6~9일 |
+| 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
-| 남은 합계 | WebLLM 잠정 보류를 제외한 현재 잔여 계획 | **19~30일** |
+| 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
+| 논의 후보 | MVP 이후 PROPOSED/DEFERRED 범위 | 별도 승인 후 산정 |
 
 ## 상위 프로그램
 
@@ -36,11 +37,13 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DOING |
+| 상태 | DONE (WebLLM 및 운영 확장은 별도 PROPOSED/DEFERRED) |
 | 목적 | 기존 추천 프로토타입을 카루아 중심 대화형 추천 MVP로 전면 개편 |
-| 범위 | 단일 데이터 계약, 추천 근거 구조화, `App.tsx` 분리, 캐릭터·이벤트 계층, 추천 UX, WebLLM 표현 계층, 테스트와 성능 |
-| 핵심 경계 | 이름·별칭 검색 우선, 추천 결정은 DB와 규칙 엔진 담당, WebLLM은 표현만 담당, 시에스타는 저빈도 만담 이벤트 |
-| 완료 조건 | 단계 1~7의 MVP 작업 완료 및 `PROJECT_VISION.md`의 MVP 성공 기준 충족 |
+| MVP 범위 | 단일 데이터 계약, 추천 근거 구조화, 입력 경로 기반 대사 트리거, `App.tsx` 분리, 캐릭터·이벤트 계층, 추천 UX, 테스트와 성능 |
+| 후속 범위 | WebLLM 표현 계층, JSON 중심 대화 계약 확장, 관리자 검증 큐, IBA 우선 검색 파이프라인 |
+| 핵심 경계 | 이름·별칭 검색 우선, 추천 결정은 DB와 규칙 엔진 담당, 대사 소재는 입력 경로가 결정, WebLLM은 표현만 담당, 시에스타는 저빈도 만담 이벤트 |
+| 완료 조건 | 충족. 단계 1~7의 WebLLM 제외 MVP 작업 완료, `PROJECT_VISION.md`의 MVP 성공 기준 통과, RST-411 기능 경계 보완 및 RST-412 문서 정합성 정리 완료 |
+| 남은 결정 | WebLLM RST-601~606 재개 여부 |
 
 ## 완료 작업
 
@@ -56,6 +59,7 @@
 | PLAN-004 | 시에스타 만담 이벤트 계약 | DONE | 저빈도 이벤트 역할, 발생 금지 구간, 대화권 반환 원칙 확정 |
 | PLAN-005 | 시에스타 난입 및 업무 복귀 장면 문법 | DONE | 난입-만담-업무 복귀-쿨다운 상태 흐름 확정 |
 | DOC-001 | 전면 리팩토링 계획 및 문서 상태 동기화 | DONE | 상위 프로그램, 완료 작업, 일정, 테스트 수, 구조 위험, 폐기 ID 정리 |
+| DOC-003 | 외부 구조 보고서와 작성 가이드 | DONE | `EXTERNAL_STRUCTURE_REPORT.md` 작성 이력과 `EXTERNAL_STRUCTURE_REPORT_GUIDE.md` 갱신 기준을 기록하고, `README.md`에서 필독 파일과 선택적 수정·검토 파일을 구분 |
 | RST-101 | 한국어 문자열 손상 조사 | DONE | 전수 조사 결과 손상 없음 확인 |
 | RST-102 | Re:Station 브랜드 교체 | DONE | 사용자 표시 문구와 저장 키 마이그레이션 완료 |
 | RST-201 | 칵테일 단일 데이터 모델 설계 | DONE | 단일 `CocktailData` 계약 적용 |
@@ -73,6 +77,19 @@
 | DATA-003 | 전체 선택 조합 결과 보장 | DONE | IBA 클래식 6종 추가, 총 31종 확보, 현재 120개 전체 선택 조합에 정확 또는 같은 베이스 최근접 결과 제공 |
 | DATA-004 | 칵테일 DB 문체·표기 통일 | DONE | 한국어·ml 중심 레시피, 수량 없는 재료 목록, 한 문장 중립 설명문과 DB 우선 표시 계약 적용 |
 | RST-502 | 추천 카드 계약 적용 | DONE | 카드에는 기존 상세 정보와 중립 설명을 표시하고 카루아식 추천 멘트와 추천 이유는 대화창에 표시 |
+| RST-702 | 데이터 지연 로딩과 번들 최적화 | DONE | 레시피/BGM 부가 패널을 lazy chunk로 분리하고 빌드 크기와 검증 결과 기록 |
+| RST-407 | 입력 경로 기반 대사 트리거 | DONE | 추천 결정에 `route`·`routeTags`·`dialogueState`·`affectState`를 저장하고, 직접 주문·감정/무드·취향·재료/베이스·랜덤 경로별 추천 문구와 표정 매핑, 최근 대사 라인 제외를 적용 |
+| RST-701 | 단위 및 흐름 테스트 | DONE | Vitest 74개, 추천 UI 렌더링 계약, 클릭 흐름, 모바일 배치, 무알코올, 제외 재료, 후보 소진 리셋 수동 검증 완료 |
+| RST-405 | 시에스타 만담 이벤트 엔진 | DONE | 세션당 최대 2회, 6턴 쿨다운, 추천 진행 중·안전·퇴장·초기화 비방해, 일반 대화 3턴 후 시에스타-칼루아-시에스타 시퀀스 수동 검증 완료 |
+| RST-408 | 입력 경로별 대사 풀 확장 | DONE | `routeTags`·`dialogueState`·`affectState` 조건 기반 추천 첫 문장 선택, 도수·제외 재료·피곤/걱정/축하·직접 주문 문구 우선순위, 최근 라인 제외 회귀 테스트 완료 |
+| RST-409 | 시에스타 대사 풀 확장 및 다양성 개선 | DONE | 4개→7개 브랜치, 12개→22개 대사 세트, 키 기반 중복 방지, `celebration`/`sweet`/`sad` 브랜치 추가. Vitest 97개 통과 |
+| RST-410 | MVP 마감 검수 및 안전 응답 개선 | DONE | MV 성공 기준 8개 항목 검수 완료, `safety` 경로 조기 반환 추가, 위기 상담 번호 안내 구현 |
+| RST-411 | 기능 검수 및 안전·직접 주문 경계 보완 | DONE | 안전 응답 본문 상수화와 119/112/1393 안내, `DialogueTurn.responseGoal` intent 매핑 수정, 추천 질문 중 직접 칵테일 주문 시 설문 상태 종료. Vitest 110개 통과 |
+| RST-412 | mission_control 문서 정합성 정리 | DONE | 현재 테스트 수 110개, 메인 JS 321.75 kB, RST-411 이후 다음 작업 후보와 검증 기준을 현재 문서에 반영 |
+| RST-413 | RST-000 상위 프로그램 상태 정리 | DONE | RST-000을 MVP 범위 DONE으로 전환하고, WebLLM·데이터 운영·JSON 계약 확장은 MVP 이후 PROPOSED/DEFERRED로 분리 |
+| DLG-801 | JSON 중심 `DialogueTurn` 계약과 대화 템플릿 계층 | DONE | `DialogueTurn` 런타임 스키마 검증 강화, 기본 복구 템플릿 적용, 안전·퇴장·취소·미등록 칵테일 상태 변경 전 계약 검증. Vitest 113개 통과 |
+| DATA-801 | 관리자 검증 큐와 미확정 칵테일 처리 | DONE | unknown/signature/conflict 큐 항목, open/approved/rejected/archived 상태, 승인 기준, 승격 준비 후보, 승인 전 추천 금지 경계 구현. Vitest 118개 통과 |
+| DATA-802 | IBA 우선 검색과 레시피 기반 설명 보강 파이프라인 | DONE | IBA 공식 후보는 정식 레코드로 정규화하고, 비공식 시그니처·정보 부족·출처 충돌 후보는 관리자 검증 큐로 이관. Vitest 123개 통과 |
 
 ## 단계 1: 한국어 및 브랜드 기준선 정리
 
@@ -177,12 +194,40 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | TODO |
+| 상태 | DONE |
 | 예상 | 3~5일 |
 | 목적 | 카루아 중심 흐름을 유지하면서 시에스타가 잠깐 등장하는 관계 만담 제공 |
 | 범위 | 이벤트 발생 조건, 쿨다운, 예고 없는 난입, 카루아/손님 대상 선택, 2~4발화 시퀀스, 업무 복귀 퇴장, 카루아에게 대화권 반환 |
 | 금지 | 추천 질문, 안전 확인, 퇴장, 초기화 중 이벤트 발생 |
 | 완료 조건 | 이벤트 빈도 제한, 모든 이벤트가 난입-만담-업무복귀 구조 충족, 핵심 흐름 비방해, 두 캐릭터 말투 구분, 규칙 엔진 복구 가능 |
+| 진행 | 순수 이벤트 엔진과 쿨다운/세션 빈도 제한을 추가하고, `useRestationController`에서 본 답변 뒤 만담 시퀀스를 예약한다. 추천 진행 중·안전·퇴장·추천 취소에서는 이벤트가 발생하지 않으며, 추천 완료 직후에는 짧은 축하 만담을 허용한다. |
+| 검증 | `npm.cmd run check`, `npm.cmd test` 80개, `npm.cmd run lint`, `npm.cmd run build` 통과. Chrome DevTools Protocol 수동 검증으로 일반 대화 3턴 후 시에스타 2회·칼루아 1회·업무복귀 발화 표시, 추천 질문·안전·추천 취소·퇴장·초기화 구간 비발생 확인. |
+| 변경 파일 | `src/lib/banter/siesta-event.ts`, `src/lib/banter/siesta-event.test.ts`, `src/hooks/useRestationController.ts`, `src/components/bar/DialogueBox.tsx`, `src/components/bar/recommendation-ui.test.tsx` |
+
+### RST-407: 입력 경로 기반 대사 트리거
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 예상 | 2~3일 |
+| 목적 | 칵테일 ID가 아니라 사용자가 추천 결과에 도달한 입력 경로를 기준으로 대화 소재와 대사 풀을 선택한다. |
+| 범위 | `directCocktailOrder`, `anecdoteOrPersonOrder`, `moodOrder`, `tastePreferenceOrder`, `ingredientOrBaseOrder`, `recommendationInference`, `randomPick` 같은 경로 태그 정의, 추천 결정에 경로 맥락 저장, FSM 상태별 대사 풀·말투·발화 리듬·애니메이션 클립 분리, 감정 상태별 표정 스프라이트 매핑, 최근 N개 대사 제외, 템플릿 변수 치환 |
+| 기존 구조와 결합 | 추천 엔진은 기존처럼 칵테일과 근거를 확정한다. 대사 트리거 계층은 확정된 `RecommendationDecision`과 입력 경로 태그를 받아 대사 풀만 선택하며 추천 결과를 변경하지 않는다. |
+| 구현 후보 | MVP에서는 TypeScript 규칙 엔진과 작은 대사 풀로 구현하고, 대사량이 늘어나면 Ink 스크립트의 `shuffle`/`cycle` 및 템플릿 변수 치환으로 이전한다. |
+| 완료 조건 | 같은 칵테일이라도 직접 주문, 취향 추론, 재료·베이스 언급, 감정·무드 주문에서 서로 다른 대사 풀을 사용한다. `route`는 대화 소재를, `dialogueState`는 말투·리듬·애니메이션을, `affectState`는 표정 스프라이트와 세부 어조를 결정한다. 최근 사용 대사는 제외되며, WebLLM 없이도 기본 대사 풀과 기본 스프라이트로 핵심 흐름이 완료된다. |
+| 변경 파일 | `src/types/recommendation.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/response.ts`, `src/hooks/useRecommendationSession.ts`, `src/lib/recommendation/state.test.ts`, `src/lib/recommendation/response.test.ts` |
+
+### RST-408: 입력 경로별 대사 풀 확장
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 예상 | 1~2일 |
+| 목적 | RST-407의 입력 경로·태그·상태 계약을 실제 대사 선택 우선순위에 더 넓게 반영 |
+| 범위 | 감정 상태별 무드 대사, 도수·선택 답변·제외 재료·선호 재료 태그 대사, 직접 주문 serving 대사, 맡기기/추론 대사, 최근 라인 제외 |
+| 완료 조건 | 같은 route 안에서도 `routeTags`, `dialogueState`, `affectState`가 더 구체적인 문구를 우선 선택하고, 최근 사용 라인은 다음 후보로 넘어간다. 제외 재료만 있는 요청도 재료/베이스 경로로 분류된다. |
+| 검증 | `npm.cmd test` 85개, `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과 |
+| 변경 파일 | `src/lib/recommendation/response.ts`, `src/lib/recommendation/response.test.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/state.test.ts` |
 
 ### RST-402: 기분, 상황, 취향 추출 및 추가 질문
 
@@ -295,67 +340,335 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | IN_PROGRESS |
+| 상태 | DONE |
 | 예상 | 4~6일 |
 | 범위 | 추천, 검색, 저장, 재추천, 무알코올, 제외 재료. WebLLM 복구 테스트는 재개 시 추가 |
-| 진행 | 공통 입력 라우터 충돌 테스트, localStorage 차단·손상 데이터·이전 키 마이그레이션 저장 경계 테스트 완료. 다음은 추천 선택·취소·완료 흐름 테스트 |
+| 진행 | 공통 입력 라우터 충돌 테스트, localStorage 차단·손상 데이터·이전 키 마이그레이션 저장 경계 테스트 완료. 활성 추천 중 텍스트 취소 경로와 안전 우선순위 회귀 테스트를 추가했다. 재추천 후보군에서 이미 추천한 칵테일 ID를 제외하고 전체 소진 시 리셋 신호를 주는 순수 경계를 분리해 테스트했다. 추천 카드, 다시 추천받기 버튼, 선택지, 잘 모르겠어요, 추천 질문 취소, 비활성 처리 렌더링 계약 테스트를 추가했다. alcohol preference(high/low/medium) 추출, 빈 신호, 도수 필터, 복합 신호 추천 이유, answerLatestQuestion, isRecommendationIntent, pickFromPool, formatQuestion null acknowledgement, selectRecommendationOpening fallback 등 엣지 케이스 순수 함수 테스트를 추가했다. 제외 재료가 재료 목록뿐 아니라 `base_spirit`에도 적용되도록 보강했다. 브라우저 수동 검증으로 선택지 클릭, 잘 모르겠어요, 추천 취소, 추천 카드, 다시 추천받기, 퇴장, 모바일 줄바꿈/스크롤, 무알코올 오류, 제외 재료, 모든 후보 소진 리셋 안내를 확인했다. Vitest 74개 통과 |
 
 ### RST-702: 데이터 지연 로딩과 번들 최적화
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | TODO |
-| 예상 | 2~3일 |
+| 상태 | DONE |
+| 예상 | 2~3일 (실제: 0.5일) |
 | 완료 조건 | 현재 번들 데이터와 부가 패널의 로딩 비용을 측정하고 필요한 항목만 지연 로딩하며 초기 번들 경고를 해결하거나 유지 근거 기록 |
+| 결과 | `RecipeInfoTab`과 `BarMusicTab`을 `React.lazy` 기반 별도 chunk로 분리했다. 빌드 결과 메인 JS는 306.04 kB에서 302.22 kB로 감소했고, `RecipeInfoTab` 3.32 kB, `BarMusicTab` 2.28 kB chunk가 생성됐다. 칵테일 DB 31.57 kB와 추천 질문 JSON 5.71 kB는 초기 추천 흐름에 필요하므로 유지한다. |
 
 ## MVP 이후 연기
 
 | 작업 | 상태 |
 |---|---|
-| DLG-801 JSON 중심 `DialogueTurn` 계약과 대화 템플릿 계층 | PROPOSED |
-| DATA-801 미등록 칵테일 발견 저장소와 검수·승격 상태 | PROPOSED |
-| DATA-802 외부 API·AI 기반 칵테일 출처 탐색 및 후보 보강 파이프라인 | PROPOSED |
+| DLG-801 JSON 중심 `DialogueTurn` 계약과 대화 템플릿 계층 | DONE |
+| DATA-801 관리자 검증 큐와 미확정 칵테일 처리 | DONE |
+| DATA-802 IBA 우선 검색과 레시피 기반 설명 보강 파이프라인 | DONE |
+| RST-414 추천 의도 라우팅과 시에스타 만담 구조 보강 | DONE |
+| DLG-802 추천 질문 DialogueFlow JSON 계약 | DONE |
+| DLG-803 Re:Station 기본 설정과 예외상황 응답 보강 | DONE |
+| WLC-001 1회성 웰컴드링크 버튼과 환영 추천 흐름 | DONE |
+| RST-415 평문 재료 요청 추천 제약 보정 | DONE |
+| RST-416 감정 상태와 대사 바리에이션 런타임 연결 보강 | DONE |
+| DLG-804 일반 대화 입력 연결성 보정 | DONE |
+| DLG-805 추천 질문과 추천 응답 문단 프리셋 전환 | DONE |
+| DLG-806 키워드 규칙 JSON 분리와 persona 보존 | DONE |
+| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | PROPOSED |
+| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | PROPOSED |
+| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | PROPOSED |
+| SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
+| SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
+| SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
+| SPR-004 시에스타 이벤트 스프라이트 큐 연결 | PROPOSED |
+| SPR-005 캐릭터 에셋 제작·정리 가이드 | PROPOSED |
+| FLOW-001 환상주점 세션 흐름 사양 | DONE |
+| FLOW-002 XYZ와 Farewell Phase 상태 머신 설계 | DONE |
+| FLOW-003 선택지 이벤트와 자유입력 복귀 정책 구현 | PROPOSED |
 | 시에스타 상시 대화 및 캐릭터 선택 | DEFERRED |
 | 시에스타 추천 설명 | DEFERRED |
-| 웰컴 드링크 | DEFERRED |
+| 복잡한 웰컴드링크 랜덤 이벤트와 별도 연출 | DEFERRED |
 | Restination 서사 전개 | DEFERRED |
 | 바텐더 시뮬레이터와 타이쿤 | DEFERRED |
 | 제휴 바 기능 고도화 | DEFERRED |
 
 ### 제안 작업 상세
 
+#### DLG-804: 일반 대화 입력 연결성 보정
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 이전 대화에서 언급한 칵테일이나 오래된 컨텍스트가 현재 사용자 입력을 덮어써 응답이 어색하게 이어지는 문제를 줄임 |
+| 구현 결과 | 현재 입력에 칵테일명이 직접 포함될 때만 칵테일 언급 응답을 우선한다. fallback 응답 생성 시 현재 사용자 입력을 포함한 메시지 배열을 전달해 방금 입력과 답변이 이어지게 했다. |
+| 검증 | `engine.test.ts`에 이전 칵테일 언급이 현재 피곤 입력을 덮어쓰지 않는 회귀 테스트를 추가했다. 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-805: 추천 질문과 추천 응답 문단 프리셋 전환
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | JSON에 완성 대사를 계속 누적하지 않고, 프리셋과 슬롯을 조합해 질문·추천 대사를 관리 |
+| 구현 결과 | `text-presets.ts`에 문장 프리셋과 문단 프리셋을 추가했다. 추천 질문 JSON은 `promptPreset`, `leadInPreset`, `continuationPreset`, `acknowledgementPreset`을 참조한다. 정확 매칭 추천 응답은 `[reaction] + [recommend] + [explanation]` 3블록 구조로 렌더링한다. |
+| 현재 범위 | `karua`와 `siesta`의 `recommend + tired + light` 예시와 기본 추천 프리셋만 우선 구현했다. 전체 intent와 전체 대사 풀 이관은 DLG-808/DLG-809로 분리한다. |
+| 검증 | `question-engine.test.ts`, `response.test.ts`, 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-806: 키워드 규칙 JSON 분리와 persona 보존
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | `keywords.ts`에 직접 들어 있던 키워드 규칙과 폴백 대사를 JSON 데이터로 분리하되, 사용자가 직접 다듬은 `persona.ts`는 보존 |
+| 구현 결과 | `src/data/keyword-rules.json`을 추가하고 `keywords.ts`는 JSON을 읽어 `KeywordRule[]`로 컴파일한다. `patterns`, `expression`, `response`, `dialogueCategory` 구조를 사용한다. `dialogueCategory`가 있으면 기존 `dialogues.json` 대사 풀이 우선이고 `response`는 폴백이다. |
+| 주의 | `persona.ts`를 JSON 어댑터로 바꾸는 시도는 취소했다. 말투 계약은 현재 `persona.ts`의 상수 문자열을 기준으로 한다. |
+| 검증 | 최종 Vitest 154개, lint, build 통과 |
+
+#### DLG-807: 카루아 말투 계약 재검수 및 금지 패턴 대사 정리
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | `CONVERGENCE_PRINCIPLES.md`와 현재 `persona.ts`를 기준으로 실제 런타임 대사들이 상담가식 문장, 직접 위로, 과한 공손함으로 흐르지 않는지 재검수 |
+| 범위 | `dialogues.json`, `conversation.ts`, 추천 질문 프리셋, 추천 응답 문단 프리셋, 안전·예외상황 문구 |
+| 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨. 새 대사는 "관찰에서 출발하는가", "상담원도 할 수 있는 말인가" 검수 질문을 통과해야 한다. |
+| 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`와 `CONVERGENCE_PRINCIPLES.md`를 기준 파일로 둔다. |
+
+#### DLG-808: `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
+| 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `minor-no-alcohol`, `non-alcoholic`, `ingredient-constraint` |
+| 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨. 대사 출처와 사용 경로를 추적할 수 있어야 한다. |
+| 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. 정리 우선순위는 `persona.ts` → `dialogues.json` → `keyword-rules.json` → `text-presets.ts` → `conversation.ts` → `response.ts`다. |
+
+#### DLG-809: 화자·상태·요청별 문단 프리셋 계약 확장
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 카루아와 시에스타가 같은 의미 상태를 받아도 서로 다른 말투와 문단 구성을 쓰도록 프리셋 계약을 확장 |
+| 범위 | `greeting`, `welcome_drink`, `ask_preference`, `recommend`, `explain`, `small_talk`, `joke`, `comfort`, `refusal`, `goodbye` 의도와 `state/request` 조합 |
+| 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함. 추천 카드보다 캐릭터 반응이 먼저 보이는 출력 순서를 전제로 한다. |
+| 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. 문장을 조립하지 않고 문단 블록을 조립한다. |
+
+#### FLOW-001: 환상주점 세션 흐름 사양
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 추천 로직 이후의 사용자 경험과 세션 종료 구조를 상위 설계 계약으로 추가 |
+| 결과 | `SESSION_FLOW_SPEC.md`를 추가하고, `DEC-023`에 닫힌 세션 흐름과 XYZ 종료 장치를 기록했다. |
+| 핵심 계약 | 자유입력은 열어 두되 진행은 `입장 → 웰컴드링크 → 대화 → 취향 파악 → 추천 → 주문 → 후일담 → XYZ → 배웅 → 귀가` 흐름으로 복귀한다. |
+| 금지 | 무한 챗봇 상태, 호감도 시스템, Happy/Bad/True End, 공략 루트, 연애 루트 |
+| 검증 | 문서 작업만 수행했다. 코드 변경 없음 |
+
+#### FLOW-002: XYZ와 Farewell Phase 상태 머신 설계
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 추천 이후 세션을 주문, 후일담, XYZ, Farewell Phase, 귀가로 닫는 상태 머신을 설계 |
+| 범위 | `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계, XYZ 발동 조건, Farewell Phase 2~3턴 제한, 추가 주문·추천 금지 라우팅 |
+| 완료 조건 | XYZ 발동 조건과 상태 전이가 타입/문서/테스트 기준으로 정의되고, XYZ 이후 신규 추천과 신규 주문이 차단되며 레시피·후기·가벼운 잡담은 허용된다. |
+| 주의 | XYZ는 벌칙이나 엔딩 분기가 아니라 오늘의 마지막 드링크다. 사용자는 평가받지 않는다. |
+| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하고, 3턴 정도 대화를 이어간 뒤 귀가로 닫는다. |
+| 검증 | `session-flow.test.ts` 기준 서브 이후 도수 한계 XYZ 후속 서빙 테스트 통과 |
+
+#### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 자유입력은 허용하되 무한 잡담으로 흐르지 않도록 짧은 반응 후 칵테일·추천 대화로 복귀시키고, 중요 정보 수집 구간에서는 선택지 이벤트로 흐름을 통제 |
+| 범위 | 자유입력 응답 구조, 선택지 이벤트 목적과 UI, 취향 분류·의도 파악·추천 정확도 향상·흐름 통제, 선택지 중에도 안전 입력 우선 |
+| 완료 조건 | 일반 자유입력이 `짧은 반응 → 칵테일 관련 복귀` 구조를 지키고, 선택지 이벤트는 필요한 구간에서만 자유입력을 제한하며 접근성과 취소/우회 경계를 갖는다. |
+| 주의 | 선택지는 게임식 공략 선택지가 아니라 추천 정확도와 흐름 통제를 위한 바 대화 장치다. |
+
+#### RST-414: 추천 의도 라우팅과 시에스타 만담 구조 보강
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 자연어 추천 요청을 미등록 칵테일 문의로 오분류하지 않고, 시에스타 만담이 자기 말만 하고 사라지는 이벤트처럼 보이지 않도록 대화권 반환 구조를 보강 |
+| 구현 결과 | 알려진 칵테일명 탐지 이후 추천 의도를 미등록 칵테일 추출보다 먼저 판정한다. `다음잔은 추천을 받을래`는 추천 흐름으로 들어간다. 시에스타 이벤트는 `시에스타 → 카루아 → 시에스타 퇴장 → 카루아 대화권 반환` 4발화 구조로 바뀌었다. |
+| 만담 개편 방식 | 기존 3발화 구조는 마지막 인상이 시에스타의 퇴장으로 끝나서, 사용자가 보기에는 시에스타가 제 할 말만 하고 사라지는 이벤트처럼 남았다. 모든 브랜치를 4발화로 바꿔 시에스타가 직전 맥락을 짧게 받아치고, 카루아가 농담이나 반응으로 관계성을 보여준 뒤, 시에스타가 업무 복귀를 말하고, 마지막에 카루아가 손님에게 다시 대화권을 돌려준다. |
+| 대사 원칙 | 시에스타는 인사나 설명으로 등장하지 않고 직전 대화에 대한 관찰·보충·주의를 짧게 던진다. 카루아는 시에스타를 과하게 해설하거나 존경하지 않고 가볍게 받아친다. 시에스타의 마지막 말은 재고, 잔, 바닥, 주방, 배달 확인 같은 업무 복귀여야 하며, 최종 발화는 카루아가 손님 대화를 이어받아야 한다. |
+| 검증 | `npm.cmd test -- siesta-event.test.ts input-router.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 125개 통과 |
+
+#### SPR-001: 캐릭터 스프라이트 슬롯 계약
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 카루아와 시에스타가 어떤 표정·상태 이미지를 가져야 하는지 코드 계약과 파일명으로 먼저 고정 |
+| 현재 상태 | 카루아는 `BartenderSprite.tsx`에서 단일 `character.png`를 표시하고, `idle/talk/surprised/smirk/sympathy/thinking` 표정은 CSS 필터로만 구분한다. 시에스타는 대사 화자 라벨만 있고 화면 스프라이트는 없다. |
+| 카루아 최소 슬롯 | `idle`, `talk`, `thinking`, `smirk`, `sympathy`, `surprised` |
+| 시에스타 최소 슬롯 | `idle`, `talk`, `smirk`, `concern`, `exit` |
+| 가이드 | 에셋 파일명은 표정 타입과 1:1로 맞춘다. 예: `karua/idle.png`, `karua/talk.png`, `siesta/idle.png`. 코드에서는 문자열 분기 대신 `Record<Expression, image>` 매핑을 사용한다. |
+| 순서 의존성 | 반드시 먼저 수행한다. `SPR-002~004`는 모두 이 슬롯명과 fallback 규칙을 참조한다. 실제 그림이 없어도 placeholder나 기존 `character.png` fallback으로 계약을 먼저 고정할 수 있다. |
+| 결정할 것 | 카루아 기준 디자인을 현재 `character.png`로 유지할지, `character0.png` 계열로 새로 통일할지 결정한다. 시에스타의 키, 화면 위치, 카루아와의 상대적 크기, 기본 등장 위치도 여기서 정한다. |
+| 완료 조건 | 타입, 파일명, fallback 규칙, 모바일/데스크톱 표시 크기 기준이 문서와 코드에 고정됨 |
+
+#### WLC-001: 1회성 웰컴드링크 버튼과 환영 추천 흐름
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 사용자가 말을 꺼내기 전에도 바다운 첫 상호작용을 시작할 수 있도록, 방문당 1회 제공되는 웰컴드링크 버튼을 추가 |
+| 범위 | 하단 `나가기` 옆 버튼, 방문당 1회 상태, 접근성 좋은 클래식 후보 선택, 카루아 환영 대사, 칵테일 카드 표시, 도감 해제, 사용 후 숨김 |
+| 구현 결과 | `selectWelcomeDrink`가 도수와 단맛이 과하지 않은 클래식 후보를 고른다. `WelcomeDrinkButton`은 `welcomeDrinkAvailable`일 때만 표시되며, 클릭 시 일반 추천 설문 없이 웰컴드링크 대사와 카드가 표시된다. 이후 `WELCOME_DRINK_FEEDBACK_QUESTION`으로 괜찮았는지 1문항만 확인한다. |
+| 경계 | 추천 질문 진행 중, 칵테일 카드 표시 중, 처리/타이핑 중에는 사용할 수 없다. 일반 재추천 제외 목록에는 넣지 않는다. |
+| 검증 | `npm.cmd test -- welcome-drink.test.ts recommendation-ui.test.tsx --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 141개 통과, 메인 JS 336.80 kB |
+
+#### RST-415: 평문 재료 요청 추천 제약 보정
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | “라임즙만 들어간 걸로” 같은 평문 요청이 단순 산미 취향으로만 처리되어 실제 재료 조건을 놓치는 문제를 방지 |
+| 구현 결과 | `extractRecommendationSignals`가 라임즙·라임 주스·레몬즙·민트·소다수 등 일반 재료를 `preferredIngredients`로 추출한다. 라임즙/레몬즙은 주스 재료명으로 정규화하고, 더 구체적인 주스 표현이 있으면 일반 라임/레몬 신호를 중복 적용하지 않는다. |
+| 추천 경계 | 기주 선호는 완전일치로만 처리해 `진`이 `진저 비어`에 매칭되지 않게 했다. 일반 재료 선호는 `라임`이 `라임 주스`에 걸리도록 포함 매칭한다. 부재료만 알려진 경우에는 베이스 기주 질문을 계속 물어본다. |
+| 품질 보정 | 최종 후보 선택 시 맛 점수가 거의 같으면 재료 수가 적은 칵테일을 우선해 라임 주스 요청에서 다이키리 같은 단순한 클래식이 앞선다. |
+| 검증 | `npm.cmd test -- state.test.ts question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 145개 통과, 메인 JS 337.52 kB |
+
+#### RST-416: 감정 상태와 대사 바리에이션 런타임 연결 보강
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 추가된 감정/표정과 대사 바리에이션이 실제 사용자 입력에서 누락되거나 DialogueTurn 검증에서 막히지 않도록 연결 |
+| 계약 보강 | `DialogueTurn` 검증 허용 표정에 `annoyed`, `stern`, `disappointed`, `embarrassed`를 추가했다. 일반 대화 표정을 `affectState`로 역매핑해 감정 상태와 UI 표정이 어긋나지 않게 했다. |
+| 대사 보강 | 피곤·지침 계열 입력은 `mood-tired` 대사 풀로 들어간다. 불만족/무례 입력은 확장 표정으로 반환되고, 추천 오프닝에는 `awkward/warm` 전용 문구를 추가했다. |
+| 정리 | `dialogue-loader.ts`의 `any` 캐스팅을 `DialoguesData` 타입 캐스팅으로 교체했다. |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts engine.test.ts response.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 151개 통과, 메인 JS 390.53 kB |
+
+#### DLG-803: Re:Station 기본 설정과 예외상황 응답 보강
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 일반 대화에서도 Re:Station이 가상의 바라는 기본 설정이 드러나고, 사용자가 실제 매장 정보나 안전·운영 경계에 가까운 말을 했을 때 자연스럽게 한계를 안내 |
+| 범위 | 바 소개, 시에스타/사장 안내, 물 요청, 과음, 미성년/음주 불가, 무알코올, 알레르기/제외 재료, 예약·영업시간·주소·결제·화장실 같은 실제 매장 정보 요청 |
+| 구현 결과 | `keywordRules`와 `generateResponse` 의도 분기에 기본 설정과 예외상황 응답 풀을 추가했다. 키워드 규칙이 먼저 처리하고, 키워드를 우회한 유사 표현은 `conversation.ts` fallback에서 처리한다. |
+| 안전 경계 | 과음 시 추가 음주를 권하지 않고 물과 휴식을 안내한다. 미성년 또는 술을 못 마시는 입력에는 알코올 안내를 하지 않는다. 실제 매장 안내는 제공하지 않고 가상의 바 대화와 추천 범위로 돌린다. |
+| 검증 | `npm.cmd test -- engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 133개 통과 |
+
+#### DLG-802: 추천 질문 DialogueFlow JSON 계약
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 추천 진행이 질문만 기계적으로 반복되는 흐름이 아니라, 이전 답변을 받아 다음 주제로 자연스럽게 넘어가도록 JSON에 최소 대화 흐름 힌트를 보관 |
+| 범위 | `RecommendationQuestion.dialogueFlow`에 `leadIn`, `continuation`, `goal` 추가. 질문 문구 자체와 선택지 신호는 유지하되, 질문 앞 연결문을 질문별로 다르게 렌더링 |
+| JSON 원칙 | 대사 전문이나 캐릭터 원고를 저장하지 않는다. JSON에는 질문의 대화 목적, 처음 물을 때의 연결문, 이전 답변 뒤 이어갈 때의 연결문만 둔다. |
+| 구현 결과 | `formatQuestion`이 고정 `한 가지만 더 여쭤볼게요.` 대신 `dialogueFlow.leadIn` 또는 `dialogueFlow.continuation`을 사용한다. 모든 추천 질문은 flow 계약을 가진다. |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 127개 통과 |
+
+#### SPR-002: 카루아 표정별 스프라이트 연결
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 현재 CSS 필터 기반 표정 흉내를 실제 표정별 PNG 교체 방식으로 전환 |
+| 범위 | `BartenderSprite.tsx` 이미지 매핑, 기존 `Expression`별 fallback, CSS 크기와 위치 안정화, 표정 변경 시 레이아웃 흔들림 방지 |
+| 가이드 | 기존 `character.png`와 `character0.png`는 스타일이 다르므로 먼저 기준 카루아 디자인을 결정한다. 결정 전에는 현재 `character.png`를 fallback으로 유지한다. |
+| 구현 메모 | `Expression` 타입을 그대로 사용하되 이미지 import를 맵으로 분리한다. 누락된 표정은 `idle` 또는 현재 `character.png`로 fallback한다. CSS filter는 실제 표정 이미지가 준비되면 보조 효과 수준으로 줄인다. |
+| 검증 기준 | `idle/talk/thinking/smirk/sympathy/surprised` 전부 렌더링 가능해야 한다. 표정 전환 시 `restation-stage`, 채팅 dock, 추천 카드 위치가 흔들리지 않아야 한다. |
+| 완료 조건 | 모든 `Expression` 값이 실제 이미지 또는 명시적 fallback으로 표시되고, 기존 대화·추천 흐름에서 표정 전환이 깨지지 않음 |
+
+#### SPR-003: 시에스타 난입 스프라이트 표시
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 시에스타 만담 이벤트가 발생할 때만 시에스타 스프라이트를 무대에 짧게 표시 |
+| 범위 | `SiestaSprite` 또는 공통 `CharacterSprite` 컴포넌트 추가, 무대 오른쪽/후면/카운터 옆 배치, 등장·퇴장 CSS 상태, 모바일 겹침 방지 |
+| 가이드 | 시에스타는 상시 캐릭터가 아니므로 기본 화면에는 보이지 않는다. 이벤트 중에만 나타나고, 마지막 카루아 대화권 반환 뒤에는 사라진다. |
+| 구현 메모 | 카루아와 같은 stage 안에 배치하되 z-index와 크기를 분리한다. 시에스타는 카루아보다 약간 뒤 또는 옆에서 끼어드는 느낌이 나야 하며, 중앙 주인공처럼 고정되면 안 된다. |
+| 검증 기준 | 데스크톱과 모바일에서 채팅 영역, 추천 카드, 메뉴 버튼을 가리지 않는다. 이벤트가 없을 때 DOM 또는 표시 상태가 비활성임을 테스트한다. |
+| 완료 조건 | 추천 진행 중·안전·퇴장·추천 취소 구간에서는 시에스타 스프라이트가 표시되지 않고, 허용된 만담 이벤트에서만 등장함 |
+
+#### SPR-004: 시에스타 이벤트 스프라이트 큐 연결
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | `createSiestaEvent`의 대사 결과에 화면 연출용 큐를 붙여 시에스타와 카루아 스프라이트 상태를 동기화 |
+| 범위 | `SiestaEventResult`에 `spriteCue` 또는 `stageDirection` 추가, 대사별 speaker에 따른 활성 캐릭터와 표정 전환, 퇴장 타이밍, 카루아 대화권 반환 표시 |
+| 가이드 | 대사 텍스트로 화면 상태를 추론하지 않는다. 이벤트 엔진이 구조화된 큐를 반환하고 UI는 큐만 소비한다. |
+| 구현 메모 | `speaker`만으로 충분하지 않으면 `stageDirection`에 `enter`, `speak`, `exit`, `returnToKarua` 같은 큐를 둔다. 큐는 텍스트 내용과 분리해 테스트 가능해야 한다. |
+| 검증 기준 | `createSiestaEvent` 단위 테스트에서 마지막 큐가 카루아 반환인지 확인한다. 컨트롤러 테스트 또는 UI 테스트에서 보호 경로에서는 시에스타 큐가 생성되지 않는지 확인한다. |
+| 완료 조건 | 시에스타 발화 중에는 시에스타가 활성, 카루아 응답 중에는 카루아가 활성, 마지막 카루아 반환 발화 뒤 시에스타가 비활성화됨 |
+
+#### SPR-005: 캐릭터 에셋 제작·정리 가이드
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | 카루아 전체 표정과 시에스타 난입용 스프라이트를 일관된 톤으로 제작·관리 |
+| 권장 경로 | `bar_tend/src/assets/characters/karua/`, `bar_tend/src/assets/characters/siesta/` |
+| 제작 기준 | 투명 배경 PNG, 같은 캔버스 비율, 같은 기준선, 같은 조명 방향, 바 내부 배경에서 얼굴과 상반신이 읽히는 명도. 모바일에서는 채팅창을 가리지 않도록 반신 중심으로 제작 |
+| 주의 | 카루아와 시에스타의 캐릭터 디자인을 섞지 않는다. 현재 `character.png`와 `character0.png`는 톤이 달라 기준 디자인 확정 후 통일한다. |
+| 병행 가능 범위 | 최종 에셋 제작은 `SPR-001` 이후부터 병행 가능하다. 다만 코드 연결은 placeholder/fallback으로 먼저 진행해도 된다. 최종 에셋 교체는 파일명 계약만 지키면 코드 변경 없이 가능해야 한다. |
+| 품질 기준 | 두 캐릭터는 같은 세계의 인물처럼 조명·선명도·채도·비율이 맞아야 한다. 표정 차이는 얼굴에서 읽혀야 하며 단순 색 필터 차이에 기대지 않는다. PNG 주변 투명 픽셀과 그림자 여백은 모든 슬롯에서 동일해야 한다. |
+| 완료 조건 | 에셋 폴더, 명명 규칙, 기준 이미지, 누락 슬롯 fallback이 정리되고 Playwright 또는 수동 브라우저 검증으로 겹침이 확인됨 |
+
 #### DLG-801: JSON 중심 대화 계약
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DONE |
 | 목적 | LLM 사용 여부와 관계없이 대화의 의미, 상태 변경, 다음 행동을 검증 가능한 JSON으로 관리 |
-| 범위 | `intent`, `entities`, `statePatch`, `action`, `responseGoal`, `facts`, `forbidden`, `confidence` 최소 계약과 스키마 검증, 규칙 엔진 복구 경로 |
-| JSON 통제 | 대사 전문을 JSON에 저장하지 않고 공통 의미 계약과 소수 기본 템플릿만 유지. 전체 대화 대신 상태 요약만 WebLLM에 전달 |
-| 역할 경계 | 검색 API는 사실 수집, 코드는 상태·행동 결정, WebLLM은 검증된 응답 목표와 사실의 말투 포장만 담당 |
+| 범위 | `intent`, `entities`, `route`, `routeTags`, `statePatch`, `action`, `responseGoal`, `facts`, `forbidden`, `confidence` 최소 계약과 스키마 검증, 규칙 엔진 복구 경로 |
+| JSON 통제 | 대사 전문을 JSON에 저장하지 않고 입력 경로 태그, 공통 의미 계약과 소수 기본 템플릿만 유지. 전체 대화 대신 상태 요약만 WebLLM에 전달 |
+| 역할 경계 | 검색 API는 사실 수집, 코드는 상태·행동 결정과 대사 풀 선택, WebLLM은 검증된 응답 목표와 사실의 말투 포장만 담당 |
 | 완료 조건 | 규칙 엔진과 선택적 LLM이 동일 계약을 사용하고, 잘못된 JSON은 상태를 변경하지 않으며, WebLLM 없이 기본 템플릿만으로 핵심 흐름을 완료 |
+| 구현 결과 | `validateDialogueTurn`이 intent/action/route/routeTags/statePatch/expression enum, confidence 범위, 필수 문자열과 배열을 검증한다. `buildDialogueTurn`은 응답이 비어도 action별 기본 템플릿으로 복구하며, 안전·퇴장·추천 취소·미등록 칵테일 흐름은 상태 변경 전에 계약 검증을 통과해야 한다. |
 
-#### DATA-801: 미등록 칵테일 발견 저장소
-
-| 항목 | 내용 |
-|---|---|
-| 상태 | PROPOSED |
-| 목적 | DB에 없는 이름 주문 시 대화를 끊지 않고 발견 기록으로 보존 |
-| 범위 | `discovered/verified/official`, `recommendationEnabled`, 이름, 임시 설명, 출처, 조회 시각, 중복·별칭 처리 |
-| 완료 조건 | 발견 항목은 정식 DB와 분리 저장되고 검수 전 추천 후보로 사용되지 않으며, 재방문 시 이름을 기억 |
-
-#### DATA-802: 외부 출처 보강 파이프라인
+#### DATA-801: 관리자 검증 큐와 미확정 칵테일 처리
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
-| 목적 | 발견된 이름을 IBA와 구조화 외부 출처에서 찾아 설명·레시피 후보로 보강 |
-| 범위 | 외부 API 또는 서버 작업, 출처 우선순위, AI 정규화·요약, 실패·중복 처리, 수동 검수와 정식 승격 |
-| 역할 경계 | API 검색 결과 원본과 정규화 후보를 분리하고, AI는 제공된 출처 안에서만 요약·필드 후보를 생성. 코드가 스키마·출처·중복을 검증 |
-| 완료 조건 | 출처 없는 생성 내용을 사실로 저장하지 않고, 보강 후보와 정식 추천 데이터의 경계가 유지됨 |
+| 상태 | DONE |
+| 목적 | 자동 검색으로 확정하지 못한 정보 부족 칵테일, 출처 충돌 항목, IBA에 없는 시그니처·변형 후보를 정식 DB가 아니라 관리자 검증 큐로 분리 |
+| 범위 | 큐 항목 종류(`unknownCocktail`, `signatureCandidate`, `conflictingSearchResult`), 원문 이름, 요청 문맥, 검색 시도 기록, 실패 사유, 후보 레시피, 관리자 상태(`open/approved/rejected/archived`) |
+| 운영 모델 | 유저 간 상호작용은 만들지 않는다. 일반 사용자는 미확정 항목 요청만 제출하고, 관리자만 큐 조회·수정·승인·반려·승격을 수행한다. |
+| 런타임 응대 | 이름만 있고 정보가 부족한 항목은 DB에 바로 추가하지 않는다. 사용자는 흥미롭게 받아들이되 확인된 메뉴가 아니므로 추천 후보로 쓰지 않는다고 안내한다. |
+| 완료 조건 | 관리자 승인 전 항목은 검색·추천 후보로 사용되지 않으며, 승인 시에만 정식 칵테일 데이터로 승격되고 반려·보류 상태가 추적됨 |
+| 구현 결과 | 큐 상태를 `open/approved/rejected/archived`로 확장하고, `unknownCocktail`, `signatureCandidate`, `conflictingSearchResult` 등록 함수를 분리했다. 미확정·출처 충돌 항목은 승인할 수 없고, 레시피와 재료가 있는 시그니처 후보만 승인 후 승격 준비 후보로 노출된다. 큐 복사본은 내부 상태를 변형하지 않는다. |
+
+#### DATA-802: IBA 우선 검색과 레시피 기반 설명 보강 파이프라인
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 칵테일 추가 시 IBA 공식 레시피를 최우선 검색하고, IBA에 없는 변형·시그니처는 확인된 레시피를 기준으로 맛 설명만 보강 |
+| 범위 | IBA 공식 출처 우선순위, 외부 검색 실패·충돌 처리, 레시피 후보 정규화, 설명문 생성 규칙, 관리자 검증 큐 이관, 정식 승격 |
+| DB/백엔드 | MVP에서는 JSON을 유지한다. 공통 DB가 필요해지는 시점에는 `official` 칵테일 DB와 관리자 검증 큐만 제공하는 BaaS 또는 얇은 백엔드를 우선 검토하며, 소셜 기능·사용자 간 데이터 공유·개인 히스토리 서버 저장은 범위에서 제외한다. |
+| 역할 경계 | 검색/API는 출처와 레시피 후보 수집, 코드는 스키마·출처·중복 검증과 승격 판단, AI 또는 프로그램 생성은 재료·조주법 기반 맛·향·질감 설명과 태그 후보 생성만 담당 |
+| 금지 | 출처 없는 역사·유래·창작자·공식성·유명세 생성, IBA 비공식 항목에 "클래식", "정통", "공식" 같은 권위 표현 사용, 관리자 승인 전 추천 후보 반영 |
+| 완료 조건 | IBA 공식 항목은 출처와 함께 추가 가능하고, 비공식 변형·시그니처는 레시피 기반 설명만 보강되며, 검색 실패·정보 부족·출처 충돌 항목은 관리자 검증 큐로 이동함 |
+| 구현 결과 | `processRecipeCandidate`가 검색 결과 후보를 IBA 공식 레코드, 시그니처 검증 큐, 정보 부족 큐, 출처 충돌 큐로 분류한다. IBA URL과 공식 분류가 모두 유효한 후보만 정식 `CocktailRecord`로 정규화하며, 비공식 후보는 권위 표현 없이 관리자 검증 큐로 보낸다. |
 
 ## 폐기 또는 대체된 과거 작업 ID
 
 | 작업 ID | 처리 |
 |---|---|
 | BAR-001~BAR-004 | `MC-001` 초기 조사에서 임시 제안된 ID. 상세 정의 없이 현재 `RST-*` 단계 계획으로 대체되어 별도 작업으로 추적하지 않음 |
+
+## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | DONE |
+| 목적 | 정적 스프라이트와 프레임 애니메이션을 같은 캐릭터 에셋 체계 아래에서 관리하고, 칵테일 결과 표시 전에 제조 애니메이션을 출력한다. |
+| 완료 내용 | `character.png`, `character0.png`를 `bar_tend/src/assets/characters/karua/static/`으로 이동했다. 셰이킹 프레임 팩을 `bar_tend/src/assets/characters/karua/animations/shaker/`로 이동했다. `sprites.ts`를 추가해 정적 스프라이트와 셰이킹 프레임 배열을 코드 계약으로 묶었다. |
+| 런타임 계약 | `useRestationController`는 칵테일 확정 후 `preparing` 상태를 거쳐 `BartenderSprite`에 `isPreparingCocktail`을 전달한다. 제조 애니메이션이 끝난 뒤 추천 대사와 칵테일 카드가 표시된다. |
+| 검증 | `npm.cmd run check`, `npm.cmd run build` 통과 |
+
+### 향후 스프라이트·이미지 에셋 추가 공정
+
+1. 캐릭터별 에셋은 `bar_tend/src/assets/characters/{character}/` 아래에 둔다.
+2. 움직이지 않는 PNG는 `static/`에 둔다. 예: `karua/static/idle.png`, `karua/static/talk.png`.
+3. 프레임 애니메이션은 `animations/{action}/`에 둔다. 예: `karua/animations/shaker/karua_shake_01.png`.
+4. 각 캐릭터 폴더에는 `sprites.ts`를 두고 정적 이미지 맵과 애니메이션 프레임 배열만 export한다. 컴포넌트가 개별 PNG 경로를 직접 많이 import하지 않게 한다.
+5. 표정 스프라이트는 `Expression`과 1:1 매핑을 우선한다. 준비되지 않은 표정은 `idle` fallback을 명시하고, 암묵적 문자열 조합으로 경로를 만들지 않는다.
+6. 애니메이션 팩에는 가능하면 metadata JSON을 함께 둔다. 최소 항목은 `frame_count`, `frame_width`, `frame_height`, `fps` 또는 프레임 간격, `loop` 구간이다.
+7. 새 에셋 추가 후 `npm.cmd run check`와 `npm.cmd run build`로 import 경로와 번들 포함 여부를 확인한다.
+8. 화면 검수 기준은 데스크톱과 모바일에서 stage, chat dock, cocktail card, sidebar/menu를 가리지 않는 것이다.

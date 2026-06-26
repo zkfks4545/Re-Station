@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { cocktails } from '@/lib/cocktails/database.js'
+import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
+import type { CocktailData } from '@/types.js'
 
 function normalizeForSearch(s: string): string {
   return s.toLowerCase().replace(/[\s\-_']+/g, '')
@@ -26,11 +28,11 @@ function isFuzzyMatch(query: string, target: string): boolean {
   return levenshteinDistance(query, target) <= threshold
 }
 
-function tasteStars(n: number): string {
-  return '★'.repeat(n) + '☆'.repeat(5 - n)
-}
-
-export default function RecipeInfoTab() {
+export default function RecipeInfoTab({
+  onOrderCocktail,
+}: {
+  onOrderCocktail?: (cocktail: CocktailData) => void
+}) {
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -72,11 +74,19 @@ export default function RecipeInfoTab() {
         {filtered.map((c) => (
           <article key={c.id} className="recipe-card">
             <header className="recipe-card__head">
-              <h3>{c.name}</h3>
-              {c.nameEn && <span style={{ fontSize: 10, color: 'rgba(245,230,211,0.4)' }}>{c.nameEn}</span>}
+              <div className="recipe-card__head-left">
+                <h3>{c.name}</h3>
+                {c.nameEn && <span style={{ fontSize: 10, color: 'rgba(245,230,211,0.4)' }}>{c.nameEn}</span>}
+              </div>
+              <button
+                className="order-btn"
+                onClick={() => onOrderCocktail?.(c)}
+                title={`${c.name} 주문하기`}
+              >
+                주문
+              </button>
             </header>
             {c.vibe && <p style={{ margin: '2px 0', fontSize: 10, color: '#C4A35A' }}>{c.vibe}</p>}
-            <p className="recipe-card__desc">{c.story}</p>
             <dl className="recipe-card__meta">
               <dt>베이스</dt>
               <dd>{c.base}</dd>
@@ -107,10 +117,10 @@ export default function RecipeInfoTab() {
               )}
             </dl>
             <div className="recipe-features">
-              <span className="recipe-feature-pill">단맛 {tasteStars(c.taste.sweet)}</span>
-              <span className="recipe-feature-pill">신맛 {tasteStars(c.taste.sour)}</span>
-              <span className="recipe-feature-pill">쓴맛 {tasteStars(c.taste.bitter)}</span>
-              <span className="recipe-feature-pill">도수 {tasteStars(c.taste.alcohol)}</span>
+              <span className="recipe-feature-pill">단맛 {formatTasteRating(c.taste.sweet)}</span>
+              <span className="recipe-feature-pill">신맛 {formatTasteRating(c.taste.sour)}</span>
+              <span className="recipe-feature-pill">드라이함 {formatTasteRating(c.taste.bitter)}</span>
+              <span className="recipe-feature-pill">도수 {formatTasteRating(c.taste.alcohol)}</span>
               {c.taste.carbonated && <span className="recipe-feature-pill">탄산 ✓</span>}
             </div>
           </article>

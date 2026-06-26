@@ -6,6 +6,7 @@ interface ChatInputProps {
   onCancelRecommendation: () => void
   activeQuestion: RecommendationQuestion | null
   disabled: boolean
+  placeholder?: string
 }
 
 export default function ChatInput({
@@ -13,10 +14,11 @@ export default function ChatInput({
   onCancelRecommendation,
   activeQuestion,
   disabled,
+  placeholder: placeholderOverride,
 }: ChatInputProps) {
   const [val, setVal] = useState('')
   const firstChoiceRef = useRef<HTMLButtonElement>(null)
-  const placeholder = disabled ? '대답을 기다리는 중...' : '바텐더에게 말을 걸어보세요...'
+  const placeholder = disabled ? (placeholderOverride ?? '대답을 기다리는 중...') : (placeholderOverride ?? '바텐더에게 말을 걸어보세요...')
 
   useEffect(() => {
     if (activeQuestion && !disabled) firstChoiceRef.current?.focus()

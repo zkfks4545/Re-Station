@@ -1,11 +1,16 @@
 import type { CocktailData } from '../../types.js'
 import type { FeatureKey, TastePreference } from '../../types/cocktail-db.js'
 import type {
+  AffectState,
   AlcoholPreference,
+  DialogueState,
   QuestionHistoryEntry,
   RecommendationDecision,
+  RecommendationDialogueContext,
   RecommendationMood,
   RecommendationReason,
+  RecommendationRoute,
+  RecommendationRouteTag,
   RecommendationSignal,
   RecommendationSituation,
   RecommendationState,
@@ -52,24 +57,40 @@ const SITUATION_PATTERNS: Array<[RecommendationSituation, RegExp]> = [
 ]
 
 const TASTE_PATTERNS: Array<[FeatureKey, number, RegExp]> = [
-  ['sweetness', 0.8, /달콤|달달|단맛|디저트/],
+  ['sweetness', 0.8, /달콤|달달|단맛|디저트|주스|쥬스|juice/i],
   ['sweetness', 0.2, /안\s*달|드라이|쌉쌀|씁쓸|쓴맛/],
+  ['sourness', 0.55, /주스|쥬스|juice/i],
   ['sourness', 0.8, /상큼|새콤|신맛|시트러스|레몬|라임/],
   ['sourness', 0.2, /안\s*신|산미\s*없/],
   ['fizz', 0.8, /탄산|청량|스파클|톡\s*쏘/],
   ['fizz', 0.1, /탄산\s*없|부드럽|스틸/],
-  ['alcohol_strength', 0.8, /도수.*높|독한|강한|세게|쎈/],
-  ['alcohol_strength', 0.2, /도수.*낮|약한|순한|가볍게/],
+  ['alcohol_strength', 0.8, /도수.*높|독한|강한|세게|센\s*(거|것|걸|술)?|쎈/],
+  ['alcohol_strength', 0.2, /도수.*낮|약한|순한|가볍게|주스|쥬스|juice/i],
 ]
 
 const ALCOHOL_PATTERNS: Array<[AlcoholPreference, RegExp]> = [
   ['non-alcoholic', /무알코올|논알|non.?alcohol/],
   ['low', /도수.*낮|약한 술|순한 술|가볍게/],
   ['medium', /도수.*적당|적당한 도수/],
-  ['high', /도수.*높|독한 술|강한 술|강하게/],
+  ['high', /도수.*높|독한 술|독한\s*(거|것|걸)?|강한 술|강하게|센\s*(거|것|걸|술)?|쎈\s*(거|것|걸|술)?/],
 ]
 
-const INGREDIENT_PATTERNS = ['진', '럼', '위스키', '데킬라', '보드카'] as const
+const BASE_SPIRIT_PATTERNS = ['진', '럼', '위스키', '데킬라', '보드카', '브랜디', '리큐르', '카샤사'] as const
+
+const INGREDIENT_PATTERNS = [
+  ...BASE_SPIRIT_PATTERNS,
+  '라임 주스',
+  '라임즙',
+  '라임',
+  '레몬 주스',
+  '레몬즙',
+  '레몬',
+  '민트',
+  '소다수',
+  '진저 비어',
+  '크랜베리 주스',
+  '자몽',
+] as const
 
 export function createRecommendationState(): RecommendationState {
   return {
@@ -100,8 +121,10 @@ export function extractRecommendationSignals(text: string): RecommendationSignal
     if (pattern.test(text)) signals.push(createSignal('alcoholPreference', preference, text))
   }
   for (const ingredient of INGREDIENT_PATTERNS) {
-    if (new RegExp(`(?:${ingredient}).*(?:베이스|추천|좋아|원해)|(?:베이스|추천).*(?:${ingredient})`).test(text)) {
-      signals.push(createSignal('preferredIngredients', ingredient, text))
+    if (new RegExp(`(?:${ingredient}).*(?:베이스|추천|좋아|원해|넣|들어간|들어 있는|주세요|줘|한잔)|(?:베이스|추천|넣|들어간).*(?:${ingredient})`).test(text)) {
+      const preferredIngredient = normalizePreferredIngredient(ingredient)
+      if (isLessSpecificCitrusSignal(preferredIngredient, text)) continue
+      signals.push(createSignal('preferredIngredients', preferredIngredient, text))
     }
   }
 
@@ -202,14 +225,14 @@ export function filterCocktailsByRecommendationState(
     const ingredients = cocktail.ingredients.map(normalize)
     const normalizedBase = normalize(cocktail.base_spirit ?? '')
     if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {
-      const normalizedPreferred = normalize(preferred)
-      return normalizedBase === normalizedPreferred
-        || ingredients.some((ingredient) => ingredient === normalizedPreferred)
+      return matchesPreferredIngredient(normalizedBase, ingredients, preferred)
     })) return false
 
-    return !state.excludedIngredients.some((excluded) =>
-      ingredients.some((ingredient) => ingredient.includes(normalize(excluded))),
-    )
+    return !state.excludedIngredients.some((excluded) => {
+      const normalizedExcluded = normalize(excluded)
+      return normalizedBase.includes(normalizedExcluded)
+        || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))
+    })
   })
 }
 
@@ -253,12 +276,74 @@ export function getQuestionCandidatePool(
 export function createRecommendationDecision(
   cocktail: CocktailData,
   state: RecommendationState,
+  dialogue: RecommendationDialogueContext = inferRecommendationDialogueContext(state),
 ): RecommendationDecision {
   return {
     cocktail,
     state,
     reasons: buildRecommendationReasons(cocktail, state),
+    dialogue,
   }
+}
+
+export function inferRecommendationDialogueContext(
+  state: RecommendationState,
+  overrides: Partial<RecommendationDialogueContext> = {},
+): RecommendationDialogueContext {
+  const routeTags = overrides.routeTags ?? inferRouteTags(state)
+  const route = overrides.route ?? inferRoute(state, routeTags)
+
+  return {
+    route,
+    routeTags,
+    dialogueState: overrides.dialogueState ?? inferDialogueState(route),
+    affectState: overrides.affectState ?? inferAffectState(state, route),
+  }
+}
+
+function inferRoute(state: RecommendationState, routeTags: RecommendationRouteTag[]): RecommendationRoute {
+  if (routeTags.includes('random')) return 'randomPick'
+  if (routeTags.includes('direct-name')) return 'directCocktailOrder'
+  if (routeTags.includes('ingredient') || routeTags.includes('excluded-ingredient')) {
+    return 'ingredientOrBaseOrder'
+  }
+  if (routeTags.includes('mood') || routeTags.includes('situation')) return 'moodOrder'
+  if (routeTags.includes('taste') || routeTags.includes('strength')) return 'tastePreferenceOrder'
+  if (state.questionHistory.length > 0) return 'recommendationInference'
+  return 'recommendationInference'
+}
+
+function inferRouteTags(state: RecommendationState): RecommendationRouteTag[] {
+  const tags: RecommendationRouteTag[] = []
+
+  if (state.moods.length > 0) tags.push('mood')
+  if (state.situations.length > 0) tags.push('situation')
+  if (Object.keys(state.taste).length > 0) tags.push('taste')
+  if (state.alcoholPreference !== 'any') tags.push('strength')
+  if (state.preferredIngredients.length > 0) tags.push('ingredient')
+  if (state.excludedIngredients.length > 0) tags.push('excluded-ingredient')
+  if (state.questionHistory.some((entry) => entry.answer !== undefined)) tags.push('question-answer')
+  if (state.questionHistory.some((entry) => entry.answer?.includes('아무거나'))) tags.push('delegated')
+
+  return unique(tags)
+}
+
+function inferDialogueState(route: RecommendationRoute): DialogueState {
+  if (route === 'directCocktailOrder') return 'serving'
+  return 'recommending'
+}
+
+function inferAffectState(state: RecommendationState, route: RecommendationRoute): AffectState {
+  if (state.moods.some((mood) => ['depressed', 'lonely', 'heartbroken', 'anxious'].includes(mood))) {
+    return 'concerned'
+  }
+  if (state.moods.includes('tired') || state.situations.includes('after-work')) return 'tired'
+  if (state.moods.includes('angry')) return 'awkward'
+  if (state.moods.includes('excited') || state.moods.includes('celebratory')) return 'playful'
+  if (route === 'directCocktailOrder') return 'confident'
+  if (route === 'randomPick') return 'playful'
+  if (route === 'recommendationInference') return 'curious'
+  return 'warm'
 }
 
 export function buildRecommendationReasons(
@@ -290,7 +375,11 @@ export function buildRecommendationReasons(
   }
 
   const ingredientMatches = state.preferredIngredients.filter((preferred) =>
-    cocktail.ingredients.some((ingredient) => normalize(ingredient).includes(normalize(preferred))),
+    matchesPreferredIngredient(
+      normalize(cocktail.base_spirit ?? ''),
+      cocktail.ingredients.map(normalize),
+      preferred,
+    ),
   )
   if (ingredientMatches.length > 0) {
     reasons.push({
@@ -324,14 +413,14 @@ function matchesHardConstraints(cocktail: CocktailData, state: RecommendationSta
   const ingredients = cocktail.ingredients.map(normalize)
   const normalizedBase = normalize(cocktail.base_spirit ?? '')
   if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {
-    const normalizedPreferred = normalize(preferred)
-    return normalizedBase === normalizedPreferred
-      || ingredients.some((ingredient) => ingredient === normalizedPreferred)
+    return matchesPreferredIngredient(normalizedBase, ingredients, preferred)
   })) return false
 
-  return !state.excludedIngredients.some((excluded) =>
-    ingredients.some((ingredient) => ingredient.includes(normalize(excluded))),
-  )
+  return !state.excludedIngredients.some((excluded) => {
+    const normalizedExcluded = normalize(excluded)
+    return normalizedBase.includes(normalizedExcluded)
+      || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))
+  })
 }
 
 function recommendationDistance(cocktail: CocktailData, state: RecommendationState): number {
@@ -359,6 +448,42 @@ function featureDelta(cocktail: CocktailData, taste: TastePreference, key: Featu
 
 function addUnique<T>(items: T[], item: T): void {
   if (!items.includes(item)) items.push(item)
+}
+
+export function isBaseSpiritPreference(preferred: string): boolean {
+  const normalizedPreferred = normalize(preferred)
+  return BASE_SPIRIT_PATTERNS.some((base) => normalize(base) === normalizedPreferred)
+}
+
+function matchesPreferredIngredient(
+  normalizedBase: string,
+  normalizedIngredients: string[],
+  preferred: string,
+): boolean {
+  const normalizedPreferred = normalize(preferred)
+  if (isBaseSpiritPreference(preferred)) {
+    return normalizedBase === normalizedPreferred
+      || normalizedIngredients.some((ingredient) => ingredient === normalizedPreferred)
+  }
+
+  return normalizedBase === normalizedPreferred
+    || normalizedIngredients.some((ingredient) => ingredient.includes(normalizedPreferred))
+}
+
+function normalizePreferredIngredient(ingredient: string): string {
+  if (ingredient === '라임즙') return '라임 주스'
+  if (ingredient === '레몬즙') return '레몬 주스'
+  return ingredient
+}
+
+function isLessSpecificCitrusSignal(preferredIngredient: string, text: string): boolean {
+  if (preferredIngredient === '라임') return /라임\s*주스|라임즙/.test(text)
+  if (preferredIngredient === '레몬') return /레몬\s*주스|레몬즙/.test(text)
+  return false
+}
+
+function unique<T>(items: T[]): T[] {
+  return [...new Set(items)]
 }
 
 function normalize(value: string): string {

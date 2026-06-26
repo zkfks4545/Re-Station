@@ -1,13 +1,116 @@
+import { useEffect, useRef, useState } from 'react'
 import { cocktails } from '@/lib/cocktails/database.js'
+import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 import type { CocktailData } from '@/types.js'
+
+function CocktailDetail({
+  cocktail,
+  source,
+  onBack,
+}: {
+  cocktail: CocktailData
+  source: 'served' | 'codex'
+  onBack: () => void
+}) {
+  return (
+    <div className="codex-detail">
+      <button className="codex-detail__back" onClick={onBack}>← 도감으로</button>
+      {source === 'served' && (
+        <p className="sidebar-muted" style={{ marginBottom: 10 }}>
+          최근 서빙된 칵테일
+        </p>
+      )}
+      <div className="codex-detail__head">
+        {cocktail.image && (
+          <img src={cocktail.image} alt="" className="codex-detail__img" />
+        )}
+        <div>
+          <h3 className="codex-detail__name">{cocktail.name}</h3>
+          {cocktail.nameEn && (
+            <span className="codex-detail__name-en">{cocktail.nameEn}</span>
+          )}
+        </div>
+      </div>
+      <p className="codex-detail__desc">{cocktail.description}</p>
+      <div className="codex-detail__section">
+        <h4 className="codex-detail__section-title">레시피</h4>
+        <ul className="codex-detail__ingredients">
+          {cocktail.ingredients.map((ing, i) => (
+            <li key={i}>{ing}</li>
+          ))}
+        </ul>
+        {cocktail.recipeText && (
+          <p className="codex-detail__recipe-text">{cocktail.recipeText}</p>
+        )}
+      </div>
+      {cocktail.talkingPoints && cocktail.talkingPoints.length > 0 && (
+        <div className="codex-detail__section">
+          <h4 className="codex-detail__section-title">이야깃거리</h4>
+          <ul className="codex-detail__ingredients">
+            {cocktail.talkingPoints.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="codex-detail__section">
+        <h4 className="codex-detail__section-title">맛 프로필</h4>
+        <div className="flex flex-wrap gap-1">
+          {(['sweet', 'sour', 'bitter', 'alcohol'] as const).map((key) => {
+            const labels: Record<string, string> = { sweet: '단맛', sour: '신맛', bitter: '드라이함', alcohol: '도수' }
+            const val = cocktail.taste[key]
+            return (
+              <span
+                key={key}
+                className="text-xs px-2 py-1 rounded"
+                style={{ background: 'rgba(120,80,180,0.06)', border: '1px solid rgba(180,136,208,0.12)', color: 'rgba(255,255,255,0.6)' }}
+              >
+                {labels[key]} {formatTasteRating(val)}
+              </span>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function CocktailBookTab({
   unlockedIds,
+  featuredCocktail,
   onSelect,
 }: {
   unlockedIds: Set<string>
+  featuredCocktail?: CocktailData | null
   onSelect?: (cocktail: CocktailData) => void
 }) {
+  const [selected, setSelected] = useState<CocktailData | null>(null)
+  const [isBrowsingCodex, setIsBrowsingCodex] = useState(false)
+  const featuredCocktailIdRef = useRef(featuredCocktail?.id ?? null)
+
+  useEffect(() => {
+    if (featuredCocktail && featuredCocktail.id !== featuredCocktailIdRef.current) {
+      featuredCocktailIdRef.current = featuredCocktail.id
+      setSelected(null)
+      setIsBrowsingCodex(false)
+    }
+  }, [featuredCocktail])
+
+  const detailCocktail = selected ?? (!isBrowsingCodex ? featuredCocktail : null)
+
+  if (detailCocktail) {
+    return (
+      <CocktailDetail
+        cocktail={detailCocktail}
+        source={selected ? 'codex' : 'served'}
+        onBack={() => {
+          setSelected(null)
+          setIsBrowsingCodex(true)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="codex-grid">
       {cocktails.map((c) => {
@@ -17,7 +120,13 @@ export default function CocktailBookTab({
             key={c.id}
             type="button"
             className={`codex-slot ${unlocked ? 'codex-slot--unlocked' : 'codex-slot--locked'}`}
-            onClick={() => unlocked && onSelect?.(c)}
+            onClick={() => {
+              if (unlocked) {
+                setSelected(c)
+                setIsBrowsingCodex(false)
+                onSelect?.(c)
+              }
+            }}
             disabled={!unlocked}
             title={unlocked ? c.name : '???'}
           >

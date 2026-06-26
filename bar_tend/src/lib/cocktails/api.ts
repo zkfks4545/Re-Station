@@ -178,7 +178,7 @@ function generateVibe(taste: TasteProfile): string {
   if (taste.sweet >= 4) return '달콤하고 부드러운 매력'
   if (taste.sour >= 4 && taste.carbonated) return '상큼하고 청량한 산뜻함'
   if (taste.sour >= 4) return '신선하고 상큼한 맛의 조화'
-  if (taste.bitter >= 3) return '쓴맛 속에 숨겨진 깊은 풍미'
+  if (taste.bitter >= 3) return '드라이함 속에 숨겨진 깊은 풍미'
   if (taste.carbonated) return '톡 쏘는 청량감이 일품인 칵테일'
   return '균형 잡힌 클래식한 한 잔'
 }

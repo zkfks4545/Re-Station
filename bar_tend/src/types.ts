@@ -1,4 +1,4 @@
-export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking'
+export type Expression = 'idle' | 'talk' | 'surprised' | 'smirk' | 'sympathy' | 'thinking' | 'annoyed' | 'stern' | 'disappointed' | 'embarrassed'
 
 export interface TasteProfile {
   sweet: number
@@ -54,11 +54,14 @@ export interface CocktailData extends Cocktail {
   bar_id?: string
   bar_name?: string
   bar_location_link?: string
+  talkingPoints?: string[]
 }
 
 export interface Message {
   role: 'user' | 'bartender'
   text: string
+  speaker?: 'karua' | 'siesta'
+  expression?: Expression
 }
 
 export interface BartenderResponse {
@@ -70,11 +73,27 @@ export interface KeywordRule {
   pattern: RegExp
   expression: Expression
   response: string
+  dialogueCategory?: string
+}
+
+export interface DialogueLine {
+  text: string
+  expression: Expression
+}
+
+export interface DialogueCategory {
+  description?: string
+  lines: DialogueLine[]
+}
+
+export interface DialoguesData {
+  version: string
+  categories: Record<string, DialogueCategory>
 }
 
 export interface ConversationContext {
   greeted: boolean
-  userMood: 'sad' | 'happy' | null
+  userMood: 'sad' | 'happy' | 'tired' | null
   lastTopic: string | null
   mentionedCocktail: Cocktail | null
   recommendedCocktail: Cocktail | null

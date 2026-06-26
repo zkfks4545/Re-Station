@@ -1,4 +1,662 @@
-﻿# 작업 이력
+# 작업 이력
+
+## 2026-06-25 / FLOW-004 / 서브 이후 도수 10 도달 시 XYZ 마감 서빙
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | FLOW-004 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 스테이터스가 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행하도록 세션 정책을 조정했다. |
+| 주요 변경 사항 | `shouldServeXyzAfterAlcoholLimit`을 추가해 서브 이후 누적 도수 기준을 명시했다. `useRestationController`는 칵테일을 확정하고 도수를 누적한 뒤 10 이상이면 기존 칵테일 카드가 드러난 뒤 `cocktail_classic_043` XYZ를 후속 서빙한다. XYZ 카드가 드러난 뒤 `farewell` 단계로 전환되며, 이후 기존처럼 신규 주문·추천을 차단하고 몇 턴 대화한 뒤 귀가로 닫는다. |
+| 수정 파일 | `bar_tend/src/lib/session/session-flow.ts`, `bar_tend/src/lib/session/session-flow.test.ts`, `bar_tend/src/lib/session/farewell-replies.ts`, `bar_tend/src/lib/session/farewell-replies.test.ts`, `bar_tend/src/hooks/useRestationController.ts`, `mission_control/CURRENT_STATE.md`, `mission_control/DECISIONS.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/SESSION_FLOW_SPEC.md`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- src/lib/session/session-flow.test.ts src/lib/session/farewell-replies.test.ts --run` 통과, `npm.cmd run check` 통과 |
+
+## 2026-06-25 / DOC-006 / 구조 보고서의 작업 로그성 표현 제거
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | DOC-006 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 구조 보고서가 작업 로그가 아니라 현재 프로젝트 동작 구조, 코드 리뷰, 검수, 공유를 위한 문서라는 기준에 맞도록 표현을 정리했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md`의 파일 지도에서 `REFACTORING_LOG.md` 항목을 제거했다. `11.5` 섹션을 최근 작업 설명이 아니라 컨트롤러와 세션 도메인의 현재 책임 경계 설명으로 바꿨다. 검증 상태 하단의 “이번 리팩토링 범위” 표현을 제거하고 실패 테스트 3건을 별도 정합성 점검 대상으로 설명했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 정리 작업. 코드 변경 없음. |
+
+## 2026-06-25 / DOC-005 / 외부 구조 보고서에 세션 리팩토링 상태 반영
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | DOC-005 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 기획용 구조 보고서에 REF-SESSION-001~002의 컨트롤러 책임 축소와 현재 검증 상태를 반영했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md`의 최종 갱신일을 2026-06-25로 갱신하고, `farewell-replies.ts`, `REFACTORING_LOG.md`, `isOrderingClosedPhase` 기반 주문 종료 단계 판정, 컨트롤러 책임 축소 진행 상황을 추가했다. 전체 Vitest 171개 중 168개 통과/3개 실패 상태와 실패 위치도 최신 확인 결과로 기록했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 변경만 수행. 직전 확인 기준 `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build`, 세션 관련 테스트 2종 통과. 전체 Vitest는 3건 실패 상태로 기록. |
+
+## 2026-06-25 / REF-SESSION-001~002 / 세션 컨트롤러 책임 축소
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-25 |
+| 작업 ID | REF-SESSION-001~002 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 기능과 동작을 바꾸지 않고 세션 종료 응답 생성과 주문 종료 단계 판정을 컨트롤러 밖 도메인 모듈로 분리했다. |
+| 주요 변경 사항 | `formatXyzReply`, `formatFarewellBlockReply`, `formatReturnHomeReply`를 `lib/session/farewell-replies.ts`로 이동했다. `xyz/farewell/returnHome` 조합은 `isOrderingClosedPhase`로 명시했다. 세부 문제점, 개선 이유, 변경 내용, 기대 효과는 `mission_control/REFACTORING_LOG.md`에 기록했다. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/lib/session/farewell-replies.ts`, `bar_tend/src/lib/session/farewell-replies.test.ts`, `bar_tend/src/lib/session/session-flow.ts`, `bar_tend/src/lib/session/session-flow.test.ts`, `mission_control/README.md`, `mission_control/REFACTORING_LOG.md`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- src/lib/session/farewell-replies.test.ts --run` 통과, `npm.cmd test -- src/lib/session/session-flow.test.ts --run` 통과, `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과. 전체 `npm.cmd test -- --run`은 `recommendation-ui.test.tsx`, `engine.test.ts`, `database.test.ts`의 기존 범위 3건 실패를 확인했다. |
+
+## 2026-06-24 / DOC-004 / 외부 기획용 구조 보고서 최신화
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-24 |
+| 작업 ID | DOC-004 |
+| 작업자 | Antigravity |
+| 작업 내용 | `mission_control`의 전체 필독 파일 검토 및 프로젝트 현황(세션 마감 상태 머신 등)을 바탕으로 외부 기획용 구조 보고서를 최신화했다. |
+| 주요 변경 사항 | `EXTERNAL_STRUCTURE_REPORT.md` 파일에 최근 완료된 세션 종료 흐름(`XYZ` 및 `Farewell Phase` 상태 머신) 구현 상태와 `bar_tend/src/lib/session/session-flow.ts` 관련 지도를 보강했다. 45종의 DB 및 칵테일별 `talking_points`와 XYZ 추가 사항을 반영했다. 후속 작업 및 검증 상태(Vitest 160개 통과 등)도 최신 내용으로 갱신했으며, 테이블 중복 기재 오류를 수정했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 정합성 수동 검토 및 기존 빌드/린트 정상 통과 여부 재확인 |
+
+## 2026-06-23 / DATA-804 / 칵테일별 이야깃거리 필드 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DATA-804 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 현재 DB의 45개 칵테일 전체에 카루아가 칵테일을 내어줄 때 사용할 수 있는 짧은 이야깃거리를 추가했다. |
+| 주요 변경 사항 | `cocktail-db.json` 각 항목에 `talking_points` 2개씩을 추가하고, 런타임 `CocktailData.talkingPoints`로 전달되도록 타입과 변환 계층을 연결했다. 직접 주문, 랜덤 추천, 취향 추천, 최근접 추천 응답에 이야깃거리 한 줄을 포함하도록 추천 대사 포맷터를 갱신했다. |
+| 설계 기준 | 출처 없는 역사·창작자 이야기를 만들지 않고, 레시피·맛·질감·세션 맥락에서 꺼낼 수 있는 비권위 대화 소재로 작성했다. |
+| 수정 파일 | `bar_tend/src/data/cocktail-db.json`, `bar_tend/src/types/cocktail-db.ts`, `bar_tend/src/types.ts`, `bar_tend/src/lib/cocktails/database.ts`, `bar_tend/src/lib/cocktails/database.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `bar_tend/src/lib/recommendation/response.test.ts`, `mission_control/WORK_LOG.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md` |
+| 검증 | `npm.cmd test -- src/lib/recommendation/response.test.ts src/lib/cocktails/database.test.ts` 통과, `npm.cmd run check` 통과 |
+
+## 2026-06-23 / DATA-803 / XYZ 칵테일 DB 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DATA-803 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | XYZ를 현재 `cocktail-db.json` 양식에 맞춰 클래식 칵테일 데이터로 추가했다. |
+| 주요 변경 사항 | `cocktail_classic_043`으로 XYZ를 추가하고, 화이트 럼·트리플 섹·레몬 주스의 IBA sour/daisy 계열 참고 비율을 사용했다. |
+| 출처 처리 | IBA 공식 사이트에서 XYZ 개별 공식 페이지를 확인하지 못했으므로 `recipe_source_url`과 `official_category`는 비워 두었다. 공식 출처 검증 대상은 기존 42개로 유지한다. |
+| 수정 파일 | `bar_tend/src/data/cocktail-db.json`, `bar_tend/src/lib/cocktails/database.test.ts`, `mission_control/WORK_LOG.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md` |
+| 검증 | `npm.cmd test -- src/lib/cocktails/database.test.ts` 통과, `npm.cmd run check` 통과 |
+
+## 2026-06-23 / FLOW-001 / 환상주점 세션 흐름과 XYZ 종료 구조 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | FLOW-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 기존 JSON 칵테일 DB, 대사 DB, 추천 로직은 유지하면서 추천 이후의 사용자 경험과 세션 종료 구조를 정의하는 차기 방향성을 문서화했다. |
+| 주요 변경 사항 | `SESSION_FLOW_SPEC.md`를 추가해 환상주점이 AI 챗봇이나 연애 미연시가 아니며, 자유입력은 열어 두되 진행은 웰컴드링크·추천·주문·XYZ·Farewell Phase·귀가로 닫히는 구조임을 명시했다. |
+| 설계 결정 | `DEC-023`으로 닫힌 세션 흐름과 XYZ 종료 장치를 승인 기록에 추가했다. 호감도와 엔딩 루트는 금지하고, `trust`, `familiarity`, `playfulness`, `tension`은 말투 조절용 세션 분위기 상태로만 사용한다. |
+| 문서 반영 | `README.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `PROJECT_VISION.md`, `CURRENT_LOGIC_FOCUS.md`, `EXTERNAL_STRUCTURE_REPORT.md`에 새 세션 방향성을 연결했다. |
+| 검증 | 문서 작업만 수행했다. 코드 변경은 없어서 빌드나 테스트는 실행하지 않았다. |
+| 후속 작업 제안 | 추천 이후 상태 머신에 `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계를 추가하고, XYZ 발동 조건과 Farewell Phase 라우팅 금지 조건을 별도 구현 작업으로 분리한다. |
+
+## 2026-06-23 / LOGIC-001 / 시에스타 임시 배제와 카루아 단독 핵심 로직 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | LOGIC-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 시에스타를 프로젝트에서 제거하지 않고 런타임 이벤트만 잠시 비활성화했다. 현재 기획 판단 기준을 카루아 단독 핵심 루프, 추천 결정, 제조·서빙 흐름 중심으로 다시 정리했다. |
+| 주요 변경 사항 | `useRestationController.ts`에 `SIESTA_EVENTS_ENABLED = false` 플래그를 추가해 `createSiestaEvent(...)` 호출을 조건부로 바꿨다. 시에스타 이벤트 코드와 테스트는 보존하되 현재 화면 흐름에서는 만담이 예약되지 않는다. |
+| 기획 정리 | `mission_control/CURRENT_LOGIC_FOCUS.md`를 추가해 입장 → 입력 라우팅 → 추천 상태 수집 → 추천 결정 → 카루아 대사/표정 → 제조 애니메이션 → 카드 표시 순서의 카루아 단독 핵심 루프를 명시했다. |
+| 구조 보고서 | 외부 기획용 `EXTERNAL_STRUCTURE_REPORT.md`에 시에스타 런타임 비활성화 상태, 카루아 에셋 구조, 제조 애니메이션 흐름을 최신 상태로 반영했다. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `mission_control/CURRENT_LOGIC_FOCUS.md`, `mission_control/WORK_LOG.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT.md` |
+| 검증 | `npm.cmd run check` 통과, `npm.cmd test -- --run` 통과(154/154), `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-807~809에서 카루아 말투와 대사 데이터 구조를 먼저 수렴한 뒤, 필요 시 `SIESTA_EVENTS_ENABLED`를 다시 켜고 시에스타 이벤트의 런타임 재투입 여부를 검토한다. |
+
+## 2026-06-23 / SPR-006 / 카루아 스프라이트 에셋 구조와 제조 애니메이션 연결
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | SPR-006 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 카루아 정적 스프라이트와 셰이킹 프레임 애니메이션을 `lib/bartender` 로직 영역에서 분리해 캐릭터 에셋 폴더로 이동하고, 칵테일 결과 표시 전에 제조 애니메이션이 먼저 재생되도록 연결했다. |
+| 주요 변경 사항 | `character.png`, `character0.png`는 `src/assets/characters/karua/static/`으로 이동했다. 셰이킹 프레임 팩은 `src/assets/characters/karua/animations/shaker/`로 이동했다. `src/assets/characters/karua/sprites.ts`를 추가해 정적 이미지와 애니메이션 프레임 배열을 한 곳에서 export한다. |
+| 런타임 흐름 | 추천 또는 웰컴드링크로 칵테일이 확정되면 `useRestationController`가 `preparing` 상태로 전환하고 `BartenderSprite`에 `isPreparingCocktail`을 전달한다. `BartenderSprite`는 3개 셰이킹 루프 프레임을 순환 표시하고 종료 프레임을 거친 뒤 추천 대사와 칵테일 카드를 표시한다. 애니메이션 중에는 기존 처리 상태처럼 입력과 버튼을 막는다. |
+| 에셋 구조 | `src/assets/characters/{character}/static/`은 움직이지 않는 PNG, `src/assets/characters/{character}/animations/{action}/`은 프레임 기반 애니메이션, `src/assets/characters/{character}/sprites.ts`는 코드에서 사용할 import 계약을 담당한다. |
+| 수정 파일 | `bar_tend/src/App.tsx`, `bar_tend/src/components/bar/BartenderSprite.tsx`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/index.css`, `bar_tend/src/assets/characters/karua/sprites.ts`, `bar_tend/src/assets/characters/karua/static/*`, `bar_tend/src/assets/characters/karua/animations/shaker/*` |
+| 검증 | `npm.cmd run check` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | 표정별 정적 PNG가 추가되면 `KARUA_STATIC_SPRITES`를 `Record<Expression, string>` 계약으로 확장하고, 누락 표정은 `idle` fallback을 명시한다. 새 애니메이션은 `animations/{action}/`에 프레임과 metadata를 두고 `sprites.ts`에서 배열로 export한다. |
+
+## 2026-06-22 / DLG-806 / 키워드 규칙 JSON 분리와 persona 보존
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-806 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | `keywords.ts`에 하드코딩되어 있던 키워드 규칙과 폴백 대사를 JSON 데이터로 분리하고, 사용자가 수정해 둔 `persona.ts`는 코드 상수 방식으로 보존했다. |
+| 주요 변경 사항 | `src/data/keyword-rules.json`을 추가해 `patterns`, `expression`, `response`, `dialogueCategory` 구조로 키워드 규칙을 저장한다. `keywords.ts`는 JSON을 읽어 `RegExp` 기반 `KeywordRule[]`로 컴파일하는 역할만 수행한다. `dialogueCategory`가 있으면 기존 `dialogues.json` 대사 풀이 우선 사용되고, `response`는 폴백으로 남는다. |
+| persona 처리 | 최초에는 `persona.ts`를 `persona.json` 어댑터로 바꿨으나, 사용자가 이미 직접 다듬은 페르소나 파일을 보존해야 하므로 해당 변경을 되돌렸다. `persona.json`은 제거했고, 현재 `persona.ts`의 카루아 말투 계약은 사용자가 수정한 작업트리 버전을 유지한다. |
+| 수정 파일 | `bar_tend/src/data/keyword-rules.json`, `bar_tend/src/lib/bartender/keywords.ts`, `bar_tend/src/lib/bartender/persona.ts`, `bar_tend/src/lib/bartender/prompts.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(`tsc --noEmit` 포함, 메인 JS 397.22 kB) |
+| 후속 작업 제안 | DLG-807 카루아 말투 계약 재검수, DLG-808 `dialogues.json` 대사 풀 정상화 및 문단 프리셋 이관 |
+
+## 2026-06-22 / DLG-805 / 추천 질문과 추천 응답 문단 프리셋 전환
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-805 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 질문 JSON과 추천 결과 대사를 문자열 직접 저장 방식에서 프리셋 참조와 문단 블록 조합 방식으로 전환했다. |
+| 주요 변경 사항 | `text-presets.ts`를 추가해 기존 문장 프리셋과 새 문단 프리셋을 함께 제공한다. 추천 질문 JSON은 `promptPreset`, `leadInPreset`, `continuationPreset`, `acknowledgementPreset`으로 프리셋을 참조하고, `question-engine.ts`가 이를 렌더링한다. |
+| 문단 프리셋 | 추천 결과는 `[reaction] + [recommend] + [explanation]` 3블록 구조를 사용한다. 우선 `karua`와 `siesta`의 `recommend + tired + light` 예시와 기본 추천 프리셋을 추가했다. `formatRecommendationReply`는 정확 매칭 추천에서 `renderParagraphPreset`을 사용하며, `{cocktail_name}`, `{cocktail_name_subject}`, `{taste_desc}`, `{reason_desc}`, `{effect_desc}`, `{closing_desc}` 슬롯을 치환한다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/text-presets.ts`, `bar_tend/src/data/recommendation-questions.json`, `bar_tend/src/types/recommendation.ts`, `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `response.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run` 통과, `npm.cmd test -- response.test.ts --run` 통과, 최종 `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장, DLG-808 기존 `dialogues.json` 카테고리 대사와 프리셋 계층 정리 |
+
+## 2026-06-22 / DLG-804 / 일반 대화 입력 연결성 보정
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-22 |
+| 작업 ID | DLG-804 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 일반 대화에서 이전 칵테일 언급이 현재 사용자 입력을 덮어쓰거나, fallback 생성 시 최신 사용자 입력이 대화 기록에 반영되지 않아 응답 연결이 어색해지는 문제를 보정했다. |
+| 주요 변경 사항 | `conversation.ts`에서 현재 입력에 실제로 칵테일명이 있을 때만 칵테일 언급 응답을 우선하도록 조정했다. `useRestationController.ts`는 fallback 대화 생성 시 현재 사용자 입력을 포함한 `nextMessages`를 전달해 응답이 방금 입력과 이어지도록 했다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/conversation.ts`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | 관련 회귀 테스트 추가. 최종 `npm.cmd test -- --run` 통과(154/154), `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+| 후속 작업 제안 | DLG-807 말투 계약 재검수와 함께 일반 대화 대표 입력 세트의 연결감 수동 검수 |
+
+## 2026-06-19 / RST-416 / 감정 상태와 대사 바리에이션 런타임 연결 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-416 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추가된 표정·감정 상태와 대사 바리에이션이 실제 런타임에서 누락되거나 검증에서 막히는 문제를 보완했다. |
+| 주요 변경 사항 | `DialogueTurn` 검증 허용 표정에 `annoyed`, `stern`, `disappointed`, `embarrassed`를 추가했다. 일반 대화 표정을 `affectState`로 역매핑해 `sympathy → concerned`, 무례/당황 계열 → `awkward`, `thinking/surprised → curious`, `smirk → playful`, `talk → warm`으로 상태 패치에 반영한다. |
+| 대사 흐름 보강 | 피곤·지침 계열 입력을 `mood-tired` 대사 풀로 라우팅하도록 키워드 규칙과 fallback 감정 판별을 분리했다. 추천 오프닝에는 `mood-awkward`, `mood-warm`, `inference-awkward`, `inference-warm` 라인을 추가해 `awkward/warm` 상태가 일반 문구로만 떨어지지 않게 했다. |
+| 정리 | `dialogue-loader.ts`의 `any` 캐스팅을 `DialoguesData` 타입 캐스팅으로 교체해 lint 오류를 제거했다. |
+| 수정 파일 | `bar_tend/src/types/dialogue-turn.ts`, `dialogue-turn.test.ts`, `bar_tend/src/lib/dialogue/turn-builder.ts`, `dialogue-loader.ts`, `bar_tend/src/lib/bartender/keywords.ts`, `conversation.ts`, `engine.test.ts`, `bar_tend/src/lib/recommendation/response.ts`, `response.test.ts`, `bar_tend/src/types.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts engine.test.ts response.test.ts --run` 통과(60/60), `npm.cmd run check` 통과, `npm.cmd test` 통과(151/151), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 390.53 kB) |
+
+## 2026-06-19 / RST-415 / 평문 재료 요청 추천 제약 보정
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-415 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | “심플하게 기주에 라임즙만 들어간 걸로 주세요”처럼 평문으로 요청한 재료가 단순 산미 취향으로만 처리되어 씨 브리즈 같은 엉뚱한 결과로 흐를 수 있는 문제를 보정했다. |
+| 주요 변경 사항 | `extractRecommendationSignals`가 라임즙·라임 주스·레몬즙·민트·소다수 같은 일반 재료를 `preferredIngredients`로 추출하도록 확장했다. 라임즙/레몬즙은 각각 라임 주스/레몬 주스로 정규화하고, 더 구체적인 주스 표현이 있을 때 일반 라임/레몬 신호가 중복 적용되지 않게 했다. 기주 선호는 완전일치, 일반 재료 선호는 재료명 포함 매칭으로 분리해 `진`이 `진저 비어`에 잘못 매칭되는 문제를 막았다. |
+| 추천 품질 보정 | `preferredIngredients`에 부재료만 있는 경우에는 베이스 기주 질문을 계속 물어보도록 `getKnownTopics`를 조정했다. 최종 후보 선택 시 맛 점수가 거의 같으면 재료 수가 적은 칵테일을 우선해 라임 주스 요청에서 다이키리 같은 단순한 클래식이 앞서도록 했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.ts`, `bar_tend/src/lib/recommendation/state.test.ts`, `bar_tend/src/lib/recommendation/question-engine.ts`, `bar_tend/src/lib/recommendation/question-engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- state.test.ts question-engine.test.ts --run` 통과(41/41), `npm.cmd run check` 통과, `npm.cmd test` 통과(145/145), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 337.52 kB) |
+
+## 2026-06-19 / WLC-001 / 1회성 웰컴드링크 버튼과 환영 추천 흐름
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | WLC-001 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 하단 `나가기` 버튼 옆에 방문당 1회 사용할 수 있는 `웰컴드링크` 버튼을 추가하고, 첫 방문 손님에게 무난한 클래식 칵테일을 바로 제안하는 환영 흐름을 구현했다. |
+| 주요 변경 사항 | `selectWelcomeDrink` 순수 함수를 추가해 클래식 중 도수와 단맛이 과하지 않은 접근성 좋은 후보를 고른다. `WelcomeDrinkButton` 컴포넌트를 추가하고 `useRestationController`에 `welcomeDrinkUsed`, `welcomeDrinkFeedbackPending`, `handleWelcomeDrink`, `welcomeDrinkAvailable`을 연결했다. 웰컴드링크는 일반 추천 설문을 시작하지 않고 카루아 대사와 칵테일 카드를 표시한 뒤, `WELCOME_DRINK_FEEDBACK_QUESTION`으로 괜찮았는지 1문항만 확인한다. 사용 후 버튼은 숨김 처리된다. |
+| 동작 경계 | 방문/세션당 1회만 사용한다. 추천 질문 진행 중, 칵테일 카드 표시 중, 처리/타이핑 중에는 사용할 수 없다. 선택된 칵테일은 기존 카드 표시와 도감 해제 흐름을 재사용하지만 일반 재추천 제외 목록에는 넣지 않는다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/welcome-drink.ts`, `welcome-drink.test.ts`, `bar_tend/src/components/bar/WelcomeDrinkButton.tsx`, `recommendation-ui.test.tsx`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/App.tsx`, `bar_tend/src/index.css`, `mission_control/*` |
+| 검증 | `npm.cmd test -- welcome-drink.test.ts recommendation-ui.test.tsx --run` 통과(14/14), `npm.cmd run check` 통과, `npm.cmd test` 통과(141/141), `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 336.80 kB) |
+
+## 2026-06-19 / DLG-803 / Re:Station 기본 설정과 예외상황 응답 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | DLG-803 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | Re:Station이라는 가상의 바 설정을 일반 대화에 반영하고, 물 요청·과음·미성년/음주 불가·무알코올·알레르기/제외 재료·실제 매장 정보 요청 같은 예외상황 응답을 추가했다. |
+| 주요 변경 사항 | `keywords.ts`에 기본 바 안내, 시에스타/사장 안내, 물 요청, 과음 시 추가 음주 중단, 미성년/음주 불가, 무알코올, 알레르기/제외 재료, 예약·영업시간·주소·결제 같은 실제 매장 정보 한계 응답을 추가했다. `conversation.ts`에도 동일 의도군과 응답 풀을 추가해 키워드 규칙을 우회한 표현도 자연스럽게 처리한다. |
+| 안전 경계 | 과음 상태에서는 더 권하지 않고 물과 휴식을 안내한다. 미성년 또는 술을 못 마시는 입력에는 알코올을 안내하지 않는다. 실제 매장 정보는 제공하지 않고 가상의 바 대화와 칵테일 추천 범위로 돌린다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/keywords.ts`, `bar_tend/src/lib/bartender/conversation.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- engine.test.ts --run` 통과(31/31), `npm.cmd run check` 통과, `npm.cmd test` 통과(133/133), `npm.cmd run lint` 통과 |
+
+## 2026-06-19 / DLG-802 / 추천 질문 DialogueFlow JSON 계약 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | DLG-802 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 흐름이 무조건 질문만 반복되는 설문처럼 보이지 않도록, 추천 질문 JSON에 대화 흐름 힌트를 추가했다. |
+| 주요 변경 사항 | `RecommendationQuestion.dialogueFlow` 계약을 추가하고 각 질문에 `leadIn`, `continuation`, `goal`을 기록했다. `formatQuestion`은 고정 문구 대신 질문별 flow 힌트를 사용해 처음 질문과 이전 답변 뒤 이어지는 질문을 다르게 연결한다. 대사 전문이 아니라 대화 목적과 연결문만 JSON에 보관한다. |
+| 수정 파일 | `bar_tend/src/types/recommendation.ts`, `bar_tend/src/data/recommendation-questions.json`, `bar_tend/src/lib/recommendation/question-engine.ts`, `bar_tend/src/lib/recommendation/question-engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- question-engine.test.ts --run` 통과(20/20), `npm.cmd run check` 통과, `npm.cmd test` 통과(127/127), `npm.cmd run lint` 통과 |
+
+## 2026-06-19 / SPR-000 / 스프라이트 작업군 진행도와 가이드 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | SPR-000 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | WebLLM 후속 논의보다 카루아·시에스타 스프라이트 작업을 우선 검토하기로 방향을 바꾸고, 스프라이트 작업군의 진행도와 착수 가이드를 `mission_control`에 정리했다. |
+| 진행도 | 만담 개편은 RST-414로 DONE. 스프라이트 구현은 아직 PROPOSED 단계이며 `SPR-001~005`로 분리했다. 현재 카루아는 단일 `character.png`와 CSS 필터 기반 표정만 사용하고, 시에스타는 대사 라벨만 있으며 무대 스프라이트는 없다. |
+| 작업 가이드 | `SPR-001`에서 카루아/시에스타 표정 슬롯과 파일명 계약을 먼저 고정한다. `SPR-002`는 기존 `Expression`과 `BartenderSprite`를 실제 이미지 매핑으로 바꾸고, `SPR-003`은 시에스타를 이벤트 중에만 표시하는 컴포넌트를 만든다. `SPR-004`는 대사 텍스트 파싱이 아니라 구조화된 `spriteCue`/`stageDirection`으로 난입·발화·퇴장·카루아 반환을 연결한다. `SPR-005`는 최종 에셋 제작·정리 기준이며 `SPR-001` 이후 병행 가능하다. 권장 에셋 경로는 `bar_tend/src/assets/characters/karua/`, `bar_tend/src/assets/characters/siesta/`이다. |
+| 수정 파일 | `mission_control/TASK_BOARD.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 갱신 작업. 코드 변경 없음. 직전 RST-414 검증 기준은 Vitest 125개, check, lint 통과 |
+
+## 2026-06-19 / RST-414 / 추천 의도 라우팅과 시에스타 만담 구조 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-19 |
+| 작업 ID | RST-414 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 자연어 추천 요청이 미등록 칵테일 문의로 오분류되는 문제를 수정하고, 시에스타 만담이 불쑥 끼어든 뒤 자기 말만 하고 사라지는 느낌을 줄이도록 대사 구조를 보강했다. |
+| 주요 변경 사항 | `routeUserInput`에서 알려진 칵테일명 탐지 이후 추천 의도를 미등록 칵테일 추출보다 먼저 판정하도록 순서를 조정했다. `다음잔은 추천을 받을래` 같은 입력은 이제 추천 흐름으로 들어간다. 시에스타 이벤트는 기존 `시에스타 → 카루아 → 시에스타 퇴장` 3발화에서 `시에스타 → 카루아 → 시에스타 퇴장 → 카루아 대화권 반환` 4발화 구조로 변경했다. 모든 브랜치 대사를 직전 맥락을 받아 짧게 참견하고, 카루아가 손님과의 기존 대화로 다시 이어받는 형태로 전면 수정했다. 시에스타는 인사나 독백 대신 관찰·보충·주의를 던지고, 카루아는 이를 가볍게 받아친 뒤 손님에게 다시 대화권을 돌려준다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/input-router.ts`, `bar_tend/src/lib/dialogue/input-router.test.ts`, `bar_tend/src/lib/banter/siesta-event.ts`, `bar_tend/src/lib/banter/siesta-event.test.ts`, `mission_control/WORK_LOG.md` |
+| 검증 | `npm.cmd test -- input-router.test.ts --run` 통과(11/11), `npm.cmd test -- siesta-event.test.ts input-router.test.ts --run` 통과(29/29), `npm.cmd run check` 통과, `npm.cmd test` 통과(125/125), `npm.cmd run lint` 통과 |
+
+## 2026-06-18 / DATA-802 / IBA 우선 검색과 레시피 기반 설명 보강 파이프라인
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DATA-802 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 칵테일 추가 후보를 IBA 공식 레코드, 시그니처 검증 큐, 정보 부족 큐, 출처 충돌 큐로 분류하는 순수 판정 파이프라인을 구현했다. |
+| 주요 변경 사항 | `processRecipeCandidate`를 추가해 IBA URL과 공식 분류가 모두 유효한 후보만 정식 `CocktailRecord`로 정규화한다. 비공식 시그니처 후보는 레시피와 재료가 있어도 관리자 검증 큐로 보내며, 정보 부족과 출처 충돌 항목은 자동 선택 없이 각각 unknown/conflict 큐로 이관한다. 비공식 후보에는 공식·정통·클래식 같은 권위 표현을 생성하지 않는 회귀 테스트를 추가했다. |
+| 수정 파일 | `bar_tend/src/lib/cocktails/ingestion-pipeline.ts`, `bar_tend/src/lib/cocktails/ingestion-pipeline.test.ts`, `bar_tend/src/lib/cocktails/cocktail-db.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- ingestion-pipeline.test.ts --run` 통과(5/5), `npm.cmd test` 통과(123/123), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.87 kB) |
+
+## 2026-06-18 / DATA-801 / 관리자 검증 큐와 미확정 칵테일 처리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DATA-801 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 자동 검색이나 현재 DB로 확정하지 못한 칵테일을 정식 추천 후보가 아니라 관리자 검증 큐로 분리하는 운영 경계를 구현했다. |
+| 주요 변경 사항 | 큐 상태를 `open/approved/rejected/archived`로 확장하고 `unknownCocktail`, `signatureCandidate`, `conflictingSearchResult` 등록 함수를 분리했다. 미확정·출처 충돌 항목은 승인할 수 없고, 레시피와 재료가 있는 시그니처 후보만 승인 후 승격 준비 후보로 노출된다. 큐 조회 결과는 복사본으로 반환해 외부에서 내부 상태를 변형하지 못하게 했다. |
+| 수정 파일 | `bar_tend/src/types/admin-queue.ts`, `bar_tend/src/lib/cocktails/admin-queue-manager.ts`, `bar_tend/src/lib/cocktails/admin-queue-manager.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- admin-queue-manager.test.ts --run` 통과(11/11), `npm.cmd test` 통과(118/118), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.88 kB) |
+
+## 2026-06-18 / DLG-801 / JSON 중심 DialogueTurn 계약
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | DLG-801 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 대화 의미, 다음 행동, 상태 변경을 검증 가능한 `DialogueTurn` JSON 계약으로 다루도록 런타임 검증과 기본 복구 템플릿을 보강했다. |
+| 주요 변경 사항 | `validateDialogueTurn`이 intent/action/route/routeTags/statePatch/expression enum, confidence 범위, 필수 문자열과 배열을 검증하도록 강화했다. `buildDialogueTurn`에 action별 기본 복구 템플릿과 confidence/entities 오버라이드를 추가했다. 안전·퇴장·추천 취소·미등록 칵테일 조기 분기는 상태 변경 전에 `DialogueTurn` 검증을 통과하도록 순서를 정리했다. |
+| 수정 파일 | `bar_tend/src/types/dialogue-turn.ts`, `bar_tend/src/lib/dialogue/turn-builder.ts`, `bar_tend/src/hooks/useRestationController.ts`, `bar_tend/src/types/dialogue-turn.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- dialogue-turn.test.ts --run` 통과(8/8), `npm.cmd test` 통과(113/113), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과(메인 JS 324.72 kB) |
+
+## 2026-06-18 / RST-413 / RST-000 상위 프로그램 상태 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-413 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-000 상위 프로그램을 MVP 범위 DONE으로 정리하고, WebLLM 및 데이터 운영 확장은 MVP 이후 PROPOSED/DEFERRED 범위로 분리했다. |
+| 주요 변경 사항 | `TASK_BOARD.md`의 RST-000 상태를 DONE으로 전환하고 승인된 MVP 잔여 계획을 0일로 정리했다. `CURRENT_STATE.md`와 `HANDOVER.md`의 다음 수행 후보에서 RST-000을 제거하고 DLG-801, DATA-801/DATA-802, WebLLM 재개 논의로 갱신했다. |
+| 수정 파일 | `mission_control/TASK_BOARD.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 검색으로 RST-000이 다음 수행 후보/권장 순서에 남지 않는지 확인. 코드 변경 없음. |
+
+## 2026-06-18 / RST-412 / mission_control 문서 정합성 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-412 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-411 커밋 이후 `mission_control` 문서의 현재 상태 수치와 다음 작업 안내를 최신 기준으로 정리했다. |
+| 주요 변경 사항 | 현재 기준 테스트 수를 110개로 통일하고, 현재 빌드 메인 JS 크기를 321.75 kB로 반영했다. `HANDOVER.md`의 오래된 다음 작업/권장 순서/검증 기준을 RST-411 이후 상태에 맞게 정리했다. `CURRENT_STATE.md`에 다음 수행 후보를 별도 섹션으로 추가했다. |
+| 수정 파일 | `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/WORK_LOG.md` |
+| 검증 | 문서 내 현재형 수치 검색으로 `97개`, `306.60 kB`, 오래된 권장 순서 잔여 여부 확인. 과거 `WORK_LOG`의 당시 검증 수치는 사실 기록으로 유지했다. |
+
+## 2026-06-18 / RST-411 / 기능 검수 및 안전·직접 주문 경계 보완
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-18 |
+| 작업 ID | RST-411 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 완료 기능을 실제 사용자 흐름 기준으로 재검수하고, 안전 응답·직접 주문·DialogueTurn 의미 목표 경계에서 발견한 문제를 보완했다. |
+| 검수 항목 | 1) 안전 입력 라우팅과 실제 안내 문구, 2) 안전 응답의 추천/농담 차단, 3) 활성 추천 질문 중 명시적 칵테일 주문, 4) `DialogueTurn.responseGoal` 계약, 5) 관련 회귀 테스트와 빌드 검증 |
+| 발견한 문제 | **안전 응답 본문 누락 가능성:** `safety` 라우트에서 `buildDialogueTurn(..., '', 'sympathy')`가 빈 fallback을 그대로 `reply`로 사용할 수 있었다. **직접 주문 후 설문 잔존:** 추천 질문 중 `모히토 한 잔` 같은 명시적 칵테일 주문은 카드 응답을 반환하지만 추천 상태를 닫지 않아 이전 선택지 버튼이 남을 수 있었다. **responseGoal 매핑 오류:** `responseGoalMap`은 intent 키를 갖지만 실제 조회는 input route로 수행되어 기본값으로 흐를 수 있었다. |
+| 주요 변경 사항 | `SAFETY_REDIRECT_REPLY`를 추가해 안전 응답 본문을 단일 상수로 관리하고 `119`, `112`, `1393` 안내를 포함했다. `getCocktailResponse`도 같은 안전 문구를 사용하도록 통일했다. `buildDialogueTurn`은 안전 fallback이 비어 있어도 안전 안내를 반환하고, `responseGoal`은 `intent` 기준으로 매핑한다. `useRecommendationSession`의 명시적 칵테일 주문 분기에서 `resetRecommendation()`을 호출해 활성 설문 상태를 종료한다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/turn-builder.ts`, `bar_tend/src/lib/bartender/engine.ts`, `bar_tend/src/hooks/useRecommendationSession.ts`, `bar_tend/src/types/dialogue-turn.test.ts`, `bar_tend/src/lib/bartender/engine.test.ts`, `mission_control/*` |
+| 검증 | `npm.cmd test -- --run` 통과(110/110), `npm.cmd run check` 통과, `npm.cmd run lint` 통과, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 전체 Vitest | 통과, 110개 |
+| 타입 체크 | 통과 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과, 메인 JS 321.75 kB |
+
+## 2026-06-17 / RST-410 / MVP 마감 검수 및 안전 응답 개선
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-410 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | WebLLM 제외 MVP 전 항목 검수 완료. PROJECT_VISION.md의 MVP 성공 기준 8개 항목을 코드 리뷰로 검증했다. |
+| 검수 항목 | 1) 첫 사용자 진입 흐름, 2) 추천 질문 1~3개 범위, 3) 추천 결과 연결성, 4) 카드/대화 분리, 5) 다시 추천받기, 6) WebLLM 불필요, 7) 모바일 대응, 8) 안전·퇴장 처리 |
+| 주요 변경 사항 | **안전 응답 처리 버그 수정:** `useRestationController.ts`에서 `inputRoute === 'safety'`일 때 `resetRecommendation()` 후에도 일반 응답 처리로 fallback하던 문제 수정. 조기 `return` 후 `bartenderReply`로 위기 상담 번호(1393) 안내 메시지를 전송하도록 변경. |
+| 수정 파일 | `bar_tend/src/hooks/useRestationController.ts`, `mission_control/*` |
+| 검증 | `npm.cmd run lint` 통과, `npm.cmd run check` 통과, `npm.cmd test` 97/97 통과, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 린트 | 통과 |
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 97개 |
+| 프로덕션 빌드 | 통과, 메인 JS 314.67 kB |
+
+## 2026-06-17 / RST-409 / 시에스타 대사 풀 확장 및 다양성 개선
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-409 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | 시에스타 만담 이벤트의 대사 풀을 4개 브랜치·12개 대사 세트에서 7개 브랜치·22개 대사 세트로 확장했다. 키 기반 중복 방지(`siestaRecentKeysRef`)를 적용해 세션 내 같은 대사 세트 반복을 방지한다. |
+| 주요 변경 사항 | **새로운 브랜치 3개 추가:** `celebration`(축하/기념/생일), `sweet`(달콤/디저트), `sad`(슬프/우울/속상). **기존 브랜치 확장:** `recommendation` 1→3세트, `strong` 1→3세트, `tired` 1→4세트, `default` 1→4세트. **중복 방지:** `selectDialogueSet`이 `recentKeys` Set을 받아 최근 사용한 세트를 제외하고 선택, 모두 소진 시 리셋 후 재선택. **컨트롤러:** `siestaRecentKeysRef` 추가, `createSiestaEvent`에 `recentKeys` 전달, 이벤트 발생 시 키 저장 및 임계치 초과 시 리셋. |
+| 수정 파일 | `bar_tend/src/lib/banter/siesta-event.ts`, `siesta-event.test.ts`, `src/hooks/useRestationController.ts`, `mission_control/*` |
+| 검증 | `npm.cmd run lint` 통과, `npm.cmd run check` 통과, `npm.cmd test` 97/97 통과, `npm.cmd run build` 통과 (메인 JS 314.40 kB) |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 린트 | 통과 |
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 97개 (siesta-event 5→17개) |
+| 프로덕션 빌드 | 통과, 메인 JS 314.40 kB |
+
+## 2026-06-17 / 전체 변경사항 통합 검증
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 / RST-407 / RST-405 통합 검증 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | RST-407(입력 경로 기반 대사 트리거), RST-405(시에스타 만담 이벤트), RST-701(테스트 확장+브라우저 검증)의 미커밋 변경사항 전체를 통합 검증. Git status 기준 14개 modified + 2개 untracked 신규 파일 모두 검증. |
+| 검증 결과 | `tsc --noEmit` 0 errors, `eslint` 0 warnings, `vitest run` 85/85 passed (10 files), `npm run build` 성공(메인 JS 310.67 kB). |
+| 발견한 문제 | 없음. RST-407(response.ts opening line 매칭 + state.ts dialogue context)와 RST-405(siesta-event + controller 연결)가 기존 RST-701 테스트를 전혀 깨지 않음. |
+
+## 2026-06-17 / RST-408 / 입력 경로별 대사 풀 확장
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-408 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 첫 문장 대사 풀을 입력 경로뿐 아니라 경로 태그, 장면 상태, 감정 상태 기준으로 확장했다. |
+| 주요 변경 사항 | `RecommendationOpeningLine`에 `routeTags`, `dialogueState`, `affectState` 조건을 추가하고, 일치도가 높은 문구를 우선 선택하되 최근 사용 라인은 제외하도록 점수 기반 선택기를 적용했다. 피곤·걱정·축하 무드, 도수 조건, 질문 답변, 선호/제외 재료, 직접 주문 serving, 맡기기/추론 문구를 추가했다. 제외 재료만 있는 요청도 `ingredientOrBaseOrder`로 분류한다. |
+| 검증 | `npm.cmd test` 85개, `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 관련 테스트 | 통과, `response`/`state` 30개 |
+| 전체 Vitest | 통과, 85개 |
+| 타입 체크 | 통과 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과 |
+
+## 2026-06-17 / RST-405 / 시에스타 만담 이벤트 엔진 구현
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-405 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 시에스타 저빈도 만담 이벤트 엔진을 추가하고 컨트롤러에 연결했다. |
+| 주요 변경 사항 | `createSiestaEvent`로 세션당 최대 2회, 6턴 쿨다운, 추천 진행 중·안전·퇴장·추천 취소 금지 조건을 적용했다. 본 답변 뒤 시에스타-칼루아-시에스타 3발화 시퀀스를 예약하며, 대화창에 `시에스타`/`칼루아` 화자 라벨을 표시한다. |
+| 검증 | `npm.cmd run check`, `npm.cmd test` 80개, `npm.cmd run lint`, `npm.cmd run build`, Chrome DevTools Protocol 수동 검증 통과 |
+| 수동 검증 | 일반 대화 3턴 후 `시에스타` 2회, `칼루아` 1회, 업무복귀 단어 표시 확인. 안전 입력, 추천 질문 진행 중, 추천 취소, 퇴장, 초기화 구간에서는 시에스타/칼루아 라벨 0회 확인. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 타입 체크 | 통과 |
+| 전체 Vitest | 통과, 80개 |
+| 린트 | 통과 |
+| 프로덕션 빌드 | 통과 |
+| 브라우저 수동 검증 | 통과 |
+
+## 2026-06-17 / RST-701 / 브라우저 수동 검증 완료
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | Vite dev 서버와 headless Chrome DevTools Protocol을 사용해 HANDOVER의 남은 수동 검증 항목을 실제 브라우저 흐름으로 확인했다. |
+| 검증 항목 | 선택지 클릭, `잘 모르겠어요`, 추천 질문 취소, 입장→자유 대화→추천 질문→추천 카드→다시 추천받기→퇴장, 모바일 폭 선택지 줄바꿈/스크롤, 무알코올 오류 메시지, 제외 재료 결과, 모든 후보 소진 리셋 안내 |
+| 결과 | 모두 통과. 모바일 390px 폭에서 선택지는 2줄로 줄바꿈되며 가로 오버플로 없음. 모든 후보 소진 시 `모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.` 안내가 표시됨. |
+| 참고 | 후보 소진 검증은 실제 버튼 흐름을 유지하되 검증 시간을 줄이기 위해 브라우저 로드 전 `setTimeout`을 0ms로 줄인 상태에서 반복했다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 브라우저 실제 클릭 흐름 | 통과 |
+| 모바일 390px 배치 | 통과 |
+| 무알코올 요청 | 통과 |
+| 제외 재료 요청 | 통과 |
+| 모든 후보 소진 리셋 | 통과 |
+
+## 2026-06-17 / RST-701 / 검수 및 제외 베이스 경계 보강
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | RST-701 테스트 보강분을 검수하고, 제외 재료가 재료 목록뿐 아니라 `base_spirit`에도 적용되도록 추천 필터 경계를 보강했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.ts`, `state.test.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `filterCocktailsByRecommendationState`와 최근접 복구의 hard constraint에서 제외 재료를 `ingredients`와 `base_spirit` 모두에 적용한다. 재료 목록에는 없지만 베이스가 `진`인 후보도 `진 제외` 요청에서 걸러지는 회귀 테스트를 추가했다. |
+| 발견한 문제 | 기존 제외 재료 필터는 현재 데이터에서는 대체로 통과하지만, 향후 데이터 정규화 과정에서 재료 목록과 베이스 필드가 어긋나면 베이스 제외 요청이 누락될 수 있었다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 74개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.60 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-17 / RST-701 / 엣지 케이스 순수 함수 테스트 확장
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | deepseek-v4-flash-free |
+| 작업 내용 | 추천 상태, 응답, 질문 엔진의 미커버 엣지 케이스를 순수 함수 테스트로 추가했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/state.test.ts`, `response.test.ts`, `question-engine.test.ts`, `mission_control/WORK_LOG.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `TASK_BOARD.md` |
+| 주요 변경 사항 | **state.test.ts (+6):** alcohol preference(high/low/medium) 추출, 빈 신호 반환, low/high 도수 필터, 복합 신호 buildRecommendationReasons, answerLatestQuestion. **response.test.ts (+3):** selectRecommendationOpening 전 라인 최근 시 fallback, formatRecommendationReply acknowledgement 우선, formatRandomRecommendationReply custom opening. **question-engine.test.ts (+3):** isRecommendationIntent 의도/비의도 판별, pickFromPool 취향 기반 선택, formatQuestion null acknowledgement 기본 문구. |
+| 발견한 문제 | `ingestTasteSignals`(question-engine.ts)와 `formatQuestion`의 null acknowledgement 경로는 테스트가 없었고, `selectRecommendationOpening`은 모든 라인이 최근일 때 첫 라인으로 fallback하는 동작이 미검증이었다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 73개 |
+| `npm.cmd run build` | 통과 |
+
+## 2026-06-17 / RST-701 / 추천 UI 렌더링 계약 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 완료 UI와 선택 질문 UI가 주요 버튼과 안내를 계속 렌더링하는지 서버 렌더링 기반 테스트를 추가했다. |
+| 수정 파일 | `bar_tend/src/components/bar/recommendation-ui.test.tsx`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `CocktailCard`의 상세 정보와 `다시 추천받기` 버튼, `ChatInput`의 선택지·`잘 모르겠어요`·추천 질문 취소·비활성 입력 상태를 검증한다. 질문이 없을 때 추천 전용 컨트롤이 숨겨지는지도 보호한다. |
+| 발견한 문제 | 현재 테스트 환경에는 React Testing Library가 없어 실제 클릭 이벤트 시뮬레이션 대신 `react-dom/server` 렌더링 계약을 우선 보호했다. |
+| 후속 작업 제안 | 브라우저 연결 가능 환경에서 선택 버튼 클릭, 추천 완료 카드, 다시 추천받기, 모바일 배치를 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 61개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.54 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-17 / RST-407 / 입력 경로 기반 대사 트리거
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-17 |
+| 작업 ID | RST-407 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 추천 결과에 도달한 입력 경로를 `RecommendationDecision`에 저장하고, 경로별 추천 대사와 감정 기반 표정 매핑을 연결했다. |
+| 수정 파일 | `bar_tend/src/types/recommendation.ts`, `src/lib/recommendation/state.ts`, `src/lib/recommendation/response.ts`, `src/hooks/useRecommendationSession.ts`, `src/lib/recommendation/state.test.ts`, `src/lib/recommendation/response.test.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `route`, `routeTags`, `dialogueState`, `affectState` 계약 추가. 감정·무드, 취향, 재료·베이스, 직접 주문, 랜덤 추천 경로를 분리하고 추천 첫 문장 풀을 최근 사용 라인에서 제외한다. `affectState`는 기존 `Expression`으로 매핑해 화면 표정에 반영한다. |
+| 발견한 문제 | 현재 런타임은 자연스러운 존댓말 응대 정책을 유지하므로, 대사 풀은 캐릭터 말투 확장이 아니라 중립 추천 문구의 경로 분리로 구현했다. |
+| 후속 작업 제안 | 추천 완료 UI와 재추천 흐름을 테스트 가능한 경계로 더 분리하고, RST-405 시에스타 이벤트 조건 구현으로 넘어간다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 56개 |
+| `npm.cmd run build` | 통과, 메인 JS 306.54 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-16 / RST-701 / 재추천 후보 제외 경계 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 다시 추천받기 흐름의 핵심인 중복 추천 제외와 전체 후보 소진 리셋 조건을 테스트 가능한 순수 경계로 분리했다. |
+| 수정 파일 | `bar_tend/src/lib/recommendation/question-engine.ts`, `question-engine.test.ts`, `src/hooks/useRecommendationSession.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `createRecommendationSourcePool(excludedCocktailIds)`를 추가해 세션 내 이미 추천된 칵테일을 후보군에서 제외한다. 모든 후보가 제외되면 `exhausted`를 반환하고, 훅은 기존처럼 제외 목록을 리셋한 뒤 안내 메시지를 출력한다. |
+| 발견한 문제 | 재추천 제외 정책은 훅 내부 상태 로직에만 있어 React 훅 없이 직접 검증하기 어려웠다. |
+| 후속 작업 제안 | 추천 완료 UI와 카드 표시, 다시 추천 버튼 클릭 흐름을 브라우저 또는 컴포넌트 테스트 경계로 보호한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 51개 |
+| `npm.cmd run build` | 통과, 메인 JS 302.75 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-16 / RST-701 / 추천 취소 텍스트 라우팅 테스트
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-701 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 활성 추천 질문 중 버튼이 아니라 텍스트로 취소 의사를 입력해도 추천 질문을 종료하도록 입력 라우팅과 컨트롤러를 보강했다. |
+| 수정 파일 | `bar_tend/src/lib/dialogue/input-router.ts`, `input-router.test.ts`, `src/hooks/useRestationController.ts`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `recommendation-cancel` 입력 경로 추가. 활성 추천 중 `취소`, `추천 그만`, `그만 물어봐`를 추천 취소로 처리하고, 컨트롤러는 기존 버튼 취소와 같은 복구 메시지로 추천 상태를 초기화한다. 안전 입력은 추천 취소보다 우선한다. |
+| 발견한 문제 | 기존 취소 흐름은 UI 버튼으로만 연결되어 텍스트 입력 회귀 테스트로 보호되지 않았다. |
+| 후속 작업 제안 | 추천 완료와 다시 추천받기 흐름을 테스트 가능한 경계로 더 분리한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd test` | 통과, Vitest 49개 |
+| `npm.cmd run build` | 통과, 메인 JS 302.65 kB, 레시피/BGM 별도 chunk 유지 |
+
+## 2026-06-16 / RST-702 / 사이드바 부가 패널 지연 로딩
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | RST-702 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 의존성이 낮은 번들 최적화 작업으로 레시피 정보 탭과 BGM 탭을 초기 메인 번들에서 분리했다. |
+| 수정 파일 | `bar_tend/src/components/sidebar/Sidebar.tsx`, `mission_control/TASK_BOARD.md`, `CURRENT_STATE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `RecipeInfoTab`과 `BarMusicTab`을 `React.lazy`와 `Suspense`로 지연 로딩한다. 탭 선택 전에는 레시피 검색 코드와 유튜브 플레이어 탭 코드가 별도 chunk로 분리된다. |
+| 측정 결과 | 기존 `dist/assets/index-DCWhaZJu.js` 306.04 kB. 변경 후 `dist/assets/index-DPxVx6W7.js` 302.22 kB, `RecipeInfoTab-WAfFvT0E.js` 3.32 kB, `BarMusicTab-e9Jg6tBS.js` 2.28 kB. 칵테일 DB 31.57 kB와 추천 질문 JSON 5.71 kB는 초기 추천 흐름에 필요하므로 유지한다. |
+| 발견한 문제 | PowerShell 실행 정책으로 `npm run check`와 `npm run lint`가 차단되어 기존 프로젝트 절차대로 `npm.cmd`를 사용했다. |
+| 후속 작업 제안 | 브라우저에서 레시피/BGM 탭 첫 진입 시 Suspense fallback이 자연스러운지 수동 확인한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd run check` | 통과 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, 메인 JS 302.22 kB, 레시피/BGM 별도 chunk 생성 |
+| `npm.cmd test` | 통과, Vitest 47개 |
+
+## 2026-06-16 / DEC-021-B / FSM 말투와 감정 스프라이트 축 추가
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | DEC-021-B |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 입력 경로 기반 대사 트리거에 FSM 상태별 말투·발화 리듬·애니메이션과 감정 상태별 표정 스프라이트 축을 추가했다. |
+| 수정 파일 | `mission_control/DECISIONS.md`, `TASK_BOARD.md`, `CURRENT_STATE.md`, `ARCHITECTURE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | `route`는 대화 소재, `dialogueState`는 장면 말투·리듬·애니메이션, `affectState`는 감정 표정 스프라이트와 세부 어조를 담당하도록 3축 분리를 명시했다. |
+| 결정 내용 | FSM 상태는 대화 소재를 덮어쓰지 않고 말투와 동작만 조정한다. 감정 상태는 스프라이트와 세부 어조를 고르며, 칵테일 ID는 제조·서빙 대사의 변수로만 결합한다. |
+| 후속 작업 제안 | RST-407 구현 시 `route`, `routeTags`, `dialogueState`, `affectState` 타입과 기본 매핑표를 먼저 만들고, 기본 스프라이트와 no-repeat 회귀 테스트를 함께 추가한다. |
+
+## 2026-06-16 / DEC-021 / 입력 경로 기반 대사 트리거 방향 승격
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | DEC-021 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 칵테일 ID가 아니라 사용자가 결과에 도달한 입력 경로가 대화 소재와 대사 풀을 결정하는 방향을 메인 대화 원칙으로 승격했다. |
+| 수정 파일 | `mission_control/DECISIONS.md`, `TASK_BOARD.md`, `CURRENT_STATE.md`, `ARCHITECTURE.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | DEC-021 추가. 직접 이름 주문, 감정·무드 주문, 취향 추론, 재료·베이스 언급, 랜덤 추천 등 입력 경로 태그를 대사 트리거로 저장하고, 기존 추천 엔진은 결과와 근거 확정 책임을 유지하도록 정리했다. RST-407을 TODO로 추가하고 현재 우선순위 1순위로 올렸다. |
+| 결정 내용 | 주문 방식이 대사 풀을 결정하고 칵테일은 제조·서빙 대사의 변수로 결합한다. 최근 N개 대사 제외, FSM 상태별 대사 풀 분리, 입력 경로 태그 필터링을 반복 방지 원칙으로 삼는다. 대사량이 늘어나면 Ink 스크립트의 `shuffle`/`cycle`과 템플릿 변수 치환을 사용한다. |
+| 기존 구조와의 결합 | 추천 결과와 근거는 DB·규칙 엔진이 확정한다. 대사 트리거 계층은 확정된 `RecommendationDecision`과 입력 경로 태그를 받아 대사 풀만 선택하며, WebLLM은 재개하더라도 말투 포장만 담당한다. |
+| 후속 작업 제안 | RST-407에서 입력 라우터와 추천 결정에 `route`/`routeTags`를 남기는 타입 경계를 정의하고, 작은 TypeScript 대사 풀과 no-repeat 테스트부터 구현한다. |
+
+## 2026-06-16 / DEC-020 / 칵테일 데이터 확장 정책 정리
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-16 |
+| 작업 ID | DEC-020 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 향후 칵테일 데이터 확장 시 IBA 공식 레시피를 최우선으로 검색하고, 자동으로 확정되지 않는 변형·시그니처·정보 부족 항목은 관리자 검증 큐로 넘기는 정책을 기록했다. |
+| 수정 파일 | `mission_control/DECISIONS.md`, `TASK_BOARD.md`, `CURRENT_STATE.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | DEC-020 추가. DATA-801을 관리자 검증 큐 중심으로 재정의하고, DATA-802를 IBA 우선 검색과 레시피 기반 맛 설명 보강 파이프라인으로 구체화했다. 이후 공통 DB는 필요하지만 유저 간 상호작용은 범위가 아니므로, 도입 시 BaaS 또는 얇은 백엔드로 `official` DB와 관리자 검증 큐만 제공하는 방향을 보강했다. |
+| 결정 내용 | 정식 칵테일 DB에는 IBA 공식 또는 관리자 승인 항목만 저장한다. IBA에 없는 변형·시그니처는 확인된 레시피를 기준으로 맛·향·질감 설명만 보강하며, 정보 부족·검색 실패·출처 충돌 항목은 추천 후보로 쓰지 않고 관리자 검증 큐에서 판단한다. |
+| 후속 작업 제안 | 외부 DB 도입 시 `adminReview` 큐 스키마, IBA 검색 실패 처리, 설명문 생성 금지 표현 테스트, 일반 사용자 읽기/요청 제출과 관리자 승인 권한을 분리하는 정책을 설계한다. |
 
 ## 2026-06-15 / RST-403 / 다시 추천받기와 추천 제외 처리
 
@@ -884,3 +1542,23 @@
 | `npm.cmd test` | 통과, Vitest 28개 |
 | `npm.cmd run check` | 통과 |
 | `npm.cmd run build` | 통과, JS 294.61 kB |
+
+## 2026-06-23 / DOC-003 / 외부 구조 보고서와 작성 가이드
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-23 |
+| 작업 ID | DOC-003 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 외부 기획용 구조 보고서 작성 이력과 작성 가이드를 mission_control에 기록하고, 향후 외부 AI와 반복적으로 기획을 이어갈 때 보고서를 어떻게 갱신할지 기준을 분리했다. |
+| 수정 파일 | `mission_control/EXTERNAL_STRUCTURE_REPORT.md`, `mission_control/README.md`, `mission_control/CURRENT_STATE.md`, `mission_control/HANDOVER.md`, `mission_control/TASK_BOARD.md`, `mission_control/WORK_LOG.md` |
+| 생성 파일 | `mission_control/README.md`, `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md` |
+| 삭제 파일 | 없음 |
+| 주요 변경 사항 | `README.md`를 mission_control 진입점으로 추가했다. `EXTERNAL_STRUCTURE_REPORT_GUIDE.md`를 추가해 외부 구조 보고서의 역할, 작성 원칙, 갱신 조건, 외부 AI에게 요청하기 좋은 것과 요청하지 말아야 할 것을 정리했다. `EXTERNAL_STRUCTURE_REPORT.md` 상단에는 문서 사용법과 작성·갱신 기준 링크를 추가했다. |
+| 후속 작업 제안 | 큰 방향이 바뀌면 `README.md`의 필독/선택 구분도 함께 갱신한다. 외부 AI와 기획을 주고받은 뒤 반영할 내용은 먼저 `EXTERNAL_STRUCTURE_REPORT_GUIDE.md` 기준으로 검수하고, 구현 세부 로그는 `WORK_LOG.md`에 남긴다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 문서 변경 | 코드 변경 없음 |

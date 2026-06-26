@@ -131,7 +131,27 @@ html::before {
   width: 100%;
   min-height: 140px;
   overflow: visible;
-  transition: filter 300ms ease;
+}
+
+.mood-indicator {
+  position: absolute;
+  top: 10%;
+  left: 8%;
+  z-index: 5;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #d4c096;
+  background: rgba(10, 7, 5, 0.65);
+  backdrop-filter: blur(4px);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 163, 90, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  transition: opacity 250ms ease, transform 250ms ease;
 }
 
 .bartender-sprite__image {
@@ -145,24 +165,53 @@ html::before {
   box-shadow: 0 0 40px rgba(120, 80, 180, 0.03);
 }
 
-.bartender-sprite--thinking {
-  filter: saturate(0.75) brightness(0.9);
+.bartender-sprite__image--shaking {
+  animation: none;
 }
 
-.bartender-sprite--talk {
-  filter: brightness(1.08);
+.session-mode-btn,
+.welcome-drink-btn,
+.exit-btn {
+  color: #b088d0;
+  text-shadow: 0 0 6px rgba(120, 80, 180, 0.25);
+  background: rgba(120, 80, 180, 0.06);
+  border: 1px solid rgba(180,136,208,0.2);
+  padding: 4px 12px;
+  font-family: inherit;
+  letter-spacing: 0.12em;
 }
 
-.bartender-sprite--surprised {
-  filter: brightness(1.15) saturate(1.2);
+.session-mode-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-right: auto;
 }
 
-.bartender-sprite--smirk {
-  filter: sepia(0.12) saturate(1.1);
+.session-mode-btn {
+  color: #d9c6e8;
 }
 
-.bartender-sprite--sympathy {
-  filter: saturate(0.8) sepia(0.08);
+.session-mode-btn--active {
+  color: #f2d27a;
+  border-color: rgba(242, 210, 122, 0.48);
+  background: rgba(196, 163, 90, 0.12);
+  text-shadow: 0 0 8px rgba(242, 210, 122, 0.22);
+}
+
+.welcome-drink-btn {
+  color: #d8bd7a;
+  background: rgba(196, 163, 90, 0.08);
+  border-color: rgba(196, 163, 90, 0.22);
+  text-shadow: 0 0 6px rgba(196, 163, 90, 0.18);
+}
+
+.session-mode-btn:disabled,
+.welcome-drink-btn:disabled,
+.welcome-drink-btn[aria-disabled='true'],
+.exit-btn:disabled {
+  cursor: wait;
+  opacity: 0.45;
 }
 
 @keyframes type-cursor {
@@ -181,7 +230,7 @@ html::before {
 }
 
 /* ── Mobile touch target size ── */
-.sidebar-tab, .sidebar-toggle, .reset-btn, .music-track, .exit-btn {
+.sidebar-tab, .sidebar-toggle, .reset-btn, .music-track, .session-mode-btn, .exit-btn {
   min-height: 44px;
 }
 
@@ -367,6 +416,104 @@ html::before {
   font-size: 8px;
   color: #b088d0;
   letter-spacing: 0.1em;
+}
+
+.codex-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.codex-detail__back {
+  font-size: 11px;
+  color: rgba(180, 136, 208, 0.6);
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  padding: 2px 0;
+}
+.codex-detail__back:hover {
+  color: #b088d0;
+}
+.codex-detail__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.codex-detail__img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 136, 208, 0.25);
+}
+.codex-detail__name {
+  font-size: 15px;
+  color: #b088d0;
+  margin: 0;
+}
+.codex-detail__name-en {
+  font-size: 10px;
+  color: rgba(245, 230, 211, 0.4);
+}
+.codex-detail__desc {
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.5;
+  margin: 0;
+}
+.codex-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.codex-detail__section-title {
+  font-size: 10px;
+  color: rgba(180, 136, 208, 0.6);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.codex-detail__ingredients {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.8);
+}
+.codex-detail__recipe-text {
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.65);
+  line-height: 1.4;
+  margin: 0;
+}
+.codex-detail__story {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.55;
+}
+
+.order-btn {
+  font-size: 10px;
+  padding: 2px 8px;
+  color: #c4a35a;
+  background: rgba(196, 163, 90, 0.1);
+  border: 1px solid rgba(196, 163, 90, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.order-btn:hover {
+  background: rgba(196, 163, 90, 0.2);
+  border-color: rgba(196, 163, 90, 0.5);
+}
+
+.recipe-card__head-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
 .recipe-panel {

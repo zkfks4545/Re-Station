@@ -10,11 +10,12 @@ describe('cocktail data contract', () => {
   it('shares one hydrated collection between UI and recommendation', () => {
     expect(getAllCocktailData()).toBe(cocktails)
     expect(initCandidatePool()).toBe(cocktails)
-    expect(cocktails).toHaveLength(44)
+    expect(cocktails).toHaveLength(45)
 
     for (const cocktail of cocktails) {
       expect(cocktail.features).toBeDefined()
       expect(cocktail.story).not.toBe('')
+      expect(cocktail.talkingPoints?.length).toBeGreaterThanOrEqual(2)
       expect(cocktail.ingredients.length).toBeGreaterThan(0)
     }
   })
@@ -22,7 +23,7 @@ describe('cocktail data contract', () => {
   it('keeps IBA recipe provenance on newly added official cocktails', () => {
     const official = cocktails.filter((cocktail) => cocktail.recipe_source_url)
 
-    expect(official).toHaveLength(37)
+    expect(official).toHaveLength(42)
     expect(official.every((cocktail) =>
       cocktail.recipe_source_url?.startsWith('https://iba-world.com/iba-cocktail/'),
     )).toBe(true)
@@ -33,7 +34,9 @@ describe('cocktail data contract', () => {
     for (const cocktail of cocktails) {
       expect(cocktail.story).toBe(cocktail.description)
       expect(cocktail.recipeText).not.toMatch(/\boz\b/i)
-      expect(cocktail.description).toMatch(/칵테일입니다\.$/)
+      expect(cocktail.description).toMatch(/칵테일입니다/)
+      expect(cocktail.talkingPoints?.every((point) => point.trim().length > 0)).toBe(true)
+      expect(cocktail.talkingPoints?.every((point) => point.endsWith('.'))).toBe(true)
       expect(cocktail.ingredients.every((ingredient) =>
         !/\d+(?:\.\d+)?\s*(?:ml|oz|대시|티스푼|개|조각)|바 스푼/i.test(ingredient),
       )).toBe(true)
@@ -45,6 +48,7 @@ describe('explicit cocktail lookup', () => {
   it('matches cocktail names in a sentence', () => {
     expect(findCocktailByName('마티니 주세요')?.name).toBe('마티니')
     expect(findCocktailByName('Mojito 한 잔')?.nameEn).toBe('Mojito')
+    expect(findCocktailByName('XYZ 한 잔')?.nameEn).toBe('XYZ')
   })
 
   it('does not steal preference-based recommendation requests', () => {

@@ -6,7 +6,9 @@
       "name": "Hongdae Punk Bar 'PUKEY'",
       "location_link": "https://maps.google.com/?q=Hongdae+PUKEY+Bar",
       "description": "네온 샷과 거친 일러스트 감성을 내세운 홍대의 펑크 바입니다.",
-      "signature_cocktail_ids": ["cocktail_signature_042"],
+      "signature_cocktail_ids": [
+        "cocktail_signature_042"
+      ],
       "active": true,
       "onboarded_at": "2026-05-01"
     },
@@ -15,7 +17,9 @@
       "name": "Neon Alley Speakeasy",
       "location_link": "https://maps.google.com/?q=Neon+Alley+Speakeasy",
       "description": "사이버펑크 테마의 시그니처 칵테일을 선보이는 스피크이지 바입니다.",
-      "signature_cocktail_ids": ["cocktail_signature_043"],
+      "signature_cocktail_ids": [
+        "cocktail_signature_043"
+      ],
       "active": true,
       "onboarded_at": "2026-05-15"
     }
@@ -30,13 +34,19 @@
       "base_spirit": "진",
       "recipe": "드라이 진 60ml, 드라이 베르무트 10ml",
       "description": "드라이 진과 베르무트의 깔끔하고 선명한 풍미가 특징인 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/martini/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.1,
         "alcohol_strength": 0.9,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.2
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
+      "talking_points": [
+        "마티니는 19세기 말 미국 바 문화 속에서 형태가 잡힌 칵테일로, 도시 이름 마르티네즈와 연결해 설명하는 이야기가 자주 전해집니다.",
+        "진과 베르무트의 비율은 시대마다 크게 달라져서, 한 잔의 마티니만 봐도 그 시대의 취향을 읽을 수 있습니다."
+      ]
     },
     {
       "id": "cocktail_classic_002",
@@ -46,14 +56,20 @@
       "type": "CLASSIC",
       "base_spirit": "럼",
       "recipe": "화이트 럼 45ml, 라임 주스 20ml, 설탕 2티스푼, 민트, 소다수 약간",
-      "description": "화이트 럼에 민트, 라임과 소다수를 더한 청량한 칵테일입니다.",
+      "description": "화이트 럼에 민트, 라임과 소다수를 더한 청량하고 상쾌한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/mojito/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.5,
         "fizz": 0.7,
         "sourness": 0.5
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
+      "talking_points": [
+        "모히토는 쿠바 하바나와 깊게 연결된 칵테일로, 럼과 민트, 라임이 더운 항구 도시의 분위기를 그대로 품고 있습니다.",
+        "헤밍웨이가 즐겼다는 이야기가 널리 알려져 있지만, 구체적인 기록은 가게와 전승에 따라 조금씩 다르게 남아 있습니다."
+      ]
     },
     {
       "id": "cocktail_classic_003",
@@ -64,13 +80,19 @@
       "base_spirit": "위스키",
       "recipe": "버번 위스키 60ml, 앙고스투라 비터스 2대시, 각설탕 1개, 물 약간",
       "description": "버번 위스키의 풍미에 비터스와 설탕의 쌉싸름한 단맛을 더한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/old-fashioned/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.85,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
+      "talking_points": [
+        "올드 패션드는 이름 그대로 예전 방식의 칵테일을 뜻하며, 증류주와 설탕, 비터스라는 초기 칵테일 문법을 간직하고 있습니다.",
+        "19세기 미국 바에서 복잡해지는 신식 음료 대신 옛 방식으로 만들어 달라는 주문에서 이름이 굳었다는 이야기가 유명합니다."
+      ]
     },
     {
       "id": "cocktail_classic_004",
@@ -80,14 +102,20 @@
       "type": "CLASSIC",
       "base_spirit": "데킬라",
       "recipe": "데킬라 50ml, 트리플 섹 20ml, 라임 주스 15ml, 소금 리밍",
-      "description": "데킬라와 오렌지 리큐르에 라임 산미와 소금의 짠맛을 더한 칵테일입니다.",
+      "description": "데킬라와 오렌지 리큐르에 라임 산미와 소금의 짠맛을 더한 산뜻한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/margarita/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+      "talking_points": [
+        "마가리타의 탄생 이야기는 1930-40년대 멕시코와 미국 접경 지역의 바들을 중심으로 여러 버전이 전해집니다.",
+        "소금 림은 단순한 장식이 아니라 데킬라와 라임의 인상을 잡아주는 장치로, 마가리타를 하나의 의식처럼 기억하게 만듭니다."
+      ]
     },
     {
       "id": "cocktail_classic_005",
@@ -97,14 +125,20 @@
       "type": "CLASSIC",
       "base_spirit": "진",
       "recipe": "진 30ml, 캄파리 30ml, 스위트 베르무트 30ml",
-      "description": "진, 캄파리와 스위트 베르무트의 쌉싸름하고 균형 잡힌 풍미가 특징인 칵테일입니다.",
+      "description": "진, 캄파리와 스위트 베르무트의 쌉싸름하고 깊은 균형이 특징인 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/negroni/",
+      "official_category": "The Unforgettables",
       "features": {
         "sweetness": 0.25,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.4
       },
-      "image": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg"
+      "image": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
+      "talking_points": [
+        "네그로니는 피렌체의 카밀로 네그로니 백작이 아메리카노를 더 강하게 주문했다는 이야기로 유명합니다.",
+        "이탈리아의 아페리티보 문화와 맞닿아 있어, 식전의 짧은 대화와 함께 떠올리기 좋은 칵테일입니다."
+      ]
     },
     {
       "id": "cocktail_classic_006",
@@ -122,7 +156,12 @@
         "alcohol_strength": 0.35,
         "fizz": 0.45,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "아메리카노는 원래 밀라노-토리노 계열의 음료에서 이어진 칵테일로, 이탈리아 리큐르 문화의 흔적이 남아 있습니다.",
+        "미국 여행객들이 즐겨 마셨다는 이야기 때문에 아메리카노라는 이름이 붙었다고 전해집니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/709s6m1613655124.jpg"
     },
     {
       "id": "cocktail_classic_007",
@@ -138,9 +177,14 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "라스트 워드는 디트로이트 애슬레틱 클럽에서 기록된 오래된 칵테일로, 금주법 전후의 미국 바 문화를 떠올리게 합니다.",
+        "한동안 잊혀졌다가 2000년대 칵테일 리바이벌 속에서 다시 유명해진, 이름처럼 뒷맛이 긴 칵테일입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/91oule1513702624.jpg"
     },
     {
       "id": "cocktail_classic_008",
@@ -158,7 +202,12 @@
         "alcohol_strength": 0.45,
         "fizz": 0.85,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "팔로마는 멕시코에서 데킬라와 자몽 소다를 가볍게 즐기던 문화와 이어져 있습니다.",
+        "세계적으로는 마가리타가 더 유명하지만, 멕시코 현지의 일상적인 데킬라 칵테일로 팔로마를 꼽는 이야기도 많습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/samm5j1513706393.jpg"
     },
     {
       "id": "cocktail_classic_009",
@@ -174,9 +223,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "에비에이션은 1910년대 항공 시대의 낭만을 이름에 담은 칵테일로, 옅은 보랏빛이 하늘 이미지를 만듭니다.",
+        "크렘 드 비올렛이 한동안 구하기 어려워지면서 레시피가 변했다가, 재등장과 함께 원래 색을 되찾은 역사가 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/trbplb1606855233.jpg"
     },
     {
       "id": "cocktail_classic_010",
@@ -192,9 +246,14 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "불바디에는 1920년대 파리의 영미권 문예 분위기와 연결되는 칵테일입니다.",
+        "이름은 파리에서 발행된 잡지 The Boulevardier와 그 주변의 사교 문화에서 왔다고 알려져 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/km84qi1513705868.jpg"
     },
     {
       "id": "cocktail_classic_011",
@@ -210,9 +269,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "화이트 레이디는 유럽의 클래식 호텔 바 문화 속에서 여러 바텐더의 이름과 함께 전해지는 칵테일입니다.",
+        "해리 매켈혼과 해리 크래독 등 당대 유명 바텐더들의 레시피가 엮여 있어, 출처를 두고 이야기할 거리가 많습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/jofsaz1504352991.jpg"
     },
     {
       "id": "cocktail_classic_012",
@@ -228,9 +292,14 @@
       "features": {
         "sweetness": 0.55,
         "alcohol_strength": 0.8,
-        "fizz": 0.0,
-        "sourness": 0.0
-      }
+        "fizz": 0,
+        "sourness": 0
+      },
+      "talking_points": [
+        "블랙 러시안은 1949년 브뤼셀 호텔 메트로폴에서 만들어졌다는 이야기가 널리 알려져 있습니다.",
+        "냉전기의 러시아 이미지를 이름에 빌렸지만, 실제로는 벨기에의 호텔 바에서 국제 외교 분위기와 함께 태어난 칵테일입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/8oxlqf1606772765.jpg"
     },
     {
       "id": "cocktail_classic_013",
@@ -246,9 +315,14 @@
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.65,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "페이퍼 플레인은 2000년대 뉴욕 칵테일 신에서 등장한 비교적 젊은 클래식입니다.",
+        "이름은 M.I.A.의 노래 Paper Planes에서 가져온 것으로 알려져, 현대 칵테일답게 음악과도 연결됩니다."
+      ],
+      "image": "/images/cocktails/paper_plane.jpg"
     },
     {
       "id": "cocktail_classic_014",
@@ -266,7 +340,12 @@
         "alcohol_strength": 0.45,
         "fizz": 0.75,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "진 피즈는 19세기 피즈 계열 칵테일 유행을 대표하는 음료로, 탄산수의 경쾌함이 핵심이었습니다.",
+        "당시에는 아침이나 낮에도 가볍게 마시는 스타일로 소개되곤 해서, 지금의 칵테일 이미지와는 조금 다른 얼굴을 갖고 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/drtihp1606768397.jpg"
     },
     {
       "id": "cocktail_classic_015",
@@ -282,9 +361,14 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "페니실린은 2000년대 뉴욕 Milk & Honey의 샘 로스가 만든 현대 클래식입니다.",
+        "꿀, 생강, 레몬의 조합 때문에 약처럼 이름 붙었지만, 실제 처방전이라기보다 위트 있는 바의 농담에 가깝습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/hc9b1a1521853096.jpg"
     },
     {
       "id": "cocktail_classic_016",
@@ -300,9 +384,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "사이드카는 제1차 세계대전 전후 파리와 런던의 호텔 바 문화와 함께 자주 언급됩니다.",
+        "오토바이 사이드카를 타고 바에 오던 손님에게서 이름이 왔다는 이야기가 대표적이지만, 정확한 기원은 여러 설이 남아 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/x72sik1606854964.jpg"
     },
     {
       "id": "cocktail_classic_017",
@@ -318,9 +407,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "다이키리는 쿠바의 다이키리 광산 지역과 미국인 엔지니어 제닝스 콕스의 이야기로 자주 소개됩니다.",
+        "럼, 라임, 설탕이라는 단순한 조합은 쿠바의 재료와 기후가 만들어낸 가장 명료한 레시피 중 하나입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg"
     },
     {
       "id": "cocktail_classic_018",
@@ -336,9 +430,14 @@
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.75
-      }
+      },
+      "talking_points": [
+        "위스키 사워는 19세기 바 매뉴얼에도 등장하는 오래된 사워 계열 칵테일입니다.",
+        "술, 감귤, 설탕의 조합은 긴 항해와 보존의 시대에도 실용적이어서, 칵테일의 기본 문법처럼 남았습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg"
     },
     {
       "id": "cocktail_classic_019",
@@ -354,9 +453,14 @@
       "features": {
         "sweetness": 0.85,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.25
-      }
+      },
+      "talking_points": [
+        "피냐 콜라다는 20세기 중반 푸에르토리코에서 탄생했다는 여러 기원담이 전해집니다.",
+        "누가 처음 만들었는지를 두고 호텔과 바의 주장이 갈리지만, 푸에르토리코의 상징적 칵테일이라는 점은 널리 받아들여집니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg"
     },
     {
       "id": "cocktail_classic_020",
@@ -372,9 +476,14 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "코스모폴리탄은 1980-90년대 미국 도시 문화 속에서 세련된 보드카 칵테일로 자리 잡았습니다.",
+        "Sex and the City를 통해 대중문화의 아이콘이 되면서, 칵테일이 캐릭터의 취향을 설명하는 도구가 된 대표 사례입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/kpsajh1504368362.jpg"
     },
     {
       "id": "cocktail_classic_021",
@@ -392,7 +501,12 @@
         "alcohol_strength": 0.25,
         "fizz": 0.8,
         "sourness": 0.2
-      }
+      },
+      "talking_points": [
+        "벨리니는 베네치아 Harry’s Bar의 주세페 치프리아니가 만든 칵테일로 알려져 있습니다.",
+        "복숭아빛 색감이 화가 조반니 벨리니의 그림을 떠올리게 한다는 데서 이름이 붙었습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/eaag491504367543.jpg"
     },
     {
       "id": "cocktail_classic_022",
@@ -410,7 +524,12 @@
         "alcohol_strength": 0.4,
         "fizz": 0.9,
         "sourness": 0.5
-      }
+      },
+      "talking_points": [
+        "모스코 뮬은 1940년대 미국에서 보드카와 진저비어를 알리기 위한 마케팅과 함께 퍼졌습니다.",
+        "구리 머그는 맛의 도구이면서 동시에 강력한 시각적 상징이 되어, 칵테일의 인지도를 크게 끌어올렸습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/3pylqc1504370988.jpg"
     },
     {
       "id": "cocktail_classic_023",
@@ -420,15 +539,20 @@
       "type": "CLASSIC",
       "base_spirit": "럼",
       "recipe": "앰버 자메이카 럼 30ml, 마르티니크 몰라세스 럼 30ml, 오렌지 큐라소 15ml, 오르젯 시럽 15ml, 라임 주스 30ml, 심플 시럽 7.5ml",
-      "description": "두 종류의 럼에 오르젯과 라임을 더한 풍성한 풍미의 칵테일입니다.",
+      "description": "두 종류의 럼에 오르젯과 라임을 더한 풍성하고 화려한 풍미의 칵테일입니다.",
       "recipe_source_url": "https://iba-world.com/iba-cocktail/mai-tai/",
       "official_category": "Contemporary Classics",
       "features": {
         "sweetness": 0.6,
         "alcohol_strength": 0.7,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "마이타이는 1940년대 Trader Vic의 티키 문화와 함께 유명해진 칵테일입니다.",
+        "타히티어 감탄사에서 이름이 왔다는 이야기가 전해지며, 티키 바의 상상력과 남태평양 이미지가 섞여 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg"
     },
     {
       "id": "cocktail_classic_024",
@@ -438,7 +562,7 @@
       "type": "CLASSIC",
       "base_spirit": "진",
       "recipe": "진 30ml, 레몬 주스 15ml, 설탕 시럽 15ml, 샴페인 60ml",
-      "description": "진과 레몬, 설탕 시럽에 샴페인을 더한 가볍고 화사한 칵테일입니다.",
+      "description": "진과 레몬, 설탕 시럽에 샴페인을 더한 가볍고 기분 좋은 칵테일입니다.",
       "recipe_source_url": "https://iba-world.com/iba-cocktail/french-75/",
       "official_category": "Contemporary Classics",
       "features": {
@@ -446,7 +570,12 @@
         "alcohol_strength": 0.4,
         "fizz": 0.8,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "프렌치 75는 제1차 세계대전 당시 프랑스 75mm 야포의 강한 인상에서 이름을 빌렸습니다.",
+        "샴페인을 쓰는 우아한 외형과 달리 이름에는 전쟁기의 농담과 강한 한 방의 이미지가 함께 들어 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg"
     },
     {
       "id": "cocktail_classic_025",
@@ -462,9 +591,14 @@
       "features": {
         "sweetness": 0.7,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "아이리시 커피는 1940년대 아일랜드 포인스 공항에서 추운 승객들을 위해 만들어졌다는 이야기가 유명합니다.",
+        "커피와 위스키, 크림이 한 잔에 겹치며 여행자의 피로를 달래는 음료라는 배경을 갖고 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/sywsqw1439906999.jpg"
     },
     {
       "id": "cocktail_classic_026",
@@ -482,7 +616,12 @@
         "alcohol_strength": 0.45,
         "fizz": 0.85,
         "sourness": 0.25
-      }
+      },
+      "talking_points": [
+        "다크 앤 스토미는 버뮤다의 Goslings 럼과 깊게 연결된 칵테일입니다.",
+        "어두운 럼이 진저비어 위에 떠 있는 모습이 폭풍구름 같다고 해서 이름이 붙었다는 설명이 잘 어울립니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/t1tn0s1504374905.jpg"
     },
     {
       "id": "cocktail_classic_027",
@@ -500,7 +639,12 @@
         "alcohol_strength": 0.35,
         "fizz": 0.8,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "호스즈 넥은 길게 꼬아 넣은 레몬 껍질이 말의 목처럼 보인다는 데서 이름이 왔습니다.",
+        "처음에는 진저에일 중심의 무알코올 음료로도 즐겨졌고, 이후 브랜디나 버번을 더한 버전이 널리 알려졌습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/006k4e1504370092.jpg"
     },
     {
       "id": "cocktail_classic_028",
@@ -516,9 +660,14 @@
       "features": {
         "sweetness": 0.75,
         "alcohol_strength": 0.4,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.3
-      }
+      },
+      "talking_points": [
+        "테킬라 선라이즈는 잔 안에서 그라데이션으로 생기는 일출 같은 색감 때문에 이름이 붙었습니다.",
+        "1970년대 록 밴드 투어와 대중음악 문화 속에서 유명해지며, 보기 좋은 칵테일의 힘을 보여줬습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/quqyqp1480879103.jpg"
     },
     {
       "id": "cocktail_classic_029",
@@ -534,27 +683,37 @@
       "features": {
         "sweetness": 0.55,
         "alcohol_strength": 0.3,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.65
-      }
+      },
+      "talking_points": [
+        "씨 브리즈는 보드카와 크랜베리, 자몽 주스가 만난 20세기 후반 미국식 하이볼 계열 칵테일입니다.",
+        "크랜베리 주스가 대중적으로 홍보되던 시기와 맞물려, 바깥 공기 같은 이름으로 널리 퍼졌습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/7rfuks1504371562.jpg"
     },
     {
       "id": "cocktail_signature_042",
       "name": "PUKEY Goddess Shot",
       "name_ko": "푸키 여신 샷",
       "type": "SIGNATURE",
-      "base_spirit": "시그니처",
+      "base_spirit": "보드카",
       "bar_id": "bar_pukey_hongdae",
       "bar_name": "Hongdae Punk Bar 'PUKEY'",
       "bar_location_link": "https://maps.google.com/?q=Hongdae+PUKEY+Bar",
-      "recipe": "시그니처 블렌드, 배합 비공개 (매장에서 확인)",
-      "description": "강한 도수와 선명한 네온 색감이 특징인 매장 한정 시그니처 칵테일입니다.",
+      "recipe": "보드카 30ml, 크랜베리 주스 15ml, 그레나딘 시럽 5ml, 라임 주스 5ml, 진저 에일 10ml",
+      "description": "보드카를 베이스로 크랜베리와 그레나딘이 만든 선명한 루비색이 인상적인 펑크 감성의 샷 칵테일입니다. 라임의 산미와 진저 에일의 탄산이 뒤를 받칩니다.",
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.9,
         "fizz": 0.8,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "PUKEY Goddess Shot은 홍대 PUKEY 바의 시그니처 샷으로, 공연 전 짧은 의식처럼 마시는 메뉴입니다. 네온 블루 색상이 무대 조명 아래에서 강하게 빛납니다.",
+        "이 칵테일을 한 잔 비우고 나면 모든 규칙이 느슨해지기 시작한다는 소문이 있습니다. 악마와의 러시안 룰렛에서 살아남기 위한 유일한 방법이라는 이야기도 전해집니다."
+      ],
+      "image": "/images/cocktails/pukey_goddess_shot.png"
     },
     {
       "id": "cocktail_signature_043",
@@ -572,7 +731,12 @@
         "alcohol_strength": 0.55,
         "fizz": 0.85,
         "sourness": 0.55
-      }
+      },
+      "talking_points": [
+        "Glitch Rain은 Re:Station 세계관의 시그니처 칵테일로, 화면 노이즈와 비 오는 밤의 이미지를 섞어 만든 메뉴입니다.",
+        "정식 클래식이 아니라 이 바에서만 기록되는 메뉴라, 도감에는 손님이 직접 만난 뒤에야 의미가 채워집니다."
+      ],
+      "image": "/images/cocktails/glitch_rain.jpg"
     },
     {
       "id": "cocktail_classic_030",
@@ -588,9 +752,14 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.85,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.15
-      }
+      },
+      "talking_points": [
+        "맨해튼은 19세기 미국 도시 바 문화의 상징처럼 남은 칵테일입니다.",
+        "맨해튼 클럽에서 시작됐다는 설이 유명하지만, 정확한 탄생지는 여러 이야기가 경쟁하듯 전해집니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg"
     },
     {
       "id": "cocktail_classic_031",
@@ -606,9 +775,14 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.65,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "민트 줄렙은 미국 남부의 접대 문화와 깊이 연결된 칵테일입니다.",
+        "켄터키 더비의 상징이 되면서, 은잔과 으깬 얼음, 민트가 하나의 계절 의식처럼 자리 잡았습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/squyyq1439907312.jpg"
     },
     {
       "id": "cocktail_classic_032",
@@ -624,9 +798,14 @@
       "features": {
         "sweetness": 0.15,
         "alcohol_strength": 0.35,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.55
-      }
+      },
+      "talking_points": [
+        "블러디 메리는 파리와 뉴욕의 바를 오가는 기원담이 전해지는 칵테일입니다.",
+        "이름은 메리 1세, 손님 이름, 바의 별명 등 여러 설이 남아 있어 한 잔 안에 이야기가 많은 편입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/t6caa21582485702.jpg"
     },
     {
       "id": "cocktail_classic_033",
@@ -642,9 +821,14 @@
       "features": {
         "sweetness": 0.4,
         "alcohol_strength": 0.6,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "카이피리냐는 브라질의 국민 칵테일로 불리며, 사탕수수 증류주 카샤사의 정체성을 보여줍니다.",
+        "라임을 으깨 설탕과 섞는 방식은 소박하지만, 브라질의 재료와 일상적인 술 문화를 또렷하게 담고 있습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/jgvn7p1582484435.jpg"
     },
     {
       "id": "cocktail_classic_034",
@@ -660,9 +844,14 @@
       "features": {
         "sweetness": 0.2,
         "alcohol_strength": 0.9,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "사제락은 뉴올리언스와 강하게 연결되는 오래된 칵테일로, 미국 칵테일사의 상징처럼 다뤄집니다.",
+        "초기에는 코냑을 쓰다가 포도나무 병충해와 공급 변화 등을 거치며 라이 위스키 버전이 자리 잡았다는 설명이 자주 붙습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/vvpxwy1439907208.jpg"
     },
     {
       "id": "cocktail_classic_035",
@@ -680,7 +869,12 @@
         "alcohol_strength": 0.4,
         "fizz": 0.6,
         "sourness": 0.4
-      }
+      },
+      "talking_points": [
+        "싱가포르 슬링은 래플스 호텔 롱 바에서 만들어졌다는 이야기가 대표적입니다.",
+        "분홍빛과 과일향 덕분에 당시 여성도 공공장소에서 마시기 쉬운 주스처럼 보였다는 전승이 함께 따라옵니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/7dozeg1582578095.jpg"
     },
     {
       "id": "cocktail_classic_036",
@@ -698,7 +892,12 @@
         "alcohol_strength": 0.35,
         "fizz": 0.8,
         "sourness": 0.7
-      }
+      },
+      "talking_points": [
+        "톰 콜린스는 19세기 미국의 Tom Collins Hoax라는 장난과 이름이 연결되어 자주 소개됩니다.",
+        "누군가가 당신을 험담한다는 농담에서 시작된 이름이, 결국 바 메뉴판의 고전으로 남은 셈입니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg"
     },
     {
       "id": "cocktail_classic_037",
@@ -716,7 +915,12 @@
         "alcohol_strength": 0.2,
         "fizz": 0.9,
         "sourness": 0.35
-      }
+      },
+      "talking_points": [
+        "아페롤 스프리츠는 이탈리아 북부의 스프리츠 문화에서 발전한 아페리티보 칵테일입니다.",
+        "오스트리아식 와인 희석 문화와 이탈리아 리큐르가 만나, 해 질 무렵 테라스의 상징처럼 자리 잡았습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg"
     },
     {
       "id": "cocktail_classic_038",
@@ -732,9 +936,14 @@
       "features": {
         "sweetness": 0.3,
         "alcohol_strength": 0.5,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.8
-      }
+      },
+      "talking_points": [
+        "피스코 사워는 페루와 칠레 양쪽의 정체성과 얽혀 있어 원조 논쟁이 자주 따라붙습니다.",
+        "페루 리마의 바텐더 빅터 모리스가 만든 버전이 널리 언급되며, 피스코라는 술의 역사까지 함께 불러냅니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/tsssur1439907622.jpg"
     },
     {
       "id": "cocktail_classic_039",
@@ -750,9 +959,14 @@
       "features": {
         "sweetness": 0.7,
         "alcohol_strength": 0.3,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.3
-      }
+      },
+      "talking_points": [
+        "페인킬러는 영국령 버진아일랜드의 Soggy Dollar Bar와 연결되는 열대 칵테일입니다.",
+        "Pusser’s Rum과 상표권 이야기까지 얽혀 있어, 단순한 휴양지 음료보다 법적 뒷이야기가 많은 편입니다."
+      ],
+      "image": "/images/cocktails/painkiller.jpg"
     },
     {
       "id": "cocktail_classic_040",
@@ -768,9 +982,14 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.55,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "클로버 클럽은 필라델피아의 남성 사교 클럽 이름에서 온 칵테일입니다.",
+        "한때 오래된 취향으로 밀려났지만, 클래식 칵테일 부흥과 함께 다시 우아한 핑크빛 메뉴로 돌아왔습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/t0aja61504348715.jpg"
     },
     {
       "id": "cocktail_classic_041",
@@ -786,9 +1005,14 @@
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.5,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.6
-      }
+      },
+      "talking_points": [
+        "브램블은 1980년대 런던의 바텐더 딕 브래드셀이 만든 현대 클래식입니다.",
+        "블랙베리가 자라는 덤불을 뜻하는 이름처럼, 잔 위로 번지는 베리 리큐르가 시각적 인상을 만듭니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/twtbh51630406392.jpg"
     },
     {
       "id": "cocktail_classic_042",
@@ -804,9 +1028,35 @@
       "features": {
         "sweetness": 0.35,
         "alcohol_strength": 0.75,
-        "fizz": 0.0,
+        "fizz": 0,
         "sourness": 0.1
-      }
+      },
+      "talking_points": [
+        "에스프레소 마티니는 1980년대 런던에서 딕 브래드셀이 만들었다고 알려진 칵테일입니다.",
+        "잠을 깨우면서도 취하게 해달라는 손님의 주문에서 나왔다는 이야기가 유명해, 밤의 에너지와 잘 맞습니다."
+      ],
+      "image": "https://www.thecocktaildb.com/images/media/drink/n0sx531504372951.jpg"
+    },
+    {
+      "id": "cocktail_classic_043",
+      "name": "XYZ",
+      "name_en": "XYZ",
+      "name_ko": "XYZ",
+      "type": "CLASSIC",
+      "base_spirit": "럼",
+      "recipe": "화이트 럼 45ml, 트리플 섹 22.5ml, 레몬 주스 22.5ml",
+      "description": "화이트 럼에 오렌지 리큐르와 레몬 산미를 더한 깔끔하고 산뜻한 칵테일입니다.",
+      "features": {
+        "sweetness": 0.35,
+        "alcohol_strength": 0.65,
+        "fizz": 0,
+        "sourness": 0.7
+      },
+      "talking_points": [
+        "XYZ는 알파벳의 마지막 글자들을 이름으로 삼아, 한 순서의 끝을 암시하는 클래식한 이름법을 따릅니다.",
+        "Re:Station에서는 마지막 주문을 닫는 잔으로 다루며, 정확한 기원보다 마침표 같은 역할이 먼저 기억됩니다."
+      ],
+      "image": "https://upload.wikimedia.org/wikipedia/commons/8/8d/XYZ%28cocktail%29.jpg"
     }
   ]
 }
