@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { cocktails } from '@/lib/cocktails/database.js'
 import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
+import type { CocktailData } from '@/types.js'
 
 function normalizeForSearch(s: string): string {
   return s.toLowerCase().replace(/[\s\-_']+/g, '')
@@ -30,7 +31,7 @@ function isFuzzyMatch(query: string, target: string): boolean {
 export default function RecipeInfoTab({
   onOrderCocktail,
 }: {
-  onOrderCocktail?: (cocktailName: string) => void
+  onOrderCocktail?: (cocktail: CocktailData) => void
 }) {
   const [query, setQuery] = useState('')
 
@@ -79,7 +80,7 @@ export default function RecipeInfoTab({
               </div>
               <button
                 className="order-btn"
-                onClick={() => onOrderCocktail?.(c.name)}
+                onClick={() => onOrderCocktail?.(c)}
                 title={`${c.name} 주문하기`}
               >
                 주문

@@ -30,7 +30,7 @@ export default function Sidebar({
   onResetNight: () => void
   lastServedCocktail?: CocktailData | null
   onViewCocktail?: (cocktail: CocktailData) => void
-  onOrderCocktail?: (cocktailName: string) => void
+  onOrderCocktail?: (cocktail: CocktailData) => void
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
