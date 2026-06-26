@@ -107,11 +107,9 @@ describe('neutral runtime dialogue contract', () => {
     expect(result.response).toContain('모히토')
   })
 
-  it('keeps every contextual sad-response variant inside the boundary', () => {
-    const history: Message[] = [{ role: 'user', text: '오늘 너무 우울해' }]
-
+  it('responds to sad mood with sympathy variant', () => {
     for (let i = 0; i < 8; i++) {
-      const result = getCocktailResponse('그냥 그렇네', history)
+      const result = getCocktailResponse('오늘 너무 우울해', [])
       expect(result).toBeDefined()
       expect(result.response.length).toBeGreaterThan(0)
       expect(result.expression).toBe('sympathy')

@@ -7,7 +7,7 @@ const RANDOM_RECOMMENDATION = /아무거나/
 const RANDOM_RECOMMENDATION_REJECTION = /아무거나\s*(?:말고|는\s*(?:싫|별로|말고))/
 const RECOMMENDATION_CANCEL = /^(?:추천\s*)?(?:질문\s*)?(?:취소|그만)(?:해|할래|할게|해줘|해도\s*돼)?$|(?:추천|질문).{0,8}(?:취소|그만)|그만\s*(?:물어봐|물어보세요)/
 const COCKTAIL_QUERY = /(.{1,20})[을를]?\s*(?:주문|시켜|원해|찾아|알려줘|뭐야|먹고|마시|한\s*잔|추천|보여줘)/
-const STORY_QUERY = /이야기|얽힌|유래|배경|더\s*들려줘|설명해줘|설명해\s*줘|들려줘/
+const STORY_QUERY = /이야기|얘기|얽힌|유래|배경|더\s*들려줘|설명해줘|설명해\s*줘|들려줘/
 
 export type InputRoute =
   | 'safety'
