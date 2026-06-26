@@ -15,7 +15,7 @@ export default function WelcomeDrinkButton({
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
+      aria-disabled={disabled}
       className="welcome-drink-btn text-xs transition-all duration-200 select-none flex items-center gap-1"
       aria-label="웰컴드링크 받기"
     >
