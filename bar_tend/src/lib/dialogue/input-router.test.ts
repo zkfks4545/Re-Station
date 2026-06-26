@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { routeUserInput } from './input-router.js'
 
 describe('user input routing priority', () => {
-  const r = (input: string, opts?: { recommendationActive?: boolean }) =>
+  const r = (input: string, opts?: { recommendationActive?: boolean; allowRecommendationRoutes?: boolean }) =>
     routeUserInput(input, opts).route
 
   it('keeps safety language above exit and recommendation intents', () => {
@@ -19,6 +19,19 @@ describe('user input routing priority', () => {
     expect(r('다음잔은 추천을 받을래')).toBe('recommendation')
     expect(r('이번엔 추천을 받을래')).toBe('recommendation')
     expect(r('마실 만한 걸 추천해줘')).toBe('recommendation')
+  })
+
+  it('routes story and lore requests before general listening fallback', () => {
+    expect(r('여기 얽힌 이야기를 더 들려줘요')).toBe('story-query')
+    expect(r('이 칵테일 유래 설명해줘')).toBe('story-query')
+    expect(r('배경 이야기 더 들려줘')).toBe('story-query')
+  })
+
+  it('keeps a matched cocktail id on story queries with a known cocktail name', () => {
+    const result = routeUserInput('모히토에 얽힌 이야기를 설명해줘')
+
+    expect(result.route).toBe('story-query')
+    expect(result.matchedCocktailId).toBeTruthy()
   })
 
   it('routes active recommendation answers before general conversation', () => {
@@ -61,5 +74,17 @@ describe('user input routing priority', () => {
   it('still routes known cocktails to explicit-cocktail', () => {
     expect(r('모히토 한 잔')).toBe('explicit-cocktail')
     expect(r('마티니 주문')).toBe('explicit-cocktail')
+  })
+
+  it('keeps conversation sessions from auto-switching into recommendation routes', () => {
+    const opts = { allowRecommendationRoutes: false }
+    expect(r('추천해줘', opts)).toBe('general')
+    expect(r('여기 얽힌 이야기를 더 들려줘요', opts)).toBe('story-query')
+    expect(r('아무거나')).toBe('random-recommendation')
+    expect(r('아무거나', opts)).toBe('general')
+    expect(r('모히토 한 잔', opts)).toBe('general')
+    expect(r('블루 라군 주문', opts)).toBe('general')
+    expect(r('죽고 싶어', opts)).toBe('safety')
+    expect(r('다음에 올게', opts)).toBe('exit')
   })
 })

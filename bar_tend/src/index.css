@@ -169,6 +169,7 @@ html::before {
   animation: none;
 }
 
+.session-mode-btn,
 .welcome-drink-btn,
 .exit-btn {
   color: #b088d0;
@@ -180,6 +181,24 @@ html::before {
   letter-spacing: 0.12em;
 }
 
+.session-mode-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-right: auto;
+}
+
+.session-mode-btn {
+  color: #d9c6e8;
+}
+
+.session-mode-btn--active {
+  color: #f2d27a;
+  border-color: rgba(242, 210, 122, 0.48);
+  background: rgba(196, 163, 90, 0.12);
+  text-shadow: 0 0 8px rgba(242, 210, 122, 0.22);
+}
+
 .welcome-drink-btn {
   color: #d8bd7a;
   background: rgba(196, 163, 90, 0.08);
@@ -187,7 +206,9 @@ html::before {
   text-shadow: 0 0 6px rgba(196, 163, 90, 0.18);
 }
 
+.session-mode-btn:disabled,
 .welcome-drink-btn:disabled,
+.welcome-drink-btn[aria-disabled='true'],
 .exit-btn:disabled {
   cursor: wait;
   opacity: 0.45;
@@ -209,7 +230,7 @@ html::before {
 }
 
 /* ── Mobile touch target size ── */
-.sidebar-tab, .sidebar-toggle, .reset-btn, .music-track, .exit-btn {
+.sidebar-tab, .sidebar-toggle, .reset-btn, .music-track, .session-mode-btn, .exit-btn {
   min-height: 44px;
 }
 

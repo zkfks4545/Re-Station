@@ -18,6 +18,7 @@ export default function App() {
     isProcessing,
     isPreparingCocktail,
     activeQuestion,
+    actionSessionMode,
     errorMessage,
     servedCocktail,
     lastServedCocktail,
@@ -33,6 +34,8 @@ export default function App() {
     handleCancelRecommendation,
     handleViewCocktail,
     handleWelcomeDrink,
+    handleStartConversation,
+    handleStartRecommendation,
     handleSend,
     onTypingComplete,
     welcomeDrinkAvailable,
@@ -108,7 +111,12 @@ export default function App() {
               onSend={handleSend}
               onCancelRecommendation={handleCancelRecommendation}
               activeQuestion={activeQuestion}
-              disabled={isProcessing || isBartenderTyping}
+              disabled={isProcessing || isBartenderTyping || actionSessionMode === 'idle'}
+              placeholder={
+                actionSessionMode === 'idle'
+                  ? '먼저 대화하기나 추천받기를 골라주세요.'
+                  : undefined
+              }
             />
             {errorMessage && (
               <p className="px-6 pb-3 text-xs text-red-300" role="alert">
@@ -123,6 +131,26 @@ export default function App() {
                 'linear-gradient(to top, rgba(13,10,7,0.95), rgba(13,10,7,0.5))',
             }}
           >
+            <div className="session-mode-controls" role="group" aria-label="현재 행동 선택">
+              <button
+                type="button"
+                className={`session-mode-btn ${actionSessionMode === 'conversation' ? 'session-mode-btn--active' : ''}`}
+                onClick={handleStartConversation}
+                disabled={isProcessing || isBartenderTyping}
+                aria-pressed={actionSessionMode === 'conversation'}
+              >
+                대화하기
+              </button>
+              <button
+                type="button"
+                className={`session-mode-btn ${actionSessionMode === 'recommendation' ? 'session-mode-btn--active' : ''}`}
+                onClick={handleStartRecommendation}
+                disabled={isProcessing || isBartenderTyping}
+                aria-pressed={actionSessionMode === 'recommendation'}
+              >
+                추천받기
+              </button>
+            </div>
             <WelcomeDrinkButton
               disabled={isProcessing || isBartenderTyping}
               hidden={!welcomeDrinkAvailable}

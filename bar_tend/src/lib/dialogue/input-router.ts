@@ -7,6 +7,7 @@ const RANDOM_RECOMMENDATION = /아무거나/
 const RANDOM_RECOMMENDATION_REJECTION = /아무거나\s*(?:말고|는\s*(?:싫|별로|말고))/
 const RECOMMENDATION_CANCEL = /^(?:추천\s*)?(?:질문\s*)?(?:취소|그만)(?:해|할래|할게|해줘|해도\s*돼)?$|(?:추천|질문).{0,8}(?:취소|그만)|그만\s*(?:물어봐|물어보세요)/
 const COCKTAIL_QUERY = /(.{1,20})[을를]?\s*(?:주문|시켜|원해|찾아|알려줘|뭐야|먹고|마시|한\s*잔|추천|보여줘)/
+const STORY_QUERY = /이야기|얽힌|유래|배경|더\s*들려줘|설명해줘|설명해\s*줘|들려줘/
 
 export type InputRoute =
   | 'safety'
@@ -15,6 +16,7 @@ export type InputRoute =
   | 'random-recommendation'
   | 'explicit-cocktail'
   | 'unknown-cocktail-query'
+  | 'story-query'
   | 'recommendation'
   | 'general'
 
@@ -43,6 +45,10 @@ export function detectRecommendationCancel(input: string): boolean {
   return RECOMMENDATION_CANCEL.test(input.trim().toLowerCase())
 }
 
+export function detectStoryQuery(input: string): boolean {
+  return STORY_QUERY.test(input.trim().toLowerCase())
+}
+
 export function detectUnknownCocktailQuery(input: string): string | null {
   const match = input.match(COCKTAIL_QUERY)
   if (!match) return null
@@ -55,17 +61,26 @@ export function detectUnknownCocktailQuery(input: string): string | null {
 
 export function routeUserInput(
   input: string,
-  options: { recommendationActive?: boolean } = {},
+  options: { recommendationActive?: boolean; allowRecommendationRoutes?: boolean } = {},
 ): RouteResult {
+  const allowRecommendationRoutes = options.allowRecommendationRoutes ?? true
   if (detectSafetyConcern(input)) return { route: 'safety', confidence: 0.95 }
   if (options.recommendationActive && detectRecommendationCancel(input)) {
     return { route: 'recommendation-cancel', confidence: 0.9 }
   }
   if (detectExitIntent(input)) return { route: 'exit', confidence: 0.85 }
+  const matched = findCocktailByName(input)
+  if (detectStoryQuery(input)) {
+    return {
+      route: 'story-query',
+      matchedCocktailId: matched?.id,
+      confidence: matched ? 0.85 : 0.75,
+    }
+  }
+  if (!allowRecommendationRoutes) return { route: 'general', confidence: 0.5 }
   if (!options.recommendationActive && detectRandomRecommendation(input)) {
     return { route: 'random-recommendation', confidence: 0.8 }
   }
-  const matched = findCocktailByName(input)
   if (matched) return { route: 'explicit-cocktail', matchedCocktailId: matched.id, confidence: 0.9 }
   if (options.recommendationActive || isRecommendationIntent(input)) {
     return { route: 'recommendation', confidence: 0.6 }
