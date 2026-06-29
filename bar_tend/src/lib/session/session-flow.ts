@@ -7,6 +7,7 @@ export type SessionPhase =
   | 'aftertalk'
   | 'xyz'
   | 'farewell'
+  | 'safetyLocked'
   | 'returnHome'
 
 export const ALCOHOL_STARS_BEFORE_XYZ = 10
@@ -15,13 +16,14 @@ export const XYZ_COCKTAIL_ID = 'cocktail_classic_043'
 
 const ORDER_ROUTES: InputRoute[] = [
   'random-recommendation',
+  'lore-based-order',
   'explicit-cocktail',
   'unknown-cocktail-query',
   'recommendation',
 ]
 
 export function isOrderingClosedPhase(phase: SessionPhase): boolean {
-  return phase === 'xyz' || phase === 'farewell' || phase === 'returnHome'
+  return phase === 'xyz' || phase === 'farewell' || phase === 'safetyLocked' || phase === 'returnHome'
 }
 
 export function isOrderRoute(route: InputRoute): boolean {
@@ -46,7 +48,7 @@ export function isRecommendationBlockedInPhase(phase: SessionPhase, route: Input
 export function nextPhaseAfterRoute(route: InputRoute, current: SessionPhase): SessionPhase {
   if (isOrderingClosedPhase(current)) return current
   if (route === 'recommendation') return 'recommending'
-  if (route === 'random-recommendation' || route === 'explicit-cocktail') return 'aftertalk'
+  if (route === 'random-recommendation' || route === 'lore-based-order' || route === 'explicit-cocktail') return 'aftertalk'
   if (route === 'general') return current === 'entry' ? 'conversation' : current
   return current
 }

@@ -397,32 +397,6 @@
         { "text": "술은 즐기는 거지, 참는 게 아니잖아요. 오늘은 여기서 멈추는 게 예의일 거예요.", "expression": "sympathy" }
       ]
     },
-    "minor-no-alcohol": {
-      "description": "미성년자·알코올 금지",
-      "lines": [
-        { "text": "알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.", "expression": "talk" },
-        { "text": "술은 제외하고 볼게요. 무알코올 느낌이나 좋아하는 맛을 말해 주세요.", "expression": "talk" },
-        { "text": "이해합니다. 알코올은 제외하고, 무알코올로 즐길 수 있는 다른 옵션을 같이 찾아볼게요.", "expression": "talk" },
-        { "text": "알코올은 제외할게요. 대신 맛 위주로 맞춰드릴 수 있어요.", "expression": "talk" },
-        { "text": "네, 무알코올로 진행할게요. 어떤 맛을 좋아하시나요?", "expression": "talk" },
-        { "text": "알코올은 안내해 드릴 수 없어서 죄송해요. 대신 다른 걸로 즐길 수 있는 방법을 찾아볼게요.", "expression": "talk" },
-        { "text": "술을 제외하고 도와드리는 걸로 할게요. 어떤 맛을 좋아하시는지 말씀해 주세요.", "expression": "talk" },
-        { "text": "무알코올로 충분히 즐거운 잔을 찾을 수 있어요. 걱정 마세요.", "expression": "talk" }
-      ]
-    },
-    "non-alcoholic": {
-      "description": "무알코올 요청",
-      "lines": [
-        { "text": "무알코올 쪽으로 볼게요. 지금 메뉴에서 가능 범위가 좁으면 억지로 술 있는 잔을 권하진 않을게요.", "expression": "talk" },
-        { "text": "알코올 없이 가는 걸로 잡을게요. 달콤한 쪽인지, 상큼한 쪽인지부터 보면 좋아요.", "expression": "talk" },
-        { "text": "논알코올로 맞춰볼게요. 탄산감이나 과일 향 위주로 접근해 볼게요.", "expression": "talk" },
-        { "text": "무알콜 메뉴 쪽으로 찾아볼게요. 과일이나 허브 향 위주로 골라볼게요.", "expression": "talk" },
-        { "text": "알코올 빼고 준비할게요. 톡 쏘는 탄산감이나 달콤한 쪽 중에 어떤 게 좋으세요?", "expression": "thinking" },
-        { "text": "무알코올 음료 쪽으로도 재미있는 옵션이 꽤 있어요. 같이 탐험해 볼까요?", "expression": "talk" },
-        { "text": "알코올이 없어도 맛있는 잔은 얼마든지 있어요. 오히려 맛의 디테일이 더 살아나기도 하죠.", "expression": "thinking" },
-        { "text": "논알코올로 가시죠. 과일 향이나 허브 향 위주로 접근해 보면 재미있을 거예요.", "expression": "talk" }
-      ]
-    },
     "ingredient-constraint": {
       "description": "재료 제한·알레르기",
       "lines": [

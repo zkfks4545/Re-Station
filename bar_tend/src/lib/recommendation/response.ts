@@ -190,6 +190,10 @@ export function formatExplicitCocktailReply(cocktail: CocktailData): string {
   return `「${cocktail.name}」을 찾으시는군요.\n${selectCocktailTalkingPoint(cocktail)}\n자세한 정보도 함께 보여드릴게요.`
 }
 
+export function formatLoreBasedOrderReply(cocktail: CocktailData): string {
+  return `「${cocktail.name}」 한 잔 준비할게요.\n${selectCocktailTalkingPoint(cocktail)}`
+}
+
 export function formatRandomRecommendationReply(
   cocktail: CocktailData,
   opening = '그럼 제가 하나 골라볼게요.',

@@ -181,13 +181,6 @@ html::before {
   letter-spacing: 0.12em;
 }
 
-.session-mode-controls {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-right: auto;
-}
-
 .session-mode-btn {
   color: #d9c6e8;
 }

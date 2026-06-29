@@ -186,14 +186,12 @@ function generateVibe(taste: TasteProfile): string {
 function generateStory(drink: Drink, ingredients: IngredientItem[], taste: TasteProfile, base: string): string {
   const name = drink.strDrink
   const cat = drink.strCategory || ''
-  const alcoholic = drink.strAlcoholic || ''
   const mainIngredient = ingredients[0]
 
   const lines: string[] = []
   lines.push(`'${name}'은(는) ${base} 베이스의 칵테일입니다.`)
 
   if (cat && cat !== 'Unknown') lines.push(`${cat} 스타일로 제조됩니다.`)
-  if (alcoholic === 'Non alcoholic') lines.push('논알콜 칵테일로 부담 없이 즐기실 수 있습니다.')
 
   const desc: string[] = []
   if (taste.sweet >= 4) desc.push('달콤한')

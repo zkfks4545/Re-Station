@@ -21,7 +21,7 @@
 
 ```text
 입장
-→ 웰컴드링크
+→ 웰컴드링크(선택, 미제공 시 종료 이벤트에서 회수)
 → 대화
 → 취향 파악
 → 추천
@@ -50,6 +50,21 @@
 
 무한 챗봇 상태에 진입해서는 안 된다. 모든 세션은 결국 종료되어야 한다.
 
+## DialogueSessionState 계약
+
+대화 세션의 진행 상태는 `bar_tend/src/lib/session/dialogue-session.ts`의 `DialogueSessionState` 한 객체가 소유한다.
+
+| 영역 | 필드 | 의미 |
+|---|---|---|
+| 진행 | `phase`, `mode` | 세션 단계와 conversation/recommendation 모드 |
+| 대화 | `dialogue.turnCount`, `dialogue.recommendationPrompted` | 일반 대화 진행과 추천 권유 여부 |
+| 웰컴 | `welcomeDrink.served`, `welcomeDrink.resolved` | 제공 여부와 피드백/건너뛰기 해결 여부 |
+| 주문 | `order.alcoholStarTotal` | XYZ 한계 판단용 누적 도수 별점 |
+| 종료 | `farewell.entryKind`, `farewell.turnCount` | 종료 진입 종류와 배웅 턴 수 |
+| 안전 | `safetyLocked` | safety-alert 이후 모든 대화·추천·주문·웰컴·farewell 흐름을 잠그는 Hard Stop |
+
+`welcomeDrink`는 별도 session phase나 독립 FSM이 아니다. 피드백 대기는 `served && !resolved`에서 파생하며, 피드백 응답·건너뛰기·다른 입력 진행 시 `resolved=true`가 된다.
+
 ## 자유입력 처리 원칙
 
 사용자는 자유롭게 입력할 수 있다. 그러나 시스템은 무한 잡담 상태에 진입하지 않는다.
@@ -58,6 +73,8 @@
 
 1. 사용자 입력에 대한 짧은 반응
 2. 추천 또는 칵테일 관련 대화로 복귀
+
+단, `safety-alert`는 이 원칙의 예외다. 안전 안내 이후 일반 대화나 추천으로 복귀하지 않는다.
 
 예시:
 
@@ -141,8 +158,31 @@ XYZ는 오늘의 마지막 드링크이며, 동시에 추가 주문 종료 선�
 - 누적 도수 별점 10 도달
 - 일정 체류 시간 경과
 - 추천 완료 후 일정 시간 경과
+- 웰컴드링크가 제공되지 않은 채 farewell 진입
 
 구체 수치는 추후 조정 가능하다.
+
+### Farewell 진입 결정
+
+| 조건 | 종료 진입 |
+|---|---|
+| 웰컴드링크 제공됨 + 누적 도수 한계 | 일반 알코올 XYZ |
+| 웰컴드링크 미제공 | Welcome-Farewell XYZ. 첫 잔과 마지막 잔을 겸함 |
+
+미성년자 응대와 무알코올 대체 주문은 실제 주류 판매 서비스 정책에 해당하므로 Phase 3 설계 범위에서 제외한다. 전용 intent, 추천 제약, 응답 템플릿, 대체 farewell을 두지 않는다.
+
+## Safety Hard Stop
+
+`self-harm`, `suicide`, `immediate violence`, 즉각적인 생명·신체 위험이 `safety-alert`로 감지되면 일반 intent 처리보다 먼저 다음 작업을 수행한다.
+
+1. 진행 중인 recommendation FSM과 예약 작업을 중단한다.
+2. order/action과 제조 흐름을 중단한다.
+3. `welcomeDrink`를 해결 상태로 닫고 이벤트를 중단한다.
+4. 진행 중이거나 예정된 XYZ/farewell 이벤트를 중단한다.
+5. 카루아식 후속 대사 없이 짧고 직접적인 안전 안내만 출력한다.
+6. `DialogueSessionState.safetyLocked=true`, `phase='safetyLocked'`로 전환한다.
+
+잠금 이후 일반 입력은 처리하지 않는다. XYZ, Welcome-Farewell XYZ, 일반 farewell도 실행하지 않으며 세션은 종료된 것으로 간주한다.
 
 ### XYZ 발동 시
 

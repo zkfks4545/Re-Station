@@ -26,13 +26,14 @@ interface DialogueTurnOptions {
 }
 
 export const SAFETY_REDIRECT_REPLY =
-  '지금은 안전이 먼저예요. 지금 다칠 위험이 있거나 혼자 있기 어렵다면 즉시 119나 112, 또는 자살예방상담전화 1393에 연락해 주세요.\n가까운 사람에게도 바로 연락해 주세요.'
+  '죄송해요. 이 상황에서는 더 이상 주문이나 대화를 이어갈 수 없습니다.\n오늘은 여기까지 하겠습니다.'
 
 const ROUTE_TO_INTENT: Record<string, DialogueIntent> = {
   safety: 'safety-alert',
   exit: 'exit-intent',
   'recommendation-cancel': 'recommendation-cancel',
   'random-recommendation': 'random-request',
+  'lore-based-order': 'cocktail-order',
   'explicit-cocktail': 'cocktail-order',
   'unknown-cocktail-query': 'cocktail-order',
   'story-query': 'story-query',
@@ -45,6 +46,7 @@ const ROUTE_TO_ACTION: Record<string, DialogueAction> = {
   exit: 'exit',
   'recommendation-cancel': 'reset',
   'random-recommendation': 'recommend',
+  'lore-based-order': 'show-info',
   'explicit-cocktail': 'show-info',
   'unknown-cocktail-query': 'queue-for-review',
   'story-query': 'show-info',
@@ -67,6 +69,7 @@ const DEFAULT_REPLY_BY_ACTION: Record<DialogueAction, string> = {
 function routeToRouteTag(route: InputRoute): RecommendationRouteTag {
   const map: Record<string, RecommendationRouteTag> = {
     'explicit-cocktail': 'direct-name',
+    'lore-based-order': 'direct-name',
     'unknown-cocktail-query': 'direct-name',
     'random-recommendation': 'random',
     recommendation: 'taste',
@@ -77,6 +80,7 @@ function routeToRouteTag(route: InputRoute): RecommendationRouteTag {
 function routeToDialogueRoute(route: InputRoute): RecommendationRoute {
   const map: Record<string, RecommendationRoute> = {
     'explicit-cocktail': 'directCocktailOrder',
+    'lore-based-order': 'anecdoteOrPersonOrder',
     'unknown-cocktail-query': 'directCocktailOrder',
     'random-recommendation': 'randomPick',
     recommendation: 'recommendationInference',
@@ -100,9 +104,7 @@ function inferEntities(input: string): ExtractedEntities {
   const foundBase = baseSpirits.find((s) => lower.includes(s))
   if (foundBase) entities.baseSpirit = foundBase
 
-  if (/무알콜|논알콜|알콜\s*빼|술\s*없이|non.*alcoholic/i.test(lower)) {
-    entities.alcoholPreference = 'non-alcoholic'
-  } else if (/도수\s*높|강한|쎈|high|strong/i.test(lower)) {
+  if (/도수\s*높|강한|쎈|high|strong/i.test(lower)) {
     entities.alcoholPreference = 'high'
   } else if (/약한|순한|도수\s*낮|low|light/i.test(lower)) {
     entities.alcoholPreference = 'low'

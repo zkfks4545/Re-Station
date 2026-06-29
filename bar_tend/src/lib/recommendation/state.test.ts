@@ -24,15 +24,6 @@ describe('recommendation state', () => {
     expect(state.alcoholPreference).toBe('low')
   })
 
-  it('does not silently replace a non-alcoholic request with alcoholic data', () => {
-    const state = applyRecommendationSignals(
-      createRecommendationState(),
-      extractRecommendationSignals('무알코올로 추천해줘'),
-    )
-
-    expect(filterCocktailsByRecommendationState(getAllCocktailData(), state)).toEqual([])
-  })
-
   it('filters excluded ingredients and returns evidence-based reasons', () => {
     const [mojito] = getAllCocktailData().filter((cocktail) => cocktail.name === '모히토')
     const state = applyRecommendationSignals(createRecommendationState(), [

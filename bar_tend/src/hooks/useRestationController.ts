@@ -1,12 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { getCocktailResponse } from '@/lib/bartender/engine.js'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { detectSafetyConcern, getCocktailResponseFromClassified } from '@/lib/bartender/engine.js'
+import { IntentClassifier, type DialogueContext } from '@/lib/bartender/intent-classifier.js'
 import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
-import { getCocktailById } from '@/lib/cocktails/database.js'
-import { routeUserInput } from '@/lib/dialogue/input-router.js'
-import type { RouteResult } from '@/lib/dialogue/input-router.js'
+import { cocktails, getCocktailById } from '@/lib/cocktails/database.js'
+import { resolveDialogueAction } from '@/lib/dialogue/action-resolver.js'
+import { SHAKE_REFERENCE } from '@/lib/dialogue/pattern-utils.js'
+import { assembleResponse } from '@/lib/dialogue/response-pipeline.js'
+import {
+  createConversationContext,
+  getDiscussedCocktailIds,
+  getLoreFollowupCocktailId,
+  getOrderCandidateCocktailId,
+  getStoryCocktailId,
+  updateConversationContext,
+  type ConversationContextEvent,
+} from '@/lib/dialogue/conversation-context.js'
 import { formatStoryQueryReply } from '@/lib/dialogue/story-query.js'
-import { buildDialogueTurn } from '@/lib/dialogue/turn-builder.js'
+import { buildDialogueTurn, SAFETY_REDIRECT_REPLY } from '@/lib/dialogue/turn-builder.js'
 import {
   formatWelcomeDrinkFeedbackReply,
   formatWelcomeDrinkReply,
@@ -15,6 +26,14 @@ import {
   WELCOME_DRINK_FEEDBACK_QUESTION,
 } from '@/lib/recommendation/welcome-drink.js'
 import { formatExplicitCocktailReply } from '@/lib/recommendation/response.js'
+import {
+  createDialogueSessionState,
+  decideFarewellEntry,
+  dialogueSessionReducer,
+  isWelcomeDrinkFeedbackPending,
+  type DialogueSessionMode,
+  type DialogueSessionState,
+} from '@/lib/session/dialogue-session.js'
 import {
   isRecommendationBlockedInPhase,
   isOrderingClosedPhase,
@@ -28,6 +47,8 @@ import {
   formatFarewellBlockReply,
   formatFarewellConversationReply,
   formatReturnHomeReply,
+  formatStandardFarewellEntryReply,
+  formatWelcomeFarewellXyzReply,
   formatWelcomeXyzClarificationReply,
   formatXyzReply,
   isEjectionConcern,
@@ -42,11 +63,10 @@ import { useRecommendationSession } from './useRecommendationSession.js'
 
 type InteractionStatus = 'idle' | 'processing' | 'typing' | 'preparing' | 'exiting'
 type ServedCocktailMode = 'recommendation' | 'codex'
-export type ActionSessionMode = 'idle' | 'conversation' | 'recommendation'
+export type ActionSessionMode = DialogueSessionMode
 type QueuedInteraction =
   | { type: 'send'; text: string }
   | { type: 'welcome-drink' }
-  | { type: 'start-conversation' }
   | { type: 'start-recommendation' }
   | { type: 'order-cocktail'; cocktail: CocktailData }
   | { type: 're-recommend' }
@@ -58,6 +78,7 @@ const TYPING_FALLBACK_BUFFER_MS = 1200
 const TYPING_FALLBACK_MAX_TOKEN_MS = 180
 const CONVERSATION_RECOMMENDATION_PROMPT_TURN = 12
 const SIESTA_EVENTS_ENABLED = false
+const intentClassifier = new IntentClassifier(cocktails)
 
 function estimateTypingFallbackDelay(text: string): number {
   return Array.from(text).length * TYPING_FALLBACK_MAX_TOKEN_MS + TYPING_FALLBACK_BUFFER_MS
@@ -73,12 +94,11 @@ export function useRestationController() {
   const [lastServedCocktail, setLastServedCocktail] = useState<CocktailData | null>(null)
   const [servedCocktailMode, setServedCocktailMode] = useState<ServedCocktailMode>('recommendation')
   const [isPreparingCocktail, setIsPreparingCocktail] = useState(false)
-  const [welcomeDrinkUsed, setWelcomeDrinkUsed] = useState(false)
-  const [welcomeDrinkFeedbackPending, setWelcomeDrinkFeedbackPending] = useState(false)
-  const [actionSessionMode, setActionSessionMode] = useState<ActionSessionMode>('idle')
-  const [sessionPhase, setSessionPhase] = useState<SessionPhase>('entry')
-  const [alcoholStarTotal, setAlcoholStarTotal] = useState(0)
-  const [farewellTurnCount, setFarewellTurnCount] = useState(0)
+  const [dialogueSession, dispatchDialogueSession] = useReducer(
+    dialogueSessionReducer,
+    undefined,
+    () => createDialogueSessionState(),
+  )
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
   const timerRegistry = useRef(createTimerRegistry())
@@ -86,11 +106,17 @@ export function useRestationController() {
   const siestaEventCountRef = useRef(0)
   const siestaCooldownRef = useRef(0)
   const siestaRecentKeysRef = useRef(new Set<string>())
-  const conversationTurnCountRef = useRef(0)
-  const conversationRecommendationPromptedRef = useRef(false)
   const queuedInteractionsRef = useRef<QueuedInteraction[]>([])
   const queuedInteractionScheduledRef = useRef(false)
   const typingSequenceRef = useRef(0)
+  const conversationContextRef = useRef(createConversationContext())
+
+  const actionSessionMode = dialogueSession.mode
+  const sessionPhase = dialogueSession.phase
+  const alcoholStarTotal = dialogueSession.order.alcoholStarTotal
+  const farewellTurnCount = dialogueSession.farewell.turnCount
+  const welcomeDrinkServed = dialogueSession.welcomeDrink.served
+  const welcomeDrinkFeedbackPending = isWelcomeDrinkFeedbackPending(dialogueSession)
 
   const {
     preference,
@@ -104,8 +130,14 @@ export function useRestationController() {
     clearExcludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,
+    resolveExplicitCocktail,
+    resolveLoreBasedCocktail,
     resolveRecommendation,
   } = useRecommendationSession()
+
+  const recordConversationContext = useCallback((event: ConversationContextEvent) => {
+    conversationContextRef.current = updateConversationContext(conversationContextRef.current, event)
+  }, [])
 
   const clearPendingWork = useCallback(() => {
     timerRegistry.current.clearAll()
@@ -136,13 +168,9 @@ export function useRestationController() {
   }, [])
 
   const resetSessionFlow = useCallback((phase: SessionPhase = 'conversation') => {
-    setSessionPhase(phase)
-    setAlcoholStarTotal(0)
-    setFarewellTurnCount(0)
-    setActionSessionMode('idle')
-    conversationTurnCountRef.current = 0
-    conversationRecommendationPromptedRef.current = false
-  }, [])
+    dispatchDialogueSession({ type: 'reset', phase })
+    recordConversationContext({ type: 'reset' })
+  }, [recordConversationContext])
 
   useEffect(() => () => timerRegistry.current.clearAll(), [])
 
@@ -232,29 +260,52 @@ export function useRestationController() {
     [onTypingComplete, runCocktailPreparation],
   )
 
-  const serveXyzAndEnterFarewell = useCallback(() => {
+  const serveXyzAndEnterFarewell = useCallback((entryKind: 'alcohol-xyz' | 'welcome-farewell-xyz') => {
     const xyzCocktail = getCocktailById(XYZ_COCKTAIL_ID)
     if (!xyzCocktail) {
-      setSessionPhase('farewell')
+      dispatchDialogueSession({ type: 'enter-farewell', entryKind: 'standard' })
       bartenderReply('마지막 잔 데이터를 찾지 못했어요. 오늘 주문은 여기까지 받을게요.', 'sympathy')
       return
     }
 
-    setSessionPhase('xyz')
-    setFarewellTurnCount(0)
+    dispatchDialogueSession({ type: 'enter-farewell', entryKind })
     setScreenShake(true)
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(xyzCocktail.id)
     setUnlockedIds(ids)
+    recordConversationContext({ type: 'served', cocktailId: xyzCocktail.id })
     bartenderReply(
-      formatXyzReply(xyzCocktail, { welcomeDrinkUsed }),
+      entryKind === 'welcome-farewell-xyz'
+        ? formatWelcomeFarewellXyzReply(xyzCocktail)
+        : formatXyzReply(xyzCocktail),
       'smirk',
       xyzCocktail,
       'idle',
       [],
-      () => setSessionPhase('farewell'),
+      () => dispatchDialogueSession({ type: 'set-phase', phase: 'farewell' }),
     )
-  }, [bartenderReply, setUnlockedIds, welcomeDrinkUsed])
+  }, [bartenderReply, recordConversationContext, setUnlockedIds])
+
+  const enterStandardFarewell = useCallback(() => {
+    dispatchDialogueSession({ type: 'enter-farewell', entryKind: 'standard' })
+    resetRecommendation()
+    setServedCocktail(null)
+    bartenderReply(formatStandardFarewellEntryReply(), 'sympathy')
+  }, [bartenderReply, resetRecommendation])
+
+  const beginFarewell = useCallback((
+    state: DialogueSessionState,
+    trigger: 'exit' | 'alcohol-limit',
+  ) => {
+    resetRecommendation()
+    const entryKind = decideFarewellEntry(state, trigger)
+    if (!entryKind) return
+    if (entryKind === 'alcohol-xyz' || entryKind === 'welcome-farewell-xyz') {
+      serveXyzAndEnterFarewell(entryKind)
+      return
+    }
+    enterStandardFarewell()
+  }, [enterStandardFarewell, resetRecommendation, serveXyzAndEnterFarewell])
 
   const moveOutsideAfterDelay = useCallback((delayMs: number) => {
     timerRegistry.current.schedule(() => {
@@ -267,8 +318,6 @@ export function useRestationController() {
       setServedCocktail(null)
       setLastServedCocktail(null)
       setServedCocktailMode('recommendation')
-      setWelcomeDrinkUsed(false)
-      setWelcomeDrinkFeedbackPending(false)
       clearExcludedCocktailIds()
       resetRecommendation()
       resetSessionFlow('entry')
@@ -284,8 +333,6 @@ export function useRestationController() {
     setServedCocktail(null)
     setLastServedCocktail(null)
     setServedCocktailMode('recommendation')
-    setWelcomeDrinkUsed(false)
-    setWelcomeDrinkFeedbackPending(false)
     setInteractionStatus('typing')
     setExpression('talk')
     typingCompleteFnRef.current = () => {
@@ -295,7 +342,7 @@ export function useRestationController() {
     setMessages([
       {
         role: 'bartender',
-        text: '어서 오세요. Re:Station입니다.\n오늘은 이야기부터 할까요, 아니면 한 잔을 먼저 맞춰볼까요?',
+        text: '어서 오세요, Re:Station입니다.\n자유롭게 이야기하다가 한 잔이 필요하면 언제든 말씀해 주세요.',
         speaker: 'karua',
       },
     ])
@@ -305,11 +352,31 @@ export function useRestationController() {
     clearPendingWork()
     resetSiestaEventSession()
     setErrorMessage(null)
-    setInteractionStatus('exiting')
-    setSessionPhase('returnHome')
-    bartenderReply('들러주셔서 감사합니다. 조심히 가세요.', 'idle', null, 'exiting')
-    moveOutsideAfterDelay(2000)
-  }, [bartenderReply, clearPendingWork, moveOutsideAfterDelay, resetSiestaEventSession])
+    if (dialogueSession.safetyLocked) {
+      setInteractionStatus('exiting')
+      moveOutsideAfterDelay(0)
+      return
+    }
+    if (
+      dialogueSession.phase === 'xyz'
+      || dialogueSession.phase === 'farewell'
+      || dialogueSession.phase === 'returnHome'
+    ) {
+      setInteractionStatus('exiting')
+      dispatchDialogueSession({ type: 'set-phase', phase: 'returnHome' })
+      bartenderReply(formatReturnHomeReply(), 'idle', null, 'exiting')
+      moveOutsideAfterDelay(2000)
+      return
+    }
+    beginFarewell(dialogueSession, 'exit')
+  }, [
+    bartenderReply,
+    beginFarewell,
+    clearPendingWork,
+    dialogueSession,
+    moveOutsideAfterDelay,
+    resetSiestaEventSession,
+  ])
 
   const handleResetNight = useCallback(() => {
     clearPendingWork()
@@ -323,8 +390,6 @@ export function useRestationController() {
     setLastServedCocktail(null)
     setServedCocktailMode('recommendation')
     setIsPreparingCocktail(false)
-    setWelcomeDrinkUsed(false)
-    setWelcomeDrinkFeedbackPending(false)
     clearExcludedCocktailIds()
     resetRecommendation()
     bartenderReply(
@@ -344,7 +409,7 @@ export function useRestationController() {
   const performCancelRecommendation = useCallback(() => {
     if (!activeQuestion && !welcomeDrinkFeedbackPending) return false
     if (welcomeDrinkFeedbackPending) {
-      setWelcomeDrinkFeedbackPending(false)
+      dispatchDialogueSession({ type: 'welcome-resolved' })
       setMessages((prev) => [...prev, { role: 'user', text: '웰컴 드링크 피드백 건너뛰기' }])
       bartenderReply(
         '괜찮아요. 첫 잔은 편하게 두고, 다음 잔이 필요하시면 그때 다시 맞춰볼게요.',
@@ -353,7 +418,7 @@ export function useRestationController() {
       return true
     }
     resetRecommendation()
-    setActionSessionMode('conversation')
+    dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
     setMessages((prev) => [...prev, { role: 'user', text: '추천 질문 취소' }])
     bartenderReply('추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.', 'idle')
     return true
@@ -377,35 +442,36 @@ export function useRestationController() {
     if (
       activeQuestion ||
       servedCocktail ||
-      welcomeDrinkUsed ||
+      welcomeDrinkServed ||
       welcomeDrinkFeedbackPending ||
       isOrderingClosedPhase(sessionPhase)
     ) return false
 
     const cocktail = selectWelcomeDrink()
     setErrorMessage(null)
-    setWelcomeDrinkUsed(true)
-    setWelcomeDrinkFeedbackPending(true)
-    setActionSessionMode('conversation')
-    setSessionPhase('conversation')
+    dispatchDialogueSession({ type: 'welcome-served' })
+    dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
+    dispatchDialogueSession({ type: 'set-phase', phase: 'conversation' })
     resetRecommendation()
     setMessages((prev) => [...prev, { role: 'user', text: '웰컴 드링크' }])
     setScreenShake(true)
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
+    recordConversationContext({ type: 'served', cocktailId: cocktail.id })
     bartenderReply(formatWelcomeDrinkReply(cocktail, { alcoholStarTotal }), 'smirk', cocktail)
     return true
   }, [
     activeQuestion,
     alcoholStarTotal,
     bartenderReply,
+    recordConversationContext,
     resetRecommendation,
     servedCocktail,
     sessionPhase,
     setUnlockedIds,
     welcomeDrinkFeedbackPending,
-    welcomeDrinkUsed,
+    welcomeDrinkServed,
   ])
 
   const handleWelcomeDrink = useCallback(() => {
@@ -430,32 +496,54 @@ export function useRestationController() {
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
       const recommendationRoutesEnabled =
         effectiveActionSessionMode === 'recommendation' ||
-        activeQuestion !== null ||
         welcomeDrinkFeedbackPending
-      const routeResult: RouteResult = routeUserInput(text, {
-        recommendationActive: activeQuestion !== null,
+      const conversationContext = conversationContextRef.current
+      const discussedCocktailIds = getDiscussedCocktailIds(conversationContext)
+      const dialogueContext: DialogueContext = {
+        lastServedCocktail,
+        mentionedCocktails: discussedCocktailIds
+          .map((id) => getCocktailById(id))
+          .filter((cocktail): cocktail is CocktailData => cocktail !== undefined),
+        sessionPhase,
+        activeRecommendationSession: effectiveActionSessionMode === 'recommendation' && activeQuestion !== null,
         allowRecommendationRoutes: recommendationRoutesEnabled,
-      })
+        lastDiscussedCocktailId: getStoryCocktailId(conversationContext) ?? undefined,
+        orderCandidateCocktailId: getOrderCandidateCocktailId(conversationContext) ?? undefined,
+        welcomeDrinkUsed: welcomeDrinkServed,
+        alcoholStarsTotal: alcoholStarTotal,
+        totalUserMessages: userMessageCountRef.current,
+        conversationTurnCount: dialogueSession.dialogue.turnCount,
+      }
+      const classifiedIntent = intentClassifier.classify(text, dialogueContext)
+      const routeResult = classifiedIntent.route
+      const dialogueAction = resolveDialogueAction(classifiedIntent, conversationContext)
+      if (dialogueAction.type === 'loreBasedOrder') {
+        recordConversationContext({ type: 'order-candidate', cocktailId: dialogueAction.cocktailId })
+      }
+      if (dialogueAction.type === 'discuss') {
+        recordConversationContext({ type: 'discussed', cocktailId: dialogueAction.cocktailId })
+      }
       const isConversationFreeTurn = effectiveActionSessionMode === 'conversation' && routeResult.route === 'general'
       let shouldInviteRecommendationFromConversation = false
       if (isConversationFreeTurn) {
-        conversationTurnCountRef.current += 1
+        const nextConversationTurnCount = dialogueSession.dialogue.turnCount + 1
         shouldInviteRecommendationFromConversation =
-          conversationTurnCountRef.current >= CONVERSATION_RECOMMENDATION_PROMPT_TURN &&
-          !conversationRecommendationPromptedRef.current
-        if (shouldInviteRecommendationFromConversation) {
-          conversationRecommendationPromptedRef.current = true
-        }
+          nextConversationTurnCount >= CONVERSATION_RECOMMENDATION_PROMPT_TURN &&
+          !dialogueSession.dialogue.recommendationPrompted
+        dispatchDialogueSession({
+          type: 'record-conversation-turn',
+          recommendationPrompted: shouldInviteRecommendationFromConversation,
+        })
       }
 
       if (welcomeDrinkFeedbackPending && shouldHandleWelcomeDrinkFeedback(routeResult.route, text)) {
-        setWelcomeDrinkFeedbackPending(false)
+        dispatchDialogueSession({ type: 'welcome-resolved' })
         const feedback = formatWelcomeDrinkFeedbackReply(text)
         bartenderReply(feedback.text, feedback.expression)
         return
       }
       if (welcomeDrinkFeedbackPending) {
-        setWelcomeDrinkFeedbackPending(false)
+        dispatchDialogueSession({ type: 'welcome-resolved' })
       }
 
       const handleInvalidTurn = () => {
@@ -466,22 +554,25 @@ export function useRestationController() {
 
       // --- 안전 처리(Safety route) ---
       if (routeResult.route === 'safety') {
-        const turn = buildDialogueTurn(text, 'safety', '', 'sympathy', null, {
-          confidence: routeResult.confidence,
-        })
-        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
+        clearPendingWork()
         resetRecommendation()
-        bartenderReply(turn.reply, turn.expression)
+        dispatchDialogueSession({ type: 'lock-safety' })
+        setServedCocktail(null)
+        setSidebarOpen(false)
+        bartenderReply(SAFETY_REDIRECT_REPLY, 'sympathy', null, 'exiting')
         return
       }
 
       // --- 세션 마감 처리(Farewell phase) ---
       if (sessionPhase === 'farewell') {
         const nextCount = farewellTurnCount + 1
-        setFarewellTurnCount(nextCount)
-        if (shouldReturnHomeAfterFarewellTurn({ phase: sessionPhase, farewellTurnCount: nextCount })) {
+        dispatchDialogueSession({ type: 'increment-farewell-turn' })
+        if (
+          routeResult.route === 'exit'
+          || shouldReturnHomeAfterFarewellTurn({ phase: sessionPhase, farewellTurnCount: nextCount })
+        ) {
           resetRecommendation()
-          setSessionPhase('returnHome')
+          dispatchDialogueSession({ type: 'set-phase', phase: 'returnHome' })
           setServedCocktail(null)
           bartenderReply(formatReturnHomeReply(), 'idle', null, 'exiting')
           moveOutsideAfterDelay(1800)
@@ -489,7 +580,9 @@ export function useRestationController() {
         }
         if (routeResult.route === 'general') {
           resetRecommendation()
-          const reply = formatFarewellConversationReply(text)
+          const hasXyz = dialogueSession.farewell.entryKind === 'alcohol-xyz'
+            || dialogueSession.farewell.entryKind === 'welcome-farewell-xyz'
+          const reply = formatFarewellConversationReply(text, { hasXyz })
           bartenderReply(reply.text, reply.expression)
           return
         }
@@ -506,7 +599,7 @@ export function useRestationController() {
       if (routeResult.route === 'exit') {
         const turn = buildDialogueTurn(text, 'exit', '', 'idle', null, { confidence: routeResult.confidence })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
-        handleExit()
+        beginFarewell(dialogueSession, 'exit')
         return
       }
 
@@ -515,7 +608,7 @@ export function useRestationController() {
         const turn = buildDialogueTurn(text, 'recommendation-cancel', '', 'idle', null, { confidence: routeResult.confidence })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         resetRecommendation()
-        setActionSessionMode('conversation')
+        dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
         bartenderReply(turn.reply, turn.expression)
         return
       }
@@ -523,23 +616,86 @@ export function useRestationController() {
       // --- 주문 차단 단계 처리(Blocked in ordering-closed phase) ---
       if (isRecommendationBlockedInPhase(sessionPhase, routeResult.route)) {
         resetRecommendation()
-        setActionSessionMode('conversation')
+        dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
         bartenderReply(formatFarewellBlockReply(), 'smirk')
         return
       }
 
       // --- 이야기/배경 설명 처리(Story and lore query) ---
       if (routeResult.route === 'story-query') {
-        const storyCocktail = routeResult.matchedCocktailId
-          ? getCocktailById(routeResult.matchedCocktailId) ?? null
+        const storyCocktailId = dialogueAction.type === 'continueStory'
+          ? dialogueAction.cocktailId
+          : routeResult.matchedCocktailId ?? null
+        const storyCocktail = storyCocktailId
+          ? getCocktailById(storyCocktailId) ?? null
           : servedCocktail ?? lastServedCocktail
+        if (storyCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: storyCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: storyCocktail.id })
+        }
         const storyReply = formatStoryQueryReply(storyCocktail)
-        const turn = buildDialogueTurn(text, 'story-query', storyReply.text, storyReply.expression, null, {
+        const storyResponse = assembleResponse({
+          text: storyReply.text,
+          preferredExpression: storyReply.expression,
+        })
+        const turn = buildDialogueTurn(text, 'story-query', storyResponse.response, storyResponse.expression, null, {
           confidence: routeResult.confidence,
           entities: storyCocktail ? { cocktailName: storyCocktail.name } : {},
         })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
-        setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
+        dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
+        bartenderReply(turn.reply, turn.expression)
+        return
+      }
+
+      // --- 칵테일 유래/이름 배경 질문 처리(Lore query, interrupt-safe) ---
+      if (routeResult.route === 'lore-query') {
+        const loreCocktailId = dialogueAction.type === 'continueStory'
+          ? dialogueAction.cocktailId
+          : routeResult.matchedCocktailId ?? null
+        const loreCocktail = loreCocktailId ? getCocktailById(loreCocktailId) ?? null : null
+        if (loreCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: loreCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: loreCocktail.id })
+        }
+        const loreResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, loreCocktail)
+        const turn = buildDialogueTurn(text, 'lore-query', loreResponse.response, loreResponse.expression, null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
+        dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
+        bartenderReply(turn.reply, turn.expression)
+        return
+      }
+
+      // --- 칵테일 정보/레시피/재료 질문 처리(Cocktail info query, interrupt-safe) ---
+      if (routeResult.route === 'cocktail-info-query') {
+        const infoCocktailId = dialogueAction.type === 'continueStory'
+          ? dialogueAction.cocktailId
+          : routeResult.matchedCocktailId ?? null
+        const infoCocktail = infoCocktailId ? getCocktailById(infoCocktailId) ?? null : null
+        if (infoCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: infoCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: infoCocktail.id })
+        }
+        const infoResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, infoCocktail)
+        const turn = buildDialogueTurn(text, 'cocktail-info-query', infoResponse.response, infoResponse.expression, null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
+        dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
+        bartenderReply(turn.reply, turn.expression)
+        return
+      }
+
+      // --- 캐릭터 질문 처리(Character query, interrupt-safe) ---
+      if (routeResult.route === 'character-query') {
+        const charResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent)
+        const turn = buildDialogueTurn(text, 'character-query', charResponse.response, charResponse.expression, null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
+        dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
         bartenderReply(turn.reply, turn.expression)
         return
       }
@@ -547,13 +703,27 @@ export function useRestationController() {
       // --- 미등록 칵테일 처리(Unknown cocktail query) ---
       if (routeResult.route === 'unknown-cocktail-query' && routeResult.unknownCocktailName) {
         const unknownReply = `「${routeResult.unknownCocktailName}」이라는 메뉴는 아직 등록하지 않았어요.\n비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.`
-        const turn = buildDialogueTurn(text, 'unknown-cocktail-query', unknownReply, 'thinking', null, {
+        const unknownResponse = assembleResponse({ text: unknownReply, tone: 'thinking' })
+        const turn = buildDialogueTurn(text, 'unknown-cocktail-query', unknownResponse.response, unknownResponse.expression, null, {
           confidence: routeResult.confidence,
           entities: { cocktailName: routeResult.unknownCocktailName },
         })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         addUnknownCocktail(routeResult.unknownCocktailName, text)
-        setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
+        dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
+        bartenderReply(turn.reply, turn.expression)
+        return
+      }
+
+      // --- lore-followup 처리(Lore follow-up, interrupt-safe) ---
+      if (classifiedIntent.intent === 'lore-followup') {
+        const loreFollowupCocktailId = getLoreFollowupCocktailId(conversationContextRef.current)
+        const loreFollowupCocktail = loreFollowupCocktailId ? getCocktailById(loreFollowupCocktailId) ?? null : null
+        const loreFollowupResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, loreFollowupCocktail)
+        const turn = buildDialogueTurn(text, routeResult.route, loreFollowupResponse.response, loreFollowupResponse.expression, null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
         bartenderReply(turn.reply, turn.expression)
         return
       }
@@ -562,17 +732,36 @@ export function useRestationController() {
       setExpression('thinking')
       timerRegistry.current.schedule(() => {
         try {
-          const recommendation = routeResult.route === 'random-recommendation'
-            ? resolveRandomRecommendation()
-            : (routeResult.route === 'explicit-cocktail' || routeResult.route === 'recommendation')
-              ? resolveRecommendation(text, preference)
+          const actionCocktail = dialogueAction.type === 'order' || dialogueAction.type === 'loreBasedOrder'
+            ? getCocktailById(dialogueAction.cocktailId) ?? null
+            : null
+          const recommendation = dialogueAction.type === 'recommend'
+            ? dialogueAction.mode === 'random'
+              ? resolveRandomRecommendation()
+              : resolveRecommendation(text, preference)
+            : dialogueAction.type === 'order' || dialogueAction.type === 'loreBasedOrder'
+              ? actionCocktail
+                ? dialogueAction.type === 'loreBasedOrder'
+                  ? resolveLoreBasedCocktail(actionCocktail)
+                  : resolveExplicitCocktail(actionCocktail)
+                : null
               : null
-          const fallback = getCocktailResponse(text, nextMessages)
-          const reply = shouldInviteRecommendationFromConversation
-            ? `${fallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`
-            : fallback.response
-          const expression = shouldInviteRecommendationFromConversation ? 'smirk' : fallback.expression
-          const turn = buildDialogueTurn(text, routeResult.route, reply, expression, recommendation ?? undefined, { confidence: routeResult.confidence })
+          const fallback = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent)
+          const fallbackResponse = shouldInviteRecommendationFromConversation
+            ? assembleResponse({
+                text: `${fallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`,
+                tone: 'smirk',
+              })
+            : fallback
+          if (recommendation && classifiedIntent.intent === 'order-cocktail' && SHAKE_REFERENCE.test(text)) {
+            const shakeResponse = assembleResponse({
+              text: `${recommendation.cocktail!.name} 한 잔, 본드식으로요. 젓지 말고 흔들어서 준비할게요.`,
+              tone: 'smirk',
+            })
+            recommendation.reply = shakeResponse.response
+            recommendation.expression = shakeResponse.expression
+          }
+          const turn = buildDialogueTurn(text, routeResult.route, fallbackResponse.response, fallbackResponse.expression, recommendation ?? undefined, { confidence: routeResult.confidence })
           if (!validateDialogueTurn(turn)) throw new Error('Invalid dialogue turn')
 
           const cocktail = recommendation?.cocktail ?? null
@@ -593,28 +782,41 @@ export function useRestationController() {
           let afterCocktailRevealed: (() => void) | undefined
 
           if (cocktail) {
-            setActionSessionMode('conversation')
-            setScreenShake(true)
-            timerRegistry.current.schedule(() => setScreenShake(false), 500)
-            const ids = unlockCocktailId(cocktail.id)
-            setUnlockedIds(ids)
+            dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
+            if (dialogueAction.type === 'recommend') {
+              recordConversationContext({ type: 'recommended', cocktailId: cocktail.id })
+            }
+            recordConversationContext({ type: 'served', cocktailId: cocktail.id })
+    setScreenShake(true)
+    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+    const ids = unlockCocktailId(cocktail.id)
+    setUnlockedIds(ids)
             const nextAlcoholStarTotal = isXyzCocktail
               ? alcoholStarTotal
               : alcoholStarTotal + cocktail.taste.alcohol
-            if (!isXyzCocktail) setAlcoholStarTotal(nextAlcoholStarTotal)
+            if (!isXyzCocktail) dispatchDialogueSession({ type: 'set-alcohol-total', total: nextAlcoholStarTotal })
             if (shouldServeXyzAfterAlcoholLimit({
               current: sessionPhase,
               alcoholStarTotal: nextAlcoholStarTotal,
               isXyz: isXyzCocktail,
             })) {
-              setSessionPhase('xyz')
-              setFarewellTurnCount(0)
-              afterCocktailRevealed = serveXyzAndEnterFarewell
+              const entryKind = decideFarewellEntry(dialogueSession, 'alcohol-limit')
+              if (!entryKind) return
+              dispatchDialogueSession({
+                type: 'set-phase',
+                phase: entryKind === 'alcohol-xyz' || entryKind === 'welcome-farewell-xyz'
+                  ? 'xyz'
+                  : 'farewell',
+              })
+              afterCocktailRevealed = () => beginFarewell(dialogueSession, 'alcohol-limit')
             } else {
-              setSessionPhase(nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }))
+              dispatchDialogueSession({
+                type: 'set-phase',
+                phase: nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }),
+              })
             }
           } else {
-            setSessionPhase(nextPhaseAfterRoute(routeResult.route, sessionPhase))
+            dispatchDialogueSession({ type: 'set-phase', phase: nextPhaseAfterRoute(routeResult.route, sessionPhase) })
           }
 
           if (siestaResult) {
@@ -641,8 +843,10 @@ export function useRestationController() {
       activeQuestion,
       alcoholStarTotal,
       bartenderReply,
+      beginFarewell,
+      clearPendingWork,
+      dialogueSession,
       farewellTurnCount,
-      handleExit,
       ingestUserMessage,
       lastServedCocktail,
       messages,
@@ -650,50 +854,31 @@ export function useRestationController() {
       preference,
       resetRecommendation,
       resolveRandomRecommendation,
+      resolveExplicitCocktail,
+      resolveLoreBasedCocktail,
       resolveRecommendation,
+      recordConversationContext,
       servedCocktail,
       sessionPhase,
-      serveXyzAndEnterFarewell,
       setUnlockedIds,
+      welcomeDrinkServed,
       welcomeDrinkFeedbackPending,
     ],
   )
 
   const handleSend = useCallback((text: string) => {
+    if (dialogueSession.safetyLocked) return
+    if (detectSafetyConcern(text)) {
+      performSend(text)
+      return
+    }
     if (interactionStatus === 'exiting') return
     if (interactionStatus !== 'idle') {
       enqueueInteraction({ type: 'send', text })
       return
     }
     performSend(text)
-  }, [enqueueInteraction, interactionStatus, performSend])
-
-  const performStartConversation = useCallback(() => {
-    if (actionSessionMode === 'conversation') return true
-    if (isOrderingClosedPhase(sessionPhase)) {
-      const reply = formatFarewellConversationReply('조금 더 이야기할게요')
-      bartenderReply(reply.text, reply.expression)
-      return true
-    }
-    setActionSessionMode('conversation')
-    conversationTurnCountRef.current = 0
-    conversationRecommendationPromptedRef.current = false
-    setMessages((prev) => [...prev, { role: 'user', text: '대화하기' }])
-    bartenderReply(
-      '좋아요. 잔은 잠깐 내려두고요.\n오늘 들어오면서 제일 먼저 눈에 걸린 것부터 말해보세요.',
-      'talk',
-    )
-    return true
-  }, [actionSessionMode, bartenderReply, sessionPhase])
-
-  const handleStartConversation = useCallback(() => {
-    if (interactionStatus === 'exiting') return
-    if (interactionStatus !== 'idle') {
-      enqueueInteraction({ type: 'start-conversation' })
-      return
-    }
-    performStartConversation()
-  }, [enqueueInteraction, interactionStatus, performStartConversation])
+  }, [dialogueSession.safetyLocked, enqueueInteraction, interactionStatus, performSend])
 
   const performStartRecommendation = useCallback(() => {
     if (actionSessionMode === 'recommendation' && activeQuestion) return true
@@ -702,9 +887,8 @@ export function useRestationController() {
       return true
     }
     setServedCocktail(null)
-    setActionSessionMode('recommendation')
-    conversationTurnCountRef.current = 0
-    conversationRecommendationPromptedRef.current = false
+    dispatchDialogueSession({ type: 'set-mode', mode: 'recommendation' })
+    dispatchDialogueSession({ type: 'reset-conversation-progress' })
     performSend('추천받기', 'recommendation')
     return true
   }, [actionSessionMode, activeQuestion, bartenderReply, performSend, sessionPhase])
@@ -732,11 +916,12 @@ export function useRestationController() {
     userMessageCountRef.current += 1
     setServedCocktail(null)
     setServedCocktailMode('recommendation')
-    setActionSessionMode('recommendation')
+    dispatchDialogueSession({ type: 'set-mode', mode: 'recommendation' })
     setSidebarOpen(false)
 
     const reply = formatExplicitCocktailReply(cocktail)
-    const turn = buildDialogueTurn(text, 'explicit-cocktail', reply, 'smirk', null, {
+    const response = assembleResponse({ text: reply, tone: 'confident' })
+    const turn = buildDialogueTurn(text, 'explicit-cocktail', response.response, response.expression, null, {
       confidence: 0.95,
       entities: { cocktailName: cocktail.name },
     })
@@ -751,11 +936,12 @@ export function useRestationController() {
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
+    recordConversationContext({ type: 'served', cocktailId: cocktail.id })
     const isXyzCocktail = cocktail.id === XYZ_COCKTAIL_ID
     const nextAlcoholStarTotal = isXyzCocktail
       ? alcoholStarTotal
       : alcoholStarTotal + cocktail.taste.alcohol
-    if (!isXyzCocktail) setAlcoholStarTotal(nextAlcoholStarTotal)
+    if (!isXyzCocktail) dispatchDialogueSession({ type: 'set-alcohol-total', total: nextAlcoholStarTotal })
 
     let afterCocktailRevealed: (() => void) | undefined
     if (shouldServeXyzAfterAlcoholLimit({
@@ -763,11 +949,19 @@ export function useRestationController() {
       alcoholStarTotal: nextAlcoholStarTotal,
       isXyz: isXyzCocktail,
     })) {
-      setSessionPhase('xyz')
-      setFarewellTurnCount(0)
-      afterCocktailRevealed = serveXyzAndEnterFarewell
+      const entryKind = decideFarewellEntry(dialogueSession, 'alcohol-limit')
+      dispatchDialogueSession({
+        type: 'set-phase',
+        phase: entryKind === 'alcohol-xyz' || entryKind === 'welcome-farewell-xyz'
+          ? 'xyz'
+          : 'farewell',
+      })
+      afterCocktailRevealed = () => beginFarewell(dialogueSession, 'alcohol-limit')
     } else {
-      setSessionPhase(nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }))
+      dispatchDialogueSession({
+        type: 'set-phase',
+        phase: nextPhaseAfterServedCocktail({ current: sessionPhase, isXyz: isXyzCocktail }),
+      })
     }
 
     bartenderReply(turn.reply, turn.expression, cocktail, 'idle', [], afterCocktailRevealed)
@@ -775,8 +969,10 @@ export function useRestationController() {
   }, [
     alcoholStarTotal,
     bartenderReply,
+    beginFarewell,
+    dialogueSession,
     ingestUserMessage,
-    serveXyzAndEnterFarewell,
+    recordConversationContext,
     sessionPhase,
     setUnlockedIds,
   ])
@@ -795,7 +991,8 @@ export function useRestationController() {
     setServedCocktailMode('codex')
     setServedCocktail(cocktail)
     setSidebarOpen(false)
-  }, [])
+    recordConversationContext({ type: 'discussed', cocktailId: cocktail.id })
+  }, [recordConversationContext])
 
   const performReRecommend = useCallback(() => {
     if (isOrderingClosedPhase(sessionPhase)) {
@@ -805,7 +1002,7 @@ export function useRestationController() {
     }
     setServedCocktail(null)
     setServedCocktailMode('recommendation')
-    setActionSessionMode('recommendation')
+    dispatchDialogueSession({ type: 'set-mode', mode: 'recommendation' })
     performSend('다른 걸로 추천해줘', 'recommendation')
     return true
   }, [bartenderReply, performSend, sessionPhase])
@@ -826,8 +1023,6 @@ export function useRestationController() {
         return true
       case 'welcome-drink':
         return performWelcomeDrink()
-      case 'start-conversation':
-        return performStartConversation()
       case 'start-recommendation':
         return performStartRecommendation()
       case 'order-cocktail':
@@ -842,7 +1037,6 @@ export function useRestationController() {
     performOrderCocktail,
     performReRecommend,
     performSend,
-    performStartConversation,
     performStartRecommendation,
     performWelcomeDrink,
   ])
@@ -880,7 +1074,11 @@ export function useRestationController() {
     isBartenderTyping: interactionStatus === 'typing',
     isProcessing: interactionStatus !== 'idle',
     isPreparingCocktail,
-    activeQuestion: welcomeDrinkFeedbackPending ? WELCOME_DRINK_FEEDBACK_QUESTION : activeQuestion,
+    activeQuestion: dialogueSession.safetyLocked
+      ? null
+      : welcomeDrinkFeedbackPending
+        ? WELCOME_DRINK_FEEDBACK_QUESTION
+        : activeQuestion,
     actionSessionMode,
     errorMessage,
     servedCocktail,
@@ -898,12 +1096,11 @@ export function useRestationController() {
     handleCancelRecommendation,
     handleViewCocktail,
     handleWelcomeDrink,
-    handleStartConversation,
     handleStartRecommendation,
     handleSend,
     onTypingComplete,
     welcomeDrinkAvailable:
-      !welcomeDrinkUsed &&
+      !welcomeDrinkServed &&
       !welcomeDrinkFeedbackPending &&
       activeQuestion === null &&
       servedCocktail === null &&

@@ -1,38 +1,30 @@
-import { keywordRules } from './keywords.js'
 import { generateResponse } from './conversation.js'
-import { detectSafetyConcern } from '../dialogue/input-router.js'
-import { pickDialogue } from '../dialogue/dialogue-loader.js'
+import { IntentClassifierAdapter } from './intent-classifier-adapter.js'
+import type { ClassifiedIntent } from './intent-classifier.js'
 import { SAFETY_REDIRECT_REPLY } from '../dialogue/turn-builder.js'
-import type { BartenderResponse, Message } from '../../types.js'
+import { cocktails } from '../cocktails/database.js'
+import type { BartenderResponse, CocktailData, Message } from '../../types.js'
 
 export { detectSafetyConcern } from '../dialogue/input-router.js'
 
-export function keywordAnalyze(input: string): BartenderResponse | null {
-  for (const rule of keywordRules) {
-    if (rule.pattern.test(input.toLowerCase())) {
-      if (rule.dialogueCategory) {
-        const picked = pickDialogue(rule.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      return {
-        response: rule.response,
-        expression: rule.expression,
-      }
-    }
-  }
-  return null
+export function getCocktailResponse(
+  input: string,
+  history: Message[],
+): BartenderResponse {
+  const classified = new IntentClassifierAdapter(cocktails).classifyWithFallback(input, history)
+  return getCocktailResponseFromClassified(input, history, classified)
 }
 
-export function getCocktailResponse(input: string, history: Message[]): BartenderResponse {
-  if (detectSafetyConcern(input)) {
-    return {
-      response: SAFETY_REDIRECT_REPLY,
-      expression: 'sympathy',
-    }
+export function getCocktailResponseFromClassified(
+  input: string,
+  history: Message[],
+  classified: ClassifiedIntent,
+  referencedCocktail?: CocktailData | null,
+): BartenderResponse {
+
+  if (classified.intent === 'safety-alert') {
+    return { response: SAFETY_REDIRECT_REPLY, expression: 'sympathy' }
   }
 
-  const keywordMatch = keywordAnalyze(input)
-  if (keywordMatch) return keywordMatch
-
-  return generateResponse(input, history)
+  return generateResponse(input, history, classified.intent, referencedCocktail)
 }

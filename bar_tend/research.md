@@ -17,28 +17,49 @@
 ## 2. 아키텍처 (현재)
 
 ```
-App.tsx
-  ├─ BarExterior / BartenderSprite / DialogueBox / ChatInput / CocktailCard
-  ├─ getCocktailResponse()  ← engine.ts → keywords.ts | conversation.ts
-  └─ findCocktailByKeyword() / getRandomCocktail()  ← database.ts
+useRestationController (hooks/useRestationController.ts)
+  ├─ IntentClassifier.classify()  ← intent-classifier.ts
+  │    ├─ routeUserInput()        ← input-router.ts (route 결정)
+  │    ├─ detectConversationIntents()  ← intent-classifier.ts (intent 보정)
+  │    └─ evaluateKeywordRules()  ← keywords.ts
+  ├─ resolveDialogueAction()      ← action-resolver.ts
+  ├─ getCocktailResponseFromClassified()  ← engine.ts
+  │    └─ generateResponse()      ← conversation.ts
+  │         ├─ INTENT_RESPONSE_TEMPLATES    (19개 단순 intent)
+  │         ├─ COCKTAIL_FALLBACK_TEMPLATES  (3개 칵테일 intent)
+  │         ├─ MOOD/TASTE/RUDE 서브템플릿
+  │         ├─ STORY_FALLBACK
+  │         └─ switch: story-query / mood-talk / taste-query / rude-talk / lore-followup
+  └─ buildDialogueTurn()          ← turn-builder.ts (응답 + 추천 결과 병합)
+
+conversation-context.ts
+  ├─ ConversationContextState     (lastDiscussed / lastRecommended / lastServed /
+  │                                 lastOrderCandidate / lastStoryTargetCocktailId)
+  ├─ getLoreFollowupCocktailId()  (fallback chain)
+  └─ getStoryCocktailId() / getOrderCandidateCocktailId()
 
 database.ts
-  ├─ cocktails[]        — 28종 수작업(한국어 스토리·vibe·popCulture) + API 보강 필드
-  └─ 런타임 병합        — api-cocktails.ts 426종 중 로컬과 이름 중복 제외 후 push
+  ├─ cocktails[]         — cocktail-db.json 기반 40종(CocktailData) + talkingPoints/lore
+  └─ findCocktailByName() / getCocktailById()
 
-api-cocktails.ts        — TheCocktailDB 전체 목록 정적 번들 (자동 생성, ~9k lines)
-api.ts                  — 라이브 fetch 유틸 (현재 App 경로에서 미사용)
-openai.ts / ollama.ts   — LLM 연동 준비만 됨, App 미연결
+session-flow.ts          — SessionPhase FSM (entry → conversation → recommending → aftertalk → xyz → farewell → returnHome)
 ```
 
-### 대화 흐름 (`App.tsx`)
+### 대화 흐름 (요약)
 
-1. 사용자 메시지 → 퇴장 키워드면 `handleExit`
-2. `getCocktailResponse(text, messages)` — 키워드 규칙 우선, 없으면 `conversation.ts` 템플릿
-3. `findCocktailByKeyword(text)` → 없고 추천 의도면 `getRandomCocktail()`
-4. 칵테일 있으면 답변에 `name`, `vibe`, `story` 붙여서 표시 → `CocktailCard` 모달
+1. `performSend(text)` → `IntentClassifier.classify(text, dialogueContext)`
+2. 분류 우선순위: safety/cancel/exit > explicit-cocktail/lore-order > lore-followup/cocktail-info > general
+3. `resolveDialogueAction(classifiedIntent, conversationContext)` → DialogueAction 결정
+4. 라우트별 조기 처리: safety/exit → 즉시 응답, story-query/lore-query → `formatStoryQueryReply`, lore-followup → `getLoreFollowupCocktailId` → `generateResponse`
+5. 주문/추천/일반 대화 → timer callback (800ms) → `resolveExplicitCocktail` / `resolveRecommendation` / `generateResponse`
+6. `buildDialogueTurn` → `resolveReply(outcomeReply ?? fallbackReply)` → 최종 응답
 
-**타이핑 연출**: `text.length * 15 + 400` ms 지연.
+### Pipeline 구조
+
+- **Phase 1** — Core Intent Pipeline: intent-classifier, input-router, action-resolver, keywords
+- **Phase 1.5** — Data Integration + UI: cocktail-db.json, session-flow, CocktailCard/Recommendation UI
+- **Phase 2 (완료)** — Response Pipeline: 모든 응답 데이터 `response-templates.ts`로 분리, switch 제거, `dialogue()` 헬퍼 제거
+- **신규** — lore-followup intent: Martini 007 lore 추적 + 제조방식(셰이크/본드식) 주문 인지
 
 ---
 
@@ -249,3 +270,17 @@ TheCocktailDB API로 **일회성 보강**한 필드:
    - `justify-end`로 우측 정렬, `px-4 pb-3 pt-0.5` 패딩
 6. **CSS 애니메이션**: `@keyframes float`(translateY 3s), `@keyframes rain`(Y+100%, 무작위 delay), `@keyframes light-flicker`(불투명도 깜빡임), `@keyframes warm-glow`(boxShadow 확장/축소)
 7. **배경 그림자**: `inset 0 0 120px 30px rgba(0,0,0,0.5)` 가상 빛 조절 레이어 (z-index 10)
+
+### 2026-06-29 — Claude — Phase 2 Response Pipeline + lore-followup
+
+**Phase 2 완료:**
+- 모든 응답 데이터 `response-templates.ts`로 분리 (INTENT 19개, COCKFAILL 3개, MOOD/TASTE/RUDE 키워드맵, STORY)
+- `conversation.ts` switch 완전 제거, `dialogue()` 헬퍼 제거
+- 271→292 tests
+
+**lore-followup intent:**
+- 8개 패턴 감지 (젓지말고 흔들, 본드식, 007처럼, shaken not stirred 등)
+- `conversation-context.ts`: `lastStoryTargetCocktailId`, `getLoreFollowupCocktailId()` 추가
+- Martini + 007 lore → "본드식으로요. 젓지 말고 흔들어서 준비할게요." 응답
+- 칵테일명 + 제조방식 → `explicit-cocktail` 라우팅 (SHAKE_REFERENCE regex)
+- `resolveReply` 우선순위 문제 수정: controller에서 `recommendation.reply` 오버라이드

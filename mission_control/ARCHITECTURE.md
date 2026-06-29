@@ -1,6 +1,6 @@
 # 프로젝트 구조
 
-> 분석 기준일: 2026-06-11  
+> 최종 갱신일: 2026-06-29
 > 실제 애플리케이션 경로: `bar_tend/`
 
 ## 프로젝트 개요
@@ -55,6 +55,9 @@ prac/
 |---|---|---|
 | 애플리케이션 조정 | 장면, 메시지, 모달, 사이드바와 저장 상태를 연결 | `src/hooks/useRestationController.ts` |
 | 공통 입력 라우팅 | 안전, 퇴장, 설문 밖 랜덤 추천, 이름 검색, 추천, 일반 대화의 처리 우선순위 결정 | `src/lib/dialogue/input-router.ts` |
+| 대화 컨텍스트 | 직전 논의·추천·서빙·주문 후보 칵테일 참조와 갱신 규칙 관리 | `src/lib/dialogue/conversation-context.ts` |
+| 대화 행동 해석 | 통합 분류 결과와 컨텍스트를 주문·추천·이야기·논의·일반 응답 행동으로 변환 | `src/lib/dialogue/action-resolver.ts` |
+| lore 참조 검색 | 구조화 lore, talking points, 대중문화 단서로 인물·작품·이름 유래 기반 칵테일 참조 검색 | `src/lib/cocktails/lore-reference.ts` |
 | 대사 트리거 계층 | 입력 경로 태그, FSM 상태, 감정 상태를 기준으로 대사 풀·말투·표정 스프라이트·애니메이션 선택 | 목표: `src/domain/dialogue/triggers/` |
 | 입장 및 바 UI | 바 입장 연출, 내부 무대, 적응형 추천 선택지와 자유 입력 구성 | `src/components/entrance/`, `src/components/bar/` |
 | 대화 엔진 | 키워드 규칙과 대화 문맥 기반 응답 생성 | `src/lib/bartender/engine.ts`, `conversation.ts`, `keywords.ts` |
@@ -72,14 +75,15 @@ prac/
 
 1. 사용자가 `ChatInput`에서 텍스트를 전송한다.
 2. `useRestationController`가 메시지를 화면 상태에 추가하고 세션 취향 신호를 갱신한다.
-3. 공통 입력 라우터가 안전, 퇴장, 설문 밖 `아무거나` 랜덤 추천, 등록된 칵테일 이름 또는 별칭, 추천, 일반 대화 순서로 처리 경로를 결정한다.
-4. 입력 라우터는 처리 경로와 함께 `directCocktailOrder`, `moodOrder`, `tastePreferenceOrder`, `ingredientOrBaseOrder`, `recommendationInference`, `randomPick` 같은 대사 경로 태그를 남긴다.
-5. 안전 입력은 퇴장과 추천보다 먼저 규칙 기반 안전 응답으로 전달한다.
-6. 이름 검색 결과가 없고 추천 의도이면 `recommendation/question-engine.ts`가 현재 후보군을 필터링하고 다음 질문 또는 결과를 정한다.
-7. 추천 엔진과 UI는 초기 로딩 시 구성된 동일한 `CocktailData` 객체를 사용한다.
-8. 대사 트리거 계층은 확정된 추천 결과, 입력 경로 태그, 현재 FSM 상태, 감정 상태를 받아 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 선택한다. 칵테일 ID는 제조·서빙 문장의 변수로 결합하며 추천 결과를 다시 계산하지 않는다.
-9. 추천 안내와 추천 이유는 메시지에 표시하고, `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시한다. 도감 해제 ID도 저장한다.
-10. 추천 질문과 안전 흐름이 아닌 구간에는 이벤트 엔진이 시에스타 만담 이벤트 발생 여부를 판단할 수 있다.
+3. `IntentClassifier`가 공통 입력 라우터를 사용해 흐름 제어용 route와 응답 의미용 intent를 한 결과로 확정한다.
+4. 명시적 lore/person/media 단서가 있으면 lore 참조 검색이 DB 근거로 대상 칵테일을 먼저 확정한다. 결과가 있는 주문은 `lore-based-order`가 되며 대명사 컨텍스트보다 우선한다.
+5. Conversation Context가 직전 논의·추천·서빙·주문 후보 칵테일을 제공하고, Action Resolver가 통합 분류 결과를 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동으로 변환한다. `loreBasedOrder`는 주문 후보 저장 후 제조·서빙까지 실행한다.
+6. 안전 입력은 퇴장과 추천보다 먼저 규칙 기반 안전 응답으로 전달한다.
+7. 이름 검색 결과가 없고 추천 의도이면 `recommendation/question-engine.ts`가 현재 후보군을 필터링하고 다음 질문 또는 결과를 정한다.
+8. 추천 엔진과 UI는 초기 로딩 시 구성된 동일한 `CocktailData` 객체를 사용한다.
+9. 대사 트리거 계층은 확정된 추천 결과, 입력 경로 태그, 현재 FSM 상태, 감정 상태를 받아 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 선택한다. 칵테일 ID는 제조·서빙 문장의 변수로 결합하며 추천 결과를 다시 계산하지 않는다.
+10. 추천 안내와 추천 이유는 메시지에 표시하고, `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시한다. 도감 해제 ID도 저장한다.
+11. 추천 질문과 안전 흐름이 아닌 구간에는 이벤트 엔진이 시에스타 만담 이벤트 발생 여부를 판단할 수 있다.
 
 ### 시에스타 이벤트 상태 흐름
 

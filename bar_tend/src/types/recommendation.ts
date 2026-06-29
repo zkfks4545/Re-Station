@@ -24,7 +24,7 @@ export type RecommendationSituation =
   | 'first-visit'
   | 'returning-guest'
 
-export type AlcoholPreference = 'non-alcoholic' | 'low' | 'medium' | 'high' | 'any'
+export type AlcoholPreference = 'low' | 'medium' | 'high' | 'any'
 export type SignalSource = 'rule' | 'question' | 'webllm'
 
 export interface RecommendationSignal {

@@ -42,7 +42,7 @@ export interface ExtractedEntities {
   moods?: string[]
   tastes?: string[]
   ingredients?: string[]
-  alcoholPreference?: 'non-alcoholic' | 'low' | 'medium' | 'high'
+  alcoholPreference?: 'low' | 'medium' | 'high'
   baseSpirit?: string
   excludedIngredients?: string[]
 }
@@ -136,7 +136,7 @@ const EXPRESSIONS: Expression[] = [
   'disappointed',
   'embarrassed',
 ]
-const ALCOHOL_PREFERENCES = ['non-alcoholic', 'low', 'medium', 'high']
+const ALCOHOL_PREFERENCES = ['low', 'medium', 'high']
 
 export interface DialogueTurn {
   intent: DialogueIntent
