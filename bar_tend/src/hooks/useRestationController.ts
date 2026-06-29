@@ -5,9 +5,11 @@ import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
 import { cocktails, getCocktailById } from '@/lib/cocktails/database.js'
 import { resolveDialogueAction } from '@/lib/dialogue/action-resolver.js'
+import { SHAKE_REFERENCE } from '@/lib/dialogue/pattern-utils.js'
 import {
   createConversationContext,
   getDiscussedCocktailIds,
+  getLoreFollowupCocktailId,
   getOrderCandidateCocktailId,
   getStoryCocktailId,
   updateConversationContext,
@@ -576,7 +578,10 @@ export function useRestationController() {
         const storyCocktail = storyCocktailId
           ? getCocktailById(storyCocktailId) ?? null
           : servedCocktail ?? lastServedCocktail
-        if (storyCocktail) recordConversationContext({ type: 'discussed', cocktailId: storyCocktail.id })
+        if (storyCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: storyCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: storyCocktail.id })
+        }
         const storyReply = formatStoryQueryReply(storyCocktail)
         const turn = buildDialogueTurn(text, 'story-query', storyReply.text, storyReply.expression, null, {
           confidence: routeResult.confidence,
@@ -594,7 +599,10 @@ export function useRestationController() {
           ? dialogueAction.cocktailId
           : routeResult.matchedCocktailId ?? null
         const loreCocktail = loreCocktailId ? getCocktailById(loreCocktailId) ?? null : null
-        if (loreCocktail) recordConversationContext({ type: 'discussed', cocktailId: loreCocktail.id })
+        if (loreCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: loreCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: loreCocktail.id })
+        }
         const loreResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, loreCocktail)
         const turn = buildDialogueTurn(text, 'lore-query', loreResponse.response, loreResponse.expression, null, {
           confidence: routeResult.confidence,
@@ -611,7 +619,10 @@ export function useRestationController() {
           ? dialogueAction.cocktailId
           : routeResult.matchedCocktailId ?? null
         const infoCocktail = infoCocktailId ? getCocktailById(infoCocktailId) ?? null : null
-        if (infoCocktail) recordConversationContext({ type: 'discussed', cocktailId: infoCocktail.id })
+        if (infoCocktail) {
+          recordConversationContext({ type: 'discussed', cocktailId: infoCocktail.id })
+          recordConversationContext({ type: 'story-targeted', cocktailId: infoCocktail.id })
+        }
         const infoResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, infoCocktail)
         const turn = buildDialogueTurn(text, 'cocktail-info-query', infoResponse.response, infoResponse.expression, null, {
           confidence: routeResult.confidence,
@@ -648,6 +659,19 @@ export function useRestationController() {
         return
       }
 
+      // --- lore-followup 처리(Lore follow-up, interrupt-safe) ---
+      if (classifiedIntent.intent === 'lore-followup') {
+        const loreFollowupCocktailId = getLoreFollowupCocktailId(conversationContextRef.current)
+        const loreFollowupCocktail = loreFollowupCocktailId ? getCocktailById(loreFollowupCocktailId) ?? null : null
+        const loreFollowupResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, loreFollowupCocktail)
+        const turn = buildDialogueTurn(text, routeResult.route, loreFollowupResponse.response, loreFollowupResponse.expression, null, {
+          confidence: routeResult.confidence,
+        })
+        if (!validateDialogueTurn(turn)) return handleInvalidTurn()
+        bartenderReply(turn.reply, turn.expression)
+        return
+      }
+
       // --- 추천 / 일반 대화 처리(Main recommendation or general dialogue, async) ---
       setExpression('thinking')
       timerRegistry.current.schedule(() => {
@@ -671,6 +695,9 @@ export function useRestationController() {
             ? `${fallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`
             : fallback.response
           const expression = shouldInviteRecommendationFromConversation ? 'smirk' : fallback.expression
+          if (recommendation && classifiedIntent.intent === 'order-cocktail' && SHAKE_REFERENCE.test(text)) {
+            recommendation.reply = `${recommendation.cocktail!.name} 한 잔, 본드식으로요. 젓지 말고 흔들어서 준비할게요.`
+          }
           const turn = buildDialogueTurn(text, routeResult.route, reply, expression, recommendation ?? undefined, { confidence: routeResult.confidence })
           if (!validateDialogueTurn(turn)) throw new Error('Invalid dialogue turn')
 

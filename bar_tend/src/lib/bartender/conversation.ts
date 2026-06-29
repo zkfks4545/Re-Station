@@ -1,11 +1,34 @@
 import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
-import { kf } from '../dialogue/pattern-utils.js'
+import { kf, SHAKE_REFERENCE } from '../dialogue/pattern-utils.js'
 import { formatStoryQueryReply } from '../dialogue/story-query.js'
-import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionResponse } from '../dialogue/response-templates.js'
+import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionResponse, type IntentResponseTemplate } from '../dialogue/response-templates.js'
 import type { CocktailData, Message, BartenderResponse } from '../../types.js'
 
-const SHAKE_REFERENCE = /젓지\s*말고\s*흔들|젓지말고\s*흔들|본드식|007처럼|shaken\s*,?\s*not\s*stirred|shaken\s+not\s+stirred/i
+function pickStoryFallback(): BartenderResponse {
+  if (STORY_FALLBACK.dialogueCategory) {
+    const picked = pickDialogue(STORY_FALLBACK.dialogueCategory)
+    if (picked) return { response: picked.text, expression: picked.expression }
+  }
+  return { response: STORY_FALLBACK.fallback, expression: STORY_FALLBACK.expression }
+}
+
+function resolveFromSubTemplate(
+  tmpl: IntentResponseTemplate | undefined,
+  defaultTmpl: IntentResponseTemplate,
+  extraDefaultCheck?: () => BartenderResponse | undefined,
+): BartenderResponse {
+  if (tmpl && tmpl.dialogueCategory) {
+    const picked = pickDialogue(tmpl.dialogueCategory)
+    if (picked) return { response: picked.text, expression: picked.expression }
+  }
+  if (tmpl) return { response: tmpl.fallback, expression: tmpl.expression }
+  if (extraDefaultCheck) {
+    const result = extraDefaultCheck()
+    if (result) return result
+  }
+  return { response: defaultTmpl.fallback, expression: defaultTmpl.expression }
+}
 
 export function generateResponse(
   input: string,
@@ -56,11 +79,7 @@ export function generateResponse(
           expression: 'smirk',
         }
       }
-      if (STORY_FALLBACK.dialogueCategory) {
-        const picked = pickDialogue(STORY_FALLBACK.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      return { response: STORY_FALLBACK.fallback, expression: STORY_FALLBACK.expression }
+      return pickStoryFallback()
     }
 
     case 'story-query':
@@ -84,52 +103,31 @@ export function generateResponse(
         }
         return STORY_PERSON_MISSING_TEMPLATE(person)
       }
-      if (STORY_FALLBACK.dialogueCategory) {
-        const picked = pickDialogue(STORY_FALLBACK.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      return { response: STORY_FALLBACK.fallback, expression: STORY_FALLBACK.expression }
+      return pickStoryFallback()
     }
 
     case 'mood-talk': {
       const mood = detectUserMood(input)
-      const mt = mood ? MOOD_SUB_TEMPLATES[mood] : undefined
-      if (mt && mt.dialogueCategory) {
-        const picked = pickDialogue(mt.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      if (mt) return { response: mt.fallback, expression: mt.expression }
-      return { response: MOOD_DEFAULT.fallback, expression: MOOD_DEFAULT.expression }
+      return resolveFromSubTemplate(mood ? MOOD_SUB_TEMPLATES[mood] : undefined, MOOD_DEFAULT)
     }
 
     case 'taste-query': {
       const tasteKey = (Object.entries(TASTE_KEYWORD_MAP) as [string, string[]][]).find(
         ([, keywords]) => kf(keywords).test(input),
       )?.[0]
-      const tt = tasteKey ? TASTE_SUB_TEMPLATES[tasteKey] : undefined
-      if (tt && tt.dialogueCategory) {
-        const picked = pickDialogue(tt.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      if (tt) return { response: tt.fallback, expression: tt.expression }
-      return { response: TASTE_DEFAULT.fallback, expression: TASTE_DEFAULT.expression }
+      return resolveFromSubTemplate(tasteKey ? TASTE_SUB_TEMPLATES[tasteKey] : undefined, TASTE_DEFAULT)
     }
 
     case 'rude-talk': {
       const rudeKey = (Object.entries(RUDE_KEYWORD_MAP) as [string, string[]][]).find(
         ([, keywords]) => kf(keywords).test(input),
       )?.[0]
-      const rt = rudeKey ? RUDE_SUB_TEMPLATES[rudeKey] : undefined
-      if (rt && rt.dialogueCategory) {
-        const picked = pickDialogue(rt.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      if (rt) return { response: rt.fallback, expression: rt.expression }
-      if (RUDE_DEFAULT.dialogueCategory) {
-        const picked = pickDialogue(RUDE_DEFAULT.dialogueCategory)
-        if (picked) return { response: picked.text, expression: picked.expression }
-      }
-      return { response: RUDE_DEFAULT.fallback, expression: RUDE_DEFAULT.expression }
+      return resolveFromSubTemplate(rudeKey ? RUDE_SUB_TEMPLATES[rudeKey] : undefined, RUDE_DEFAULT, () => {
+        if (RUDE_DEFAULT.dialogueCategory) {
+          const picked = pickDialogue(RUDE_DEFAULT.dialogueCategory)
+          if (picked) return { response: picked.text, expression: picked.expression }
+        }
+      })
     }
 
   }

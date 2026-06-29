@@ -1,6 +1,7 @@
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { findCocktailByLoreReference, hasExplicitLoreReference } from '../cocktails/lore-reference.js'
 import { isRecommendationIntent } from '../recommendation/question-engine.js'
+import { SHAKE_REFERENCE } from './pattern-utils.js'
 
 const SAFETY_CONCERN = /죽고\s*싶|자살|자해|해치고\s*싶|다치게\s*할|살기\s*싫|끝내고\s*싶/
 const EXIT_INTENT = /나갈게|갈게|바이|끝낼게|잘 있어|다음에|안녕히/
@@ -16,7 +17,6 @@ const PRONOUN_REFERENCE = /이거|그거|그걸로|이\s*칵테일|방금\s*그�
 const ORDER_VERB = /(?:주세요|주세여|줘|부탁|시켜줘|시켜|한\s*잔)/
 const LORE_ORDER = /(?:주세요|주세여|부탁|주문|시켜(?:줘)?|한\s*잔|한잔|다음\s*잔|걸로\s*줘|마실래(?:요)?|먹을래(?:요)?|그걸로(?:요)?\s*[.!?]*$)/
 const EXPLICIT_RECOMMENDATION = /추천|골라\s*줘|골라줘|뭐가\s*좋/
-const SHAKE_REFERENCE = /젓지\s*말고\s*흔들|젓지말고\s*흔들|본드식|007처럼|shaken\s*,?\s*not\s*stirred|shaken\s+not\s+stirred/i
 
 export type InputRoute =
   | 'safety'

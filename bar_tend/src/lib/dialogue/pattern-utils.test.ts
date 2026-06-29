@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kf } from './pattern-utils.js'
+import { kf, SHAKE_REFERENCE } from './pattern-utils.js'
 
 describe('kf', () => {
   it('matches Korean patterns as substrings', () => {
@@ -58,5 +58,26 @@ describe('kf', () => {
     expect(re.test('술 한 잔')).toBe(true)
     expect(re.test('안주 추천')).toBe(true)
     expect(re.test('일반 대화')).toBe(false)
+  })
+})
+
+describe('SHAKE_REFERENCE', () => {
+  it('matches 젓지말고 흔들 patterns', () => {
+    expect(SHAKE_REFERENCE.test('마티니한잔 젓지말고 흔들어서')).toBe(true)
+    expect(SHAKE_REFERENCE.test('젓지 말고 흔들어서 주세요')).toBe(true)
+  })
+  it('matches 본드식', () => {
+    expect(SHAKE_REFERENCE.test('본드식으로 주세요')).toBe(true)
+  })
+  it('matches 007처럼', () => {
+    expect(SHAKE_REFERENCE.test('007처럼 만들어 주세요')).toBe(true)
+  })
+  it('matches shaken not stirred variants', () => {
+    expect(SHAKE_REFERENCE.test('shaken not stirred')).toBe(true)
+    expect(SHAKE_REFERENCE.test('Shaken, not stirred')).toBe(true)
+  })
+  it('does not match unrelated text', () => {
+    expect(SHAKE_REFERENCE.test('일반 대화입니다')).toBe(false)
+    expect(SHAKE_REFERENCE.test('흔들림이 심한 날씨')).toBe(false)
   })
 })
