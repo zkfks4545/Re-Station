@@ -1,5 +1,9 @@
 # 작업 이력 (축약)
 
+## 2026-06-29 / Claude / kf 중복 제거 + SHAKE_REFERENCE 통일 + switch 패턴 헬퍼 추출 + 테스트 292→313 [a73342f][c82cbc6][4f6c90d]
+- 내용: `pattern-utils.ts` 공유 모듈(kf + SHAKE_REFERENCE) 추출; 미사용 export(detectCocktailInfoQuery, detectOrderVerb, DialogueAction) 제거; MOOD_KEYWORD_MAP 데이터화 + detectUserMood map 전환; intent classifier mood 키워드 동기화; SHAKE_REFERENCE 3파일 중복 제거; pickStoryFallback() / resolveFromSubTemplate() 헬퍼로 switch mood/taste/rude 패턴 통일
+- 검증: tsc clean, 313/313 tests pass
+
 ## 2026-06-29 / DOC-007 / mission_control 파일 축약 + 커밋 해시 보충 [0cce97c]
 - 내용: WORK_LOG.md/DECISIONS.md/HANDOVER.md/CURRENT_STATE.md/REFACTORING_LOG.md 5개 파일 축약
 - 변경: 각 작업 항목에 `[hash]` 추가, 누락 Phase 1.5~2 항목 기록, 결정표·이슈표에 커밋 컬럼 추가
