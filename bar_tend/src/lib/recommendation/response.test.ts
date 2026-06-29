@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { getCocktailById } from '../cocktails/database.js'
+import { findCocktailByName, getCocktailById } from '../cocktails/database.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
 import {
   formatExplicitCocktailReply,
+  formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
   formatRecommendationReply,
   selectCocktailTalkingPoint,
@@ -10,6 +11,16 @@ import {
 } from './response.js'
 
 describe('neutral recommendation dialogue copy', () => {
+  it('formats a lore match as an order instead of an information-only reply', () => {
+    const cocktail = findCocktailByName('모히토')!
+    const reply = formatLoreBasedOrderReply(cocktail)
+
+    expect(reply).toContain(cocktail.name)
+    expect(reply).toContain('준비할게요')
+    expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
+    expect(reply).not.toContain('자세한 정보')
+  })
+
   it('uses neutral copy for an explicit cocktail without factual card copy', () => {
     const cocktail = getCocktailById('cocktail_classic_001')!
     const reply = formatExplicitCocktailReply(cocktail)

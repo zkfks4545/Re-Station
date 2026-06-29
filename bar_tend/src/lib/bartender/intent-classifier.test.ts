@@ -37,6 +37,40 @@ const baseContext: DialogueContext = {
 describe('IntentClassifier', () => {
   const classifier = new IntentClassifier(mockCocktails)
 
+  describe('Unified route and intent contract', () => {
+    it.each([
+      ['죽고 싶어', 'safety', 'safety-alert'],
+      ['나갈게', 'exit', 'exit-intent'],
+      ['모히토에 얽힌 이야기 들려줘', 'story-query', 'story-query'],
+      ['모히토 레시피 좀 알려줘', 'cocktail-info-query', 'recipe-query'],
+      ['너는 누구야?', 'character-query', 'character-query'],
+      ['모히토 한 잔 주세요', 'explicit-cocktail', 'order-cocktail'],
+      ['아무거나 골라줘', 'random-recommendation', 'random-request'],
+    ] as const)('%s produces one route/intent result', (input, route, intent) => {
+      const result = classifier.classify(input, baseContext)
+
+      expect(result.route.route).toBe(route)
+      expect(result.intent).toBe(intent)
+    })
+
+    it('keeps flow routing separate from detailed response intent', () => {
+      const result = classifier.classify('뭐 마실지 모르겠고 그냥 왔어', baseContext)
+
+      expect(result.route.route).toBe('recommendation')
+      expect(result.intent).toBe('uncertain-talk')
+    })
+
+    it('honors conversation mode without losing the semantic intent', () => {
+      const result = classifier.classify('추천해줘', {
+        ...baseContext,
+        allowRecommendationRoutes: false,
+      })
+
+      expect(result.route.route).toBe('general')
+      expect(result.intent).toBe('cocktail-query')
+    })
+  })
+
   describe('Direct cocktail references', () => {
     it('identifies direct cocktail mentions', () => {
       const result = classifier.classify('모히토 어때?', baseContext)

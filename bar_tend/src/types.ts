@@ -55,6 +55,7 @@ export interface CocktailData extends Cocktail {
   bar_name?: string
   bar_location_link?: string
   talkingPoints?: string[]
+  lore?: CocktailLore
 }
 
 export interface Message {
@@ -101,3 +102,4 @@ export interface ConversationContext {
   lastBartenderWasQuestion: boolean
   totalUserMessages: number
 }
+import type { CocktailLore } from './types/cocktail-db.js'

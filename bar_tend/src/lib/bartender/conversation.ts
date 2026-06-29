@@ -1,7 +1,7 @@
 import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { formatStoryQueryReply } from '../dialogue/story-query.js'
-import type { Cocktail, Message, BartenderResponse, Expression } from '../../types.js'
+import type { Cocktail, CocktailData, Message, BartenderResponse, Expression } from '../../types.js'
 
 const kf = (patterns: string[]) => new RegExp(patterns.map(
   (p) => (/^[a-z]/i.test(p) ? `\\b${p}\\b` : p)
@@ -21,8 +21,13 @@ function dialogue(category: string, fallback: string, expression: Expression): B
   return picked ? { response: picked.text, expression: picked.expression } : { response: fallback, expression }
 }
 
-export function generateResponse(input: string, _history: Message[], intent: string): BartenderResponse {
-  const currentCocktail = findCocktailByName(input)
+export function generateResponse(
+  input: string,
+  _history: Message[],
+  intent: string,
+  referencedCocktail?: CocktailData | null,
+): BartenderResponse {
+  const currentCocktail = referencedCocktail ?? findCocktailByName(input)
   if (currentCocktail && (intent === 'general-chat' || intent === 'order-cocktail' || intent === 'order-cocktail-mixed')) {
     return getCocktailMentionResponse(currentCocktail)
   }
@@ -79,7 +84,7 @@ export function generateResponse(input: string, _history: Message[], intent: str
     case 'story-query-followup':
     case 'story-query-cocktail-specific':
     case 'lore-query': {
-      const storyCocktail = findCocktailByName(input)
+      const storyCocktail = referencedCocktail ?? findCocktailByName(input)
       if (storyCocktail) {
         const reply = formatStoryQueryReply(storyCocktail)
         return { response: reply.text, expression: reply.expression }
@@ -103,7 +108,7 @@ export function generateResponse(input: string, _history: Message[], intent: str
     }
 
     case 'cocktail-info-query': {
-      const infoCocktail = findCocktailByName(input)
+      const infoCocktail = referencedCocktail ?? findCocktailByName(input)
       if (infoCocktail) {
         return { response: `「${infoCocktail.name}」은 ${infoCocktail.description}`, expression: 'talk' }
       }

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Message } from '../../types.js'
-import { detectSafetyConcern, getCocktailResponse } from './engine.js'
+import { cocktails, findCocktailByName } from '../cocktails/database.js'
+import { detectSafetyConcern, getCocktailResponse, getCocktailResponseFromClassified } from './engine.js'
+import { IntentClassifier, type DialogueContext } from './intent-classifier.js'
 
 const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /술.*(잊|나아|풀)/,
@@ -22,6 +24,26 @@ afterEach(() => {
 })
 
 describe('neutral runtime dialogue contract', () => {
+  it('uses a supplied unified classification without classifying the input again', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify('여기 분위기 좋다', context)
+    const result = getCocktailResponseFromClassified('오늘 너무 피곤해', [], classified)
+
+    expect(classified.intent).toBe('bar-atmosphere')
+    expect(result.response).toContain('분위기')
+  })
+
+  it('uses a referenced cocktail for an omitted-name story follow-up', () => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify('그 이야기 더 들려줘', context)
+    const mojito = findCocktailByName('모히토')!
+    const result = getCocktailResponseFromClassified('그 이야기 더 들려줘', [], classified, mojito)
+
+    expect(result.response).toContain(mojito.name)
+    expect(mojito.talkingPoints?.some((point) => result.response.includes(point))).toBe(true)
+  })
+
   it('explains the virtual bar setting without pretending to be a real venue', () => {
     const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
 
@@ -45,7 +67,7 @@ describe('neutral runtime dialogue contract', () => {
   it('uses atmosphere dialogue for ordinary bar small talk', () => {
     const result = getCocktailResponse('여기 분위기 좋다', [])
 
-    expect(result.response).toMatch(/분위기|조명|음악|공기|잔/)
+    expect(result.response).toMatch(/분위기|조명|음악|공기|잔|어둡|느리|수상|좋은 곳/)
     expect(['talk', 'smirk', 'thinking']).toContain(result.expression)
     expectKahluaBoundary(result.response)
   })

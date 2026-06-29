@@ -1,6 +1,6 @@
 # 인수인계
 
-> 최종 갱신일: 2026-06-23 (mission_control 읽기 가이드와 외부 구조 보고서 작성 기록 반영)
+> 최종 갱신일: 2026-06-29 (Phase 1.5 Context + Action Layer 완료 반영)
 
 ## 현재 목표
 
@@ -9,6 +9,12 @@
 현재는 신규 기능 확장보다 **대사와 캐릭터 일관성 수렴**이 우선이다. DLG-807~DLG-809 완료 전까지 WebLLM 확장, 새로운 추천 알고리즘, 새로운 캐릭터, 추가 이벤트 시스템은 보류한다. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
 차기 세션 방향성은 `mission_control/SESSION_FLOW_SPEC.md`에 추가되었다. 자유입력은 열어 두되 진행은 닫힌 구조를 따른다. 세션은 `입장 → 웰컴드링크 → 대화 → 취향 파악 → 추천 → 주문 → 후일담 → XYZ → 배웅 → 귀가`로 복귀해야 하며, XYZ 이후 Farewell Phase에서는 추가 주문과 추가 추천을 금지한다.
+
+Phase 1 IntentClassifier 통합과 Phase 1.5 Context + Action Layer는 완료했다. `IntentClassifier`의 단일 결과를 `DialogueAction`으로 해석하고, 네 칵테일 참조는 독립된 Conversation Context 상태 전이로 관리한다. `모히토` → `그걸로 주세요`, `그 이야기 더 들려줘요` 같은 생략 입력이 직전 대상 칵테일의 주문 또는 이야기로 이어진다. 다음 구조 우선순위는 Phase 2 Response Pipeline이다.
+
+명시적 lore/person/media 단서는 직전 웰컴드링크나 대명사 컨텍스트보다 우선한다. `헤밍웨이가 즐겨마셨다는 걸로 주세요`는 DB lore 검색으로 모히토를 찾아 `lore-based-order`로 처리한다. 검색 결과가 없으면 현재 잔을 주문 대상으로 재사용하지 않고 지식 fallback으로 보낸다.
+
+`lore-based-order`는 story 응답으로 끝나지 않는다. Action Resolver가 `loreBasedOrder` 행동을 만들고 즉시 `lastOrderCandidateCocktailId`를 갱신한 뒤, 주문 전용 응답과 제조·서빙 흐름을 실행한다. 주문 표현 없이 `뭐예요?`로 묻는 입력만 `story-query`에 남긴다.
 
 ## 확정된 핵심 계약
 
@@ -151,8 +157,8 @@ MVP 이후 논의 후보로 `DISC-001`을 기록했고, 그중 대화 의미와 
 
 ### 권장 순서
 
-1. `Phase 1` IntentClassifier 통합 마무리: 추천/대화/이야기/캐릭터/안전 의도 분류를 안정화한다.
-2. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름을 만든다.
+1. ~~`Phase 1` IntentClassifier 통합 마무리~~ (완료: 단일 route/intent 결과를 컨트롤러와 응답 엔진이 공유)
+2. ~~`Phase 1.5` Context + Action Layer~~ (완료: 생략 주문과 후속 이야기 컨텍스트 연결)
 3. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리한다.
 4. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직을 떼어낸다.
 5. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`를 정리한다.

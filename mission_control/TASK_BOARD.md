@@ -658,8 +658,8 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 
 | Phase | 작업명 | 상태 | 목적 | 메모 |
 |---|---|---|---|---|
-| Phase 1 | IntentClassifier 통합 | 거의 완료 | 입력을 추천/대화/이야기/캐릭터/안전 등으로 안정적으로 분류 | `intent-classifier.ts`와 `input-router.ts`의 중복 판단을 줄이고 단일 의도 계약으로 수렴 |
-| Phase 1.5 | Context + Action Layer | 지금 필요 | `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`를 입력 라우팅과 행동 실행에 연결 |
+| Phase 1 | IntentClassifier 통합 | 완료 | 입력을 추천/대화/이야기/캐릭터/안전 등으로 안정적으로 분류 | 통합 결과가 흐름 제어용 `route`와 응답 의미용 `intent`를 함께 제공하며, 컨트롤러와 응답 엔진이 같은 결과를 재사용 |
+| Phase 1.5 | Context + Action Layer | 완료 | `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현 | 순수 Conversation Context와 DialogueAction 해석기를 추가하고 생략 주문·후속 이야기·정보 질문을 실제 대상 칵테일에 연결. 명시적 lore/person/media 주문은 `loreBasedOrder` 행동으로 주문 후보 저장과 제조·서빙까지 실행. Phase 4~5에서 갱신 정책과 전체 실행 계층을 확장 |
 | Phase 2 | Response Pipeline | 미착수 | 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리 | 추천 결과, 이야기 응답, 캐릭터 응답 모두 같은 응답 조립 파이프라인을 통과 |
 | Phase 3 | DialogueService 분리 | 미착수 | `useRestationController`에서 대화 로직을 떼어내기 | 컨트롤러는 UI 상태와 연출 조율, 서비스는 의도·맥락·행동·응답을 담당 |
 | Phase 4 | Conversation Context 완성 | 일부 착수 | 대화 중 참조 가능한 컨텍스트 정리 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`의 의미와 갱신 조건 고정 |

@@ -33,6 +33,7 @@ const ROUTE_TO_INTENT: Record<string, DialogueIntent> = {
   exit: 'exit-intent',
   'recommendation-cancel': 'recommendation-cancel',
   'random-recommendation': 'random-request',
+  'lore-based-order': 'cocktail-order',
   'explicit-cocktail': 'cocktail-order',
   'unknown-cocktail-query': 'cocktail-order',
   'story-query': 'story-query',
@@ -45,6 +46,7 @@ const ROUTE_TO_ACTION: Record<string, DialogueAction> = {
   exit: 'exit',
   'recommendation-cancel': 'reset',
   'random-recommendation': 'recommend',
+  'lore-based-order': 'show-info',
   'explicit-cocktail': 'show-info',
   'unknown-cocktail-query': 'queue-for-review',
   'story-query': 'show-info',
@@ -67,6 +69,7 @@ const DEFAULT_REPLY_BY_ACTION: Record<DialogueAction, string> = {
 function routeToRouteTag(route: InputRoute): RecommendationRouteTag {
   const map: Record<string, RecommendationRouteTag> = {
     'explicit-cocktail': 'direct-name',
+    'lore-based-order': 'direct-name',
     'unknown-cocktail-query': 'direct-name',
     'random-recommendation': 'random',
     recommendation: 'taste',
@@ -77,6 +80,7 @@ function routeToRouteTag(route: InputRoute): RecommendationRouteTag {
 function routeToDialogueRoute(route: InputRoute): RecommendationRoute {
   const map: Record<string, RecommendationRoute> = {
     'explicit-cocktail': 'directCocktailOrder',
+    'lore-based-order': 'anecdoteOrPersonOrder',
     'unknown-cocktail-query': 'directCocktailOrder',
     'random-recommendation': 'randomPick',
     recommendation: 'recommendationInference',

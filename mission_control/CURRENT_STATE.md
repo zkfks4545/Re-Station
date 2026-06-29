@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-> 최종 갱신일: 2026-06-23 (시에스타 임시 비활성화와 카루아 단독 로직 집중 기준 반영)
+> 최종 갱신일: 2026-06-29 (명시적 lore/person 주문 우선순위 반영)
 
 ## 상태 요약
 
@@ -8,26 +8,30 @@
 |---|---|
 | 목표 제품 | Re:Station 카루아 중심 대화형 칵테일 추천 MVP + 시에스타 만담 이벤트 |
 | 현재 구현 | `bar_tend/` 경로에서 Re:Station 브랜드와 자연스러운 직원 응대를 적용한 추천 프로토타입 |
-| 현재 단계 | RST-000 MVP 범위 완료. 현재는 DLG-807~809 대사·캐릭터 일관성 1차 수렴 단계이며, 신규 기능 확장보다 말투와 대사 데이터 정리를 우선한다. |
+| 현재 단계 | RST-000 MVP 범위와 Phase 1~1.5 구조 작업 완료. 다음 구조 우선순위는 Phase 2 Response Pipeline이며, DLG-807~809 대사 수렴은 구조 안정화 순서와 함께 재검토한다. |
 | 기술 방향 | React + Vite + 프론트엔드 단독, WebLLM 잠정 보류 |
 | 추천 원칙 | JSON·DB·규칙 기반으로 추천 결과 확정, 대사 소재는 입력 경로가 결정, WebLLM은 향후 말투 포장만 허용 |
 | 수렴 원칙 | DLG-807~809 완료 전까지 WebLLM 확장, 새 추천 알고리즘, 새 캐릭터, 추가 이벤트 시스템 보류 |
 | 현재 런타임 초점 | 시에스타 이벤트는 `SIESTA_EVENTS_ENABLED = false`로 비활성화하고, 카루아 단독 추천·제조·서빙 루프를 집중 점검 중 |
 | 차기 세션 방향 | 자유입력은 열어 두되 진행은 웰컴드링크·추천·주문·XYZ·Farewell Phase·귀가로 닫는다. 기준 문서는 `SESSION_FLOW_SPEC.md` |
 | 문서 진입점 | `mission_control/README.md`에서 필독 파일과 선택적 수정·검토 파일을 구분 |
-| 빌드 | 통과: `npm.cmd run build` (`tsc --noEmit` 포함, 메인 JS 약 416 kB) |
+| 빌드 | 통과: `npm.cmd run build` (`tsc --noEmit` 포함, 메인 JS 446.31 kB) |
 | 린트 | 통과: `npm.cmd run lint` |
-| 자동 테스트 | Vitest 171개 중 168개 통과, 3개 실패 (reasoning-ui.test.tsx, engine.test.ts, database.test.ts) |
+| 자동 테스트 | Vitest 255개 전체 통과 |
 | 세션 관련 테스트 통과 | `npm.cmd test -- src/lib/session/farewell-replies.test.ts --run` 통과, `npm.cmd test -- src/lib/session/session-flow.test.ts --run` 통과 |
 
 ## 완료된 기반
 
-**2026년 6월 25일 기준 최신 완료 과제 목록**
+**2026년 6월 29일 기준 최신 완료 과제 목록**
 
 - [x] `mission_control` 운영 문서(외부 구조 보고서, 가이드, 상태, 작업 로그, 논리 초점, 인수인계, README, 완료 작업 요약, 세션 흐름, 팸비전) 정리 및 **`CURRENT_STATE.md`가 단일 현황 보고서로 통합**
 - [x] **현재 로드맵에는 하위 프로그램 세부 과제들이 `CURRENT_STATE.md`에 정리되어 있으며, 상위 프로그램은 `README.md`에 나열**
 - [x] **9월 말 기준 확정한 경영 관리 기준**을 `CONVERGENCE_PRINCIPLES.md`에 기록
-- [x] 대사·추천·입력 라우팅·표정 매핑·카드 렌더링 전 도메인 경계를 순수 테스트(현재 Vitest 171개 중 168개 통과, 3개 엣지 케이스로 별개 정합성 검토 진행)
+- [x] 대사·추천·입력 라우팅·표정 매핑·카드 렌더링 전 도메인 경계를 순수 테스트(현재 Vitest 228개 전체 통과)
+- [x] `Phase 1` IntentClassifier 통합: 컨트롤러가 route와 세부 intent를 포함한 단일 분류 결과를 사용하고, 응답 엔진은 이미 분류된 결과를 재사용해 이중 분류를 제거
+- [x] `Phase 1.5` Context + Action Layer: 네 칵테일 참조를 순수 Conversation Context로 통합하고, 분류 결과를 `order`, `recommend`, `continueStory`, `discuss`, `respond` 행동으로 변환해 생략 주문과 후속 이야기 연결
+- [x] 명시적 lore/person/media 참조 우선순위: 헤밍웨이·007·Sex and the City·일출 같은 DB 단서를 직전 웰컴드링크 대명사보다 먼저 검색해 주문·이야기 대상으로 연결
+- [x] lore 주문 실행 연결: `부탁`, `다음잔`, `한 잔`, `그걸로`, `마실래요`, `시켜줘`를 `loreBasedOrder` 행동으로 변환하고 주문 후보 저장·제조·서빙 경로까지 실행
 - [x] `bar_tend/src/lib/session/session-flow.ts` (서브 이후 도수 한계 기반 XYZ 후속 서빙/리셋 경계)와 `lib/session/farewell-replies.ts` (XYZ/배웅/주문 차단/귀가 문구)를 통한 **세션 종료 로직의 의도 경계 분리**
 - [x] **CAST-001~004 진단**('캐릭터 시나리오와 테스트'): 실행 가능한 리뷰 중 `DX-808`, `DLG-807`, `DLG-808`, `DLG-809`, `STAGE-001` 진행 중
 - [x] **데스크톱/모바일 수동 검증**: 선택지 버튼 클릭, 추천 완료, 다시 추천받기, 화면 배치를 390px 모바일 폭에서 실사용 흐름으로 검증
@@ -92,6 +96,7 @@
 | ISSUE-010 | ~~추천 질문 중 직접 칵테일 주문 후 이전 설문 UI 잔존 가능~~ | 해결됨. 명시적 칵테일 주문 분기에서 `resetRecommendation()` 호출 |
 | ISSUE-011 | ~~자연어 추천 요청이 미등록 칵테일로 오분류될 수 있음~~ | 해결됨. 추천 의도를 미등록 칵테일 추출보다 먼저 판정 |
 | ISSUE-012 | ~~시에스타가 자기 말만 하고 사라지는 이벤트처럼 보임~~ | 해결됨. 모든 만담 세트를 카루아 대화권 반환까지 포함하는 4발화 구조로 보강 |
+| ISSUE-013 | ~~명시적 인물/lore 주문이 직전 웰컴드링크 대명사 주문으로 오해됨~~ | 해결됨. `lore-based-order`를 컨텍스트 주문보다 먼저 판정하고 검색 실패 시 현재 잔을 재사용하지 않음 |
 
 ## 다음 작업
 
@@ -115,7 +120,7 @@
 
 ## 다음 수행 후보
 
-1. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` 같은 생략 주문이 실제 행동으로 이어지게 한다.
+1. ~~`Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` 같은 생략 주문이 실제 행동으로 이어지게 한다.~~ (완료)
 2. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리한다.
 3. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직을 떼어낸다.
 4. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 갱신 조건을 고정한다.

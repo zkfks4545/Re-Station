@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-06-26
+> 최종 갱신일: 2026-06-29
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -81,6 +81,9 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/bartender/engine.ts` | 안전 검사, 키워드 규칙, 일반 대화 fallback 연결 |
 | `bar_tend/src/lib/bartender/intent-classifier.ts` | 추천/대화/이야기/캐릭터/안전 의도 분류와 컨텍스트 메타데이터 |
 | `bar_tend/src/lib/bartender/intent-classifier-adapter.ts` | 기존 대화 엔진이 IntentClassifier를 사용하도록 연결 |
+| `bar_tend/src/lib/dialogue/conversation-context.ts` | 직전 논의·추천·서빙·주문 후보 칵테일의 순수 상태 전이 |
+| `bar_tend/src/lib/dialogue/action-resolver.ts` | 통합 분류 결과와 컨텍스트를 주문·추천·후속 이야기 등 행동 객체로 변환 |
+| `bar_tend/src/lib/cocktails/lore-reference.ts` | DB의 lore·talking points·대중문화 단서로 인물/작품/이름 유래 참조 검색 |
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 키워드 규칙으로 컴파일 |
 | `bar_tend/src/data/keyword-rules.json` | 키워드 패턴, 표정, 폴백 응답, 대사 카테고리 |
 | `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 intent 감지와 fallback 응답 |
@@ -178,7 +181,11 @@ useRestationController
 
 `이야기`, `얽힌`, `유래`, `배경`, `더 들려줘`, `설명해줘` 계열 입력은 일반 경청 fallback으로 보내지 않고 `story-query`, `lore-query`, `cocktail-info-query` 계열로 먼저 분류한다. 직전 추천 칵테일 또는 현재 표시 중인 칵테일 카드가 있으면 해당 칵테일의 `talkingPoints`를 우선 사용하고, 없으면 Re:Station 바 세계관 lore 응답으로 처리한다.
 
-`그걸로 주세요`, `한 잔 주세요`처럼 칵테일명을 생략한 주문형 입력은 `orderCandidateCocktailId`가 있으면 `explicit-cocktail`로 라우팅한다. 이 기능은 아직 완성된 Action Layer가 아니라 컨트롤러 내부 컨텍스트 ref와 입력 라우터 옵션으로 연결된 Phase 1.5의 초기 형태다.
+`그걸로 주세요`, `한 잔 주세요`처럼 칵테일명을 생략한 주문형 입력은 Conversation Context의 `lastOrderCandidateCocktailId`를 사용해 `explicit-cocktail`로 라우팅하고, Action Resolver가 대상 ID를 가진 `order` 행동으로 변환한다. 추천 엔진은 원문에서 이름을 다시 찾지 않고 이 ID의 칵테일을 직접 주문 경로로 처리한다.
+
+단, 헤밍웨이·007·Sex and the City·일출 같은 명시적 lore/person/media 단서는 대명사 컨텍스트보다 먼저 검색한다. 검색 결과가 있으면 `lore-based-order`로 해당 칵테일을 주문하며, 결과가 없으면 직전 웰컴드링크를 자동 주문하지 않고 지식 fallback으로 보낸다.
+
+`lore-based-order`는 정보 조회가 아니라 `loreBasedOrder` 행동이다. `주세요`, `부탁`, `한 잔`, `다음잔`, 문장 끝의 `그걸로`, `마실래요`, `시켜줘`가 있으면 주문 후보를 저장하고 주문 전용 대사 뒤 제조·서빙으로 이어진다. 주문 표현 없는 인물/lore 질문만 `story-query`로 처리한다.
 
 대화 세션은 무한 채팅을 목표로 하지 않는다. 현재 `useRestationController.ts`는 일반 대화 턴을 내부적으로 세고, 약 12턴 이후에는 카루아의 대사 안에서 자연스럽게 추천을 권한다.
 
@@ -517,15 +524,17 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 - `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 XYZ 후속 서빙, Farewell 종료 조건
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
 - `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
-- `useRestationController.ts`: 입력 처리 흐름 조율, 컨텍스트 ref 갱신, 상태 반영, 메시지 표시와 연출 연결
+- `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조와 갱신 규칙
+- `action-resolver.ts`: route/intent와 컨텍스트를 행동 객체로 변환
+- `useRestationController.ts`: 확정된 행동의 UI 상태 반영, 메시지 표시와 연출 연결
 
 이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
 
-### 11.6 Context + Action Layer가 아직 독립 모듈이 아님
+### 11.6 Context + Action Layer 초기 분리 완료
 
-`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`는 현재 컨트롤러 내부 ref로 관리된다. 이 덕분에 “그걸로 주세요” 같은 생략 주문과 직전 칵테일 이야기 질문을 어느 정도 처리할 수 있지만, 아직 독립된 Conversation Context나 Action Layer로 분리된 상태는 아니다.
+`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`는 `conversation-context.ts`의 순수 상태로 관리된다. 논의·추천·서빙 이벤트의 갱신 규칙이 테스트 가능한 단위로 분리되었고, 컨트롤러는 하나의 context ref만 보유한다.
 
-다음 구조 작업에서는 의도 분류 결과가 바로 응답 문자열로 가지 않고 `order`, `serve`, `recommend`, `continueStory` 같은 행동 객체로 이어져야 한다. 그래야 `모히토` → `그걸로 주세요` → 실제 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 같은 흐름을 테스트 가능한 단위로 고정할 수 있다.
+`action-resolver.ts`는 현재 `order`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
 
 ## 12. 외부 기획자에게 요청할 기획안 범위
 
@@ -595,7 +604,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 현재 `mission_control/TASK_BOARD.md`와 `HANDOVER.md`에는 다음 구조 로드맵이 기록되어 있다.
 
 1. `Phase 1` IntentClassifier 통합 마무리: 추천/대화/이야기/캐릭터/안전 의도 분류 안정화
-2. `Phase 1.5` Context + Action Layer: `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현
+2. `Phase 1.5` Context + Action Layer: 완료. 생략 주문과 후속 이야기 컨텍스트 연결
 3. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리
 4. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직 분리
 5. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 정리
@@ -620,8 +629,8 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 타입체크 | 통과: `npm.cmd run check` |
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
-| 전체 테스트 | 통과: `npm.cmd test` 기준 18개 파일, 218개 테스트 |
-| 메인 JS | 빌드 기준 약 443.70 kB, gzip 약 130.74 kB |
+| 전체 테스트 | 통과: `npm.cmd test -- --run` 기준 20개 파일, 235개 테스트 |
+| 메인 JS | 빌드 기준 442.62 kB, gzip 130.41 kB |
 
 마지막 확인 시점 기준으로 알려진 Vitest 실패는 없다. 코드 리뷰와 검수 시에는 입력 라우팅, 컨텍스트 이어받기, `talkingPoints` 응답 출처, 세션 마감 정책을 중점 확인한다.
 

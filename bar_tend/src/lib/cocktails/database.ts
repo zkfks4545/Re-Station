@@ -744,6 +744,7 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     recipe_source_url: record.recipe_source_url,
     official_category: record.official_category,
     talkingPoints: record.talking_points,
+    lore: record.lore,
     bar_id: isSignatureCocktail(record) ? record.bar_id : undefined,
     bar_name: isSignatureCocktail(record) ? record.bar_name : undefined,
     bar_location_link: isSignatureCocktail(record) ? record.bar_location_link : undefined,

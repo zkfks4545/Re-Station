@@ -1562,3 +1562,84 @@
 | 검증 | 결과 |
 |---|---|
 | 문서 변경 | 코드 변경 없음 |
+
+## 2026-06-29 / PHASE-1 / IntentClassifier 통합 완료
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-29 |
+| 작업 ID | PHASE-1 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 입력 흐름 route와 세부 응답 intent를 하나의 `ClassifiedIntent` 결과로 통합하고, 컨트롤러와 응답 엔진이 같은 분류 결과를 공유하도록 변경했다. |
+| 수정 파일 | `bar_tend/src/lib/bartender/intent-classifier.ts`, `input-router.ts`, `engine.ts`, 관련 테스트, `bar_tend/src/hooks/useRestationController.ts`, `mission_control/CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md`, `WORK_LOG.md` |
+| 주요 변경 사항 | 컨트롤러의 `routeUserInput` 직접 호출 제거, 모든 InputRoute 매핑 완성, 응답 엔진 재분류 제거, route/intent 역할 분리 및 통합 계약 테스트 추가 |
+| 후속 작업 제안 | Phase 1.5에서 `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`를 독립 Context + Action Layer로 이동한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test -- --run` | 통과, Vitest 228개 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, `tsc --noEmit` 포함, 메인 JS 440.58 kB |
+
+## 2026-06-29 / PHASE-1.5 / Context + Action Layer
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-29 |
+| 작업 ID | PHASE-1.5 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 네 개의 칵테일 참조를 순수 Conversation Context 상태로 통합하고, 통합 분류 결과를 행동 객체로 변환하는 초기 Action Layer를 구현했다. |
+| 생성 파일 | `bar_tend/src/lib/dialogue/conversation-context.ts`, `conversation-context.test.ts`, `action-resolver.ts`, `action-resolver.test.ts` |
+| 수정 파일 | `useRestationController.ts`, `useRecommendationSession.ts`, `engine.ts`, `conversation.ts`, 관련 테스트와 mission_control 상태 문서 |
+| 주요 변경 사항 | `lastOrderCandidate` 실제 갱신, 생략 주문 대상 ID 직접 실행, 직전 칵테일 후속 이야기·정보 응답, 컨트롤러의 네 개 context ref를 단일 상태로 교체 |
+| 후속 작업 제안 | Phase 2에서 응답 조립 파이프라인을 분리하고, Phase 4~5에서 컨텍스트 갱신 조건과 전체 행동 실행 부수 효과를 확장한다. |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test -- --run` | 통과, 20개 파일 235개 테스트 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, `tsc --noEmit` 포함, 메인 JS 442.62 kB |
+| 로컬 서버 응답 | `http://127.0.0.1:5173/` HTTP 200 |
+
+## 2026-06-29 / PHASE-1.5-FIX-2 / lore 주문 Action 실행
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-29 |
+| 작업 ID | PHASE-1.5-FIX-2 |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | lore 검색 성공 후 story 응답으로 멈추던 경계를 `loreBasedOrder` 전용 행동으로 분리하고 실제 주문 후보 저장과 제조·서빙 흐름에 연결했다. |
+| 주요 변경 사항 | `부탁`, `다음잔`, `한 잔`, 문장 끝의 `그걸로`, `마실래요`, `시켜줘` 주문 표현 보강, lore 주문 전용 응답 추가, 주문 표현 없는 질문은 story-query 유지 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test -- --run` | 통과, 21개 파일 255개 테스트 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, `tsc --noEmit` 포함, 메인 JS 446.31 kB |
+
+## 2026-06-29 / PHASE-1.5-FIX / 명시적 lore 주문 우선순위
+
+| 항목 | 내용 |
+|---|---|
+| 날짜 | 2026-06-29 |
+| 작업 ID | PHASE-1.5-FIX |
+| 작업자 | GPT-5 Codex |
+| 작업 내용 | 명시적 인물·작품·이름 유래 단서를 직전 웰컴드링크 대명사 주문보다 먼저 처리하고, DB lore 검색 결과를 주문 또는 후속 이야기 대상으로 연결했다. |
+| 생성 파일 | `bar_tend/src/lib/cocktails/lore-reference.ts`, `lore-reference.test.ts` |
+| 수정 파일 | 칵테일 lore 타입·DB 어댑터, `input-router.ts`, `intent-classifier.ts`, `action-resolver.ts`, 세션·DialogueTurn 매핑과 관련 테스트 |
+| 주요 변경 사항 | `lore-based-order` 추가, 헤밍웨이→모히토·007→마티니·Sex and the City→코스모폴리탄·일출→데킬라 선라이즈 검색, 검색 실패 시 현재 컨텍스트 재사용 차단 |
+
+### 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `npm.cmd test -- --run` | 통과, 21개 파일 248개 테스트 |
+| `npm.cmd run lint` | 통과 |
+| `npm.cmd run build` | 통과, `tsc --noEmit` 포함, 메인 JS 445.65 kB |
+| 로컬 서버 응답 | `http://127.0.0.1:5173/` HTTP 200 |

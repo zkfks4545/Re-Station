@@ -1,5 +1,5 @@
 import { type CocktailData } from '../../types.js'
-import { routeUserInput } from '../dialogue/input-router.js'
+import { routeUserInput, type InputRoute, type RouteResult } from '../dialogue/input-router.js'
 
 import { keywordRules } from './keywords.js'
 
@@ -85,6 +85,9 @@ export interface DialogueContext {
   userName?: string
   exchangeCount?: number
   lastBartenderWasQuestion?: boolean
+  allowRecommendationRoutes?: boolean
+  lastDiscussedCocktailId?: string
+  orderCandidateCocktailId?: string
 }
 
 export interface CocktailReference {
@@ -95,13 +98,12 @@ export interface CocktailReference {
 }
 
 export interface ClassifiedIntent {
+  route: RouteResult
   intent: IntentType
   entities: ExtractedEntities
   confidence: number
   source: 'input-router' | 'conversation' | 'keyword-rules' | 'inference'
   metadata: {
-    dialogueRoute?: string
-    routeConfidence?: number
     cocktailReferences: CocktailReference[]
     contextualEligibility: {
       allowsRecommendation?: boolean
@@ -135,7 +137,12 @@ export class IntentClassifier {
     const matchedKeywords: string[] = []
     const matchingPatterns: string[] = []
 
-    const inputRouterResult = this.evaluateInputRouter(normalizedInput, context)
+    const route = routeUserInput(normalizedInput, {
+      recommendationActive: context.activeRecommendationSession ?? false,
+      allowRecommendationRoutes: context.allowRecommendationRoutes ?? true,
+      lastDiscussedCocktailId: context.lastDiscussedCocktailId ?? context.lastServedCocktail?.id,
+      orderCandidateCocktailId: context.orderCandidateCocktailId ?? context.lastServedCocktail?.id,
+    })
     const conversationResult = this.evaluateConversationIntent(normalizedInput)
     const keywordRulesResult = this.evaluateKeywordRules(normalizedInput)
 
@@ -143,15 +150,30 @@ export class IntentClassifier {
     let finalConfidence: number
     let finalSource: ClassifiedIntent['source']
 
-    if (inputRouterResult.route !== 'general') {
-      finalIntent = inputRouterResult.intent as IntentType
-      finalConfidence = inputRouterResult.confidence
+    const routeMustWin = [
+      'safety',
+      'exit',
+      'recommendation-cancel',
+      'lore-based-order',
+      'explicit-cocktail',
+      'cocktail-mention',
+      'unknown-cocktail-query',
+    ].includes(route.route)
+
+    if (routeMustWin) {
+      finalIntent = this.mapInputRouteToIntent(route.route)
+      finalConfidence = route.confidence
       finalSource = 'input-router'
-      matchingPatterns.push(...inputRouterResult.matchingPatterns)
+      matchingPatterns.push(`route:${route.route}`)
     } else if (conversationResult.intent !== 'general-chat') {
       finalIntent = conversationResult.intent
       finalConfidence = conversationResult.confidence
       finalSource = 'conversation'
+    } else if (route.route !== 'general') {
+      finalIntent = this.mapInputRouteToIntent(route.route)
+      finalConfidence = route.confidence
+      finalSource = 'input-router'
+      matchingPatterns.push(`route:${route.route}`)
     } else if (keywordRulesResult.intent !== 'general') {
       finalIntent = this.mapKeywordResultToIntent(keywordRulesResult.intent)
       finalConfidence = keywordRulesResult.confidence
@@ -181,13 +203,12 @@ export class IntentClassifier {
     })
 
     return {
+      route,
       intent: finalIntent,
       entities,
       confidence: finalConfidence,
       source: finalSource,
       metadata: {
-        dialogueRoute: undefined,
-        routeConfidence: inputRouterResult.confidence,
         cocktailReferences: cocktailRefs,
         contextualEligibility: this.calculateContextualEligibility(finalIntent, context, entities),
         contextualExclusions: this.calculateContextualExclusions(finalIntent, context, entities),
@@ -198,23 +219,6 @@ export class IntentClassifier {
           sessionHistoryContext: this.buildSessionHistoryContext(context),
         },
       },
-    }
-  }
-
-  private evaluateInputRouter(input: string, context: DialogueContext) {
-    const routeResult = routeUserInput(input, {
-      recommendationActive: context.activeRecommendationSession ?? false,
-      allowRecommendationRoutes: true,
-      lastDiscussedCocktailId: context.lastServedCocktail?.id,
-      orderCandidateCocktailId: context.lastServedCocktail?.id,
-    })
-    const explicitRoutes = ['safety', 'exit', 'recommendation-cancel', 'explicit-cocktail', 'cocktail-mention']
-    const isExplicit = explicitRoutes.includes(routeResult.route)
-    return {
-      route: isExplicit ? routeResult.route : 'general',
-      intent: isExplicit ? this.mapInputRouteToIntent(routeResult.route) : 'general-chat',
-      confidence: routeResult.confidence,
-      matchingPatterns: this.extractMatchingPatterns(routeResult.route, input),
     }
   }
 
@@ -288,21 +292,7 @@ export class IntentClassifier {
 
     if (/[가-힣]{2,}[이가]\s*마시/.test(lower)) return ['lore-query']
 
-    if (this.detectUnknownCocktailQuery(lower)) return ['unknown-cocktail-request']
-
     return ['general-chat']
-  }
-
-  private detectUnknownCocktailQuery(input: string): boolean {
-    const match = input.match(COCKTAIL_QUERY)
-    if (!match) return false
-    const candidate = match[1].trim()
-    if (candidate.length < 2) return false
-    return !this.cocktailDB.some(c =>
-      candidate.includes(c.name.toLowerCase()) ||
-      (c.nameEn && candidate.includes(c.nameEn.toLowerCase())) ||
-      c.aliases?.some(a => candidate.includes(a.toLowerCase()))
-    )
   }
 
   private detectKeywordMatch(input: string): string | null {
@@ -482,44 +472,24 @@ export class IntentClassifier {
     return false
   }
 
-  private extractMatchingPatterns(route: string, input: string): string[] {
-    const patterns: string[] = []
-
-    const knownPatterns: Record<string, RegExp[]> = {
-      safety: [SAFETY_CONCERN],
-      exit: [EXIT_INTENT],
-      recommendationCancel: [RECOMMENDATION_CANCEL],
-      randomRecommendation: [RANDOM_RECOMMENDATION],
-      explicitCocktail: [COCKTAIL_QUERY],
-      unknownCocktailQuery: [COCKTAIL_QUERY],
-      storyQuery: [STORY_QUERY],
-      recommendation: [],
-      general: [],
-    }
-
-    if (knownPatterns[route]) {
-      knownPatterns[route].forEach((pattern: RegExp) => {
-        if (pattern.test(input)) patterns.push(pattern.source)
-      })
-    }
-
-    return patterns
-  }
-
-  private mapInputRouteToIntent(route: string): IntentType {
-    const map: Record<string, IntentType> = {
+  private mapInputRouteToIntent(route: InputRoute): IntentType {
+    const map: Record<InputRoute, IntentType> = {
       safety: 'safety-alert',
       exit: 'exit-intent',
       'recommendation-cancel': 'recommendation-cancel',
       'random-recommendation': 'random-request',
+      'lore-based-order': 'order-cocktail',
       'explicit-cocktail': 'order-cocktail',
       'cocktail-mention': 'cocktail-query',
       'unknown-cocktail-query': 'unknown-cocktail-request',
       'story-query': 'story-query',
+      'lore-query': 'lore-query',
+      'cocktail-info-query': 'cocktail-info-query',
+      'character-query': 'character-query',
       recommendation: 'cocktail-query',
       general: 'general-chat',
     }
-    return map[route] ?? 'general-chat'
+    return map[route]
   }
 
   private mapKeywordResultToIntent(keywordMatch: string): IntentType {
@@ -561,10 +531,3 @@ export class IntentClassifier {
 const kf = (patterns: string[]) => new RegExp(patterns.map(
   (p) => (/^[a-z]/i.test(p) ? `\\b${p}\\b` : p)
 ).join('|'))
-
-const SAFETY_CONCERN = /죽고\s*싶|자살|자해|해치고\s*싶|다치게\s*할|살기\s*싫|끝내고\s*싶/
-const EXIT_INTENT = /나갈게|갈게|바이|끝낼게|잘 있어|다음에|안녕히/
-const RANDOM_RECOMMENDATION = /아무거나/
-const RECOMMENDATION_CANCEL = /^(?:추천\s*)?(?:질문\s*)?(?:취소|그만)(?:해|할래|할게|해줘|해도\s*돼)?$|(?:추천|질문).{0,8}(?:취소|그만)|그만\s*(?:물어봐|물어보세요)/
-const COCKTAIL_QUERY = /(.{1,20})[을를]?\s*(?:주문|시켜|원해|찾아|알려줘|뭐야|먹고|마시|한\s*잔|추천|보여줘)/
-const STORY_QUERY = /이야기|얽힌|유래|배경|더\s*들려줘|설명해줘|설명해\s*줘|들려줘/

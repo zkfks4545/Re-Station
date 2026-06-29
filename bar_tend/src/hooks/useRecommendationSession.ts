@@ -13,6 +13,7 @@ import {
 import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
 import {
   formatExplicitCocktailReply,
+  formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
   formatRecommendationReply,
   selectRecommendationOpening,
@@ -83,27 +84,45 @@ export function useRecommendationSession() {
     }
   }, [recentDialogueLineIds, resetRecommendation])
 
+  const resolveExplicitCocktail = useCallback((cocktail: CocktailData): RecommendationResult => {
+    const dialogue = inferRecommendationDialogueContext(recommendationState, {
+      route: 'directCocktailOrder',
+      routeTags: ['direct-name'],
+      dialogueState: 'serving',
+      affectState: 'confident',
+    })
+    resetRecommendation()
+    return {
+      cocktail,
+      decision: createRecommendationDecision(cocktail, recommendationState, dialogue),
+      reply: formatExplicitCocktailReply(cocktail),
+      expression: expressionForDialogue(dialogue),
+    }
+  }, [recommendationState, resetRecommendation])
+
+  const resolveLoreBasedCocktail = useCallback((cocktail: CocktailData): RecommendationResult => {
+    const dialogue = inferRecommendationDialogueContext(recommendationState, {
+      route: 'anecdoteOrPersonOrder',
+      routeTags: ['delegated'],
+      dialogueState: 'serving',
+      affectState: 'confident',
+    })
+    resetRecommendation()
+    return {
+      cocktail,
+      decision: createRecommendationDecision(cocktail, recommendationState, dialogue),
+      reply: formatLoreBasedOrderReply(cocktail),
+      expression: expressionForDialogue(dialogue),
+    }
+  }, [recommendationState, resetRecommendation])
+
   const resolveRecommendation = useCallback(
     (text: string, preference: TastePreference): RecommendationResult | null => {
       const explicitCocktail = findCocktailByName(text)
       const isRecommendation =
         !explicitCocktail && (candidatePool !== null || isRecommendationIntent(text))
 
-      if (explicitCocktail) {
-        const dialogue = inferRecommendationDialogueContext(recommendationState, {
-          route: 'directCocktailOrder',
-          routeTags: ['direct-name'],
-          dialogueState: 'serving',
-          affectState: 'confident',
-        })
-        resetRecommendation()
-        return {
-          cocktail: explicitCocktail,
-          decision: createRecommendationDecision(explicitCocktail, recommendationState, dialogue),
-          reply: formatExplicitCocktailReply(explicitCocktail),
-          expression: expressionForDialogue(dialogue),
-        }
-      }
+      if (explicitCocktail) return resolveExplicitCocktail(explicitCocktail)
 
       if (!isRecommendation) return null
 
@@ -204,6 +223,7 @@ export function useRecommendationSession() {
       resetRecommendation,
       excludedCocktailIds,
       recentDialogueLineIds,
+      resolveExplicitCocktail,
     ],
   )
 
@@ -213,6 +233,8 @@ export function useRecommendationSession() {
     excludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,
+    resolveExplicitCocktail,
+    resolveLoreBasedCocktail,
     resolveRecommendation,
   }
 }
