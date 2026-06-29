@@ -121,6 +121,99 @@ export const COCKTAIL_FALLBACK_TEMPLATES: Record<string, IntentResponseTemplate>
   },
 }
 
+export const MOOD_SUB_TEMPLATES: Record<string, IntentResponseTemplate> = {
+  tired: {
+    dialogueCategory: 'mood-tired',
+    fallback: '오늘은 좀 가볍게 가죠.',
+    expression: 'sympathy',
+  },
+  sad: {
+    dialogueCategory: 'mood-sad',
+    fallback: '그런 날이 있죠. 무거운 얘기는 천천히.',
+    expression: 'sympathy',
+  },
+  happy: {
+    dialogueCategory: 'mood-happy',
+    fallback: '좋은 일이 있으셨군요.',
+    expression: 'smirk',
+  },
+}
+
+export const MOOD_DEFAULT: IntentResponseTemplate = {
+  fallback: '지금 기분에 맞는 한 잔을 찾으시면 말씀해 주세요.',
+  expression: 'talk',
+}
+
+export const MOOD_KEYWORD_MAP: Record<string, string[]> = {
+  tired: ['피곤', '지쳤', '지침', '퇴근', '졸려', '녹초'],
+  sad: ['힘들', '우울', '슬퍼', '외롭', '스트레스', '괴롭', '속상', '답답'],
+  happy: ['좋아', '행복', '신나', '축하', '기쁘', '즐거', '최고', '재밌', '웃기'],
+}
+
+export const TASTE_SUB_TEMPLATES: Record<string, IntentResponseTemplate> = {
+  sweet: {
+    dialogueCategory: 'taste-sweet',
+    fallback: '달콤한 쪽으로 찾아볼게요.',
+    expression: 'talk',
+  },
+  bitter: {
+    dialogueCategory: 'taste-bitter',
+    fallback: '쌉쌀한 쪽으로 찾아볼게요.',
+    expression: 'smirk',
+  },
+  refresh: {
+    dialogueCategory: 'taste-refresh',
+    fallback: '청량한 쪽으로 찾아볼게요.',
+    expression: 'talk',
+  },
+}
+
+export const TASTE_DEFAULT: IntentResponseTemplate = {
+  fallback: '어떤 맛을 좋아하시는지 말씀해 주세요.',
+  expression: 'talk',
+}
+
+export const TASTE_KEYWORD_MAP: Record<string, string[]> = {
+  sweet: ['달콤', '달아', '시럽', '달게', '단'],
+  bitter: ['씁쓸', '쓰다', '비터', '쓴맛'],
+  refresh: ['상쾌', '시원', '청량', 'fresh', '탄산', '순하', '강하', '진하'],
+}
+
+export const RUDE_SUB_TEMPLATES: Record<string, IntentResponseTemplate> = {
+  annoyed: {
+    dialogueCategory: 'rude-annoyed',
+    fallback: '그런 말씀은 듣기 좋지 않네요.',
+    expression: 'annoyed',
+  },
+  boundary: {
+    dialogueCategory: 'rude-boundary',
+    fallback: '여기는 편하게 대화하는 곳이에요.',
+    expression: 'stern',
+  },
+}
+
+export const RUDE_DEFAULT: IntentResponseTemplate = {
+  dialogueCategory: 'rude-disappointed',
+  fallback: '그렇게 생각하시는군요. 조금 아쉽네요.',
+  expression: 'disappointed',
+}
+
+export const RUDE_KEYWORD_MAP: Record<string, string[]> = {
+  annoyed: ['시끄러', '닥쳐', '꺼져', '짜증나', '열받아', '화나'],
+  boundary: ['당장', '빨리 해', '가져와', '내놔', '말 들어', '듣거라', '니가 뭔데'],
+}
+
+export const STORY_FALLBACK: IntentResponseTemplate = {
+  dialogueCategory: 'story-request',
+  fallback: '듣고 있어요.',
+  expression: 'talk',
+}
+
+export const STORY_PERSON_MISSING_TEMPLATE = (person: string): BartenderResponse => ({
+  response: `${person}에 대한 이야기는 아직 모아지지 않았네요. 다른 이야기를 들려드릴까요?`,
+  expression: 'talk',
+})
+
 export function formatCocktailMentionResponse(cocktail: CocktailData): BartenderResponse {
   const templates: BartenderResponse[] = [
     { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' },

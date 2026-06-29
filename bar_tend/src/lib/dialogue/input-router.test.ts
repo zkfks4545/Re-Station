@@ -181,6 +181,20 @@ describe('user input routing priority', () => {
     expect(r('마티니 주문')).toBe('explicit-cocktail')
   })
 
+  it('routes shaken/stirred shake reference with cocktail name to explicit-cocktail', () => {
+    expect(r('마티니한잔 젓지말고 흔들어서')).toBe('explicit-cocktail')
+    expect(r('마티니 한 잔 본드식으로')).toBe('explicit-cocktail')
+    expect(r('마티니 shaken not stirred')).toBe('explicit-cocktail')
+  })
+
+  it('routes shake reference without cocktail name to general when no known cocktail', () => {
+    expect(r('젓지말고 흔들어서')).toBe('general')
+  })
+
+  it('routes shake reference with only 주세요 to recommendation when it matches isRecommendationIntent', () => {
+    expect(r('본드식으로 주세요')).toBe('recommendation')
+  })
+
   it('keeps conversation sessions from auto-switching into recommendation routes', () => {
     const opts = { allowRecommendationRoutes: false }
     expect(r('추천해줘', opts)).toBe('general')

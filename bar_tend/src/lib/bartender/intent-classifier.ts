@@ -1,5 +1,6 @@
 import { type CocktailData } from '../../types.js'
 import { routeUserInput, type InputRoute, type RouteResult } from '../dialogue/input-router.js'
+import { kf } from '../dialogue/pattern-utils.js'
 
 import { keywordRules } from './keywords.js'
 
@@ -12,6 +13,7 @@ export type IntentType =
   | 'character-query'
   | 'story-query-followup'
   | 'story-query-cocktail-specific'
+  | 'lore-followup'
   | 'welcome-drink'
   | 'welcome-drink-feedback'
   | 'recognition'
@@ -281,10 +283,14 @@ export class IntentClassifier {
     if (/탄생\s*(?:이야기|설명)|기원/.test(lower)) return ['lore-query']
     if (/정보\s*(?:좀\s*)?(?:알려|줘|뭐야|뭔지)|맛\s*설명|도수|어떤\s*칵테일|이\s*칵테일\s*(?:정보|설명)/.test(lower)) return ['cocktail-info-query']
 
+    if (kf(['젓지말고 흔들', '젓지 말고 흔들', '흔들어서', '흔든', '본드식', '007처럼']).test(lower)) return ['lore-followup']
+    if (/shaken\s*,?\s*not\s*stirred/i.test(lower)) return ['lore-followup']
+    if (/shaken\s+not\s+stirred/i.test(lower)) return ['lore-followup']
+
     if (kf(['추천', '뭐가 좋아', '칵테일', '마실', '취하', '주문', '한 잔', '한잔']).test(lower)) return ['cocktail-query']
     if (kf(['달콤', '쓰다', '신맛', '짠맛', '향', '맛', '상큼', '청량', '순하', '강하', '진하', '산미']).test(lower)) return ['taste-query']
     if (kf(['어떻게', '재료', '만들', '레시피', '뭐가 들', '조리법', '방법']).test(lower)) return ['recipe-query']
-    if (kf(['힘들', '우울', '슬퍼', '행복', '기분', '외롭', '지쳤', '스트레스', '속상', '답답', '좋은 일', '좋았']).test(lower)) return ['mood-talk']
+    if (kf(['힘들', '우울', '슬퍼', '행복', '기분', '외롭', '지쳤', '피곤', '스트레스', '속상', '답답', '졸리', '좋은 일', '좋았']).test(lower)) return ['mood-talk']
     if (kf(['이야기', '얘기', '사연', '비밀', '옛날', '추억', '유래', '뒷이야기']).test(lower)) return ['story-query']
     if (/그거\s*맞/.test(lower)) return ['story-query-followup']
     if (/좋아하/.test(lower)) return ['story-query']
@@ -467,7 +473,7 @@ export class IntentClassifier {
   }
 
   private isStoryQueryBlocked(context: DialogueContext, intent: IntentType): boolean {
-    if (!['story-query', 'lore-query', 'cocktail-info-query', 'story-query-followup', 'story-query-cocktail-specific'].includes(intent)) return false
+    if (!['story-query', 'lore-query', 'cocktail-info-query', 'story-query-followup', 'story-query-cocktail-specific', 'lore-followup'].includes(intent)) return false
     if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return true
     return false
   }
@@ -527,7 +533,3 @@ export class IntentClassifier {
     }
   }
 }
-
-const kf = (patterns: string[]) => new RegExp(patterns.map(
-  (p) => (/^[a-z]/i.test(p) ? `\\b${p}\\b` : p)
-).join('|'))

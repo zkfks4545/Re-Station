@@ -138,6 +138,32 @@ describe('neutral runtime dialogue contract', () => {
     }
   })
 
+  it('responds to happy mood with smirk expression', () => {
+    for (let i = 0; i < 8; i++) {
+      const result = getCocktailResponse('오늘 진짜 행복해', [])
+      expect(result).toBeDefined()
+      expect(result.response.length).toBeGreaterThan(0)
+      expect(result.expression).toBe('smirk')
+      expectKahluaBoundary(result.response)
+    }
+  })
+
+  it('detects all mood keywords from MOOD_KEYWORD_MAP correctly through the engine pipeline', () => {
+    const tiredCases = ['오늘 너무 지쳤어', '오늘 너무 피곤하고 지쳤어']
+    for (const input of tiredCases) {
+      const result = getCocktailResponse(input, [])
+      expect(result.expression, `tired case: "${input}"`).toBe('sympathy')
+    }
+    const sadCases = ['요즘 너무 우울해', '오늘 왜 이렇게 슬퍼']
+    for (const input of sadCases) {
+      const result = getCocktailResponse(input, [])
+      expect(result.expression, `sad case: "${input}"`).toBe('sympathy')
+    }
+    const happyCase = '오늘 진짜 행복해'
+    const result = getCocktailResponse(happyCase, [])
+    expect(result.expression, `happy case: "${happyCase}"`).toBe('smirk')
+  })
+
   it('does not encourage reckless drinking when asked for something strong', () => {
     const response = getCocktailResponse('도수 높은 걸로 세게 줘', []).response
 
@@ -233,5 +259,56 @@ describe('story/lore query integration — intent preserved through engine', () 
       expect(result.response).not.toContain('모히토')
       expect(result.expression).toMatch(/talk|thinking/)
     }
+  })
+
+  describe('order-cocktail with shake reference', () => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+
+    it('"마티니한잔 젓지말고 흔들어서" → order-cocktail, not cocktail-info', () => {
+      const classified = new IntentClassifier(cocktails).classify('마티니한잔 젓지말고 흔들어서', context)
+      expect(classified.intent).toBe('order-cocktail')
+    })
+
+    it('"마티니 한 잔 본드식으로" → order-cocktail with shake response', () => {
+      const classified = new IntentClassifier(cocktails).classify('마티니 한 잔 본드식으로', context)
+      expect(classified.intent).toBe('order-cocktail')
+    })
+
+    it('order-cocktail + shake reference → acknowledges 제조방식 in response', () => {
+      const classified = new IntentClassifier(cocktails).classify('마티니한잔 젓지말고 흔들어서', context)
+      const result = getCocktailResponseFromClassified('마티니한잔 젓지말고 흔들어서', [], classified)
+      expect(result.response).toContain('본드식')
+      expect(result.response).toContain('흔들')
+      expect(result.response).toContain('마티니')
+      expect(result.response).toContain('준비할게요')
+    })
+  })
+
+  describe('lore-followup regression', () => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+
+    it('Martini + lore-followup intent → 007 response', () => {
+      const classified = new IntentClassifier(cocktails).classify('젓지말고 흔들어서 만들었겠죠?', context)
+      expect(classified.intent).toBe('lore-followup')
+
+      const martini = findCocktailByName('마티니')!
+      const result = getCocktailResponseFromClassified('젓지말고 흔들어서 만들었겠죠?', [], classified, martini)
+
+      expect(result.response).toContain('007')
+      expect(result.response).toContain('본드')
+      expect(result.response).toContain('흔들')
+      expect(result.expression).toBe('smirk')
+    })
+
+    it('no prior cocktail + lore-followup → generic story fallback', () => {
+      const classified = new IntentClassifier(cocktails).classify('흔들어서 만들었겠죠?', context)
+      expect(classified.intent).toBe('lore-followup')
+
+      const result = getCocktailResponseFromClassified('흔들어서 만들었겠죠?', [], classified)
+
+      expect(result.response).toBeTruthy()
+      expect(result.response).not.toContain('007')
+      expect(result.response).not.toContain('본드')
+    })
   })
 })

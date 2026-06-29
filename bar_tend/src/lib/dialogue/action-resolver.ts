@@ -5,7 +5,7 @@ import {
   type ConversationContextState,
 } from './conversation-context.js'
 
-export type DialogueAction =
+type DialogueAction =
   | { type: 'order'; cocktailId: string }
   | { type: 'loreBasedOrder'; cocktailId: string }
   | { type: 'recommend'; mode: 'preference' | 'random' }

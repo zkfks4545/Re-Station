@@ -16,6 +16,7 @@ const PRONOUN_REFERENCE = /이거|그거|그걸로|이\s*칵테일|방금\s*그�
 const ORDER_VERB = /(?:주세요|주세여|줘|부탁|시켜줘|시켜|한\s*잔)/
 const LORE_ORDER = /(?:주세요|주세여|부탁|주문|시켜(?:줘)?|한\s*잔|한잔|다음\s*잔|걸로\s*줘|마실래(?:요)?|먹을래(?:요)?|그걸로(?:요)?\s*[.!?]*$)/
 const EXPLICIT_RECOMMENDATION = /추천|골라\s*줘|골라줘|뭐가\s*좋/
+const SHAKE_REFERENCE = /젓지\s*말고\s*흔들|젓지말고\s*흔들|본드식|007처럼|shaken\s*,?\s*not\s*stirred|shaken\s+not\s+stirred/i
 
 export type InputRoute =
   | 'safety'
@@ -67,7 +68,7 @@ export function detectLoreQuery(input: string): boolean {
   return LORE_QUERY.test(input.trim().toLowerCase())
 }
 
-export function detectCocktailInfoQuery(input: string): boolean {
+function detectCocktailInfoQuery(input: string): boolean {
   return COCKTAIL_INFO_QUERY.test(input.trim().toLowerCase())
 }
 
@@ -85,7 +86,7 @@ export function detectUnknownCocktailQuery(input: string): string | null {
   return candidate
 }
 
-export function detectOrderVerb(input: string): boolean {
+function detectOrderVerb(input: string): boolean {
   return ORDER_VERB.test(input.trim().toLowerCase())
 }
 
@@ -154,6 +155,10 @@ export function routeUserInput(
   // 칵테일명 + 주문 동사 → explicit-cocktail (recommendationRoutes 무관)
   if (matched && hasOrderVerb) {
     return { route: 'explicit-cocktail', matchedCocktailId: matched.id, confidence: 0.9 }
+  }
+  // 칵테일명 + 제조 방식(셰이크/본드식) → explicit-cocktail
+  if (matched && SHAKE_REFERENCE.test(input.trim().toLowerCase())) {
+    return { route: 'explicit-cocktail', matchedCocktailId: matched.id, confidence: 0.85 }
   }
   const allowRecommendationRoutes = options.allowRecommendationRoutes ?? true
   if (!allowRecommendationRoutes) {

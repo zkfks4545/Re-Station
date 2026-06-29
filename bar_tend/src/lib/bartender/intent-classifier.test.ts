@@ -45,6 +45,10 @@ describe('IntentClassifier', () => {
       ['모히토 레시피 좀 알려줘', 'cocktail-info-query', 'recipe-query'],
       ['너는 누구야?', 'character-query', 'character-query'],
       ['모히토 한 잔 주세요', 'explicit-cocktail', 'order-cocktail'],
+      ['마티니한잔', 'explicit-cocktail', 'order-cocktail'],
+      ['마티니 한 잔', 'explicit-cocktail', 'order-cocktail'],
+      ['마티니한잔 젓지말고 흔들어서', 'explicit-cocktail', 'order-cocktail'],
+      ['마티니 한 잔 본드식으로', 'explicit-cocktail', 'order-cocktail'],
       ['아무거나 골라줘', 'random-recommendation', 'random-request'],
     ] as const)('%s produces one route/intent result', (input, route, intent) => {
       const result = classifier.classify(input, baseContext)
@@ -229,6 +233,35 @@ describe('IntentClassifier', () => {
         expect(result.intent).toBe('bar-setting')
         expect(result.intent).not.toBe('general-chat')
       })
+    })
+  })
+
+  describe('lore-followup detection', () => {
+    const ctx = new IntentClassifier(mockCocktails)
+    const base = { mentionedCocktails: [], sessionPhase: 'conversation' } as DialogueContext
+
+    it.each([
+      '젓지말고 흔들어서 만들었겠죠?',
+      '젓지 말고 흔들어서 만든 거죠?',
+      '흔들어서 만들었겠죠?',
+      '흔든 스타일이군요',
+      '본드식으로 만드셨나요?',
+      '007처럼 만든 건가요?',
+      'Shaken, not stirred',
+      'shaken not stirred',
+    ])('%s → lore-followup', (input) => {
+      const result = ctx.classify(input, base)
+      expect(result.intent).toBe('lore-followup')
+    })
+
+    it('007처럼 만들어 주세요 → order-cocktail (lore reference + order verb), not lore-followup', () => {
+      const result = ctx.classify('007처럼 만들어 주세요', base)
+      expect(result.intent).toBe('order-cocktail')
+    })
+
+    it('흔들림이 심한 날씨네요 → NOT lore-followup', () => {
+      const result = ctx.classify('흔들림이 심한 날씨네요', base)
+      expect(result.intent).not.toBe('lore-followup')
     })
   })
 
