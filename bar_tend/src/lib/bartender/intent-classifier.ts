@@ -26,8 +26,6 @@ export type IntentType =
   | 'uncertain-talk'
   | 'water-request'
   | 'overdrunk'
-  | 'minor-no-alcohol'
-  | 'non-alcoholic'
   | 'ingredient-constraint'
   | 'real-world-info'
   | 'rude-talk'
@@ -58,9 +56,7 @@ export interface ExtractedEntities {
   }
   baseSpirit?: string
   excludedIngredients?: string[]
-  alcoholPreference?: 'low' | 'high' | 'non-alcoholic'
-  nonAlcoholic?: boolean
-  minor?: boolean
+  alcoholPreference?: 'low' | 'high'
   weather?: string
   time?: string
   reason?: string
@@ -77,6 +73,7 @@ export interface DialogueContext {
     | 'aftertalk'
     | 'xyz'
     | 'farewell'
+    | 'safetyLocked'
     | 'returnHome'
   activeRecommendationSession?: boolean
   welcomeDrinkUsed?: boolean
@@ -212,8 +209,8 @@ export class IntentClassifier {
       source: finalSource,
       metadata: {
         cocktailReferences: cocktailRefs,
-        contextualEligibility: this.calculateContextualEligibility(finalIntent, context, entities),
-        contextualExclusions: this.calculateContextualExclusions(finalIntent, context, entities),
+        contextualEligibility: this.calculateContextualEligibility(finalIntent, context),
+        contextualExclusions: this.calculateContextualExclusions(finalIntent, context),
         debugInfo: {
           matchedKeywords: matchedKeywords,
           matchingPatterns: matchingPatterns,
@@ -271,8 +268,6 @@ export class IntentClassifier {
     if (kf(['조용히', '혼자', '쉬고 싶', '말없이', '가만히', '잠깐 쉬']).test(lower)) return ['quiet-talk']
     if (kf(['물 좀', '물 주세요', '물 줘', '물 한잔', '물 한 잔', '시원한 물']).test(lower)) return ['water-request']
     if (kf(['취했', '너무 취', '많이 마셨', '그만 마셔', '술 그만', '더 못 마시']).test(lower)) return ['overdrunk']
-    if (kf(['미성년', '고등학생', '중학생', '학생인데', '술 못 마셔', '청소년']).test(lower)) return ['minor-no-alcohol']
-    if (kf(['무알코올', '논알콜', '논알코올', '알코올 없이', '술 없이', '논알콜릭']).test(lower)) return ['non-alcoholic']
     if (kf(['알레르기', '못 먹', '빼고', '제외', '먹으면 안', '알러지']).test(lower)) return ['ingredient-constraint']
     if (kf(['예약', '영업시간', '주소', '위치', '전화', '결제', '카드 돼', '화장실', '와이파이']).test(lower)) return ['real-world-info']
     if (kf(['아무거나']).test(lower)) return ['random-request']
@@ -329,12 +324,6 @@ export class IntentClassifier {
     const baseSpirits = ['진', '보드카', '럼', '위스키', '데킬라', '브랜디', 'gin', 'vodka', 'rum', 'whiskey', 'tequila', 'brandy']
     const matchedBase = baseSpirits.find(spirits => input.includes(spirits))
     if (matchedBase) entities.baseSpirit = matchedBase
-
-    const nonAlcoholic = /(?:무알콜|논알콜|non.?alcoholic|무.?알코올|논.?알코올)/.test(input)
-    if (nonAlcoholic) entities.nonAlcoholic = true
-
-    const minor = /(?:미성년|청소년|학생|minor|underage)/.test(input)
-    if (minor) entities.minor = true
 
     return entities
   }
@@ -408,12 +397,11 @@ export class IntentClassifier {
   private calculateContextualEligibility(
     intent: IntentType,
     context: DialogueContext,
-    entities: ExtractedEntities,
   ): ClassifiedIntent['metadata']['contextualEligibility'] {
     const eligibility: ClassifiedIntent['metadata']['contextualEligibility'] = {}
 
     if (intent === 'cocktail-query' || intent === 'recommendation-query') {
-      eligibility.allowsRecommendation = this.isRecommendationAllowed(context, entities)
+      eligibility.allowsRecommendation = this.isRecommendationAllowed(context)
     }
 
     if (intent === 'story-query' || intent === 'story-query-cocktail-specific') {
@@ -428,11 +416,10 @@ export class IntentClassifier {
   private calculateContextualExclusions(
     intent: IntentType,
     context: DialogueContext,
-    entities: ExtractedEntities,
   ): ClassifiedIntent['metadata']['contextualExclusions'] {
     const exclusions: ClassifiedIntent['metadata']['contextualExclusions'] = {}
 
-    if (this.isRecommendationBlocked(context, intent, entities)) {
+    if (this.isRecommendationBlocked(context, intent)) {
       exclusions.blockedRecommendation = true
       exclusions.fallbackToGeneral = true
     }
@@ -445,15 +432,14 @@ export class IntentClassifier {
     return exclusions
   }
 
-  private isRecommendationAllowed(context: DialogueContext, entities: ExtractedEntities): boolean {
-    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return false
+  private isRecommendationAllowed(context: DialogueContext): boolean {
+    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'safetyLocked' || context.sessionPhase === 'returnHome') return false
     if (context.alcoholStarsTotal && context.alcoholStarsTotal >= 10) return false
-    if (entities.minor) return false
     return true
   }
 
   private isStoryQueryAllowed(context: DialogueContext): boolean {
-    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return false
+    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'safetyLocked' || context.sessionPhase === 'returnHome') return false
     return true
   }
 
@@ -464,17 +450,15 @@ export class IntentClassifier {
   private isRecommendationBlocked(
     context: DialogueContext,
     intent: IntentType,
-    entities: ExtractedEntities,
   ): boolean {
-    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return intent === 'cocktail-query' || intent === 'recommendation-query'
+    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'safetyLocked' || context.sessionPhase === 'returnHome') return intent === 'cocktail-query' || intent === 'recommendation-query'
     if (context.alcoholStarsTotal && context.alcoholStarsTotal >= 10 && intent === 'cocktail-query') return true
-    if (entities.minor) return true
     return false
   }
 
   private isStoryQueryBlocked(context: DialogueContext, intent: IntentType): boolean {
     if (!['story-query', 'lore-query', 'cocktail-info-query', 'story-query-followup', 'story-query-cocktail-specific', 'lore-followup'].includes(intent)) return false
-    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'returnHome') return true
+    if (context.sessionPhase === 'farewell' || context.sessionPhase === 'safetyLocked' || context.sessionPhase === 'returnHome') return true
     return false
   }
 
@@ -508,8 +492,6 @@ export class IntentClassifier {
       'quiet-moment': 'quiet-talk',
       'water-request': 'water-request',
       overdrunk: 'overdrunk',
-      'minor-no-alcohol': 'minor-no-alcohol',
-      'non-alcoholic': 'non-alcoholic',
       'ingredient-constraint': 'ingredient-constraint',
       'real-world-info': 'real-world-info',
       'rude-annoyed': 'rude-talk',

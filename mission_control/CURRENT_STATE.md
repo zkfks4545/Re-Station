@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~1.5 완료, 다음=Phase 2 |
+| 단계 | RST-000 MVP + Phase 1~2 완료, 다음=Phase 3 |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 잠정 보류 |
-| 빌드/린트 | 통과 (메인 JS 446.31 kB) |
-| 테스트 | **Vitest 255개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 450.28 kB, gzip 132.74 kB) |
+| 테스트 | **Vitest 323개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-29 기준)
@@ -17,6 +17,9 @@
 |---|---|
 | Phase 1 IntentClassifier 통합 | [`36374a4`] |
 | Phase 1.5 Context + Action Layer | [`0404c58`] |
+| Phase 2 Response Pipeline 완료 (템플릿·데이터 삽입·표정 선택 분리, 추천/스토리/캐릭터 공통 경유) | [`4003932`][`27e8298`][`024c692`] + 현재 작업 |
+| Phase 3 선행 DialogueSessionState 정리 (웰컴 플래그·종료 종류·safetyLocked Hard Stop) | 현재 작업 |
+| 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
 | 명시적 lore/person/media 참조가 대명사보다 우선 | [`abe0606`] |
 | lore 주문 → 제조·서빙까지 실행 | [`0404c58`] |
 | XYZ 세션 종료 (도수한계→Farewell Phase) | [`16d322a`] |
@@ -30,13 +33,13 @@
 | 대화 | 존댓말 응대·입력경로별 대사·3블록프리셋·예외응답 | 스프라이트 연출 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·라우팅·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 446.31 kB, 레시피/BGM chunk | 유지 |
+| 번들 | 메인 450.28 kB, 레시피/BGM chunk | 유지 |
 
 ## 현재 우선순위
-1. DLG-807 카루아 말투 재검수
-2. DLG-808 대사 데이터 출처 정리
-3. DLG-809 화자·상태·요청별 문단 프리셋 확장
-4. 이후 Phase 2~9 구조 작업 (Response Pipeline→DialogueService→Context→Action→Slot→Quality→Talking→Character)
+1. Phase 3 DialogueService 분리 (`useRestationController`에서 대화 판단 분리)
+2. Phase 4~8 구조 작업 (Context 완성→Action→Slot Filling→Dialogue Quality→Talking Points)
+3. DLG-807~809 말투·대사 출처·문단 프리셋과 SPR-001~005는 구조 안정화 후 재검토
+4. Phase 9 Character Layer는 의도·행동·응답 출처 안정화 뒤 적용
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |

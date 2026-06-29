@@ -14,6 +14,7 @@ describe('closed Re:Station session flow', () => {
     expect(isOrderingClosedPhase('aftertalk')).toBe(false)
     expect(isOrderingClosedPhase('xyz')).toBe(true)
     expect(isOrderingClosedPhase('farewell')).toBe(true)
+    expect(isOrderingClosedPhase('safetyLocked')).toBe(true)
     expect(isOrderingClosedPhase('returnHome')).toBe(true)
   })
 
@@ -51,6 +52,8 @@ describe('closed Re:Station session flow', () => {
     expect(isRecommendationBlockedInPhase('farewell', 'explicit-cocktail')).toBe(true)
     expect(isRecommendationBlockedInPhase('farewell', 'unknown-cocktail-query')).toBe(true)
     expect(isRecommendationBlockedInPhase('farewell', 'general')).toBe(false)
+    expect(isRecommendationBlockedInPhase('safetyLocked', 'recommendation')).toBe(true)
+    expect(isRecommendationBlockedInPhase('safetyLocked', 'explicit-cocktail')).toBe(true)
   })
 
   it('moves into farewell after the XYZ drink is served', () => {

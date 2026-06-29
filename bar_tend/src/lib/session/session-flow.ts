@@ -7,6 +7,7 @@ export type SessionPhase =
   | 'aftertalk'
   | 'xyz'
   | 'farewell'
+  | 'safetyLocked'
   | 'returnHome'
 
 export const ALCOHOL_STARS_BEFORE_XYZ = 10
@@ -22,7 +23,7 @@ const ORDER_ROUTES: InputRoute[] = [
 ]
 
 export function isOrderingClosedPhase(phase: SessionPhase): boolean {
-  return phase === 'xyz' || phase === 'farewell' || phase === 'returnHome'
+  return phase === 'xyz' || phase === 'farewell' || phase === 'safetyLocked' || phase === 'returnHome'
 }
 
 export function isOrderRoute(route: InputRoute): boolean {

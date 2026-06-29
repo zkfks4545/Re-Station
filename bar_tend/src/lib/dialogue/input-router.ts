@@ -3,7 +3,7 @@ import { findCocktailByLoreReference, hasExplicitLoreReference } from '../cockta
 import { isRecommendationIntent } from '../recommendation/question-engine.js'
 import { SHAKE_REFERENCE } from './pattern-utils.js'
 
-const SAFETY_CONCERN = /죽고\s*싶|자살|자해|해치고\s*싶|다치게\s*할|살기\s*싫|끝내고\s*싶/
+const SAFETY_CONCERN = /죽고\s*싶|자살|자해|해치고\s*싶|죽이고\s*싶|죽여\s*버리고\s*싶|다치게\s*할|살기\s*싫|끝내고\s*싶|(?:칼|흉기|총)\s*(?:을|를)?\s*(?:들고|겨누고)|피가\s*(?:많이|계속)\s*나|누가\s*(?:나를|저를)?\s*(?:죽이|해치)려/
 const EXIT_INTENT = /나갈게|갈게|바이|끝낼게|잘 있어|다음에|안녕히/
 const RANDOM_RECOMMENDATION = /아무거나/
 const RANDOM_RECOMMENDATION_REJECTION = /아무거나\s*(?:말고|는\s*(?:싫|별로|말고))/

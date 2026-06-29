@@ -178,10 +178,12 @@ describe('neutral runtime dialogue contract', () => {
     expectKahluaBoundary(response)
   })
 
-  it('does not suggest alcohol to minors or guests who cannot drink', () => {
-    const response = getCocktailResponse('나 미성년자인데 술 못 마셔', []).response
+  it('does not use dedicated minor or non-alcoholic service replies', () => {
+    const minorResponse = getCocktailResponse('나 미성년자인데 술 못 마셔', []).response
+    const nonAlcoholicResponse = getCocktailResponse('무알코올로 마실래', []).response
 
-    expect(response).toMatch(/알코올|무알코올|술을 제외/)
+    expect(minorResponse).not.toMatch(/미성년|무알코올|알코올은 안내/)
+    expect(nonAlcoholicResponse).not.toMatch(/무알코올 쪽|논알코올|알코올 없이/)
   })
 
   it('asks for exact excluded ingredients for allergy-like constraints', () => {

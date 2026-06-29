@@ -3,6 +3,8 @@ import {
   formatFarewellBlockReply,
   formatFarewellConversationReply,
   formatReturnHomeReply,
+  formatStandardFarewellEntryReply,
+  formatWelcomeFarewellXyzReply,
   formatWelcomeXyzClarificationReply,
   formatXyzReply,
   isEjectionConcern,
@@ -38,12 +40,22 @@ describe('farewell replies', () => {
     expect(reply.expression).toBe('talk')
   })
 
-  it('formats XYZ as the final drink with welcome-drink context', () => {
+  it('does not mention XYZ after an alcohol-free farewell entry', () => {
+    const reply = formatFarewellConversationReply('조금 더 이야기해도 돼?', { hasXyz: false })
+    expect(reply.text).not.toContain('XYZ')
+    expect(reply.text).toContain('새 잔을 더 놓지 않을게요')
+  })
+
+  it('separates regular XYZ from Welcome-Farewell XYZ', () => {
     const xyz = getCocktailById(XYZ_COCKTAIL_ID)
 
     expect(xyz).not.toBeNull()
-    expect(formatXyzReply(xyz!, { welcomeDrinkUsed: true })).toContain('오늘의 마지막 서비스입니다')
-    expect(formatXyzReply(xyz!, { welcomeDrinkUsed: false })).toContain('웰컴드링크를 끝내 못 드렸네요')
+    expect(formatXyzReply(xyz!)).toContain('오늘의 마지막 서비스입니다')
+    expect(formatWelcomeFarewellXyzReply(xyz!)).toContain('첫 잔과 마지막 잔을 겸해서')
+  })
+
+  it('provides a standard farewell without inventing another drink', () => {
+    expect(formatStandardFarewellEntryReply()).not.toContain('한 잔으로')
   })
 
   it('keeps order blocking and return-home replies in the session reply module', () => {

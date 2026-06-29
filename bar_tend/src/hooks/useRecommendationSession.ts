@@ -11,6 +11,7 @@ import {
   selectNextQuestion,
 } from '@/lib/recommendation/question-engine.js'
 import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
+import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
 import {
   formatExplicitCocktailReply,
   formatLoreBasedOrderReply,
@@ -30,7 +31,6 @@ import {
   resolveCocktailsByRecommendationState,
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
-import type { RecommendationDialogueContext } from '@/types/recommendation.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
 import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
 
@@ -76,12 +76,12 @@ export function useRecommendationSession() {
     const selectedOpening = selectRecommendationOpening(decision, recentDialogueLineIds)
     setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
     resetRecommendation()
-    return {
+    return assembleRecommendationResult(
+      formatRandomRecommendationReply(cocktail, selectedOpening.text),
+      'playful',
       cocktail,
       decision,
-      reply: formatRandomRecommendationReply(cocktail, selectedOpening.text),
-      expression: expressionForDialogue('playful'),
-    }
+    )
   }, [recentDialogueLineIds, resetRecommendation])
 
   const resolveExplicitCocktail = useCallback((cocktail: CocktailData): RecommendationResult => {
@@ -92,12 +92,12 @@ export function useRecommendationSession() {
       affectState: 'confident',
     })
     resetRecommendation()
-    return {
+    return assembleRecommendationResult(
+      formatExplicitCocktailReply(cocktail),
+      dialogue.affectState,
       cocktail,
-      decision: createRecommendationDecision(cocktail, recommendationState, dialogue),
-      reply: formatExplicitCocktailReply(cocktail),
-      expression: expressionForDialogue(dialogue),
-    }
+      createRecommendationDecision(cocktail, recommendationState, dialogue),
+    )
   }, [recommendationState, resetRecommendation])
 
   const resolveLoreBasedCocktail = useCallback((cocktail: CocktailData): RecommendationResult => {
@@ -108,12 +108,12 @@ export function useRecommendationSession() {
       affectState: 'confident',
     })
     resetRecommendation()
-    return {
+    return assembleRecommendationResult(
+      formatLoreBasedOrderReply(cocktail),
+      dialogue.affectState,
       cocktail,
-      decision: createRecommendationDecision(cocktail, recommendationState, dialogue),
-      reply: formatLoreBasedOrderReply(cocktail),
-      expression: expressionForDialogue(dialogue),
-    }
+      createRecommendationDecision(cocktail, recommendationState, dialogue),
+    )
   }, [recommendationState, resetRecommendation])
 
   const resolveRecommendation = useCallback(
@@ -145,12 +145,12 @@ export function useRecommendationSession() {
       if (sourcePool.exhausted) {
         setExcludedCocktailIds([])
         resetRecommendation()
-        return {
-          cocktail: null,
-          decision: null,
-          reply: '모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.\n다시 한번 말씀해 주세요.',
-          expression: 'embarrassed',
-        }
+        return assembleRecommendationResult(
+          '모든 칵테일을 이미 추천해 드렸네요. 처음부터 다시 골라볼게요.\n다시 한번 말씀해 주세요.',
+          'embarrassed',
+          null,
+          null,
+        )
       }
 
       const questionCandidates = getQuestionCandidatePool(sourcePool.cocktails, nextState)
@@ -160,12 +160,12 @@ export function useRecommendationSession() {
 
       if (pool.length === 0) {
         resetRecommendation()
-        return {
-          cocktail: null,
-          decision: null,
-          reply: '죄송합니다. 말씀해 주신 조건에 맞는 칵테일은 현재 메뉴에서 찾지 못했어요.',
-          expression: 'embarrassed',
-        }
+        return assembleRecommendationResult(
+          '죄송합니다. 말씀해 주신 조건에 맞는 칵테일은 현재 메뉴에서 찾지 못했어요.',
+          'embarrassed',
+          null,
+          null,
+        )
       }
 
       const nextQuestion = finishRecommendation
@@ -180,17 +180,17 @@ export function useRecommendationSession() {
         setRecommendationState(nextState)
         setCandidatePool(pool)
         setActiveQuestionId(nextQuestion.id)
-        return {
-          cocktail: null,
-          decision: null,
-          reply: formatQuestion(
+        return assembleRecommendationResult(
+          formatQuestion(
             nextQuestion,
             questionCandidates.exactMatch
               ? acknowledgement
               : '완전히 맞는 칵테일은 아직 없네요. 가장 가까운 걸 찾을 수 있게 한 가지만 더 여쭤볼게요.',
           ),
-          expression: 'thinking',
-        }
+          'thinking',
+          null,
+          null,
+        )
       }
 
       const cocktail = pickFromPool(resolved.cocktails, combinedTaste)
@@ -205,16 +205,16 @@ export function useRecommendationSession() {
       }
       resetRecommendation()
 
-      return {
-        cocktail,
-        decision,
-        reply: formatRecommendationReply(
+      return assembleRecommendationResult(
+        formatRecommendationReply(
           decision,
           acknowledgement ?? selectedOpening?.text,
           resolved.exactMatch ? 'exact' : 'nearest',
         ),
-        expression: expressionForDialogue(decision.dialogue),
-      }
+        decision.dialogue.affectState,
+        cocktail,
+        decision,
+      )
     },
     [
       activeQuestionId,
@@ -239,22 +239,17 @@ export function useRecommendationSession() {
   }
 }
 
-function expressionForDialogue(
-  dialogue: RecommendationDialogueContext | RecommendationDialogueContext['affectState'],
-): Expression {
-  const affectState = typeof dialogue === 'string' ? dialogue : dialogue.affectState
-  switch (affectState) {
-    case 'concerned':
-    case 'tired':
-      return 'sympathy'
-    case 'curious':
-    case 'awkward':
-      return 'thinking'
-    case 'confident':
-    case 'playful':
-    case 'warm':
-    case 'neutral':
-    default:
-      return 'smirk'
+function assembleRecommendationResult(
+  text: string,
+  tone: ResponseTone,
+  cocktail: CocktailData | null,
+  decision: RecommendationDecision | null,
+): RecommendationResult {
+  const assembled = assembleResponse({ text, tone })
+  return {
+    reply: assembled.response,
+    expression: assembled.expression,
+    cocktail,
+    decision,
   }
 }

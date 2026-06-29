@@ -1,6 +1,6 @@
 # 인수인계 (축약)
 
-> 최종 갱신일: 2026-06-29 (Phase 1.5 완료, Vitest 255개)
+> 최종 갱신일: 2026-06-29 (Phase 2 완료 + DialogueSessionState/safetyLocked 선행 정리, Vitest 323개)
 > 각 작업의 상세 커밋 해시는 `WORK_LOG.md` 참조.
 
 ## 현재 목표
@@ -8,6 +8,10 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 
 **핵심 진행사항:**
 - Phase 1 (IntentClassifier) + Phase 1.5 (Context + Action Layer) 완료 [`36374a4`][`0404c58`]
+- Phase 2 완료: `ResponseDraft` 기반 공통 조립기에서 텍스트와 표정을 확정하고 추천·스토리·캐릭터 응답이 같은 파이프라인을 경유 [`4003932`][`27e8298`][`024c692`] + 현재 작업
+- Phase 3 선행 작업: 분산된 대화/추천/웰컴/주문/farewell 상태를 `DialogueSessionState`로 통합. 웰컴은 `served/resolved` 플래그로 관리. safety-alert는 모든 진행을 끊고 `safetyLocked`로 세션을 종료
+- 미성년자/무알코올 전용 intent·추천 제약·응답·대체 farewell은 Phase 3 범위에서 제거
+- 공통 `kf`, `SHAKE_REFERENCE`, mood/switch 응답 헬퍼 정리 완료 [`a73342f`][`c82cbc6`][`4f6c90d`]
 - `모히토`→`그걸로 주세요` 같은 생략 입력이 직전 대상 주문/이야기로 연결 [`0404c58`]
 - 명시적 lore/person/media 단서가 대명사 컨텍스트보다 우선 [`abe0606`]
 - `lore-based-order`는 story 응답으로 끝나지 않고 주문→제조→서빙 실행 [`0404c58`]
@@ -27,15 +31,15 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd run lint`, `npm.cmd test -- --run` (Vitest **255개 통과**), `npm.cmd run check`, `npm.cmd run build`
+- ✅ `npm.cmd run lint`, `npm.cmd test -- --run` (Vitest **323개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 450.28 kB)
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
-1. Phase 2 Response Pipeline (응답 선택·템플릿·표정 분리)
-2. Phase 3 DialogueService 분리 (컨트롤러에서 대화판단 로직 분리)
-3. Phase 4~9 (Context 완성 → Action Layer → Slot Filling → Dialogue Quality → Talking Points → Character Layer)
-4. DLG-807~809 (말투 재검수·대사출처·문단프리셋), SPR-001~005 (스프라이트)는 구조 안정화 후 재검토
+1. Phase 3 DialogueService 분리 (컨트롤러에서 대화 판단 로직 분리)
+2. Phase 4~8 (Context 완성 → Action Layer → Slot Filling → Dialogue Quality → Talking Points)
+3. DLG-807~809 (말투 재검수·대사출처·문단프리셋), SPR-001~005 (스프라이트)는 구조 안정화 후 재검토
+4. Phase 9 Character Layer는 의도·행동·응답 출처 안정화 뒤 적용
 
 ## 주의사항 (미완료)
 - [ ] 카루아 대사는 농담 우선, 의미 직접 해설 금지

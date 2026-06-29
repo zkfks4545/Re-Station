@@ -143,10 +143,10 @@ describe('IntentClassifier', () => {
       expect(result.metadata.contextualExclusions.blockedStoryQuery).toBe(true)
     })
 
-    it('minor flag blocks recommendation', () => {
+    it('does not create a dedicated minor recommendation block', () => {
       const result = classifier.classify('나는 학생인데 술 추천해줘', baseContext)
 
-      expect(result.metadata.contextualExclusions.blockedRecommendation).toBe(true)
+      expect(result.metadata.contextualExclusions.blockedRecommendation).toBeUndefined()
     })
   })
 

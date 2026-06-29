@@ -69,7 +69,6 @@ const TASTE_PATTERNS: Array<[FeatureKey, number, RegExp]> = [
 ]
 
 const ALCOHOL_PATTERNS: Array<[AlcoholPreference, RegExp]> = [
-  ['non-alcoholic', /무알코올|논알|non.?alcohol/],
   ['low', /도수.*낮|약한 술|순한 술|가볍게/],
   ['medium', /도수.*적당|적당한 도수/],
   ['high', /도수.*높|독한 술|독한\s*(거|것|걸)?|강한 술|강하게|센\s*(거|것|걸|술)?|쎈\s*(거|것|걸|술)?/],
@@ -215,7 +214,6 @@ export function filterCocktailsByRecommendationState(
       ) return false
     }
 
-    if (state.alcoholPreference === 'non-alcoholic' && !isNonAlcoholic(cocktail)) return false
     if (state.alcoholPreference === 'low' && cocktail.features.alcohol_strength > 0.4) return false
     if (state.alcoholPreference === 'medium' && (
       cocktail.features.alcohol_strength < 0.3 || cocktail.features.alcohol_strength > 0.7
@@ -402,14 +400,7 @@ export function buildRecommendationReasons(
   return reasons
 }
 
-function isNonAlcoholic(cocktail: CocktailData): boolean {
-  return cocktail.alcoholic?.toLowerCase().includes('non') === true
-    || cocktail.features.alcohol_strength === 0
-}
-
 function matchesHardConstraints(cocktail: CocktailData, state: RecommendationState): boolean {
-  if (state.alcoholPreference === 'non-alcoholic' && !isNonAlcoholic(cocktail)) return false
-
   const ingredients = cocktail.ingredients.map(normalize)
   const normalizedBase = normalize(cocktail.base_spirit ?? '')
   if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {

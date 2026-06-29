@@ -49,10 +49,10 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 6. `persona.ts`는 사용자가 직접 다듬은 카루아 말투 기준 파일이다.
 7. `persona.ts`를 JSON 어댑터로 바꾸지 않는다.
 8. 시에스타는 상시 대화 캐릭터가 아니라 짧은 만담 이벤트 캐릭터다.
-9. 안전 입력은 항상 추천, 농담, 캐릭터 대사보다 우선한다.
+9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 도입하더라도 말투 포장만 담당한다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. 현재 향후 구조 우선순위는 `Phase 1.5` Context + Action Layer다.
+12. 현재 향후 구조 우선순위는 `Phase 3` DialogueService 분리다. Phase 1~2의 분류·컨텍스트·행동 해석·응답 조립 기반은 완료되었다.
 13. DLG-807~DLG-809 같은 대사 수렴 작업은 의도·행동·응답 출처가 안정된 뒤 재검토한다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
@@ -78,7 +78,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 
 | 파일 | 역할 |
 |---|---|
-| `bar_tend/src/lib/bartender/engine.ts` | 안전 검사, 키워드 규칙, 일반 대화 fallback 연결 |
+| `bar_tend/src/lib/bartender/engine.ts` | 안전 응답을 우선 처리하고 통합 분류 결과를 일반 대화 응답 선택기로 전달 |
 | `bar_tend/src/lib/bartender/intent-classifier.ts` | 추천/대화/이야기/캐릭터/안전 의도 분류와 컨텍스트 메타데이터 |
 | `bar_tend/src/lib/bartender/intent-classifier-adapter.ts` | 기존 대화 엔진이 IntentClassifier를 사용하도록 연결 |
 | `bar_tend/src/lib/dialogue/conversation-context.ts` | 직전 논의·추천·서빙·주문 후보 칵테일의 순수 상태 전이 |
@@ -86,7 +86,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/cocktails/lore-reference.ts` | DB의 lore·talking points·대중문화 단서로 인물/작품/이름 유래 참조 검색 |
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 키워드 규칙으로 컴파일 |
 | `bar_tend/src/data/keyword-rules.json` | 키워드 패턴, 표정, 폴백 응답, 대사 카테고리 |
-| `bar_tend/src/lib/bartender/conversation.ts` | 일반 대화 intent 감지와 fallback 응답 |
+| `bar_tend/src/lib/bartender/conversation.ts` | 이미 분류된 intent와 참조 칵테일을 받아 템플릿·대사·데이터 포매터를 선택하고 공통 응답 조립기로 전달 |
 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 기준 프롬프트 |
 | `bar_tend/src/lib/bartender/prompts.ts` | persona와 대화 기록을 조합해 프롬프트 구성 |
 
@@ -96,6 +96,8 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 |---|---|
 | `bar_tend/src/data/dialogues.json` | 카테고리별 짧은 대사 풀 |
 | `bar_tend/src/lib/dialogue/dialogue-loader.ts` | `dialogues.json`에서 카테고리 대사 선택 |
+| `bar_tend/src/lib/dialogue/response-templates.ts` | intent별 fallback/tone 템플릿과 칵테일 데이터 삽입용 `ResponseDraft` 포매터 |
+| `bar_tend/src/lib/dialogue/response-pipeline.ts` | `ResponseDraft`의 텍스트와 tone/affect를 최종 응답 문자열·표정으로 조립하는 공통 파이프라인 |
 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문 문장 프리셋과 추천 응답 문단 프리셋 |
 | `bar_tend/src/types/dialogue-turn.ts` | 구조화된 대화 턴 계약 |
 | `bar_tend/src/lib/dialogue/turn-builder.ts` | DialogueTurn 구성과 복구 템플릿 |
@@ -110,7 +112,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/recommendation/question-engine.ts` | 다음 질문 선택, 답변 반영, 후보 분별력 계산 |
 | `bar_tend/src/lib/recommendation/state.ts` | 자유 입력 신호 추출, 추천 상태, 후보 필터, 추천 근거 |
 | `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷 |
-| `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 질문 진행과 최종 추천 연결 |
+| `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 질문 진행과 최종 추천 연결. 질문·실패·직접 주문·lore 주문·최종 추천 결과를 공통 응답 조립기로 전달 |
 | `bar_tend/src/types/recommendation.ts` | 추천 상태, 질문, 선택지, 결정 타입 |
 
 ### 4.5 칵테일 데이터
@@ -135,6 +137,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 
 | 파일 | 역할 |
 |---|---|
+| `bar_tend/src/lib/session/dialogue-session.ts` | 대화/추천 모드, 웰컴 `served/resolved`, 누적 도수, farewell 종류·턴, `safetyLocked`를 소유하는 단일 세션 상태와 종료 진입 결정 |
 | `bar_tend/src/lib/session/session-flow.ts` | 세션 단계 및 XYZ 마지막 잔 발동/Farewell 정책 제어 |
 | `bar_tend/src/lib/session/farewell-replies.ts` | XYZ, Farewell Phase, 주문 차단, 귀가 관련 세션 응답 포맷 |
 | `bar_tend/src/lib/session/session-flow.test.ts` | 서브 이후 누적 도수 10 이상 도달 시 XYZ 후속 서빙 및 Farewell 단계 테스트 |
@@ -155,7 +158,7 @@ useRestationController
   ↓
 웰컴드링크 피드백 또는 추천 질문 진행 중인지 확인
   ↓
-입력 라우터
+입력 라우터 + IntentClassifier 통합 결과
   - safety / exit / recommendation-cancel
   - story-query / lore-query / cocktail-info-query / character-query
   - explicit-cocktail / cocktail-mention / recommendation / general
@@ -166,9 +169,16 @@ useRestationController
   - lastServedCocktailId
   - lastOrderCandidateCocktailId
   ↓
-행동 또는 응답 경로 선택
+Conversation Context를 참조해 Action Resolver가 행동 선택
   ↓
-대사 생성
+응답 출처 선택
+  - dialogue category / intent template / story formatter / recommendation formatter
+  ↓
+ResponseDraft 또는 확정 텍스트 생성
+  - text + tone/affect + 필요 시 dialogue data의 preferredExpression
+  ↓
+assembleResponse 공통 조립
+  - 최종 response + expression
   ↓
 추천 칵테일이 있으면 카루아 제조 애니메이션
   ↓
@@ -178,6 +188,8 @@ useRestationController
 ```
 
 중요한 점은 “추천 판단”과 “대사 표현”이 분리되어 있다는 것이다. 추천 엔진은 칵테일과 근거를 결정하고, 대사 계층은 그것을 어떤 말투와 문단으로 보여줄지 결정한다.
+
+`safety-alert`는 이 흐름의 최상위 예외다. 감지 즉시 추천 FSM, 주문/제조, 웰컴, XYZ/farewell 예약을 중단하고 직접적인 안전 안내만 출력한 뒤 `DialogueSessionState.safetyLocked`로 세션을 종료한다. 이후 일반 대화로 복귀하지 않는다.
 
 `이야기`, `얽힌`, `유래`, `배경`, `더 들려줘`, `설명해줘` 계열 입력은 일반 경청 fallback으로 보내지 않고 `story-query`, `lore-query`, `cocktail-info-query` 계열로 먼저 분류한다. 직전 추천 칵테일 또는 현재 표시 중인 칵테일 카드가 있으면 해당 칵테일의 `talkingPoints`를 우선 사용하고, 없으면 Re:Station 바 세계관 lore 응답으로 처리한다.
 
@@ -293,7 +305,27 @@ useRestationController
 | “레시피/재료/도수 알려줘요” | `cocktail-info-query` | 칵테일 설명/정보 응답 |
 | “당신은 누구예요” | `character-query` | 캐릭터 질문 전용 응답 |
 
-추천 멘트, 웰컴드링크 멘트, 사이드바 레시피 주문 멘트는 모두 `selectCocktailTalkingPoint()`를 통해 `cocktail.talkingPoints`를 반영하는 방향으로 정리되어 있다. 다만 전체 Response Pipeline은 아직 미분리 상태라, 응답 선택·템플릿·데이터 삽입·표정 선택은 다음 구조 작업에서 더 명확히 나눠야 한다.
+추천 멘트, 웰컴드링크 멘트, 사이드바 레시피 주문 멘트는 모두 `selectCocktailTalkingPoint()`를 통해 `cocktail.talkingPoints`를 반영하는 방향으로 정리되어 있다. Phase 2 범위의 추천 결과, 이야기 응답, 캐릭터 응답과 사이드바 주문은 최종 출력 전에 공통 `assembleResponse()`를 통과한다.
+
+### 6.5 공통 Response Pipeline
+
+응답 표현 계층은 다음 계약으로 분리되어 있다.
+
+```text
+응답 출처 선택
+  ↓
+ResponseDraft { text, tone, preferredExpression? }
+  ↓
+assembleResponse()
+  ↓
+BartenderResponse { response, expression }
+```
+
+- intent 템플릿은 최종 표정 대신 `tone`을 제공한다.
+- 추천의 `affectState`와 일반 응답의 `tone`은 `response-pipeline.ts`의 단일 매핑에서 표정으로 변환된다.
+- 칵테일 이름·설명·본드식 주문 같은 데이터 삽입은 `response-templates.ts`의 Draft 포매터가 담당한다.
+- `dialogues.json`에서 이미 표정이 지정된 대사는 호환을 위해 `preferredExpression`으로 전달하되, 최종 응답 객체 생성은 같은 조립기를 사용한다.
+- 추천 결과의 칵테일 선택과 근거 결정은 여전히 추천 엔진 책임이며, Response Pipeline은 결정된 내용을 표현하는 역할만 맡는다.
 
 ## 7. 카루아 말투 계약
 
@@ -440,29 +472,32 @@ useRestationController
 
 ### 10.2 대사 데이터
 
-현재 대사 데이터는 세 종류가 섞여 있다.
+현재 대사 표현 데이터는 여러 목적의 계층으로 나뉘어 있다.
 
 | 데이터 | 위치 | 상태 |
 |---|---|---|
 | 카테고리 대사 풀 | `dialogues.json` | 정리 필요 |
 | 키워드 규칙 | `keyword-rules.json` | JSON 분리 완료 |
+| intent fallback/tone과 데이터 삽입 Draft | `response-templates.ts` | Phase 2 분리 완료 |
 | 프리셋/문단 블록 | `text-presets.ts` | 초기 도입 완료 |
 
-다음 기획의 핵심은 이 세 가지의 역할을 명확히 나누는 것이다.
+조립 책임은 `response-pipeline.ts`로 모였지만, 다음 기획의 핵심은 각 대사 데이터 출처의 편집 기준과 적용 범위를 명확히 나누는 것이다.
 
 ## 11. 현재 구조적 문제
 
-### 11.1 대사 데이터가 아직 세 층으로 흩어져 있음
+### 11.1 대사 원문의 출처별 편집 기준이 아직 부족함
 
-현재 대사는 다음 위치에 분산되어 있다.
+현재 대사 원문은 다음 위치에 분산되어 있다.
 
 - `dialogues.json`
 - `keyword-rules.json`
 - `text-presets.ts`
-- `conversation.ts`
-- `response.ts`
+- `response-templates.ts`
+- `recommendation/response.ts`
+- `story-query.ts`
+- `welcome-drink.ts`, `farewell-replies.ts` 같은 도메인별 응답 포매터
 
-이것은 당장 동작에는 문제가 없지만, 장기적으로 말투 검수와 대사 확장이 어렵다.
+`conversation.ts`가 직접 응답 문자열을 보유하던 문제는 Phase 2에서 줄였고 최종 조립도 공통화했다. 다만 원문 출처가 여러 도메인 파일에 남아 있어, 장기적으로는 말투 검수와 대사 확장을 위한 출처별 편집 규칙이 필요하다.
 
 ### 11.2 문단 프리셋은 아직 추천 일부에만 적용됨
 
@@ -522,6 +557,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 현재 책임 경계:
 
 - `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 XYZ 후속 서빙, Farewell 종료 조건
+- `dialogue-session.ts`: `DialogueSessionState` 전이, 웰컴 피드백 파생 상태, 알코올 제공 제한, farewell 진입 종류 결정
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
 - `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
 - `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조와 갱신 규칙
@@ -536,6 +572,18 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 `action-resolver.ts`는 현재 `order`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
 
+### 11.7 Response Pipeline 분리 완료
+
+Phase 2에서 `ResponseDraft`와 `assembleResponse()` 계약을 추가했다. 일반 intent 템플릿은 `fallback + tone`을 제공하고, 추천·스토리·캐릭터 응답은 최종 출력 전에 같은 조립 단계를 거친다. 추천 affect와 일반 tone의 표정 매핑도 `response-pipeline.ts` 한곳에서 관리한다.
+
+남은 구조 문제는 응답 조립 자체보다 호출 오케스트레이션이다. `useRestationController.ts`에는 여전히 입력 라우팅 이후의 도메인 분기, 행동 실행, 세션 갱신, UI 연출 연결이 함께 있으므로 Phase 3에서 DialogueService를 분리해야 한다.
+
+### 11.8 DialogueSessionState 선행 정리 완료
+
+Phase 3에 앞서 컨트롤러에 흩어졌던 `phase`, conversation/recommendation mode, 일반 대화 진행, 웰컴드링크, 누적 도수, farewell 카운터와 safety 잠금을 `DialogueSessionState` reducer로 모았다. 웰컴드링크는 별도 phase가 아니라 `welcomeDrink.served/resolved` 플래그로 관리한다.
+
+farewell 진입은 일반 XYZ, 웰컴 미제공 시 Welcome-Farewell XYZ, 일반 farewell 중 하나로 결정된다. 미성년자/무알코올 전용 서비스 정책은 Phase 3 범위에서 제외했다. safety-alert는 farewell 종류가 아니라 최상위 Hard Stop이며 `safetyLocked` 이후 XYZ나 일반 farewell을 실행하지 않는다.
+
 ## 12. 외부 기획자에게 요청할 기획안 범위
 
 외부 AI에게 구현이 아니라 다음 기획안을 요청하는 것이 적합하다.
@@ -544,14 +592,12 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 ### 12.1 우선 요청할 것
 
-1. 대표 사용자 입력 30~50개의 의도 분류 기대값
-2. `story-query / lore-query / cocktail-info-query / character-query`별 응답 출처 기준
-3. `모히토` → `그걸로 주세요` 같은 생략 주문 시나리오 목록
-4. `reaction / recommend / explanation` 블록별 대사 샘플
-5. intent별 문단 구조 설계
-6. 카루아 말투 기준 재정리
-7. 금지 문장 패턴 목록
-8. 시에스타와 카루아의 말투 차이
+1. `story-query / lore-query / cocktail-info-query / character-query`별 응답 출처 품질 기준
+2. `reaction / recommend / explanation` 블록별 대사 샘플
+3. intent별 문단 구조 설계
+4. 카루아 말투 기준 재정리
+5. 금지 문장 패턴 목록
+6. 시에스타와 카루아의 말투 차이
 
 ### 12.2 요청하지 않는 편이 좋은 것
 
@@ -561,7 +607,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 - 추천 엔진과 대사 계층의 책임 분리가 중요하다.
 - `persona.ts` 보존 같은 로컬 맥락이 있다.
-- JSON과 TypeScript 프리셋이 아직 전환 중이다.
+- 응답 조립은 통합됐지만 대사 원문은 JSON, 템플릿, 도메인 포매터에 나뉘어 있다.
 - 무작정 대사를 늘리면 품질 검수가 어려워진다.
 
 ## 13. 외부 AI에게 줄 수 있는 과제 예시
@@ -577,17 +623,17 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 보조 캐릭터 시에스타는 현자가 아니다. 삶의 정답을 말하지 않는다.
 시에스타의 말은 철학이 아니라 한번 망해본 사람의 생존 경험에서 나온 것처럼 들려야 한다.
 
-현재 대사는 JSON/프리셋으로 정리하려고 한다.
-문장을 조립하는 방식이 아니라 문단 블록을 조립하려고 한다.
+현재 응답은 공통 Response Pipeline에서 최종 텍스트와 표정을 조립하며, 대사 원문은 JSON/템플릿/도메인 포매터로 나뉘어 있다.
+대사 품질 작업은 문장을 잘게 조립하기보다 문단 블록과 출처별 편집 기준을 정리하는 방향이다.
 기본 구조는 [reaction] [recommend] [explanation]이다.
 
 상태(state), 의도(intent), 요청(request), 화자(speaker)에 따라 사용할 블록 풀이 달라진다.
 예: speaker=karua, intent=recommend, state=tired, request=light
 
 기획해줄 것:
-1. 대표 입력을 story-query / lore-query / cocktail-info-query / character-query / recommendation / general로 분류하는 기준
-2. "모히토" → "그걸로 주세요"처럼 맥락이 이어지는 입력 시나리오
-3. intent 목록별 문단 블록 구조
+1. story-query / lore-query / cocktail-info-query / character-query별 응답 출처 품질 기준
+2. intent 목록별 문단 블록 구조
+3. fallback을 사용해도 되는 조건과 데이터 보강이 필요한 조건
 4. tired/sad/happy/recommend/refusal/goodbye 대표 블록 샘플
 5. 카루아 말투 금지 규칙과 좋은 예시
 6. 같은 상황에서 시에스타 버전은 어떻게 달라져야 하는지
@@ -596,29 +642,30 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 - 술이 감정 문제의 해결책처럼 보이면 안 된다.
 - 직접 위로, 상담, 치료자 말투는 피한다.
 - 추천 결과는 이미 시스템이 정한다고 가정하고, 대사는 표현만 담당한다.
-- 입력 의도와 응답 출처 안정화가 말투 개선보다 우선이다.
+- 이미 확정된 입력 의도, 컨텍스트, 응답 출처 경계를 바꾸지 않는다.
 ```
 
 ## 14. 추천 후속 작업 순서
 
 현재 `mission_control/TASK_BOARD.md`와 `HANDOVER.md`에는 다음 구조 로드맵이 기록되어 있다.
 
-1. `Phase 1` IntentClassifier 통합 마무리: 추천/대화/이야기/캐릭터/안전 의도 분류 안정화
+1. `Phase 1` IntentClassifier 통합: 완료. 추천/대화/이야기/캐릭터/안전 의도 분류 결과 단일화
 2. `Phase 1.5` Context + Action Layer: 완료. 생략 주문과 후속 이야기 컨텍스트 연결
-3. `Phase 2` Response Pipeline: 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리
-4. `Phase 3` DialogueService 분리: `useRestationController`에서 대화 판단 로직 분리
-5. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 정리
-6. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
-7. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
-8. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
-9. `Phase 8` Talking Points 확장: lore/talking_points 풍부화
-10. `Phase 9` Character Layer: 카루아 말투, 농담, 반존대, 표정 FSM 반영
+3. `Phase 2` Response Pipeline: 완료. 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리와 주요 응답 공통 조립
+4. `Phase 2.5` DialogueSessionState: 완료. 분산 세션 상태, Welcome-Farewell, safetyLocked Hard Stop 고정
+5. `Phase 3` DialogueService 분리: 다음 작업. `useRestationController`에서 대화 판단 로직 분리
+6. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 정리
+7. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
+8. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
+9. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
+10. `Phase 8` Talking Points 확장: lore/talking_points 풍부화
+11. `Phase 9` Character Layer: 카루아 말투, 농담, 반존대, 표정 FSM 반영
 
 * **FLOW-002 (XYZ/Farewell 머신)** 작업은 완료되었습니다.
 * 기존 `DLG-807~809`, `SPR-001~005`, WebLLM RST-601~606은 위 구조 수렴과 충돌하지 않는 순서로 재검토한다.
 * 현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있습니다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준입니다.
 
-외부 기획안은 지금 단계에서는 말투 샘플보다 입력 의도, 응답 출처, 컨텍스트 이어받기 기준에 연결되는 것이 가장 좋다.
+외부 기획안은 지금 단계에서는 새 기능보다 intent별 문단 구조, 대사 출처별 품질 기준, 카루아 말투 검수 규칙에 연결되는 것이 가장 좋다.
 
 ## 15. 현재 검증 상태
 
@@ -629,10 +676,10 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 타입체크 | 통과: `npm.cmd run check` |
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
-| 전체 테스트 | 통과: `npm.cmd test -- --run` 기준 20개 파일, 235개 테스트 |
-| 메인 JS | 빌드 기준 442.62 kB, gzip 130.41 kB |
+| 전체 테스트 | 통과: `npm.cmd test -- --run` 기준 25개 파일, 323개 테스트 |
+| 메인 JS | 빌드 기준 450.28 kB, gzip 132.74 kB |
 
-마지막 확인 시점 기준으로 알려진 Vitest 실패는 없다. 코드 리뷰와 검수 시에는 입력 라우팅, 컨텍스트 이어받기, `talkingPoints` 응답 출처, 세션 마감 정책을 중점 확인한다.
+마지막 확인 시점 기준으로 알려진 Vitest 실패는 없다. 코드 리뷰와 검수 시에는 입력 라우팅, 컨텍스트 이어받기, `talkingPoints` 응답 출처, 공통 응답 조립 경유, 세션 마감 정책을 중점 확인한다.
 
 ## 16. 기획안 평가 기준
 

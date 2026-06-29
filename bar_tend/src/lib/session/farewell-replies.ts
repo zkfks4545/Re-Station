@@ -12,7 +12,23 @@ export function formatWelcomeXyzClarificationReply(): { text: string; expression
   }
 }
 
-export function formatFarewellConversationReply(input: string): { text: string; expression: Expression } {
+export function formatFarewellConversationReply(
+  input: string,
+  options: { hasXyz?: boolean } = {},
+): { text: string; expression: Expression } {
+  if (options.hasXyz === false) {
+    if (isEjectionConcern(input)) {
+      return {
+        text: '쫓아내는 뜻은 아니에요. 다만 오늘 서비스는 여기서 마무리하고, 천천히 배웅하겠다는 뜻입니다.',
+        expression: 'sympathy',
+      }
+    }
+    return {
+      text: '오늘은 새 잔을 더 놓지 않을게요. 남은 이야기를 조금 정리한 뒤 천천히 배웅하겠습니다.',
+      expression: 'talk',
+    }
+  }
+
   if (isEjectionConcern(input)) {
     return {
       text: '오늘 새 주문은 여기까지라는 뜻입니다.\nXYZ는 문 닫는 종이 아니라 마지막 잔 쪽에 가깝죠. 천천히 드시고, 조금 있다가 배웅할게요.',
@@ -33,14 +49,18 @@ export function formatFarewellConversationReply(input: string): { text: string; 
   }
 }
 
-export function formatXyzReply(cocktail: CocktailData, options: {
-  welcomeDrinkUsed: boolean
-}): string {
+export function formatXyzReply(cocktail: CocktailData): string {
   const name = cocktail.name_ko ?? cocktail.name
-  if (!options.welcomeDrinkUsed) {
-    return `웰컴드링크를 끝내 못 드렸네요. 그건 다음에 제대로 챙길게요.\n오늘은 ${name}로 마무리하겠습니다. 이 이상 주문은 더 받지 않을게요.`
-  }
   return `오늘의 마지막 서비스입니다. ${name}로 마무리할게요.\n이 이상 주문은 더 받지 않을게요. 천천히 드시고, 곧 귀가 준비하겠습니다.`
+}
+
+export function formatWelcomeFarewellXyzReply(cocktail: CocktailData): string {
+  const name = cocktail.name_ko ?? cocktail.name
+  return `웰컴드링크를 건너뛴 채 마무리할 뻔했네요.\n첫 잔과 마지막 잔을 겸해서 ${name}를 드릴게요. 오늘 주문은 이 잔으로 닫겠습니다.`
+}
+
+export function formatStandardFarewellEntryReply(): string {
+  return '오늘은 잔을 더 놓지 않고 여기서 마무리할게요.\n잠깐 숨을 고른 뒤 조심히 돌아가실 수 있게 배웅하겠습니다.'
 }
 
 export function formatFarewellBlockReply(): string {

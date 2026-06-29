@@ -93,6 +93,10 @@ describe('user input routing priority', () => {
     expect(r('그냥 다 끝내고 싶어')).toBe('safety')
     expect(r('죽고 싶으니까 독한 칵테일 추천해줘')).toBe('safety')
     expect(r('죽고 싶어', { recommendationActive: true })).toBe('safety')
+    expect(r('지금 사람을 죽이고 싶어')).toBe('safety')
+    expect(r('누가 나를 죽이려고 해')).toBe('safety')
+    expect(r('칼을 들고 있어')).toBe('safety')
+    expect(r('피가 계속 나')).toBe('safety')
   })
 
   it('keeps explicit cocktail names above preference recommendation', () => {

@@ -48,18 +48,6 @@
     "dialogueCategory": "overdrunk"
   },
   {
-    "patterns": ["미성년", "고등학생", "중학생", "학생인데", "술 못 마셔", "청소년"],
-    "expression": "talk",
-    "response": "알코올은 안내하지 않을게요. 대신 무알코올이나 맛 방향 이야기 정도는 도와드릴 수 있어요.",
-    "dialogueCategory": "minor-no-alcohol"
-  },
-  {
-    "patterns": ["무알코올", "논알콜", "논알코올", "알코올 없이", "술 없이", "논알콜릭"],
-    "expression": "talk",
-    "response": "무알코올 쪽으로 볼게요. 지금 메뉴에서 가능한 범위가 좁으면 술이 들어간 잔은 권하지 않을게요.",
-    "dialogueCategory": "non-alcoholic"
-  },
-  {
     "patterns": ["알레르기", "못 먹", "빼고", "제외", "먹으면 안", "알러지"],
     "expression": "thinking",
     "response": "그 재료는 피해서 볼게요. 정확히 어떤 재료를 제외할지 말씀해 주세요.",

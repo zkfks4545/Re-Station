@@ -41,7 +41,7 @@ export function ingestTasteSignals(text: string, current: TastePreference): Tast
     },
     alcohol_strength: {
       up: [/세게|센\s*(거|것|걸|술)?|쎄|강하|도수|취하|strong|stiff|독하|진하|하이볼|쎈/i],
-      down: [/약하|가볍|light|soft|논알|순하|약한|주스|쥬스|juice/i],
+      down: [/약하|가볍|light|soft|순하|약한|주스|쥬스|juice/i],
     },
     fizz: {
       up: [/탄산|톡\s*쏘|스파클|fizz|soda|청량|스파클링|거품|기포|상쾌/i],

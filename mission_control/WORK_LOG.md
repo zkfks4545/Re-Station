@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-06-29 / Codex / Phase 3 선행 DialogueSessionState + Safety Hard Stop 정리
+- 내용: 분산된 대화/추천/웰컴/주문/farewell 상태를 `DialogueSessionState` reducer로 통합. 웰컴 피드백은 `served/resolved`에서 파생. safety-alert는 진행 중 작업을 즉시 중단하고 `safetyLocked`로 세션을 종료하며 XYZ/farewell을 실행하지 않음. 미성년자/무알코올 전용 intent·추천 제약·응답·대체 종료 제거
+- 검증: lint/check/build 통과, 323/323 tests pass, 메인 JS 450.28 kB (gzip 132.74 kB)
+
+## 2026-06-29 / Codex / Phase 2 Response Pipeline 완료
+- 내용: `ResponseDraft`/`assembleResponse` 공통 계약 추가, 템플릿의 expression을 tone으로 분리, 칵테일 데이터 삽입 포매터 이동, 추천·스토리·캐릭터·사이드바 주문 응답을 공통 조립 파이프라인으로 통합
+- 검증: lint/check/build 통과, 316/316 tests pass, 메인 JS 450.46 kB (gzip 132.75 kB)
+
 ## 2026-06-29 / Claude / kf 중복 제거 + SHAKE_REFERENCE 통일 + switch 패턴 헬퍼 추출 + 테스트 292→313 [a73342f][c82cbc6][4f6c90d]
 - 내용: `pattern-utils.ts` 공유 모듈(kf + SHAKE_REFERENCE) 추출; 미사용 export(detectCocktailInfoQuery, detectOrderVerb, DialogueAction) 제거; MOOD_KEYWORD_MAP 데이터화 + detectUserMood map 전환; intent classifier mood 키워드 동기화; SHAKE_REFERENCE 3파일 중복 제거; pickStoryFallback() / resolveFromSubTemplate() 헬퍼로 switch mood/taste/rude 패턴 통일
 - 검증: tsc clean, 313/313 tests pass

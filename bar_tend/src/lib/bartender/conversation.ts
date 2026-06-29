@@ -1,16 +1,17 @@
 import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { kf, SHAKE_REFERENCE } from '../dialogue/pattern-utils.js'
+import { assembleResponse } from '../dialogue/response-pipeline.js'
 import { formatStoryQueryReply } from '../dialogue/story-query.js'
-import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionResponse, type IntentResponseTemplate } from '../dialogue/response-templates.js'
+import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailInfoDraft, formatCocktailMentionDraft, formatMartiniLoreFollowupDraft, formatShakeOrderDraft, type IntentResponseTemplate } from '../dialogue/response-templates.js'
 import type { CocktailData, Message, BartenderResponse } from '../../types.js'
 
 function pickStoryFallback(): BartenderResponse {
   if (STORY_FALLBACK.dialogueCategory) {
     const picked = pickDialogue(STORY_FALLBACK.dialogueCategory)
-    if (picked) return { response: picked.text, expression: picked.expression }
+    if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
   }
-  return { response: STORY_FALLBACK.fallback, expression: STORY_FALLBACK.expression }
+  return assembleResponse({ text: STORY_FALLBACK.fallback, tone: STORY_FALLBACK.tone })
 }
 
 function resolveFromSubTemplate(
@@ -20,14 +21,14 @@ function resolveFromSubTemplate(
 ): BartenderResponse {
   if (tmpl && tmpl.dialogueCategory) {
     const picked = pickDialogue(tmpl.dialogueCategory)
-    if (picked) return { response: picked.text, expression: picked.expression }
+    if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
   }
-  if (tmpl) return { response: tmpl.fallback, expression: tmpl.expression }
+  if (tmpl) return assembleResponse({ text: tmpl.fallback, tone: tmpl.tone })
   if (extraDefaultCheck) {
     const result = extraDefaultCheck()
     if (result) return result
   }
-  return { response: defaultTmpl.fallback, expression: defaultTmpl.expression }
+  return assembleResponse({ text: defaultTmpl.fallback, tone: defaultTmpl.tone })
 }
 
 export function generateResponse(
@@ -38,46 +39,40 @@ export function generateResponse(
 ): BartenderResponse {
   const currentCocktail = referencedCocktail ?? findCocktailByName(input)
   if (currentCocktail && intent === 'order-cocktail' && SHAKE_REFERENCE.test(input)) {
-    return {
-      response: `${currentCocktail.name} 한 잔, 본드식으로요. 젓지 말고 흔들어서 준비할게요.`,
-      expression: 'smirk',
-    }
+    return assembleResponse(formatShakeOrderDraft(currentCocktail))
   }
   if (currentCocktail && (intent === 'general-chat' || intent === 'order-cocktail' || intent === 'order-cocktail-mixed')) {
-    return formatCocktailMentionResponse(currentCocktail)
+    return assembleResponse(formatCocktailMentionDraft(currentCocktail))
   }
 
   const tmpl = INTENT_RESPONSE_TEMPLATES[intent]
   if (tmpl) {
     if (tmpl.dialogueCategory) {
       const picked = pickDialogue(tmpl.dialogueCategory)
-      if (picked) return { response: picked.text, expression: picked.expression }
+      if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
     }
-    return { response: tmpl.fallback, expression: tmpl.expression }
+    return assembleResponse({ text: tmpl.fallback, tone: tmpl.tone })
   }
 
   const cocktailFallback = COCKTAIL_FALLBACK_TEMPLATES[intent]
   if (cocktailFallback) {
     if (currentCocktail) {
       if (intent === 'cocktail-info-query') {
-        return { response: `「${currentCocktail.name}」은 ${currentCocktail.description}`, expression: 'talk' }
+        return assembleResponse(formatCocktailInfoDraft(currentCocktail))
       }
-      return formatCocktailMentionResponse(currentCocktail)
+      return assembleResponse(formatCocktailMentionDraft(currentCocktail))
     }
     if (cocktailFallback.dialogueCategory) {
       const picked = pickDialogue(cocktailFallback.dialogueCategory)
-      if (picked) return { response: picked.text, expression: picked.expression }
+      if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
     }
-    return { response: cocktailFallback.fallback, expression: cocktailFallback.expression }
+    return assembleResponse({ text: cocktailFallback.fallback, tone: cocktailFallback.tone })
   }
 
   switch (intent) {
     case 'lore-followup': {
       if (referencedCocktail && isMartiniWith007Lore(referencedCocktail)) {
-        return {
-          response: '그쪽으로 가면 본드식 주문이죠. 마티니는 보통 젓는 쪽이 정석에 가깝지만, 007 덕분에 \'흔들어서\'라는 말이 거의 주문 대사처럼 남았어요.',
-          expression: 'smirk',
-        }
+        return assembleResponse(formatMartiniLoreFollowupDraft())
       }
       return pickStoryFallback()
     }
@@ -89,7 +84,7 @@ export function generateResponse(
       const storyCocktail = referencedCocktail ?? findCocktailByName(input)
       if (storyCocktail) {
         const reply = formatStoryQueryReply(storyCocktail)
-        return { response: reply.text, expression: reply.expression }
+        return assembleResponse({ text: reply.text, preferredExpression: reply.expression })
       }
       const personMatch = input.match(/([가-힣]{2,})[이가]\s*(?:마시|좋아하)/)
       if (personMatch) {
@@ -99,9 +94,9 @@ export function generateResponse(
         )
         if (found) {
           const reply = formatStoryQueryReply(found)
-          return { response: reply.text, expression: reply.expression }
+          return assembleResponse({ text: reply.text, preferredExpression: reply.expression })
         }
-        return STORY_PERSON_MISSING_TEMPLATE(person)
+        return assembleResponse(STORY_PERSON_MISSING_TEMPLATE(person))
       }
       return pickStoryFallback()
     }
@@ -125,7 +120,7 @@ export function generateResponse(
       return resolveFromSubTemplate(rudeKey ? RUDE_SUB_TEMPLATES[rudeKey] : undefined, RUDE_DEFAULT, () => {
         if (RUDE_DEFAULT.dialogueCategory) {
           const picked = pickDialogue(RUDE_DEFAULT.dialogueCategory)
-          if (picked) return { response: picked.text, expression: picked.expression }
+          if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
         }
       })
     }
@@ -133,7 +128,7 @@ export function generateResponse(
   }
 
   const gc = INTENT_RESPONSE_TEMPLATES['general-chat']
-  return { response: gc.fallback, expression: gc.expression }
+  return assembleResponse({ text: gc.fallback, tone: gc.tone })
 }
 
 function isMartiniWith007Lore(cocktail: CocktailData): boolean {

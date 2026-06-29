@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionResponse } from './response-templates.js'
+import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionDraft } from './response-templates.js'
 import type { CocktailData } from '../../types.js'
 
 describe('INTENT_RESPONSE_TEMPLATES', () => {
@@ -15,8 +15,6 @@ describe('INTENT_RESPONSE_TEMPLATES', () => {
       'quiet-talk',
       'water-request',
       'overdrunk',
-      'minor-no-alcohol',
-      'non-alcoholic',
       'ingredient-constraint',
       'real-world-info',
       'recipe-query',
@@ -30,15 +28,14 @@ describe('INTENT_RESPONSE_TEMPLATES', () => {
     }
   })
 
-  it('every template has a non-empty fallback and valid expression', () => {
+  it('every template has a non-empty fallback and valid tone', () => {
     const validExpressions = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']
     for (const [intent, tmpl] of Object.entries(INTENT_RESPONSE_TEMPLATES)) {
       expect(tmpl.fallback, `${intent}: fallback`).toBeTruthy()
-      expect(validExpressions, `${intent}: expression`).toContain(tmpl.expression)
+      expect(validExpressions, `${intent}: tone`).toContain(tmpl.tone)
     }
   })
 })
-
 describe('COCKTAIL_FALLBACK_TEMPLATES', () => {
   it('covers cocktail-aware intents', () => {
     const required = ['cocktail-query', 'recommendation-query', 'cocktail-info-query']
@@ -47,11 +44,11 @@ describe('COCKTAIL_FALLBACK_TEMPLATES', () => {
     }
   })
 
-  it('every template has a non-empty fallback and valid expression', () => {
+  it('every template has a non-empty fallback and valid tone', () => {
     const validExpressions = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']
     for (const [intent, tmpl] of Object.entries(COCKTAIL_FALLBACK_TEMPLATES)) {
       expect(tmpl.fallback, `${intent}: fallback`).toBeTruthy()
-      expect(validExpressions, `${intent}: expression`).toContain(tmpl.expression)
+      expect(validExpressions, `${intent}: tone`).toContain(tmpl.tone)
     }
   })
 })
@@ -63,11 +60,11 @@ describe('MOOD_SUB_TEMPLATES', () => {
     }
   })
 
-  it('every template has non-empty fallback and valid expression', () => {
+  it('every template has non-empty fallback and valid tone', () => {
     const valid = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']
     for (const [mood, tmpl] of Object.entries(MOOD_SUB_TEMPLATES)) {
       expect(tmpl.fallback, `${mood}: fallback`).toBeTruthy()
-      expect(valid, `${mood}: expression`).toContain(tmpl.expression)
+      expect(valid, `${mood}: tone`).toContain(tmpl.tone)
     }
   })
 })
@@ -98,11 +95,11 @@ describe('TASTE_SUB_TEMPLATES', () => {
     }
   })
 
-  it('every template has non-empty fallback and valid expression', () => {
+  it('every template has non-empty fallback and valid tone', () => {
     const valid = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']
     for (const [key, tmpl] of Object.entries(TASTE_SUB_TEMPLATES)) {
       expect(tmpl.fallback, `${key}: fallback`).toBeTruthy()
-      expect(valid, `${key}: expression`).toContain(tmpl.expression)
+      expect(valid, `${key}: tone`).toContain(tmpl.tone)
     }
   })
 })
@@ -114,53 +111,53 @@ describe('RUDE_SUB_TEMPLATES', () => {
     }
   })
 
-  it('every template has non-empty fallback and valid expression', () => {
+  it('every template has non-empty fallback and valid tone', () => {
     const valid = ['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']
     for (const [key, tmpl] of Object.entries(RUDE_SUB_TEMPLATES)) {
       expect(tmpl.fallback, `${key}: fallback`).toBeTruthy()
-      expect(valid, `${key}: expression`).toContain(tmpl.expression)
+      expect(valid, `${key}: tone`).toContain(tmpl.tone)
     }
   })
 })
 
 describe('STORY_FALLBACK', () => {
-  it('has a non-empty fallback and valid expression', () => {
+  it('has a non-empty fallback and valid tone', () => {
     expect(STORY_FALLBACK.fallback).toBeTruthy()
-    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(STORY_FALLBACK.expression)
+    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(STORY_FALLBACK.tone)
   })
 })
 
 describe('STORY_PERSON_MISSING_TEMPLATE', () => {
   it('returns correct response for a given person name', () => {
     const result = STORY_PERSON_MISSING_TEMPLATE('헤밍웨이')
-    expect(result.response).toContain('헤밍웨이')
-    expect(result.expression).toBe('talk')
+    expect(result.text).toContain('헤밍웨이')
+    expect(result.tone).toBe('talk')
   })
 })
 
 describe('RUDE_DEFAULT', () => {
-  it('has a non-empty fallback and valid expression', () => {
+  it('has a non-empty fallback and valid tone', () => {
     expect(RUDE_DEFAULT.fallback).toBeTruthy()
-    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(RUDE_DEFAULT.expression)
+    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(RUDE_DEFAULT.tone)
   })
 })
 
 describe('TASTE_DEFAULT', () => {
-  it('has a non-empty fallback and valid expression', () => {
+  it('has a non-empty fallback and valid tone', () => {
     expect(TASTE_DEFAULT.fallback).toBeTruthy()
-    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(TASTE_DEFAULT.expression)
+    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(TASTE_DEFAULT.tone)
   })
 })
 
 describe('MOOD_DEFAULT', () => {
-  it('has a non-empty fallback and valid expression', () => {
+  it('has a non-empty fallback and valid tone', () => {
     expect(MOOD_DEFAULT.fallback).toBeTruthy()
-    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(MOOD_DEFAULT.expression)
+    expect(['idle', 'talk', 'surprised', 'smirk', 'sympathy', 'thinking', 'annoyed', 'stern', 'disappointed', 'embarrassed']).toContain(MOOD_DEFAULT.tone)
   })
 })
 
-describe('formatCocktailMentionResponse', () => {
-  it('returns a valid response for a given cocktail', () => {
+describe('formatCocktailMentionDraft', () => {
+  it('returns a valid response draft for a given cocktail', () => {
     const mockCocktail = {
       id: 'test',
       name: '모히토',
@@ -168,9 +165,9 @@ describe('formatCocktailMentionResponse', () => {
       vibe: '상쾌한 느낌',
     } as CocktailData
 
-    const result = formatCocktailMentionResponse(mockCocktail)
-    expect(result.response).toBeTruthy()
-    expect(result.response).toContain('모히토')
-    expect(result.expression).toBeDefined()
+    const result = formatCocktailMentionDraft(mockCocktail)
+    expect(result.text).toBeTruthy()
+    expect(result.text).toContain('모히토')
+    expect(result.tone).toBeDefined()
   })
 })
