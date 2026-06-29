@@ -3,6 +3,7 @@ export interface ConversationContextState {
   lastRecommendedCocktailId: string | null
   lastServedCocktailId: string | null
   lastOrderCandidateCocktailId: string | null
+  lastStoryTargetCocktailId: string | null
 }
 
 export type ConversationContextEvent =
@@ -10,6 +11,7 @@ export type ConversationContextEvent =
   | { type: 'recommended'; cocktailId: string }
   | { type: 'served'; cocktailId: string }
   | { type: 'order-candidate'; cocktailId: string }
+  | { type: 'story-targeted'; cocktailId: string }
   | { type: 'reset' }
 
 export function createConversationContext(): ConversationContextState {
@@ -18,6 +20,7 @@ export function createConversationContext(): ConversationContextState {
     lastRecommendedCocktailId: null,
     lastServedCocktailId: null,
     lastOrderCandidateCocktailId: null,
+    lastStoryTargetCocktailId: null,
   }
 }
 
@@ -44,12 +47,19 @@ export function updateConversationContext(
         ...state,
         lastDiscussedCocktailId: event.cocktailId,
         lastServedCocktailId: event.cocktailId,
+        lastStoryTargetCocktailId: event.cocktailId,
         lastOrderCandidateCocktailId: event.cocktailId,
       }
     case 'order-candidate':
       return {
         ...state,
         lastOrderCandidateCocktailId: event.cocktailId,
+      }
+    case 'story-targeted':
+      return {
+        ...state,
+        lastStoryTargetCocktailId: event.cocktailId,
+        lastDiscussedCocktailId: event.cocktailId,
       }
     case 'reset':
       return createConversationContext()
@@ -74,5 +84,12 @@ export function getOrderCandidateCocktailId(state: ConversationContextState): st
   return state.lastOrderCandidateCocktailId
     ?? state.lastRecommendedCocktailId
     ?? state.lastServedCocktailId
+    ?? state.lastDiscussedCocktailId
+}
+
+export function getLoreFollowupCocktailId(state: ConversationContextState): string | null {
+  return state.lastStoryTargetCocktailId
+    ?? state.lastServedCocktailId
+    ?? state.lastOrderCandidateCocktailId
     ?? state.lastDiscussedCocktailId
 }
