@@ -1,4 +1,4 @@
-import type { Expression } from '../../types.js'
+import type { BartenderResponse, CocktailData, Expression } from '../../types.js'
 
 export interface IntentResponseTemplate {
   dialogueCategory?: string
@@ -101,4 +101,31 @@ export const INTENT_RESPONSE_TEMPLATES: Record<string, IntentResponseTemplate> =
     fallback: '편하게 말씀해 주세요.',
     expression: 'talk',
   },
+}
+
+export const COCKTAIL_FALLBACK_TEMPLATES: Record<string, IntentResponseTemplate> = {
+  'cocktail-query': {
+    dialogueCategory: 'cocktail-request',
+    fallback: '칵테일을 추천해 드릴게요.',
+    expression: 'thinking',
+  },
+  'recommendation-query': {
+    dialogueCategory: 'cocktail-request',
+    fallback: '칵테일을 추천해 드릴게요.',
+    expression: 'thinking',
+  },
+  'cocktail-info-query': {
+    dialogueCategory: 'cocktail-request',
+    fallback: '자세한 정보를 알려드릴게요.',
+    expression: 'talk',
+  },
+}
+
+export function formatCocktailMentionResponse(cocktail: CocktailData): BartenderResponse {
+  const templates: BartenderResponse[] = [
+    { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' },
+    { response: `${cocktail.name} 말씀이시군요. 주문하시거나 자세한 정보를 보실 수 있어요.`, expression: 'smirk' },
+    { response: `${cocktail.name}은 좋은 선택이에요. ${cocktail.vibe}`, expression: 'smirk' },
+  ]
+  return templates[Math.floor(Math.random() * templates.length)]
 }

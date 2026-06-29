@@ -1,21 +1,12 @@
 import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { formatStoryQueryReply } from '../dialogue/story-query.js'
-import { INTENT_RESPONSE_TEMPLATES } from '../dialogue/response-templates.js'
-import type { Cocktail, CocktailData, Message, BartenderResponse, Expression } from '../../types.js'
+import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, formatCocktailMentionResponse } from '../dialogue/response-templates.js'
+import type { CocktailData, Message, BartenderResponse, Expression } from '../../types.js'
 
 const kf = (patterns: string[]) => new RegExp(patterns.map(
   (p) => (/^[a-z]/i.test(p) ? `\\b${p}\\b` : p)
 ).join('|'))
-
-function getCocktailMentionResponse(cocktail: Cocktail): BartenderResponse {
-  const templates = [
-    { response: `${cocktail.name}을 찾으시는군요. ${cocktail.story}`, expression: 'talk' as const },
-    { response: `${cocktail.name} 말씀이시군요. 주문하시거나 자세한 정보를 보실 수 있어요.`, expression: 'smirk' as const },
-    { response: `${cocktail.name}은 좋은 선택이에요. ${cocktail.vibe}`, expression: 'smirk' as const },
-  ]
-  return templates[Math.floor(Math.random() * templates.length)]
-}
 
 function dialogue(category: string, fallback: string, expression: Expression): BartenderResponse {
   const picked = pickDialogue(category)
@@ -30,7 +21,7 @@ export function generateResponse(
 ): BartenderResponse {
   const currentCocktail = referencedCocktail ?? findCocktailByName(input)
   if (currentCocktail && (intent === 'general-chat' || intent === 'order-cocktail' || intent === 'order-cocktail-mixed')) {
-    return getCocktailMentionResponse(currentCocktail)
+    return formatCocktailMentionResponse(currentCocktail)
   }
 
   const tmpl = INTENT_RESPONSE_TEMPLATES[intent]
@@ -42,12 +33,22 @@ export function generateResponse(
     return { response: tmpl.fallback, expression: tmpl.expression }
   }
 
-  switch (intent) {
-    case 'cocktail-query':
-    case 'recommendation-query':
-      if (currentCocktail) return getCocktailMentionResponse(currentCocktail)
-      return dialogue('cocktail-request', '칵테일을 추천해 드릴게요.', 'thinking')
+  const cocktailFallback = COCKTAIL_FALLBACK_TEMPLATES[intent]
+  if (cocktailFallback) {
+    if (currentCocktail) {
+      if (intent === 'cocktail-info-query') {
+        return { response: `「${currentCocktail.name}」은 ${currentCocktail.description}`, expression: 'talk' }
+      }
+      return formatCocktailMentionResponse(currentCocktail)
+    }
+    if (cocktailFallback.dialogueCategory) {
+      const picked = pickDialogue(cocktailFallback.dialogueCategory)
+      if (picked) return { response: picked.text, expression: picked.expression }
+    }
+    return { response: cocktailFallback.fallback, expression: cocktailFallback.expression }
+  }
 
+  switch (intent) {
     case 'story-query':
     case 'story-query-followup':
     case 'story-query-cocktail-specific':
@@ -73,14 +74,6 @@ export function generateResponse(
         }
       }
       return dialogue('story-request', '듣고 있어요.', 'talk')
-    }
-
-    case 'cocktail-info-query': {
-      const infoCocktail = referencedCocktail ?? findCocktailByName(input)
-      if (infoCocktail) {
-        return { response: `「${infoCocktail.name}」은 ${infoCocktail.description}`, expression: 'talk' }
-      }
-      return dialogue('cocktail-request', '자세한 정보를 알려드릴게요.', 'talk')
     }
 
     case 'mood-talk': {
