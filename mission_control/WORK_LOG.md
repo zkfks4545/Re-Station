@@ -1,6 +1,6 @@
 # 작업 이력 (축약)
 
-## 2026-06-29 / DOC-007 / mission_control 파일 축약 + 커밋 해시 보충 [ecbdce3]
+## 2026-06-29 / DOC-007 / mission_control 파일 축약 + 커밋 해시 보충 [0cce97c]
 - 내용: WORK_LOG.md/DECISIONS.md/HANDOVER.md/CURRENT_STATE.md/REFACTORING_LOG.md 5개 파일 축약
 - 변경: 각 작업 항목에 `[hash]` 추가, 누락 Phase 1.5~2 항목 기록, 결정표·이슈표에 커밋 컬럼 추가
 - 검증: lint/build 통과, git diff --stat 800+/2294-
