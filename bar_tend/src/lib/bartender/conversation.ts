@@ -1,6 +1,7 @@
 import { findCocktailByName, cocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { formatStoryQueryReply } from '../dialogue/story-query.js'
+import { INTENT_RESPONSE_TEMPLATES } from '../dialogue/response-templates.js'
 import type { Cocktail, CocktailData, Message, BartenderResponse, Expression } from '../../types.js'
 
 const kf = (patterns: string[]) => new RegExp(patterns.map(
@@ -32,49 +33,16 @@ export function generateResponse(
     return getCocktailMentionResponse(currentCocktail)
   }
 
+  const tmpl = INTENT_RESPONSE_TEMPLATES[intent]
+  if (tmpl) {
+    if (tmpl.dialogueCategory) {
+      const picked = pickDialogue(tmpl.dialogueCategory)
+      if (picked) return { response: picked.text, expression: picked.expression }
+    }
+    return { response: tmpl.fallback, expression: tmpl.expression }
+  }
+
   switch (intent) {
-    case 'exit-intent':
-      return { response: '들러주셔서 감사합니다. 조심히 가세요.', expression: 'idle' }
-
-    case 'bar-setting':
-      return dialogue('bar-intro', '여기는 Re:Station이에요.', 'talk')
-
-    case 'character-query':
-      return dialogue('character-query', '저는 이 곳 Re:Station의 바텐더예요. 말 걸어주셔서 감사해요.', 'talk')
-
-    case 'siesta-setting':
-      return dialogue('siesta-mention', '시에스타 사장님은 뒤쪽에 계세요.', 'smirk')
-
-    case 'bar-atmosphere':
-      return dialogue('bar-atmosphere', '분위기를 먼저 보셨네요.', 'smirk')
-
-    case 'weather-talk':
-      return dialogue('small-talk-weather', '밖 날씨가 잔 고르기 좋은 핑계가 되겠네요.', 'talk')
-
-    case 'uncertain-talk':
-      return dialogue('guest-uncertain', '정해진 게 없으면 싫은 것부터 빼보죠.', 'thinking')
-
-    case 'quiet-talk':
-      return dialogue('quiet-moment', '오늘은 조용한 쪽으로 가죠.', 'talk')
-
-    case 'water-request':
-      return dialogue('water-request', '물 먼저 드릴게요.', 'talk')
-
-    case 'overdrunk':
-      return dialogue('overdrunk', '그럼 여기서는 더 권하지 않을게요.', 'sympathy')
-
-    case 'minor-no-alcohol':
-      return dialogue('minor-no-alcohol', '알코올은 안내하지 않을게요.', 'talk')
-
-    case 'non-alcoholic':
-      return dialogue('non-alcoholic', '무알코올 쪽으로 볼게요.', 'talk')
-
-    case 'ingredient-constraint':
-      return dialogue('ingredient-constraint', '그 재료는 피해서 볼게요.', 'thinking')
-
-    case 'real-world-info':
-      return dialogue('real-world-info', '여긴 가상의 바예요.', 'talk')
-
     case 'cocktail-query':
     case 'recommendation-query':
       if (currentCocktail) return getCocktailMentionResponse(currentCocktail)
@@ -136,27 +104,15 @@ export function generateResponse(
       }
     }
 
-    case 'recipe-query':
-      return dialogue('recipe-request', '레시피를 알려드릴게요.', 'talk')
-
-    case 'random-request':
-      return dialogue('random-request', '아무거나 골라드릴게요.', 'smirk')
-
-    case 'unknown-cocktail-request':
-      return dialogue('unknown-cocktail-request', '죄송해요, 그 칵테일은 저희 메뉴에 없네요.', 'talk')
-
-    case 'recommendation-cancel':
-      return dialogue('recommendation-cancel', '추천은 여기까지 할게요.', 'talk')
-
     case 'rude-talk': {
       if (kf(['시끄러', '닥쳐', '꺼져', '짜증나', '열받아', '화나']).test(input)) return dialogue('rude-annoyed', '그런 말씀은 듣기 좋지 않네요.', 'annoyed')
       if (kf(['당장', '빨리 해', '가져와', '내놔', '말 들어', '듣거라', '니가 뭔데']).test(input)) return dialogue('rude-boundary', '여기는 편하게 대화하는 곳이에요.', 'stern')
       return dialogue('rude-disappointed', '그렇게 생각하시는군요. 조금 아쉽네요.', 'disappointed')
     }
 
-    default:
-      return dialogue('general-chat', '편하게 말씀해 주세요.', 'talk')
   }
+
+  return dialogue('general-chat', '편하게 말씀해 주세요.', 'talk')
 }
 
 function detectUserMood(input: string): 'tired' | 'sad' | 'happy' | null {
