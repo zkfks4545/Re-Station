@@ -61,16 +61,17 @@
         ]
       },
       {
-        "label": "브랜디·리큐르·시그니처",
-        "acknowledgement": "브랜디, 리큐르, 시그니처 칵테일을 후보로 반영했습니다.",
+        "label": "기타 베이스·시그니처",
+        "acknowledgement": "기타 베이스와 시그니처 칵테일을 후보로 반영했습니다.",
         "acknowledgementPreset": {
           "id": "answer.preference.applied",
-          "slots": { "value": "브랜디, 리큐르, 시그니처 칵테일", "target": "후보" }
+          "slots": { "value": "기타 베이스와 시그니처 칵테일", "target": "후보" }
         },
         "signals": [
           { "field": "preferredIngredients", "value": "브랜디", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "리큐르", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "카샤사", "confidence": 1, "source": "question" },
+          { "field": "preferredIngredients", "value": "압생트", "confidence": 1, "source": "question" },
           { "field": "preferredIngredients", "value": "시그니처", "confidence": 1, "source": "question" }
         ]
       },

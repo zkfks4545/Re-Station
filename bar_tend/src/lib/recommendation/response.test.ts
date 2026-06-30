@@ -1,24 +1,54 @@
 import { describe, expect, it } from 'vitest'
-import { getCocktailById } from '../cocktails/database.js'
+import { findCocktailByName, getCocktailById } from '../cocktails/database.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
 import {
   formatExplicitCocktailReply,
+  formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
   formatRecommendationReply,
+  formatSecretMenuOrderReply,
+  selectShortCocktailStory,
   selectCocktailTalkingPoint,
   selectRecommendationOpening,
 } from './response.js'
 
 describe('neutral recommendation dialogue copy', () => {
-  it('uses neutral copy for an explicit cocktail without factual card copy', () => {
+  it('formats a lore match as an order instead of an information-only reply', () => {
+    const cocktail = findCocktailByName('모히토')!
+    const reply = formatLoreBasedOrderReply(cocktail)
+
+    expect(reply).toContain(cocktail.name)
+    expect(reply).toContain('준비할게요')
+    expect(reply).toContain(selectShortCocktailStory(cocktail))
+    expect(reply).not.toContain('자세한 정보')
+  })
+
+  it('serves an explicit cocktail with one short story fragment', () => {
     const cocktail = getCocktailById('cocktail_classic_001')!
     const reply = formatExplicitCocktailReply(cocktail)
 
-    expect(reply).toContain('찾으시는군요')
-    expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
-    expect(reply).toContain('자세한 정보도 함께 보여드릴게요')
-    expect(reply).not.toMatch(/손님|농담/)
+    expect(reply).toContain('바로 준비할게요')
+    expect(reply).toContain(selectShortCocktailStory(cocktail))
+    expect(reply.split('\n')).toHaveLength(2)
+    expect(reply).not.toContain('찾으시는군요')
+    expect(reply).not.toContain('자세한 정보')
     expect(reply).not.toContain(cocktail.description)
+  })
+
+  it('uses a noticed reaction and only one story fragment for secret orders', () => {
+    const pukey = getCocktailById('cocktail_signature_042')!
+    const glitchRain = getCocktailById('cocktail_signature_043')!
+    const pukeyReply = formatSecretMenuOrderReply(pukey)
+    const glitchReply = formatSecretMenuOrderReply(glitchRain)
+
+    expect(pukeyReply).toContain('암구호를 아시네요')
+    expect(pukeyReply).toContain(selectShortCocktailStory(pukey))
+    expect(glitchReply).toContain('오랜만에 듣네요')
+    expect(glitchReply).toContain(selectShortCocktailStory(glitchRain))
+    expect(pukey.talkingPoints?.filter((point) => pukeyReply.includes(point))).toHaveLength(1)
+    expect(glitchRain.talkingPoints?.filter((point) => glitchReply.includes(point))).toHaveLength(1)
+    expect(pukey.talkingPoints?.some((point) => glitchReply.includes(point))).toBe(false)
+    expect(glitchRain.talkingPoints?.some((point) => pukeyReply.includes(point))).toBe(false)
   })
 
   it('uses structured recommendation reasons without character voice', () => {

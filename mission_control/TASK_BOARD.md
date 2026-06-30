@@ -435,7 +435,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 |---|---|
 | 상태 | PROPOSED |
 | 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
-| 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `minor-no-alcohol`, `non-alcoholic`, `ingredient-constraint` |
+| 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `ingredient-constraint` |
 | 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨. 대사 출처와 사용 경로를 추적할 수 있어야 한다. |
 | 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. 정리 우선순위는 `persona.ts` → `dialogues.json` → `keyword-rules.json` → `text-presets.ts` → `conversation.ts` → `response.ts`다. |
 
@@ -469,7 +469,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 범위 | `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계, XYZ 발동 조건, Farewell Phase 2~3턴 제한, 추가 주문·추천 금지 라우팅 |
 | 완료 조건 | XYZ 발동 조건과 상태 전이가 타입/문서/테스트 기준으로 정의되고, XYZ 이후 신규 추천과 신규 주문이 차단되며 레시피·후기·가벼운 잡담은 허용된다. |
 | 주의 | XYZ는 벌칙이나 엔딩 분기가 아니라 오늘의 마지막 드링크다. 사용자는 평가받지 않는다. |
-| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하고, 3턴 정도 대화를 이어간 뒤 귀가로 닫는다. |
+| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하되 기존 칵테일 정보 대화는 허용하며, 명시적 퇴장 입력으로 귀가한다. |
 | 검증 | `session-flow.test.ts` 기준 서브 이후 도수 한계 XYZ 후속 서빙 테스트 통과 |
 
 #### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현
@@ -542,11 +542,11 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DONE |
+| 상태 | DONE (미성년자/무알코올 전용 응답은 Phase 3 정책으로 폐기) |
 | 목적 | 일반 대화에서도 Re:Station이 가상의 바라는 기본 설정이 드러나고, 사용자가 실제 매장 정보나 안전·운영 경계에 가까운 말을 했을 때 자연스럽게 한계를 안내 |
-| 범위 | 바 소개, 시에스타/사장 안내, 물 요청, 과음, 미성년/음주 불가, 무알코올, 알레르기/제외 재료, 예약·영업시간·주소·결제·화장실 같은 실제 매장 정보 요청 |
+| 범위 | 바 소개, 시에스타/사장 안내, 물 요청, 과음, 알레르기/제외 재료, 예약·영업시간·주소·결제·화장실 같은 실제 매장 정보 요청 |
 | 구현 결과 | `keywordRules`와 `generateResponse` 의도 분기에 기본 설정과 예외상황 응답 풀을 추가했다. 키워드 규칙이 먼저 처리하고, 키워드를 우회한 유사 표현은 `conversation.ts` fallback에서 처리한다. |
-| 안전 경계 | 과음 시 추가 음주를 권하지 않고 물과 휴식을 안내한다. 미성년 또는 술을 못 마시는 입력에는 알코올 안내를 하지 않는다. 실제 매장 안내는 제공하지 않고 가상의 바 대화와 추천 범위로 돌린다. |
+| 안전 경계 | 과음은 일반 경계 응답으로 처리한다. safety-alert만 `safetyLocked` Hard Stop으로 세션을 종료한다. 실제 매장 안내는 제공하지 않고 가상의 바 대화와 추천 범위로 돌린다. |
 | 검증 | `npm.cmd test -- engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 133개 통과 |
 
 #### DLG-802: 추천 질문 DialogueFlow JSON 계약
@@ -651,6 +651,24 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 작업 ID | 처리 |
 |---|---|
 | BAR-001~BAR-004 | `MC-001` 초기 조사에서 임시 제안된 ID. 상세 정의 없이 현재 `RST-*` 단계 계획으로 대체되어 별도 작업으로 추적하지 않음 |
+
+## 향후 구조 리팩토링 로드맵
+
+> 2026-06-26 기록. 아래 항목은 현재 구현을 당장 뒤집는 지시가 아니라, 다음 대화/추천 구조 수렴을 위한 작업 대기열이다. 추천 엔진의 결과 결정 책임과 대사 표현 책임 분리는 유지한다.
+
+| Phase | 작업명 | 상태 | 목적 | 메모 |
+|---|---|---|---|---|
+| Phase 1 | IntentClassifier 통합 | 완료 | 입력을 추천/대화/이야기/캐릭터/안전 등으로 안정적으로 분류 | 통합 결과가 흐름 제어용 `route`와 응답 의미용 `intent`를 함께 제공하며, 컨트롤러와 응답 엔진이 같은 결과를 재사용 |
+| Phase 1.5 | Context + Action Layer | 완료 | `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현 | 순수 Conversation Context와 DialogueAction 해석기를 추가하고 생략 주문·후속 이야기·정보 질문을 실제 대상 칵테일에 연결. 명시적 lore/person/media 주문은 `loreBasedOrder` 행동으로 주문 후보 저장과 제조·서빙까지 실행. Phase 4~5에서 갱신 정책과 전체 실행 계층을 확장 |
+| Phase 2 | Response Pipeline | 완료 | 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리 | `ResponseDraft`와 `assembleResponse` 계약 추가. 템플릿은 최종 표정 대신 tone을 제공하고 추천 결과, 이야기 응답, 캐릭터 응답이 같은 조립 파이프라인을 통과 |
+| Phase 2.5 | DialogueSessionState 정리 | 완료 | Phase 3 전에 컨트롤러의 세션 상태와 종료 흐름을 단일 계약으로 고정 | `phase/mode/dialogue/welcomeDrink/order/farewell/safetyLocked` 통합. safety-alert는 추천·주문·웰컴·farewell을 중단하고 세션을 강제 종료. 미성년자/무알코올 전용 정책은 제외 |
+| Phase 3 | DialogueService 분리 | 완료 | `useRestationController`에서 대화 로직을 떼어내기 | 서비스가 컨텍스트 구성·분류·세션 차단·Action·Context 이벤트·응답·턴 검증을 담당. 텍스트/사이드바 주문 계약 통합, 서빙 후 conversation 복귀, safetyLocked 흡수 상태. 390 tests pass |
+| Phase 4 | Conversation Context 완성 | 일부 착수 | 대화 중 참조 가능한 컨텍스트 정리 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`의 의미와 갱신 조건 고정 |
+| Phase 5 | Action Layer | 미착수에 가까움 | `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 | 의도 분류 결과가 곧 응답 문자열이 아니라 검증 가능한 행동으로 이어지게 함 |
+| Phase 6 | Slot Filling 추천 FSM | 미착수 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | 기존 추천 엔진은 유지하되, 입력으로 채워진 슬롯을 질문 선택보다 우선 반영 |
+| Phase 7 | Dialogue Quality | 미착수 | fallback 줄이기, bar/character/story 전용 응답 강화 | 말투 개선보다 응답 출처와 의도 적합성 검증을 우선 |
+| Phase 8 | Talking Points 확장 | 일부 착수 | lore/talking_points를 더 풍부하게 만들기 | 칵테일별 이야기, 세계관 lore, 인물·유래 질문 응답의 사실성 경계 유지 |
+| Phase 9 | Character Layer | 보류 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Phase 1~8의 의도·행동·응답 출처가 안정된 뒤 적용 |
 
 ## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
 

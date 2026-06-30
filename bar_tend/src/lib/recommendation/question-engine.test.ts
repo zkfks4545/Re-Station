@@ -5,6 +5,7 @@ import {
   createRecommendationSourcePool,
   formatQuestion,
   getQuestionById,
+  initCandidatePool,
   isRecommendationDecisive,
   isRecommendationIntent,
   pickFromPool,
@@ -79,7 +80,9 @@ describe('adaptive recommendation questions', () => {
     expect(result.acknowledgement).toBe('진을 선호 베이스로 반영했습니다.')
     expect(filtered.length).toBeGreaterThan(1)
     expect(filtered.length).toBeLessThan(getAllCocktailData().length)
-    expect(filtered.every((cocktail) => cocktail.base_spirit === '진')).toBe(true)
+    expect(filtered.every((cocktail) =>
+      cocktail.base_spirit === '진' || cocktail.ingredients.includes('진'),
+    )).toBe(true)
     expect(filtered.some((cocktail) => cocktail.name === '다이키리')).toBe(false)
   })
 
@@ -279,7 +282,7 @@ describe('adaptive recommendation questions', () => {
     expect(sourcePool.exhausted).toBe(false)
     expect(sourcePool.cocktails).not.toContain(first)
     expect(sourcePool.cocktails).not.toContain(second)
-    expect(sourcePool.cocktails.length).toBe(getAllCocktailData().length - 2)
+    expect(sourcePool.cocktails.length).toBe(initCandidatePool().length - 2)
   })
 
   it('signals exhaustion when every cocktail has already been recommended', () => {

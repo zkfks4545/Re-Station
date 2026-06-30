@@ -44,9 +44,43 @@
       },
       "image": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
       "talking_points": [
-        "마티니는 19세기 말 미국 바 문화 속에서 형태가 잡힌 칵테일로, 도시 이름 마르티네즈와 연결해 설명하는 이야기가 자주 전해집니다.",
+        "마티니는 제임스 본드가 \"샤케너 낫 스티어!\"라고 강조한 것으로 알려진 칵테일로, 드라이하고 클래식한 영국식 바 문화를 상징합니다.",
         "진과 베르무트의 비율은 시대마다 크게 달라져서, 한 잔의 마티니만 봐도 그 시대의 취향을 읽을 수 있습니다."
-      ]
+      ],
+      "lore": {
+        "keywords": [
+          "제임스 본드", "007", "샤케너 낫 스티어",
+          "영국식 바 문화", "클래식 칵테일", "드라이 베르무트",
+          "19세기 말", "마르티네즈 바 문화", "도시 이름"
+        ],
+        "references": [
+          {
+            "type": "인물",
+            "target": "제임스 본드",
+            "details": "카루아가 존경하는 영국 스파이의 대표 캐릭터. 마티니를 \"Shaken, not stirred\"라고 표현"
+          },
+          {
+            "type": "장르",
+            "target": "스파이 영화",
+            "details": "007 시리즈, 007 본드 영화 시리즈, 주요 대사의 구현"
+          },
+          {
+            "type": "문화",
+            "target": "영국식 바 문화",
+            "details": "다도를 중시한 신사적인 분위기, 엄격한 비율 유지"
+          },
+          {
+            "type": "역사적 사건",
+            "target": "19세기 말 미국의 바 문화",
+            "details": "마르티네즈에서 유래한 이름, '마티니' 탄생"
+          },
+          {
+            "type": "문화적 배경",
+            "target": "드라이 칵테일의 유행",
+            "details": "19세기 말 스위트 마티니에서 드라이 마티니로의 전환, 20세기 초 드라이 진 문화의 정점"
+          }
+        ]
+      }
     },
     {
       "id": "cocktail_classic_002",
@@ -67,9 +101,43 @@
       },
       "image": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
       "talking_points": [
-        "모히토는 쿠바 하바나와 깊게 연결된 칵테일로, 럼과 민트, 라임이 더운 항구 도시의 분위기를 그대로 품고 있습니다.",
-        "헤밍웨이가 즐겼다는 이야기가 널리 알려져 있지만, 구체적인 기록은 가게와 전승에 따라 조금씩 다르게 남아 있습니다."
-      ]
+        "모히토는 쿠바 하바나의 작은 바에서 탄생해, 헤밍웨이가 특히 사랑해서 \"나의 모히토\"라고 부르며 즐겨 마셨다는 이야기가 전해집니다.",
+        "럭셔리 칵테일의 전형에서 벗어나, 모든 것을 한데 섞는 미국식 풍미의 선구자적 존재입니다."
+      ],
+      "lore": {
+        "keywords": [
+          "헤밍웨이", "쿠바", "하바나", "모히토",
+          "민트", "라임", "쿠바 혁명",
+          "라 보데기타 델 메디오", "해방구", "럼 칵테일"
+        ],
+        "references": [
+          {
+            "type": "인물",
+            "target": "어니스트 헤밍웨이",
+            "details": "1926년 쿠바에서 모히토 즐기기, \"나의 모히토\"라는 별칭으로 불림"
+          },
+          {
+            "type": "장르",
+            "target": "쿠바 칵테일 문화",
+            "details": "럭셔리 칵테일에서 가벼운 칵테일로의 전환, 16세기 약용 토착 음료에서 유래"
+          },
+          {
+            "type": "역사적 사건",
+            "target": "쿠바 혁명 전후 시기",
+            "details": "1920년 하바나의 작은 바에서 시작, 혁명 이후 쿠바 칵테일의 세계적 확산"
+          },
+          {
+            "type": "역사적 배경",
+            "target": "쿠바 칵테일 역사",
+            "details": "16세기 원주민 약용 음료에서 20세기 초 현대 모히토로 발전, 민트와 라임의 조합은 열대 기후에 최적화"
+          },
+          {
+            "type": "장소",
+            "target": "라 보데기타 델 메디오",
+            "details": "하바나 구시가지의 유명한 바, 헤밍웨이가 즐겨 찾던 곳으로 모히토의 대표적 성지"
+          }
+        ]
+      }
     },
     {
       "id": "cocktail_classic_003",
@@ -161,6 +229,29 @@
         "아메리카노는 원래 밀라노-토리노 계열의 음료에서 이어진 칵테일로, 이탈리아 리큐르 문화의 흔적이 남아 있습니다.",
         "미국 여행객들이 즐겨 마셨다는 이야기 때문에 아메리카노라는 이름이 붙었다고 전해집니다."
       ],
+      "lore": {
+        "keywords": [
+          "이탈리아식 리큐르 문화", "아메리카노 기원", "미국식 칵테일",
+          "밀라노 칵테일", "토리노 칵테일", "캄파리 문화"
+        ],
+        "references": [
+          {
+            "type": "지역",
+            "target": "토리노",
+            "details": "밀라노-토리노 계열 칵테일의 기원과 전통, 미국 여행객들이 즐겨 마시면서 아메리카노라는 이름을 얻게 됨"
+          },
+          {
+            "type": "문화",
+            "target": "이탈리아식 리큐르 문화",
+            "details": "아페리티보 및 Aperitivo 전통에서 유래, 술 문화의 사회적 기능"
+          },
+          {
+            "type": "역사적 사건",
+            "target": "미국 여행객의 미국식 칵테일 확산",
+            "details": "전후 미국 여행객들에 의해 소개되고 확산된 칵테일 이름"
+          }
+        ]
+      },
       "image": "https://www.thecocktaildb.com/images/media/drink/709s6m1613655124.jpg"
     },
     {
@@ -181,9 +272,32 @@
         "sourness": 0.75
       },
       "talking_points": [
-        "라스트 워드는 디트로이트 애슬레틱 클럽에서 기록된 오래된 칵테일로, 금주법 전후의 미국 바 문화를 떠올리게 합니다.",
-        "한동안 잊혀졌다가 2000년대 칵테일 리바이벌 속에서 다시 유명해진, 이름처럼 뒷맛이 긴 칵테일입니다."
+        "라스트 워드는 디트로이트 애슬레틱 클럽의 1916년 메뉴에 실렸고, 한동안 잊혔다가 2000년대에 바텐더 머리 스텐슨이 되살린 칵테일입니다.",
+        "진, 샤르트뢰즈, 마라스키노, 라임이 똑같은 비율로 들어갑니다. 네 재료가 서로 양보하지 않는데도 결론은 하나로 모이니, 정말 마지막 한마디 같은 잔입니다.",
+        "이름이 라스트 워드라고 대화까지 끝낼 필요는 없어요. 오히려 한 모금 뒤에 할 말이 더 생기는 쪽에 가깝습니다."
       ],
+      "lore": {
+        "keywords": [
+          "마지막 한마디", "라스트 워드", "디트로이트 애슬레틱 클럽", "머리 스텐슨", "금주법", "부활한 칵테일"
+        ],
+        "references": [
+          {
+            "type": "역사",
+            "target": "디트로이트 애슬레틱 클럽",
+            "details": "1916년 클럽 메뉴에서 확인되는 동률 배합의 진 칵테일"
+          },
+          {
+            "type": "인물",
+            "target": "머리 스텐슨",
+            "details": "2000년대 시애틀 Zig Zag Cafe에서 라스트 워드를 다시 소개한 바텐더"
+          },
+          {
+            "type": "말장난",
+            "target": "마지막 한마디",
+            "details": "칵테일 이름을 대화의 마지막 말과 연결하는 카루아의 짧은 드립"
+          }
+        ]
+      },
       "image": "https://www.thecocktaildb.com/images/media/drink/91oule1513702624.jpg"
     },
     {
@@ -481,7 +595,7 @@
       },
       "talking_points": [
         "코스모폴리탄은 1980-90년대 미국 도시 문화 속에서 세련된 보드카 칵테일로 자리 잡았습니다.",
-        "Sex and the City를 통해 대중문화의 아이콘이 되면서, 칵테일이 캐릭터의 취향을 설명하는 도구가 된 대표 사례입니다."
+        "Sex and the City를 통해 대중문화의 아이콘으로 자리 잡으면서, 칵테일이 캐릭터의 취향을 설명하는 도구가 된 사례로 언급됩니다."
       ],
       "image": "https://www.thecocktaildb.com/images/media/drink/kpsajh1504368362.jpg"
     },
@@ -504,7 +618,7 @@
       },
       "talking_points": [
         "벨리니는 베네치아 Harry’s Bar의 주세페 치프리아니가 만든 칵테일로 알려져 있습니다.",
-        "복숭아빛 색감이 화가 조반니 벨리니의 그림을 떠올리게 한다는 데서 이름이 붙었습니다."
+        "복숭아빛 색감이 화가 조반니 벨리니의 그림을 떠올리게 한다는 데서 이름이 붙었다고 알려져 있습니다."
       ],
       "image": "https://www.thecocktaildb.com/images/media/drink/eaag491504367543.jpg"
     },
@@ -572,7 +686,7 @@
         "sourness": 0.6
       },
       "talking_points": [
-        "프렌치 75는 제1차 세계대전 당시 프랑스 75mm 야포의 강한 인상에서 이름을 빌렸습니다.",
+        "프렌치 75는 제1차 세계대전 당시 프랑스 75mm 야포의 강한 인상에서 이름을 빌렸다고 전해집니다.",
         "샴페인을 쓰는 우아한 외형과 달리 이름에는 전쟁기의 농담과 강한 한 방의 이미지가 함께 들어 있습니다."
       ],
       "image": "https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg"
@@ -697,21 +811,26 @@
       "name": "PUKEY Goddess Shot",
       "name_ko": "푸키 여신 샷",
       "type": "SIGNATURE",
+      "secret": true,
+      "secret_phrases": [
+        "여신", "여신의 한잔", "여신의 한 잔", "달링", "달링의 한잔", "달링의 한 잔", "악마의 한잔", "악마의 한 잔"
+      ],
       "base_spirit": "보드카",
       "bar_id": "bar_pukey_hongdae",
       "bar_name": "Hongdae Punk Bar 'PUKEY'",
       "bar_location_link": "https://maps.google.com/?q=Hongdae+PUKEY+Bar",
       "recipe": "보드카 30ml, 크랜베리 주스 15ml, 그레나딘 시럽 5ml, 라임 주스 5ml, 진저 에일 10ml",
-      "description": "보드카를 베이스로 크랜베리와 그레나딘이 만든 선명한 루비색이 인상적인 펑크 감성의 샷 칵테일입니다. 라임의 산미와 진저 에일의 탄산이 뒤를 받칩니다.",
+      "description": "보드카를 베이스로 크랜베리, 그레나딘, 라임, 진저 에일을 더한 숨겨진 시그니처 샷. 달콤한 첫인상 뒤에 산미와 탄산이 이어지는 짧고 강렬한 한 잔입니다.",
       "features": {
         "sweetness": 0.5,
         "alcohol_strength": 0.9,
         "fizz": 0.8,
         "sourness": 0.6
       },
-      "talking_points": [
-        "PUKEY Goddess Shot은 홍대 PUKEY 바의 시그니처 샷으로, 공연 전 짧은 의식처럼 마시는 메뉴입니다. 네온 블루 색상이 무대 조명 아래에서 강하게 빛납니다.",
-        "이 칵테일을 한 잔 비우고 나면 모든 규칙이 느슨해지기 시작한다는 소문이 있습니다. 악마와의 러시안 룰렛에서 살아남기 위한 유일한 방법이라는 이야기도 전해집니다."
+      "story": [
+        "PUKEY Goddess Shot은 술과 게임을 사랑하는 어느 악마를 오마주한 숨겨진 샷입니다.",
+        "달콤한 시작, 위험한 선택, 그리고 끝까지 놓아주지 않는 애정이 이 잔의 레시피입니다.",
+        "아는 사람이라면 '달링'이라는 호칭 하나만으로도, 이 잔이 누구를 위한 오마주인지 금방 알아볼지도 모릅니다."
       ],
       "image": "/images/cocktails/pukey_goddess_shot.png"
     },
@@ -720,21 +839,26 @@
       "name": "Glitch Rain",
       "name_ko": "글리치 레인",
       "type": "SIGNATURE",
-      "base_spirit": "시그니처",
+      "secret": true,
+      "secret_phrases": [
+        "비 오는 밤", "인생을 바꾸는 한 잔", "인생을 바꾸는 한잔", "인생을 바꿀 한 잔", "인생을 바꿀 한잔", "오늘은 이야기를 섞어줘"
+      ],
+      "base_spirit": "보드카",
       "bar_id": "bar_neon_alley",
       "bar_name": "Neon Alley Speakeasy",
       "bar_location_link": "https://maps.google.com/?q=Neon+Alley+Speakeasy",
       "recipe": "보드카, 유자 코디얼, 버터플라이 피, 소다수, 배합 비공개 (매장에서 확인)",
-      "description": "보드카와 유자 코디얼의 상큼한 탄산감과 색상 변화가 특징인 매장 한정 시그니처 칵테일입니다.",
+      "description": "보드카와 유자 코디얼, 버터플라이 피, 소다수가 만들어내는 푸른빛과 색상 변화가 특징인 Re:Station의 숨겨진 시그니처 칵테일입니다.",
       "features": {
         "sweetness": 0.45,
         "alcohol_strength": 0.55,
         "fizz": 0.85,
         "sourness": 0.55
       },
-      "talking_points": [
-        "Glitch Rain은 Re:Station 세계관의 시그니처 칵테일로, 화면 노이즈와 비 오는 밤의 이미지를 섞어 만든 메뉴입니다.",
-        "정식 클래식이 아니라 이 바에서만 기록되는 메뉴라, 도감에는 손님이 직접 만난 뒤에야 의미가 채워집니다."
+      "story": [
+        "Glitch Rain은 비 오는 밤, 네온사인, 그리고 사람들의 이야기를 담아낸 숨겨진 시그니처 칵테일입니다.",
+        "한 잔의 술이 한 사람의 밤을 바꿀 수 있다는 믿음과, 바텐더는 때로 술보다 이야기를 섞는 사람이라는 철학을 오마주했습니다.",
+        "비와 네온을 떠올리는 사람이라면, 이 잔이 어디에서 영감을 받았는지 어렵지 않게 눈치챌지도 모릅니다."
       ],
       "image": "/images/cocktails/glitch_rain.jpg"
     },
@@ -1057,6 +1181,244 @@
         "Re:Station에서는 마지막 주문을 닫는 잔으로 다루며, 정확한 기원보다 마침표 같은 역할이 먼저 기억됩니다."
       ],
       "image": "https://upload.wikimedia.org/wikipedia/commons/8/8d/XYZ%28cocktail%29.jpg"
+    },
+    {
+      "id": "cocktail_classic_044",
+      "name": "Long Island Iced Tea",
+      "name_en": "Long Island Iced Tea",
+      "name_ko": "롱 아일랜드 아이스 티",
+      "type": "CLASSIC",
+      "base_spirit": "보드카",
+      "recipe": "보드카 15ml, 데킬라 15ml, 화이트 럼 15ml, 진 15ml, 쿠앵트로 15ml, 레몬 주스 25ml, 설탕 시럽 30ml, 콜라 약간",
+      "description": "여러 증류주와 오렌지 리큐르에 레몬, 설탕 시럽, 콜라를 더한 달콤하고 강한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/long-island-iced-tea/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.6,
+        "alcohol_strength": 0.78,
+        "fizz": 0.35,
+        "sourness": 0.55
+      },
+      "talking_points": [
+        "이름에는 아이스 티가 들어가지만 차는 한 방울도 없습니다. 색만 얌전한 차처럼 보이고, 안쪽에서는 네 종류의 증류주가 회의를 하고 있죠.",
+        "1970년대 뉴욕 롱아일랜드의 바텐더 로버트 버트가 만들었다는 설과 금주법 시대 테네시의 롱아일랜드에서 시작됐다는 설이 함께 전해집니다.",
+        "달고 익숙한 콜라 맛 때문에 도수를 늦게 알아차리기 쉬운 잔입니다. 이름보다 내용물을 먼저 믿어야 하는 칵테일이죠."
+      ],
+      "lore": {
+        "keywords": [
+          "롱아일랜드", "아이스 티", "차 없는 칵테일", "로버트 버트", "금주법", "강한 칵테일"
+        ],
+        "references": [
+          {
+            "type": "인물",
+            "target": "로버트 로즈버드 버트",
+            "details": "1972년 뉴욕 롱아일랜드에서 트리플 섹을 사용한 경연 출품작으로 만들었다고 주장한 바텐더"
+          },
+          {
+            "type": "기원 논쟁",
+            "target": "뉴욕과 테네시의 롱아일랜드",
+            "details": "현대 레시피의 기원을 두고 서로 다른 지역 설이 전해짐"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cocktail_classic_045",
+      "name": "Corpse Reviver No. 2",
+      "name_en": "Corpse Reviver No. 2",
+      "name_ko": "콥스 리바이버 넘버 2",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 30ml, 쿠앵트로 30ml, 릴레 블랑 30ml, 레몬 주스 30ml, 압생트 1대시",
+      "description": "진과 오렌지 리큐르, 아로마 와인, 레몬을 같은 비율로 섞고 압생트 향을 더한 새콤한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/corpse-reviver-2/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.45,
+        "alcohol_strength": 0.72,
+        "fizz": 0,
+        "sourness": 0.78
+      },
+      "talking_points": [
+        "시체도 깨운다는 이름이지만, 1930년 사보이 칵테일 북은 네 잔을 연달아 마시면 다시 시체로 돌아갈 거라고 경고했습니다.",
+        "진, 쿠앵트로, 릴레 블랑, 레몬이 같은 비율이라 첫맛은 반듯한데 압생트 한 대시가 마지막에 수상한 흔적을 남깁니다.",
+        "해장술 계열의 이름을 가졌다고 실제 해장이 되는 건 아닙니다. 이름은 부활인데 판단력까지 부활시켜 주지는 않아요."
+      ],
+      "lore": {
+        "keywords": [
+          "콥스 리바이버", "시체 소생", "사보이 칵테일 북", "해장술", "네 잔 경고", "해리 크래독"
+        ],
+        "references": [
+          {
+            "type": "문헌",
+            "target": "The Savoy Cocktail Book",
+            "details": "1930년 해리 크래독의 책에 동률 배합과 과음 경고가 함께 기록됨"
+          },
+          {
+            "type": "말장난",
+            "target": "부활과 재사망",
+            "details": "한 잔은 깨우고 네 잔은 다시 눕힌다는 원전의 경고를 활용한 대화 소재"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cocktail_classic_046",
+      "name": "Zombie",
+      "name_en": "Zombie",
+      "name_ko": "좀비",
+      "type": "CLASSIC",
+      "base_spirit": "럼",
+      "recipe": "자메이카 다크 럼 45ml, 골드 푸에르토리코 럼 45ml, 데메라라 럼 30ml, 라임 주스 20ml, 팔레넘 15ml, 돈스 믹스 15ml, 그레나딘 시럽 1티스푼, 앙고스투라 비터스 1대시, 페르노 6방울",
+      "description": "세 종류의 럼에 라임, 팔레넘, 자몽과 시나몬 풍미를 겹친 매우 강한 티키 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/zombie/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.55,
+        "alcohol_strength": 0.95,
+        "fizz": 0,
+        "sourness": 0.58
+      },
+      "talking_points": [
+        "좀비는 돈 비치가 세 종류의 럼과 비밀 배합을 겹쳐 만든 티키 칵테일입니다. 과일 향은 친절하지만 안쪽의 럼들은 전혀 친절하지 않죠.",
+        "돈 비치의 바에서는 강한 도수 때문에 손님 한 명당 두 잔까지만 제공했다는 이야기가 유명합니다.",
+        "숙취 손님을 회의에 보내기 위해 만들었다는 전설도 있습니다. 회의에는 갔을지 몰라도 표정이 살아 있었는지는 장담하기 어렵겠네요."
+      ],
+      "lore": {
+        "keywords": [
+          "좀비", "돈 비치", "돈 더 비치코머", "티키", "두 잔 제한", "세 종류의 럼", "돈스 믹스"
+        ],
+        "references": [
+          {
+            "type": "인물",
+            "target": "Donn Beach",
+            "details": "좀비와 복합적인 티키 배합을 대중화한 바텐더"
+          },
+          {
+            "type": "바 문화",
+            "target": "한 손님당 두 잔 제한",
+            "details": "높은 도수 때문에 서비스 수량을 제한했다는 유명한 운영 일화"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cocktail_classic_047",
+      "name": "Death in the Afternoon",
+      "name_en": "Death in the Afternoon",
+      "name_ko": "데스 인 디 애프터눈",
+      "type": "CLASSIC",
+      "base_spirit": "압생트",
+      "recipe": "압생트 45ml, 차갑게 식힌 샴페인 90ml",
+      "description": "압생트에 차가운 샴페인을 부어 허브 향과 기포, 높은 도수를 함께 살린 칵테일입니다.",
+      "features": {
+        "sweetness": 0.18,
+        "alcohol_strength": 0.82,
+        "fizz": 0.9,
+        "sourness": 0.2
+      },
+      "talking_points": [
+        "헤밍웨이가 1935년 작가들의 칵테일 책에 기고한 레시피로, 압생트에 샴페인을 부어 유백색으로 흐려질 때까지 채우라고 했습니다.",
+        "헤밍웨이는 이걸 세 잔에서 다섯 잔 천천히 마시라고 적었습니다. 문학적 조언과 안전한 조언이 언제나 같은 문장은 아니라는 좋은 예죠.",
+        "이름은 오후의 죽음이고 모양은 우아한 샴페인입니다. 헤밍웨이식 농담은 대체로 잔보다 뒤늦게 무게가 옵니다."
+      ],
+      "lore": {
+        "keywords": [
+          "헤밍웨이", "오후의 죽음", "압생트", "샴페인", "위험한 농담", "So Red the Nose"
+        ],
+        "references": [
+          {
+            "type": "인물",
+            "target": "Ernest Hemingway",
+            "details": "자신의 책 제목을 붙인 압생트와 샴페인 레시피를 1935년 문헌에 기고"
+          },
+          {
+            "type": "문헌",
+            "target": "So Red the Nose, or Breath in the Afternoon",
+            "details": "유명 작가들의 칵테일 레시피를 모은 1935년 책에 수록됨"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cocktail_classic_048",
+      "name": "Vesper",
+      "name_en": "Vesper",
+      "name_ko": "베스퍼",
+      "type": "CLASSIC",
+      "base_spirit": "진",
+      "recipe": "진 45ml, 보드카 15ml, 릴레 블랑 7.5ml",
+      "description": "진과 보드카를 중심으로 릴레 블랑을 소량 더한 매우 드라이하고 강한 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/vesper/",
+      "official_category": "New Era Drinks",
+      "features": {
+        "sweetness": 0.1,
+        "alcohol_strength": 0.95,
+        "fizz": 0,
+        "sourness": 0.08
+      },
+      "talking_points": [
+        "베스퍼는 이언 플레밍의 1953년 소설 카지노 로얄에서 본드가 직접 배합을 주문하고 베스퍼 린드의 이름을 붙인 칵테일입니다.",
+        "본드의 유명한 주문처럼 젓지 않고 흔들어 만들지만, 진과 보드카가 대부분이라 영화 소품치고는 꽤 현실적인 공격력을 가졌습니다.",
+        "원전의 키나 릴레는 더 이상 생산되지 않아 오늘날에는 릴레 블랑으로 재현합니다. 첩보물도 시대가 바뀌면 배합표부터 갱신되는 셈이죠."
+      ],
+      "lore": {
+        "keywords": [
+          "베스퍼", "제임스 본드", "카지노 로얄", "베스퍼 린드", "키나 릴레"
+        ],
+        "references": [
+          {
+            "type": "작품",
+            "target": "Casino Royale",
+            "details": "1953년 소설에서 제임스 본드가 배합을 주문하고 베스퍼 린드의 이름을 붙임"
+          },
+          {
+            "type": "인물",
+            "target": "Vesper Lynd",
+            "details": "칵테일 이름의 직접적인 모티프가 된 카지노 로얄의 인물"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cocktail_classic_049",
+      "name": "White Russian",
+      "name_en": "White Russian",
+      "name_ko": "화이트 러시안",
+      "type": "CLASSIC",
+      "base_spirit": "보드카",
+      "recipe": "보드카 50ml, 커피 리큐르 20ml, 생크림 약간",
+      "description": "보드카와 커피 리큐르 위에 생크림을 띄워 천천히 섞어 마시는 달콤하고 부드러운 칵테일입니다.",
+      "recipe_source_url": "https://iba-world.com/iba-cocktail/black-russian/",
+      "official_category": "Contemporary Classics",
+      "features": {
+        "sweetness": 0.75,
+        "alcohol_strength": 0.58,
+        "fizz": 0,
+        "sourness": 0.05
+      },
+      "talking_points": [
+        "화이트 러시안은 블랙 러시안에 생크림을 띄운 변형입니다. 이름과 달리 러시아에서 태어난 술은 아니고, 보드카 때문에 러시안이라는 이름이 붙었습니다.",
+        "영화 빅 레보스키에서 듀드가 줄곧 마시는 잔으로 등장한 뒤 대중문화 속 존재감이 크게 살아났습니다.",
+        "이 잔을 보고 목욕 가운과 볼링을 떠올렸다면 설명은 이미 끝났네요. 듀드라면 아마 그렇게 흘러가게 두라고 했을 겁니다."
+      ],
+      "lore": {
+        "keywords": [
+          "화이트 러시안", "빅 레보스키", "듀드", "볼링", "목욕 가운", "커피 리큐르", "블랙 러시안"
+        ],
+        "references": [
+          {
+            "type": "작품",
+            "target": "The Big Lebowski",
+            "details": "주인공 듀드가 반복해서 마시며 화이트 러시안의 대중문화 이미지를 굳힌 1998년 영화"
+          },
+          {
+            "type": "레시피 계보",
+            "target": "Black Russian",
+            "details": "보드카와 커피 리큐르 조합에 생크림을 더한 공식 변형"
+          }
+        ]
+      }
     }
   ]
 }

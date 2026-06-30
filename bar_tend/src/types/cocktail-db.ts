@@ -8,6 +8,17 @@ export interface CocktailFeatures {
 
 export type CocktailType = 'CLASSIC' | 'SIGNATURE'
 
+export interface CocktailLoreReference {
+  type: string
+  target: string
+  details: string
+}
+
+export interface CocktailLore {
+  keywords: string[]
+  references: CocktailLoreReference[]
+}
+
 export interface CocktailRecordBase {
   id: string
   name: string
@@ -24,8 +35,15 @@ export interface CocktailRecordBase {
   /** Provenance for an official standardized recipe */
   recipe_source_url?: string
   official_category?: string
+  /** Hidden from public menus and recommendation pools. */
+  secret?: boolean
+  /** Phrases that directly unlock a secret-menu order. */
+  secret_phrases?: string[]
+  /** Story fragments used for short serving dialogue. */
+  story?: string[]
   /** Short non-authoritative prompts Karua can use as bar conversation material */
   talking_points?: string[]
+  lore?: CocktailLore
 }
 
 export interface ClassicCocktailRecord extends CocktailRecordBase {
