@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~2 완료, 다음=Phase 3 |
+| 단계 | RST-000 MVP + Phase 1~3 완료, 다음=Phase 4 |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 잠정 보류 |
-| 빌드/린트 | 통과 (메인 JS 465.05 kB, gzip 137.55 kB) |
-| 테스트 | Vitest 381개 중 379개 통과, 기존 safety 문구 계약 2개 실패 |
+| 빌드/린트 | 통과 (메인 JS 467.19 kB, gzip 138.28 kB) |
+| 테스트 | **Vitest 390개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -19,6 +19,7 @@
 | Phase 1.5 Context + Action Layer | [`0404c58`] |
 | Phase 2 Response Pipeline 완료 (템플릿·데이터 삽입·표정 선택 분리, 추천/스토리/캐릭터 공통 경유) | [`4003932`][`27e8298`][`024c692`] + 현재 작업 |
 | Phase 3 선행 DialogueSessionState 정리 (웰컴 플래그·종료 종류·safetyLocked Hard Stop) | 현재 작업 |
+| Phase 3 DialogueService 분리 (분류·차단·Action·Context 이벤트·응답·턴 검증) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -32,14 +33,14 @@
 | 영역 | 현재 | 목표 |
 |---|---|---|
 | 캐릭터 | 카루아 CSS 필터 표정, 시에스타 라벨만 | 표정별 PNG + 시에스타 난입 스프라이트 |
-| 대화 | 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | DialogueService 분리 + 전체 문단프리셋 이관 |
+| 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
-| 테스트 | 데이터·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | safety 문구 계약 2개 복구 + 스프라이트 검증 추가 |
-| 번들 | 메인 450.28 kB, 레시피/BGM chunk | 유지 |
+| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
+| 번들 | 메인 467.19 kB, 레시피/BGM chunk | 유지 |
 
 ## 현재 우선순위
-1. Phase 3 DialogueService 분리 (`useRestationController`에서 대화 판단 분리)
-2. Phase 4~8 구조 작업 (Context 완성→Action→Slot Filling→Dialogue Quality→Talking Points)
+1. Phase 4 Conversation Context 완성 (갱신 조건과 소유권 고정)
+2. Phase 5~8 구조 작업 (Action 실행→Slot Filling→Dialogue Quality→Talking Points)
 3. DLG-807~809 말투·대사 출처·문단 프리셋과 SPR-001~005는 구조 안정화 후 재검토
 4. Phase 9 Character Layer는 의도·행동·응답 출처 안정화 뒤 적용
 
@@ -60,7 +61,7 @@
 | ISSUE-012 시에스타 일방적 발화 | 해결됨 | [`2aecaf0`] |
 | ISSUE-013 대명사 오해 | 해결됨 | [`0404c58`] |
 | ISSUE-014 정보 요청의 직전 칵테일 재주문 오인 | 해결됨 | 현재 작업 |
-| ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 미해결, 2 tests | — |
+| ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 해결됨 | 현재 작업 |
 
 ## 향후 방침
 - DLG-807~809 전 WebLLM·새알고리즘·새캐릭터·추가이벤트 보류

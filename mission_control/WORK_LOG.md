@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-06-30 / Codex / Phase 3 DialogueService 분리
+- 내용: `DialogueService`를 추가해 대화 컨텍스트 구성, IntentClassifier 실행, DialogueAction 해석, 이야기·정보·캐릭터·미등록 칵테일 직접 응답, DialogueTurn 조립·검증을 컨트롤러 밖으로 이동
+- 계약: 서비스는 입력·메시지·Conversation Context·세션 스냅샷을 받아 `DialogueResolution`을 반환한다. 결과에는 route/intent/action, 즉시 적용할 컨텍스트 이벤트, 직접 응답 턴이 포함된다. 추천 계산은 기존 추천 훅이 유지하고, 계산 결과의 최종 대화 턴 조립만 서비스가 담당
+- 책임 분리 보완: `DialogueResolution.blockedBySession`에서 주문 차단을 먼저 확정하고 차단된 주문에는 Context 이벤트를 생성하지 않음. 텍스트 주문과 사이드바 주문이 모두 `resolve → Action → buildMainTurn → serving events` 계약을 사용하며, 서빙 완료는 `cocktail-served` reducer 액션으로 항상 conversation 모드에 복귀
+- 안전 상태: `safetyLocked`를 명시적 `reset` 전까지 다른 reducer 액션을 받지 않는 흡수 상태로 고정해 추천·주문·웰컴·XYZ·farewell 전이를 차단
+- 컨트롤러: `useRestationController`에서 IntentClassifier, Action Resolver, story formatter, 일반 응답 엔진, DialogueTurn builder 직접 호출을 제거. 컨트롤러는 서비스 결과를 세션 reducer, 타이머, 제조 애니메이션, 카드·도감 해제, 화면 메시지에 반영
+- 안전 계약: 공통 `SAFETY_REDIRECT_REPLY`에 즉시 위험 확인과 119/112/1393 안내를 복구해 기존 실패 2개 해소
+- 수정: `bar_tend/src/lib/dialogue/dialogue-service.ts`, `dialogue-service.test.ts`, `action-resolver.ts`, `turn-builder.ts`, `bar_tend/src/hooks/useRestationController.ts`
+- 검증: check/lint/build 통과, Vitest 27개 파일 390/390 tests pass, 메인 JS 467.19 kB (gzip 138.28 kB)
+
 ## 2026-06-30 / Codex / 정보 요청 최우선 라우팅과 점진적 칵테일 설명 [470a7c0]
 - 내용: 안전·퇴장 예외 뒤 정보 요청을 시크릿 암구호, 정확한 칵테일명 주문, 직전 주문 재주문보다 먼저 판정하도록 입력 우선순위를 정리. `설명`, `자세히`, `이야기`, `일화`, `유래`, `스토리`, `레시피`, `재료`, `맛`, `오마주`, `왜`, `어떻게`, `알려줘`, `더 말해줘` 계열은 언급된 칵테일 또는 직전 칵테일의 후속 정보 요청으로 연결
 - 설명 이력: `ConversationContextState.disclosedFactKeysByCocktailId`와 `fact-disclosed` 이벤트를 추가해 칵테일별로 이미 출력한 팩트를 기록. `story-query.ts`는 아직 공개하지 않은 `talkingPoints → description → recipe → tasting → trivia`를 우선해 한 번에 1~2문장만 출력하고, 소진 뒤 자연스러운 종료 문구를 반환

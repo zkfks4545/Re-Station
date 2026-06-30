@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-06-30
+> 최종 갱신일: 2026-06-30 (파일 지도·저장소 구조 갱신)
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -52,7 +52,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 도입하더라도 말투 포장만 담당한다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. 현재 향후 구조 우선순위는 `Phase 3` DialogueService 분리다. Phase 1~2의 분류·컨텍스트·행동 해석·응답 조립 기반은 완료되었다.
+12. Phase 3 DialogueService 분리는 완료되었다. 현재 향후 구조 우선순위는 `Phase 4` Conversation Context의 갱신 조건과 소유권 완성이다.
 13. DLG-807~DLG-809 같은 대사 수렴 작업은 의도·행동·응답 출처가 안정된 뒤 재검토한다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
@@ -63,16 +63,24 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/App.tsx` | 전체 화면 렌더링 조립 |
-| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 기본 대화/추천 세션, 최근 칵테일 컨텍스트, 타이핑/제조 상태, 시에스타 이벤트 플래그 |
+| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 메시지, 세션 reducer, 서비스 결과 적용, 타이핑/제조·카드·도감·시에스타 UI 연출 |
 | `bar_tend/src/components/entrance/BarExterior.tsx` | 바 외부 입장 화면 |
 | `bar_tend/src/components/bar/BarInterior.tsx` | 바 내부 메인 화면 |
+| `bar_tend/src/components/bar/BarCounter.tsx` | 바 카운터 UI (좌석/잔 표현) |
 | `bar_tend/src/components/bar/ChatInput.tsx` | 사용자 입력, 추천 선택지 버튼, 취소 버튼 |
-| `bar_tend/src/components/bar/DialogueBox.tsx` | 대화 표시 |
+| `bar_tend/src/components/bar/DialogueBox.tsx` | 대화 표시 (말풍선) |
+| `bar_tend/src/components/bar/DialogueRenderer.tsx` | 대화 렌더러 (타입별 메시지 분기) |
 | `bar_tend/src/components/bar/CocktailCard.tsx` | 추천 결과 카드 |
 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 정적 스프라이트와 셰이킹 애니메이션 표시 |
+| `bar_tend/src/components/bar/WelcomeDrinkButton.tsx` | 웰컴드링크 버튼 (입장 직후 표시) |
+| `bar_tend/src/components/sidebar/Sidebar.tsx` | 사이드바 컨테이너 (레시피/도감/BGM 전환) |
+| `bar_tend/src/components/sidebar/RecipeInfoTab.tsx` | 레시피 정보 탭 (재료/도수/레시피/주문) |
+| `bar_tend/src/components/sidebar/CocktailBookTab.tsx` | 칵테일 도감 탭 (해금된 칵테일 목록) |
+| `bar_tend/src/components/sidebar/BarMusicTab.tsx` | BGM 음악 탭 (분위기별 프리셋) |
 | `bar_tend/src/assets/characters/karua/sprites.ts` | 카루아 정적 이미지와 애니메이션 프레임 import 계약 |
 | `bar_tend/src/assets/characters/karua/static/` | 카루아 정적 PNG 에셋 |
 | `bar_tend/src/assets/characters/karua/animations/shaker/` | 칵테일 제조 셰이킹 프레임과 metadata |
+| `bar_tend/src/data/bgm-presets.ts` | BGM 프리셋 데이터 (YouTube ID 기반) |
 
 ### 4.2 일반 대화
 
@@ -83,7 +91,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/bartender/intent-classifier-adapter.ts` | 기존 대화 엔진이 IntentClassifier를 사용하도록 연결 |
 | `bar_tend/src/lib/dialogue/conversation-context.ts` | 직전 논의·추천·서빙·주문 후보와 칵테일별 공개 완료 팩트의 순수 상태 전이 |
 | `bar_tend/src/lib/dialogue/action-resolver.ts` | 통합 분류 결과와 컨텍스트를 주문·추천·후속 이야기 등 행동 객체로 변환 |
-| `bar_tend/src/lib/cocktails/lore-reference.ts` | DB의 lore·talking points·대중문화 단서로 인물/작품/이름 유래 참조 검색 |
+| `bar_tend/src/lib/dialogue/dialogue-service.ts` | 대화 컨텍스트 구성, 세션 차단 선판정, 분류와 행동 해석, 허용된 Context 이벤트, 직접 응답, 최종 DialogueTurn 조립·검증 |
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 키워드 규칙으로 컴파일 |
 | `bar_tend/src/data/keyword-rules.json` | 키워드 패턴, 표정, 폴백 응답, 대사 카테고리 |
 | `bar_tend/src/lib/bartender/conversation.ts` | 이미 분류된 intent와 참조 칵테일을 받아 템플릿·대사·데이터 포매터를 선택하고 공통 응답 조립기로 전달 |
@@ -102,6 +110,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/types/dialogue-turn.ts` | 구조화된 대화 턴 계약 |
 | `bar_tend/src/lib/dialogue/turn-builder.ts` | DialogueTurn 구성과 복구 템플릿 |
 | `bar_tend/src/lib/dialogue/input-router.ts` | 안전, 퇴장, 추천, 주문, 이야기, 유래, 칵테일 정보, 캐릭터 질문, 이름 검색 등 입력 경로 판정 |
+| `bar_tend/src/lib/dialogue/pattern-utils.ts` | 공통 패턴 유틸리티 (`kf()` 정규식 컴파일, `SHAKE_REFERENCE` 본드식 감지) |
 | `bar_tend/src/lib/dialogue/story-query.ts` | 직전/현재 칵테일에서 아직 공개하지 않은 이야기·설명·레시피·맛·trivia를 1~2문장씩 선택하거나 바 세계관 lore로 폴백 |
 
 ### 4.4 추천 시스템
@@ -112,21 +121,40 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/recommendation/question-engine.ts` | 다음 질문 선택, 답변 반영, 후보 분별력 계산 |
 | `bar_tend/src/lib/recommendation/state.ts` | 자유 입력 신호 추출, 추천 상태, 후보 필터, 추천 근거 |
 | `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷 |
+| `bar_tend/src/lib/recommendation/welcome-drink.ts` | 웰컴드링크 선정, 피드백 질문, 포맷 |
 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 질문 진행과 최종 추천 연결. 질문·실패·직접 주문·lore 주문·최종 추천 결과를 공통 응답 조립기로 전달 |
+| `bar_tend/src/hooks/useGuestPreferenceSession.ts` | 게스트 취향 세션 훅 (localStorage 저장/복원 + idol memory 통합) |
 | `bar_tend/src/types/recommendation.ts` | 추천 상태, 질문, 선택지, 결정 타입 |
 
 ### 4.5 칵테일 데이터
 
 | 파일 | 역할 |
 |---|---|
-| `bar_tend/src/data/cocktail-db.json` | 실제 추천 후보 칵테일 DB |
-| `bar_tend/src/lib/cocktails/database.ts` | 칵테일 검색, 이름/별칭 매칭, 데이터 접근 |
+| `bar_tend/src/data/cocktail-db.json` | 실제 추천 후보 칵테일 DB (45종, IBA 공식 31종 포함) |
+| `bar_tend/src/lib/cocktails/database.ts` | 칵테일 검색, 이름/별칭 매칭, 점수 기반 추천 정렬 |
 | `bar_tend/src/lib/cocktails/secret-menu.ts` | 일반 후보에서 숨긴 시크릿 메뉴의 정확한 이름·암구호 주문 매칭 |
 | `bar_tend/src/lib/cocktails/cocktail-db.ts` | 정규화 DB 로드 |
+| `bar_tend/src/lib/cocktails/lore-reference.ts` | DB의 lore·talking points·대중문화 단서로 인물/작품/이름 유래 참조 검색 |
+| `bar_tend/src/lib/cocktails/taste-format.ts` | 맛 별점 포맷 (수치 → 별표 문자열) |
+| `bar_tend/src/lib/cocktails/iba-verify.ts` | IBA 공식 항목 검증 (URL/분류/베이스 확인) |
+| `bar_tend/src/lib/cocktails/description-gen.ts` | 정규화 DB용 중립 설명 생성 |
+| `bar_tend/src/lib/cocktails/api.ts` | TheCocktailDB API 연동 (검색/랜덤/조회/캐시) |
+| `bar_tend/src/lib/cocktails/ingestion-pipeline.ts` | 레시피 후보 처리 파이프라인 (공식 등록/검증 큐 분기) |
+| `bar_tend/src/lib/cocktails/admin-queue-manager.ts` | 관리자 검증 큐 (미확인/시그니처/출처 충돌 후보 관리) |
 | `bar_tend/src/types.ts` | 공통 칵테일, 메시지, 표정 타입 |
-| `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 |
+| `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 (CocktailFeatures, CocktailRecord, PartnerBar 등) |
+| `bar_tend/src/types/admin-queue.ts` | 관리자 큐 타입 (QueueCandidate, PendingCocktailStatus, IBA 상수) |
 
-### 4.6 시에스타 만담
+### 4.8 저장소 및 인프라 (Storage / Timing / Idol)
+
+| 파일 | 역할 |
+|---|---|
+| `bar_tend/src/lib/storage/guest-session-store.ts` | localStorage 기반 게스트 세션 저장/복원 (취향 + idol 메모리) |
+| `bar_tend/src/lib/storage/cocktail-unlocks.ts` | 칵테일 도감 해금 상태 localStorage 저장 |
+| `bar_tend/src/lib/timing/timer-registry.ts` | 타이머 생명주기 관리 (setTimeout 일괄 정리) |
+| `bar_tend/src/lib/idol/memory.ts` | 게스트 감정/대화 주제 메모리 (sentiment 추적, 최근 주제 기록) |
+
+### 4.9 시에스타 만담
 
 | 파일 | 역할 |
 |---|---|
@@ -134,7 +162,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/banter/siesta-event.test.ts` | 만담 이벤트 조건과 구조 테스트 |
 | `bar_tend/src/hooks/useRestationController.ts` | `SIESTA_EVENTS_ENABLED`가 켜진 경우에만 본 답변 뒤 시에스타 이벤트 예약 |
 
-### 4.7 세션 흐름 및 마감 정책
+### 4.10 세션 흐름 및 마감 정책
 
 | 파일 | 역할 |
 |---|---|
@@ -159,20 +187,18 @@ useRestationController
   ↓
 웰컴드링크 피드백 또는 추천 질문 진행 중인지 확인
   ↓
-입력 라우터 + IntentClassifier 통합 결과
-  - safety / exit / recommendation-cancel
-  - story-query / lore-query / cocktail-info-query / character-query
-  - explicit-cocktail / cocktail-mention / recommendation / general
-  - 비안전 입력 우선순위: 정보 요청 → 시크릿 암구호 → 정확한 칵테일명 주문 → 직전 주문 후속 주문 → 일반 대화
-  ↓
-최근 칵테일 컨텍스트 확인
-  - lastDiscussedCocktailId
-  - lastRecommendedCocktailId
-  - lastServedCocktailId
-  - lastOrderCandidateCocktailId
-  - disclosedFactKeysByCocktailId
-  ↓
-Conversation Context를 참조해 Action Resolver가 행동 선택
+DialogueService
+  - Conversation Context + 세션 스냅샷으로 DialogueContext 구성
+  - 입력 라우터 + IntentClassifier 통합 결과
+    - safety / exit / recommendation-cancel
+    - story-query / lore-query / cocktail-info-query / character-query
+    - explicit-cocktail / cocktail-mention / recommendation / general
+    - 비안전 입력 우선순위: 정보 요청 → 시크릿 암구호 → 정확한 칵테일명 주문 → 직전 주문 후속 주문 → 일반 대화
+  - 최근 칵테일 컨텍스트 확인
+    - lastDiscussedCocktailId / lastRecommendedCocktailId / lastServedCocktailId
+    - lastOrderCandidateCocktailId / disclosedFactKeysByCocktailId
+  - Conversation Context를 참조해 Action Resolver가 행동 선택
+  - 직접 응답이면 DialogueTurn과 컨텍스트 이벤트 반환
   ↓
 응답 출처 선택
   - dialogue category / intent template / story formatter / recommendation formatter
@@ -439,7 +465,7 @@ BartenderResponse { response, expression }
 
 추천 대화문은 `formatRecommendationReply()`에서 문단 프리셋과 추천 사유를 조합한 뒤, 해당 칵테일의 `talkingPoints` 중 하나를 안정적으로 선택해 덧붙인다. 직접 주문(`formatExplicitCocktailReply()`), 랜덤 추천(`formatRandomRecommendationReply()`), 웰컴드링크(`formatWelcomeDrinkReply()`)도 같은 `selectCocktailTalkingPoint()`를 사용한다.
 
-레시피 사이드바에서 `주문` 버튼을 누르면 `RecipeInfoTab` → `Sidebar` → `useRestationController.handleOrderCocktail()` → `formatExplicitCocktailReply()` 경로로 처리된다. 따라서 사이드바 주문도 단순 카드 표시가 아니라 칵테일 제조/서빙 흐름과 이야기 포인트를 포함한 대사로 연결된다.
+레시피 사이드바에서 `주문` 버튼을 누르면 `RecipeInfoTab` → `Sidebar` → `useRestationController.handleOrderCocktail()` → `DialogueService.resolve()` → `buildMainTurn()` 경로로 처리된다. 자유입력 주문과 같은 Action·Context 이벤트·응답 계약을 사용하므로, 사이드바 주문도 검증된 DialogueTurn과 제조/서빙 흐름으로 연결된다.
 
 ## 10. 데이터 구조
 
@@ -557,7 +583,7 @@ BartenderResponse { response, expression }
 
 ### 11.5 컨트롤러와 세션 도메인의 책임 경계
 
-`useRestationController.ts`는 입장, 퇴장, 입력 라우팅, 추천 세션 연결, 최근 칵테일 컨텍스트, 세션 종료, 타이핑/제조 연출을 조율하는 중심 컨트롤러다.
+`useRestationController.ts`는 입장, 퇴장, 추천 세션 실행, 세션 종료, 타이핑/제조 연출을 조율한다. 원문 입력의 분류, 컨텍스트 해석, 행동 선택, 직접 응답 생성은 더 이상 컨트롤러가 직접 수행하지 않는다.
 
 세션 단계와 마감 정책은 `lib/session/session-flow.ts`가 담당한다. 주문이 닫힌 단계는 `isOrderingClosedPhase`가 판정하며, 해당 단계는 `xyz`, `farewell`, `returnHome`이다.
 
@@ -571,7 +597,8 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 - `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
 - `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조, 칵테일별 공개 팩트 이력과 갱신 규칙
 - `action-resolver.ts`: route/intent와 컨텍스트를 행동 객체로 변환
-- `useRestationController.ts`: 확정된 행동의 UI 상태 반영, 메시지 표시와 연출 연결
+- `dialogue-service.ts`: 분류기와 Action Resolver를 오케스트레이션하고 직접 응답·컨텍스트 이벤트·검증된 DialogueTurn 반환
+- `useRestationController.ts`: 서비스가 확정한 결과의 세션 상태 반영, 추천 엔진 호출, 메시지 표시와 연출 연결
 
 이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
 
@@ -585,7 +612,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 Phase 2에서 `ResponseDraft`와 `assembleResponse()` 계약을 추가했다. 일반 intent 템플릿은 `fallback + tone`을 제공하고, 추천·스토리·캐릭터 응답은 최종 출력 전에 같은 조립 단계를 거친다. 추천 affect와 일반 tone의 표정 매핑도 `response-pipeline.ts` 한곳에서 관리한다.
 
-남은 구조 문제는 응답 조립 자체보다 호출 오케스트레이션이다. `useRestationController.ts`에는 여전히 입력 라우팅 이후의 도메인 분기, 행동 실행, 세션 갱신, UI 연출 연결이 함께 있으므로 Phase 3에서 DialogueService를 분리해야 한다.
+Phase 3에서 호출 오케스트레이션을 `DialogueService`로 옮겼다. 서비스가 분류·세션 차단·행동·Context 이벤트·직접 응답·DialogueTurn 검증을 소유하고, 컨트롤러에는 추천 훅 실행과 세션/UI 부수효과 적용이 남아 있다. 텍스트 주문과 사이드바 주문은 같은 서비스 계약을 사용하며, 차단된 주문은 Context를 변경하지 않는다. 서빙 완료는 `cocktail-served` 전이로 conversation 모드에 복귀하고, `safetyLocked`는 명시적 새 세션 reset 전까지 흡수 상태를 유지한다.
 
 ### 11.8 DialogueSessionState 선행 정리 완료
 
@@ -662,8 +689,8 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 2. `Phase 1.5` Context + Action Layer: 완료. 생략 주문과 후속 이야기 컨텍스트 연결
 3. `Phase 2` Response Pipeline: 완료. 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리와 주요 응답 공통 조립
 4. `Phase 2.5` DialogueSessionState: 완료. 분산 세션 상태, Welcome-Farewell, safetyLocked Hard Stop 고정
-5. `Phase 3` DialogueService 분리: 다음 작업. `useRestationController`에서 대화 판단 로직 분리
-6. `Phase 4` Conversation Context 완성: 일부 진행. `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`와 칵테일별 공개 팩트 이력까지 구현했으며 갱신 정책의 서비스 계층 이동이 남음
+5. `Phase 3` DialogueService 분리: 완료. 컨텍스트 구성·분류·행동·직접 응답·턴 검증을 서비스로 이동
+6. `Phase 4` Conversation Context 완성: 다음 작업. `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`와 칵테일별 공개 팩트 이력은 구현됐으며 갱신 조건과 소유권 고정이 남음
 7. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
 8. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
 9. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
@@ -686,10 +713,10 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
 | 관련 회귀 테스트 | 통과: 입력 라우터·IntentClassifier·Action Resolver·Conversation Context·Story Query·Session Flow 6개 파일, 146개 테스트 |
-| 전체 테스트 | `npm.cmd test` 기준 26개 파일, 381개 중 379개 통과. 기존 safety 문구 계약 2개 실패 |
-| 메인 JS | 빌드 기준 465.05 kB, gzip 137.55 kB |
+| 전체 테스트 | 통과: `npm.cmd test` 기준 27개 파일, 390개 테스트 |
+| 메인 JS | 빌드 기준 467.19 kB, gzip 138.28 kB |
 
-알려진 실패 2개는 safety 응답에 테스트가 요구하는 `1393`, `다칠 위험` 문구가 없는 계약 불일치다. 이번 정보 요청·설명 이력 변경의 관련 테스트는 모두 통과한다. 코드 리뷰와 검수 시에는 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, 서빙 이야기 이력 기록, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.
+알려진 Vitest 실패는 없다. safety 응답은 즉시 위험 확인과 119/112/1393 안내를 공통 상수에서 다시 보장한다. 코드 리뷰와 검수 시에는 DialogueService와 컨트롤러의 책임 경계, 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.
 
 ## 16. 기획안 평가 기준
 

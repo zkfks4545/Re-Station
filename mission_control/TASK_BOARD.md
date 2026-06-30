@@ -469,7 +469,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 범위 | `ordered`, `aftertalk`, `xyz`, `farewell`, `returnHome` 같은 세션 단계, XYZ 발동 조건, Farewell Phase 2~3턴 제한, 추가 주문·추천 금지 라우팅 |
 | 완료 조건 | XYZ 발동 조건과 상태 전이가 타입/문서/테스트 기준으로 정의되고, XYZ 이후 신규 추천과 신규 주문이 차단되며 레시피·후기·가벼운 잡담은 허용된다. |
 | 주의 | XYZ는 벌칙이나 엔딩 분기가 아니라 오늘의 마지막 드링크다. 사용자는 평가받지 않는다. |
-| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하고, 3턴 정도 대화를 이어간 뒤 귀가로 닫는다. |
+| 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하되 기존 칵테일 정보 대화는 허용하며, 명시적 퇴장 입력으로 귀가한다. |
 | 검증 | `session-flow.test.ts` 기준 서브 이후 도수 한계 XYZ 후속 서빙 테스트 통과 |
 
 #### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현
@@ -662,7 +662,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | Phase 1.5 | Context + Action Layer | 완료 | `모히토` → `그걸로 주세요` → 실제 주문처럼 이어지는 흐름 구현 | 순수 Conversation Context와 DialogueAction 해석기를 추가하고 생략 주문·후속 이야기·정보 질문을 실제 대상 칵테일에 연결. 명시적 lore/person/media 주문은 `loreBasedOrder` 행동으로 주문 후보 저장과 제조·서빙까지 실행. Phase 4~5에서 갱신 정책과 전체 실행 계층을 확장 |
 | Phase 2 | Response Pipeline | 완료 | 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리 | `ResponseDraft`와 `assembleResponse` 계약 추가. 템플릿은 최종 표정 대신 tone을 제공하고 추천 결과, 이야기 응답, 캐릭터 응답이 같은 조립 파이프라인을 통과 |
 | Phase 2.5 | DialogueSessionState 정리 | 완료 | Phase 3 전에 컨트롤러의 세션 상태와 종료 흐름을 단일 계약으로 고정 | `phase/mode/dialogue/welcomeDrink/order/farewell/safetyLocked` 통합. safety-alert는 추천·주문·웰컴·farewell을 중단하고 세션을 강제 종료. 미성년자/무알코올 전용 정책은 제외 |
-| Phase 3 | DialogueService 분리 | 미착수 | `useRestationController`에서 대화 로직을 떼어내기 | 컨트롤러는 UI 상태와 연출 조율, 서비스는 의도·맥락·행동·응답을 담당 |
+| Phase 3 | DialogueService 분리 | 완료 | `useRestationController`에서 대화 로직을 떼어내기 | 서비스가 컨텍스트 구성·분류·세션 차단·Action·Context 이벤트·응답·턴 검증을 담당. 텍스트/사이드바 주문 계약 통합, 서빙 후 conversation 복귀, safetyLocked 흡수 상태. 390 tests pass |
 | Phase 4 | Conversation Context 완성 | 일부 착수 | 대화 중 참조 가능한 컨텍스트 정리 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`의 의미와 갱신 조건 고정 |
 | Phase 5 | Action Layer | 미착수에 가까움 | `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 | 의도 분류 결과가 곧 응답 문자열이 아니라 검증 가능한 행동으로 이어지게 함 |
 | Phase 6 | Slot Filling 추천 FSM | 미착수 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | 기존 추천 엔진은 유지하되, 입력으로 채워진 슬롯을 질문 선택보다 우선 반영 |

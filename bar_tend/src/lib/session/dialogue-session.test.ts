@@ -70,4 +70,36 @@ describe('DialogueSessionState', () => {
     expect(state.phase).toBe('xyz')
     expect(state.farewell).toEqual({ entryKind: 'welcome-farewell-xyz', turnCount: 0 })
   })
+
+  it('returns to conversation mode whenever a cocktail service completes', () => {
+    const recommending = dialogueSessionReducer(
+      createDialogueSessionState('conversation'),
+      { type: 'set-mode', mode: 'recommendation' },
+    )
+    const served = dialogueSessionReducer(recommending, { type: 'cocktail-served' })
+
+    expect(served.mode).toBe('conversation')
+  })
+
+  it('keeps safetyLocked absorbing until an explicit session reset', () => {
+    const locked = dialogueSessionReducer(
+      createDialogueSessionState('conversation'),
+      { type: 'lock-safety' },
+    )
+    const attemptedActions = [
+      { type: 'set-mode', mode: 'recommendation' } as const,
+      { type: 'welcome-served' } as const,
+      { type: 'set-alcohol-total', total: 20 } as const,
+      { type: 'enter-farewell', entryKind: 'alcohol-xyz' } as const,
+      { type: 'set-phase', phase: 'xyz' } as const,
+    ]
+
+    for (const action of attemptedActions) {
+      expect(dialogueSessionReducer(locked, action)).toEqual(locked)
+    }
+
+    const reset = dialogueSessionReducer(locked, { type: 'reset', phase: 'conversation' })
+    expect(reset.safetyLocked).toBe(false)
+    expect(reset.phase).toBe('conversation')
+  })
 })
