@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createConversationContext,
+  getDisclosedCocktailFactKeys,
   getDiscussedCocktailIds,
   getLoreFollowupCocktailId,
   getOrderCandidateCocktailId,
@@ -49,6 +50,27 @@ describe('conversation context', () => {
     expect(targeted.lastDiscussedCocktailId).toBe('martini')
     expect(targeted.lastStoryTargetCocktailId).toBe('martini')
     expect(getLoreFollowupCocktailId(targeted)).toBe('martini')
+  })
+
+  it('tracks disclosed facts per cocktail without duplicates', () => {
+    const first = updateConversationContext(createConversationContext(), {
+      type: 'fact-disclosed',
+      cocktailId: 'mojito',
+      factKey: 'story:0',
+    })
+    const duplicate = updateConversationContext(first, {
+      type: 'fact-disclosed',
+      cocktailId: 'mojito',
+      factKey: 'story:0',
+    })
+    const secondCocktail = updateConversationContext(duplicate, {
+      type: 'fact-disclosed',
+      cocktailId: 'martini',
+      factKey: 'recipe',
+    })
+
+    expect(getDisclosedCocktailFactKeys(secondCocktail, 'mojito')).toEqual(['story:0'])
+    expect(getDisclosedCocktailFactKeys(secondCocktail, 'martini')).toEqual(['recipe'])
   })
 
   it('falls back through served → order-candidate → discussed for lore-followup', () => {

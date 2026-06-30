@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { cocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/database.js'
 import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 import type { CocktailData } from '@/types.js'
 
@@ -113,7 +113,7 @@ export default function CocktailBookTab({
 
   return (
     <div className="codex-grid">
-      {cocktails.map((c) => {
+      {publicCocktails.map((c) => {
         const unlocked = unlockedIds.has(c.id)
         return (
           <button

@@ -51,6 +51,8 @@ export interface CocktailData extends Cocktail {
   base_spirit?: string
   recipe_source_url?: string
   official_category?: string
+  secret?: boolean
+  secretPhrases?: string[]
   bar_id?: string
   bar_name?: string
   bar_location_link?: string

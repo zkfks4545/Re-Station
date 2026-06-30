@@ -187,11 +187,22 @@ const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
 ]
 
 export function formatExplicitCocktailReply(cocktail: CocktailData): string {
-  return `「${cocktail.name}」을 찾으시는군요.\n${selectCocktailTalkingPoint(cocktail)}\n자세한 정보도 함께 보여드릴게요.`
+  return `「${cocktail.name}」 한 잔, 바로 준비할게요.\n${selectShortCocktailStory(cocktail)}`
 }
 
 export function formatLoreBasedOrderReply(cocktail: CocktailData): string {
-  return `「${cocktail.name}」 한 잔 준비할게요.\n${selectCocktailTalkingPoint(cocktail)}`
+  return `그 이야기의 「${cocktail.name}」 한 잔, 바로 준비할게요.\n${selectShortCocktailStory(cocktail)}`
+}
+
+export function formatSecretMenuOrderReply(cocktail: CocktailData): string {
+  const noticed = cocktail.id === 'cocktail_signature_042'
+    ? '...그 암구호를 아시네요.'
+    : '...그 말은 오랜만에 듣네요.'
+  const serving = cocktail.id === 'cocktail_signature_042'
+    ? `좋아요. 특별한 「${cocktail.name}」, 준비해드릴게요.`
+    : `그럼 기록되지 않은 「${cocktail.name}」, 준비해드릴게요.`
+
+  return `${noticed}\n${serving}\n${selectShortCocktailStory(cocktail)}`
 }
 
 export function formatRandomRecommendationReply(
@@ -242,6 +253,11 @@ export function selectCocktailTalkingPoint(cocktail: CocktailData): string {
 
   const index = stableIndex(cocktail.id, points.length)
   return points[index]
+}
+
+export function selectShortCocktailStory(cocktail: CocktailData): string {
+  const selected = selectCocktailTalkingPoint(cocktail).trim()
+  return selected.match(/^.*?[.!?](?=\s|$)/u)?.[0] ?? selected
 }
 
 function stableIndex(seed: string, length: number): number {

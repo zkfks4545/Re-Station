@@ -157,7 +157,10 @@ export class IntentClassifier {
       'explicit-cocktail',
       'cocktail-mention',
       'unknown-cocktail-query',
-    ].includes(route.route)
+    ].includes(route.route) || (
+      ['story-query', 'lore-query', 'cocktail-info-query'].includes(route.route)
+      && ['general-chat', 'cocktail-query', 'order-cocktail'].includes(conversationResult.intent)
+    )
 
     if (routeMustWin) {
       finalIntent = this.mapInputRouteToIntent(route.route)

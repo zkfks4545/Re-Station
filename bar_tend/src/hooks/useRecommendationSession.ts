@@ -17,6 +17,7 @@ import {
   formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
   formatRecommendationReply,
+  formatSecretMenuOrderReply,
   selectRecommendationOpening,
 } from '@/lib/recommendation/response.js'
 import {
@@ -84,16 +85,21 @@ export function useRecommendationSession() {
     )
   }, [recentDialogueLineIds, resetRecommendation])
 
-  const resolveExplicitCocktail = useCallback((cocktail: CocktailData): RecommendationResult => {
+  const resolveExplicitCocktail = useCallback((
+    cocktail: CocktailData,
+    options: { secretPassphrase?: string } = {},
+  ): RecommendationResult => {
     const dialogue = inferRecommendationDialogueContext(recommendationState, {
       route: 'directCocktailOrder',
-      routeTags: ['direct-name'],
+      routeTags: options.secretPassphrase ? ['delegated'] : ['direct-name'],
       dialogueState: 'serving',
-      affectState: 'confident',
+      affectState: options.secretPassphrase ? 'playful' : 'confident',
     })
     resetRecommendation()
     return assembleRecommendationResult(
-      formatExplicitCocktailReply(cocktail),
+      options.secretPassphrase
+        ? formatSecretMenuOrderReply(cocktail)
+        : formatExplicitCocktailReply(cocktail),
       dialogue.affectState,
       cocktail,
       createRecommendationDecision(cocktail, recommendationState, dialogue),

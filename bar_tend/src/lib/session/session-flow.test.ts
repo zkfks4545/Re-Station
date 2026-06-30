@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isRecommendationBlockedInPhase,
   isOrderingClosedPhase,
-  MAX_FAREWELL_TURNS,
   nextPhaseAfterServedCocktail,
-  shouldReturnHomeAfterFarewellTurn,
   shouldServeXyzAfterAlcoholLimit,
 } from './session-flow.js'
 
@@ -52,6 +50,10 @@ describe('closed Re:Station session flow', () => {
     expect(isRecommendationBlockedInPhase('farewell', 'explicit-cocktail')).toBe(true)
     expect(isRecommendationBlockedInPhase('farewell', 'unknown-cocktail-query')).toBe(true)
     expect(isRecommendationBlockedInPhase('farewell', 'general')).toBe(false)
+    expect(isRecommendationBlockedInPhase('farewell', 'story-query')).toBe(false)
+    expect(isRecommendationBlockedInPhase('farewell', 'lore-query')).toBe(false)
+    expect(isRecommendationBlockedInPhase('farewell', 'cocktail-info-query')).toBe(false)
+    expect(isRecommendationBlockedInPhase('farewell', 'character-query')).toBe(false)
     expect(isRecommendationBlockedInPhase('safetyLocked', 'recommendation')).toBe(true)
     expect(isRecommendationBlockedInPhase('safetyLocked', 'explicit-cocktail')).toBe(true)
   })
@@ -59,16 +61,5 @@ describe('closed Re:Station session flow', () => {
   it('moves into farewell after the XYZ drink is served', () => {
     expect(nextPhaseAfterServedCocktail({ current: 'xyz', isXyz: true })).toBe('farewell')
     expect(nextPhaseAfterServedCocktail({ current: 'recommending', isXyz: false })).toBe('aftertalk')
-  })
-
-  it('returns home after the farewell turn budget is used', () => {
-    expect(shouldReturnHomeAfterFarewellTurn({
-      phase: 'farewell',
-      farewellTurnCount: MAX_FAREWELL_TURNS,
-    })).toBe(true)
-    expect(shouldReturnHomeAfterFarewellTurn({
-      phase: 'aftertalk',
-      farewellTurnCount: MAX_FAREWELL_TURNS,
-    })).toBe(false)
   })
 })

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import CocktailBookTab from './CocktailBookTab.jsx'
-import { cocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/database.js'
 import type { CocktailData } from '@/types.js'
 
 export type SidebarTab = 'codex' | 'recipe' | 'music' | 'reset'
@@ -34,7 +34,8 @@ export default function Sidebar({
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
-  const totalCocktails = cocktails.length
+  const totalCocktails = publicCocktails.length
+  const publicUnlockedCount = publicCocktails.filter((cocktail) => unlockedIds.has(cocktail.id)).length
 
   const handleReset = () => {
     if (!confirmReset) {
@@ -83,7 +84,7 @@ export default function Sidebar({
             <>
               <h2 className="sidebar-title">칵테일 도감</h2>
               <p className="sidebar-muted">
-                대화 중 추천받은 칵테일만 해제됩니다. ({unlockedIds.size}/
+                대화 중 추천받은 칵테일만 해제됩니다. ({publicUnlockedCount}/
                 {totalCocktails})
               </p>
               <CocktailBookTab

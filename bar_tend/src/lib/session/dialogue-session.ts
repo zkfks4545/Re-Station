@@ -37,6 +37,7 @@ export type DialogueSessionAction =
   | { type: 'reset-conversation-progress' }
   | { type: 'welcome-served' }
   | { type: 'welcome-resolved' }
+  | { type: 'cocktail-served' }
   | { type: 'set-alcohol-total'; total: number }
   | { type: 'lock-safety' }
   | { type: 'enter-farewell'; entryKind: Exclude<FarewellEntryKind, 'none'> }
@@ -71,6 +72,8 @@ export function dialogueSessionReducer(
   state: DialogueSessionState,
   action: DialogueSessionAction,
 ): DialogueSessionState {
+  if (state.safetyLocked && action.type !== 'reset') return state
+
   switch (action.type) {
     case 'reset':
       return createDialogueSessionState(action.phase)
@@ -101,6 +104,11 @@ export function dialogueSessionReducer(
       return {
         ...state,
         welcomeDrink: { ...state.welcomeDrink, resolved: true },
+      }
+    case 'cocktail-served':
+      return {
+        ...state,
+        mode: 'conversation',
       }
     case 'set-alcohol-total':
       return {

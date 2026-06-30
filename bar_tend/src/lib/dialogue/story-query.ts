@@ -1,9 +1,11 @@
 import type { CocktailData, Expression } from '../../types.js'
+import { selectCocktailTalkingPoint } from '../recommendation/response.js'
 
 export interface StoryQueryReply {
   text: string
   expression: Expression
   facts: string[]
+  factKeys: string[]
 }
 
 const GENERAL_LORE_REPLIES = [
@@ -12,13 +14,22 @@ const GENERAL_LORE_REPLIES = [
   'Re:Station에서는 한 잔을 오래 붙잡기보다, 그 잔이 왜 지금 나왔는지를 조금 남겨둡니다.\n그게 이 바의 배경에 가까워요.',
 ]
 
-export function formatStoryQueryReply(cocktail: CocktailData | null): StoryQueryReply {
-  const points = cocktail?.talkingPoints?.filter((point) => point.trim().length > 0) ?? []
-  if (cocktail && points.length > 0) {
+export function formatStoryQueryReply(
+  cocktail: CocktailData | null,
+  disclosedFactKeys: string[] = [],
+): StoryQueryReply {
+  if (cocktail) {
+    const nextFact = buildCocktailFacts(cocktail)
+      .find((fact) => !disclosedFactKeys.includes(fact.key))
+    if (!nextFact) {
+      const text = '이 정도가 이 잔에 얽힌 이야기의 대부분이에요.'
+      return { text, expression: 'smirk', facts: [text], factKeys: [] }
+    }
     return {
-      text: `${cocktail.name}에 얽힌 이야기라면 이쪽이 먼저 떠오르네요.\n${points.join('\n')}`,
+      text: nextFact.text,
       expression: 'talk',
-      facts: points,
+      facts: [nextFact.text],
+      factKeys: [nextFact.key],
     }
   }
 
@@ -27,5 +38,64 @@ export function formatStoryQueryReply(cocktail: CocktailData | null): StoryQuery
     text,
     expression: 'talk',
     facts: [text],
+    factKeys: [],
   }
+}
+
+export function getSelectedCocktailStoryFactKey(cocktail: CocktailData): string | null {
+  const points = cocktail.talkingPoints?.filter((point) => point.trim().length > 0) ?? []
+  const selected = selectCocktailTalkingPoint(cocktail)
+  const index = points.indexOf(selected)
+  return index >= 0 ? `story:${index}` : null
+}
+
+interface CocktailFact {
+  key: string
+  text: string
+}
+
+function buildCocktailFacts(cocktail: CocktailData): CocktailFact[] {
+  const facts: CocktailFact[] = []
+  const seen = new Set<string>()
+  const add = (key: string, text: string | undefined) => {
+    const shortened = shortenToTwoSentences(text)
+    const normalized = shortened.toLowerCase().replace(/\s+/g, '')
+    if (!shortened || seen.has(normalized)) return
+    seen.add(normalized)
+    facts.push({ key, text: shortened })
+  }
+
+  cocktail.talkingPoints?.forEach((point, index) => add(`story:${index}`, point))
+  add('description', cocktail.description)
+  add('recipe', cocktail.recipeText ? `${cocktail.name}의 레시피는 ${cocktail.recipeText}입니다.` : undefined)
+  add('tasting', formatTastingFact(cocktail))
+  cocktail.lore?.references.forEach((reference, index) => {
+    add(`trivia:${index}`, reference.details)
+  })
+
+  return facts
+}
+
+function formatTastingFact(cocktail: CocktailData): string {
+  const sweetness = describeLevel(cocktail.features.sweetness, '드라이한', '균형 잡힌 단맛의', '달콤한')
+  const sourness = describeLevel(cocktail.features.sourness, '산미가 잔잔하고', '산미가 또렷하고', '산미가 강하고')
+  const strength = describeLevel(cocktail.features.alcohol_strength, '도수는 가벼운', '도수는 중간 정도인', '도수가 높은')
+  const fizz = cocktail.features.fizz >= 0.6
+    ? '탄산감도 선명합니다.'
+    : cocktail.features.fizz >= 0.25
+      ? '탄산감은 은은합니다.'
+      : '탄산 없이 맛이 이어집니다.'
+  return `${sweetness} 편이고 ${sourness} ${strength} 잔이에요. ${fizz}`
+}
+
+function describeLevel(value: number, low: string, medium: string, high: string): string {
+  if (value < 0.35) return low
+  if (value > 0.65) return high
+  return medium
+}
+
+function shortenToTwoSentences(text: string | undefined): string {
+  if (!text?.trim()) return ''
+  const sentences = text.trim().match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? []
+  return sentences.slice(0, 2).map((sentence) => sentence.trim()).join(' ')
 }

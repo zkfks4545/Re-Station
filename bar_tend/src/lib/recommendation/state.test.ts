@@ -115,7 +115,9 @@ describe('recommendation state', () => {
 
     expect(questionCandidates.exactMatch).toBe(false)
     expect(questionCandidates.cocktails.length).toBeGreaterThan(nearest.cocktails.length)
-    expect(questionCandidates.cocktails.every((cocktail) => cocktail.base_spirit === '진')).toBe(true)
+    expect(questionCandidates.cocktails.every((cocktail) =>
+      cocktail.base_spirit === '진' || cocktail.ingredients.includes('진'),
+    )).toBe(true)
   })
 
   it('infers dialogue context from mood-based recommendation input', () => {

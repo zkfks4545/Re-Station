@@ -1,4 +1,4 @@
-import { findCocktailByName, cocktails } from '../cocktails/database.js'
+import { findCocktailByName, publicCocktails } from '../cocktails/database.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { kf, SHAKE_REFERENCE } from '../dialogue/pattern-utils.js'
 import { assembleResponse } from '../dialogue/response-pipeline.js'
@@ -89,7 +89,7 @@ export function generateResponse(
       const personMatch = input.match(/([가-힣]{2,})[이가]\s*(?:마시|좋아하)/)
       if (personMatch) {
         const person = personMatch[1]
-        const found = cocktails.find(c =>
+        const found = publicCocktails.find(c =>
           c.talkingPoints?.some(p => p.includes(person))
         )
         if (found) {

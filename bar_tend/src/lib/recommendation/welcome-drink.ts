@@ -1,6 +1,6 @@
 import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
-import { getAllCocktailData } from '../cocktails/database.js'
+import { getPublicCocktailData } from '../cocktails/database.js'
 import type { InputRoute } from '../dialogue/input-router.js'
 import { selectCocktailTalkingPoint } from './response.js'
 
@@ -41,7 +41,7 @@ export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
   ],
 }
 
-export function selectWelcomeDrink(cocktails: CocktailData[] = getAllCocktailData()): CocktailData {
+export function selectWelcomeDrink(cocktails: CocktailData[] = getPublicCocktailData()): CocktailData {
   const approachable = cocktails.filter((cocktail) =>
     cocktail.type === 'CLASSIC' &&
     cocktail.features.alcohol_strength <= 0.65 &&

@@ -14,7 +14,7 @@ import type {
 } from '../../types/dialogue-turn.js'
 import type { InputRoute } from './input-router.js'
 
-interface RecommendationOutcome {
+export interface RecommendationOutcome {
   reply: string
   expression: Expression
   decision?: RecommendationDecision | null
@@ -26,7 +26,7 @@ interface DialogueTurnOptions {
 }
 
 export const SAFETY_REDIRECT_REPLY =
-  '죄송해요. 이 상황에서는 더 이상 주문이나 대화를 이어갈 수 없습니다.\n오늘은 여기까지 하겠습니다.'
+  '지금은 안전이 먼저예요. 지금 다칠 위험이 있거나 혼자 있기 어렵다면 즉시 119나 112, 또는 자살예방상담전화 1393에 연락해 주세요.\n가까운 사람에게도 바로 연락해 주세요.'
 
 const ROUTE_TO_INTENT: Record<string, DialogueIntent> = {
   safety: 'safety-alert',

@@ -1,6 +1,6 @@
 # 프로젝트 구조
 
-> 최종 갱신일: 2026-06-29
+> 최종 갱신일: 2026-06-30
 > 실제 애플리케이션 경로: `bar_tend/`
 
 ## 프로젝트 개요
@@ -54,6 +54,7 @@ prac/
 | 구성 요소 | 책임 | 주요 파일 |
 |---|---|---|
 | 애플리케이션 조정 | 장면, 메시지, 모달, 사이드바와 저장 상태를 연결 | `src/hooks/useRestationController.ts` |
+| 대화 서비스 | 대화 컨텍스트 구성, 의도 분류, 세션 차단, 행동 해석, Context 이벤트, 직접 응답과 최종 DialogueTurn 조립·검증 | `src/lib/dialogue/dialogue-service.ts` |
 | 공통 입력 라우팅 | 안전, 퇴장, 설문 밖 랜덤 추천, 이름 검색, 추천, 일반 대화의 처리 우선순위 결정 | `src/lib/dialogue/input-router.ts` |
 | 대화 컨텍스트 | 직전 논의·추천·서빙·주문 후보 칵테일 참조와 갱신 규칙 관리 | `src/lib/dialogue/conversation-context.ts` |
 | 대화 행동 해석 | 통합 분류 결과와 컨텍스트를 주문·추천·이야기·논의·일반 응답 행동으로 변환 | `src/lib/dialogue/action-resolver.ts` |
@@ -74,15 +75,15 @@ prac/
 ### 대화 및 추천
 
 1. 사용자가 `ChatInput`에서 텍스트를 전송한다.
-2. `useRestationController`가 메시지를 화면 상태에 추가하고 세션 취향 신호를 갱신한다.
-3. `IntentClassifier`가 공통 입력 라우터를 사용해 흐름 제어용 route와 응답 의미용 intent를 한 결과로 확정한다.
+2. `useRestationController`가 메시지를 화면 상태에 추가하고 세션 취향 신호를 갱신한 뒤 현재 세션 스냅샷을 `DialogueService`에 전달한다.
+3. `DialogueService`가 Conversation Context로 `DialogueContext`를 구성하고, `IntentClassifier`와 공통 입력 라우터를 사용해 흐름 제어용 route와 응답 의미용 intent를 확정한다.
 4. 명시적 lore/person/media 단서가 있으면 lore 참조 검색이 DB 근거로 대상 칵테일을 먼저 확정한다. 결과가 있는 주문은 `lore-based-order`가 되며 대명사 컨텍스트보다 우선한다.
-5. Conversation Context가 직전 논의·추천·서빙·주문 후보 칵테일을 제공하고, Action Resolver가 통합 분류 결과를 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동으로 변환한다. `loreBasedOrder`는 주문 후보 저장 후 제조·서빙까지 실행한다.
+5. Conversation Context가 직전 논의·추천·서빙·주문 후보 칵테일을 제공하고, 서비스 내부 Action Resolver가 통합 분류 결과를 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동으로 변환한다. 서비스는 세션 차단을 먼저 판정하며, 허용된 행동에만 Context 이벤트와 직접 응답 턴을 반환한다.
 6. 안전 입력은 퇴장과 추천보다 먼저 규칙 기반 안전 응답으로 전달한다.
 7. 이름 검색 결과가 없고 추천 의도이면 `recommendation/question-engine.ts`가 현재 후보군을 필터링하고 다음 질문 또는 결과를 정한다.
 8. 추천 엔진과 UI는 초기 로딩 시 구성된 동일한 `CocktailData` 객체를 사용한다.
 9. 대사 트리거 계층은 확정된 추천 결과, 입력 경로 태그, 현재 FSM 상태, 감정 상태를 받아 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 선택한다. 칵테일 ID는 제조·서빙 문장의 변수로 결합하며 추천 결과를 다시 계산하지 않는다.
-10. 추천 안내와 추천 이유는 메시지에 표시하고, `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시한다. 도감 해제 ID도 저장한다.
+10. 추천 엔진이 계산한 결과는 `DialogueService.buildMainTurn()`에서 최종 DialogueTurn으로 조립·검증한 뒤 메시지에 표시한다. `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시하고 도감 해제 ID도 저장한다.
 11. 추천 질문과 안전 흐름이 아닌 구간에는 이벤트 엔진이 시에스타 만담 이벤트 발생 여부를 판단할 수 있다.
 
 ### 시에스타 이벤트 상태 흐름
@@ -141,7 +142,7 @@ IDLE
 
 | 위험 | 근거 | 영향 |
 |---|---|---|
-| 자동 테스트 범위 부족 | 데이터, 검색 우선순위, 카루아 계약, 타이머, 추천 상태 테스트 15개만 존재 | 저장 및 주요 사용자 흐름 회귀 위험 |
+| 컨트롤러 통합 검증 한계 | 도메인·서비스 단위 테스트는 확장됐지만 React 컨트롤러 전체 흐름은 주로 하위 계약 테스트에 의존 | 세션 reducer와 UI 부수효과 연결의 통합 회귀 위험 |
 | WebLLM 미연결 | 전환 계약과 성능 전략은 확정됐으나 런타임 구현은 없음 | 생성형 표현 계층 미완성 |
 
 `useRestationController`의 응답 준비, 타이핑, 추천 카드, 화면 흔들림, 퇴장 지연 작업은 관리형 타이머 레지스트리를 사용한다. 퇴장, 초기화, 컴포넌트 언마운트 시 남은 작업을 모두 취소하며, 처리 상태는 `idle`, `processing`, `typing`, `exiting` 중 하나로 유지한다.
