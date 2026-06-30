@@ -127,12 +127,14 @@ export default function App() {
           >
             <button
               type="button"
-              className={`session-mode-btn ${actionSessionMode === 'recommendation' ? 'session-mode-btn--active' : ''}`}
+              className={`session-mode-btn text-xs transition-all duration-200 cursor-pointer select-none flex items-center gap-1 ${actionSessionMode === 'recommendation' ? 'session-mode-btn--active' : ''}`}
               onClick={handleStartRecommendation}
               disabled={isProcessing || isBartenderTyping}
               aria-pressed={actionSessionMode === 'recommendation'}
             >
+              <span className="opacity-60">[</span>
               추천받기
+              <span className="opacity-60">]</span>
             </button>
             <WelcomeDrinkButton
               disabled={isProcessing || isBartenderTyping}

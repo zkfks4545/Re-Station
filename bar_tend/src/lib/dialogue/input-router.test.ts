@@ -122,6 +122,139 @@ describe('user input routing priority', () => {
     expect(result.matchedCocktailId).toBeTruthy()
   })
 
+  it('treats a bare known cocktail name as an order in every session mode', () => {
+    expect(r('모히토')).toBe('explicit-cocktail')
+    expect(r('모히토', { allowRecommendationRoutes: false })).toBe('explicit-cocktail')
+    expect(r('Vesper')).toBe('explicit-cocktail')
+  })
+
+  it.each([
+    ['여신의 한잔 줘', 'cocktail_signature_042'],
+    ['여신의 한잔을', 'cocktail_signature_042'],
+    ['달링의 한잔으로', 'cocktail_signature_042'],
+    ['악마의 한잔 부탁해', 'cocktail_signature_042'],
+    ['비 오는 밤에 어울리는 걸로', 'cocktail_signature_043'],
+    ['인생을 바꾸는 한 잔 줘', 'cocktail_signature_043'],
+    ['인생을 바꾸는 한잔을', 'cocktail_signature_043'],
+    ['인생을 바꿀 한 잔을', 'cocktail_signature_043'],
+    ['인생을 바꿀 한잔을', 'cocktail_signature_043'],
+  ])('routes secret passphrase %s through the explicit order flow', (input, cocktailId) => {
+    const result = routeUserInput(input, { allowRecommendationRoutes: false })
+
+    expect(result.route).toBe('explicit-cocktail')
+    expect(result.matchedCocktailId).toBe(cocktailId)
+    expect(result.secretPassphrase).toBeTruthy()
+  })
+
+  it('keeps a secret passphrase above the previous order candidate', () => {
+    const result = routeUserInput('인생을 바꿀 한잔을', {
+      allowRecommendationRoutes: false,
+      orderCandidateCocktailId: 'cocktail_signature_042',
+      lastDiscussedCocktailId: 'cocktail_signature_042',
+    })
+
+    expect(result.route).toBe('explicit-cocktail')
+    expect(result.matchedCocktailId).toBe('cocktail_signature_043')
+    expect(result.secretPassphrase).toBe('인생을 바꿀 한 잔')
+  })
+
+  it('accepts exact secret names without treating 글리치 alone as a passphrase', () => {
+    expect(r('PUKEY Goddess Shot')).toBe('explicit-cocktail')
+    expect(r('Glitch Rain')).toBe('explicit-cocktail')
+    expect(r('글리치')).toBe('general')
+  })
+
+  it('keeps explicit information requests out of the order route', () => {
+    expect(r('모히토 설명')).toBe('cocktail-info-query')
+    expect(r('모히토 정보')).toBe('cocktail-info-query')
+    expect(r('모히토 뭐야?')).toBe('cocktail-info-query')
+    expect(r('모히토 일화')).toBe('story-query')
+    expect(r('모히토 유래')).toBe('story-query')
+    expect(r('모히토 스토리')).toBe('story-query')
+    expect(r('더 설명해줘')).toBe('story-query')
+    expect(r('이야기 더')).toBe('story-query')
+    expect(r('유래는?')).toBe('story-query')
+    expect(r('레시피 알려줘')).toBe('cocktail-info-query')
+    expect(r('왜 이름이 그래?')).toBe('lore-query')
+    expect(r('오마주가 뭐야?')).toBe('story-query')
+    expect(r('재료는 뭐야?')).toBe('cocktail-info-query')
+    expect(r('맛은 어때?')).toBe('cocktail-info-query')
+  })
+
+  it('treats a known secret cocktail plus follow-up language as information', () => {
+    const result = routeUserInput('그럼 푸키여신샷에 대해 좀 더', {
+      allowRecommendationRoutes: false,
+      orderCandidateCocktailId: 'cocktail_signature_042',
+      lastDiscussedCocktailId: 'cocktail_signature_042',
+    })
+
+    expect(result.route).toBe('story-query')
+    expect(result.matchedCocktailId).toBe('cocktail_signature_042')
+    expect(result.secretPassphrase).toBeUndefined()
+  })
+
+  it.each([
+    ['푸키여신샷에 대해 좀 더', 'cocktail_signature_042'],
+    ['푸키여신샷에 관해 알려줘', 'cocktail_signature_042'],
+    ['푸키여신샷 관련해서 말해줘', 'cocktail_signature_042'],
+    ['푸키여신샷이 더 궁금해', 'cocktail_signature_042'],
+    ['푸키여신샷은 어떤 술이야?', 'cocktail_signature_042'],
+    ['푸키여신샷은 무슨 뜻이야?', 'cocktail_signature_042'],
+    ['푸키여신샷은 뭐가 특별해?', 'cocktail_signature_042'],
+    ['Glitch Rain 더 알려줘', 'cocktail_signature_043'],
+    ['모히토 어디서 나왔어?', mojito.id],
+  ])('routes named cocktail follow-up "%s" to story instead of ordering', (input, cocktailId) => {
+    const result = routeUserInput(input, {
+      allowRecommendationRoutes: false,
+      orderCandidateCocktailId: 'cocktail_signature_042',
+      lastDiscussedCocktailId: 'cocktail_signature_042',
+    })
+
+    expect(result.route).toBe('story-query')
+    expect(result.matchedCocktailId).toBe(cocktailId)
+    expect(result.secretPassphrase).toBeUndefined()
+  })
+
+  it('keeps bare names and explicit order language on the order route', () => {
+    expect(r('푸키여신샷')).toBe('explicit-cocktail')
+    expect(r('푸키여신샷 한 잔 주세요')).toBe('explicit-cocktail')
+    expect(r('Glitch Rain')).toBe('explicit-cocktail')
+    expect(r('모히토 부탁해')).toBe('explicit-cocktail')
+  })
+
+  it.each([
+    ['설명을 더 해주세요', 'story-query'],
+    ['더 설명해줘', 'story-query'],
+    ['자세히 알려줘', 'story-query'],
+    ['이야기 더 말해줘', 'story-query'],
+    ['일화가 궁금해', 'story-query'],
+    ['유래는?', 'story-query'],
+    ['스토리 알려줘', 'story-query'],
+    ['레시피 알려줘', 'cocktail-info-query'],
+    ['재료가 뭐야?', 'cocktail-info-query'],
+    ['맛은 어때?', 'cocktail-info-query'],
+    ['오마주가 뭐야?', 'story-query'],
+    ['왜?', 'story-query'],
+    ['어떻게?', 'story-query'],
+    ['알려줘', 'story-query'],
+    ['더 말해줘', 'story-query'],
+  ])('keeps information request "%s" above contextual reordering', (input, route) => {
+    expect(routeUserInput(input, {
+      allowRecommendationRoutes: false,
+      orderCandidateCocktailId: 'cocktail_signature_043',
+      lastDiscussedCocktailId: 'cocktail_signature_043',
+    })).toMatchObject({ route, matchedCocktailId: undefined })
+  })
+
+  it('keeps information requests above secret passphrases', () => {
+    const result = routeUserInput('오늘은 이야기를 섞어줘', {
+      orderCandidateCocktailId: 'cocktail_signature_043',
+    })
+
+    expect(result.route).toBe('story-query')
+    expect(result.secretPassphrase).toBeUndefined()
+  })
+
   it('routes active recommendation answers before general conversation', () => {
     expect(r('잘 모르겠어요', { recommendationActive: true })).toBe('recommendation')
     expect(r('아무거나', { recommendationActive: true })).toBe('recommendation')
@@ -156,12 +289,12 @@ describe('user input routing priority', () => {
   it('routes unknown cocktail names to unknown-cocktail-query', () => {
     expect(r('블루 라군 주문')).toBe('unknown-cocktail-query')
     expect(r('진 토닉 시켜줘')).toBe('unknown-cocktail-query')
-    expect(r('롱 아일랜드 아이스티 한 잔')).toBe('unknown-cocktail-query')
+    expect(r('롱 아일랜드 아이스티 한 잔')).toBe('explicit-cocktail')
   })
 
   it('pronoun reference with lastDiscussedCocktailId skips unknown-cocktail-query', () => {
     expect(r('이거요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
-    expect(r('그거 알려줘', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
+    expect(r('그거 알려줘', { lastDiscussedCocktailId: 'mojito' })).toBe('story-query')
     expect(r('방금 그거 맞아요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
     expect(r('저거 좋아요', { lastDiscussedCocktailId: 'mojito' })).toBe('general')
   })

@@ -4,6 +4,7 @@ export interface ConversationContextState {
   lastServedCocktailId: string | null
   lastOrderCandidateCocktailId: string | null
   lastStoryTargetCocktailId: string | null
+  disclosedFactKeysByCocktailId: Record<string, string[]>
 }
 
 export type ConversationContextEvent =
@@ -12,6 +13,7 @@ export type ConversationContextEvent =
   | { type: 'served'; cocktailId: string }
   | { type: 'order-candidate'; cocktailId: string }
   | { type: 'story-targeted'; cocktailId: string }
+  | { type: 'fact-disclosed'; cocktailId: string; factKey: string }
   | { type: 'reset' }
 
 export function createConversationContext(): ConversationContextState {
@@ -21,6 +23,7 @@ export function createConversationContext(): ConversationContextState {
     lastServedCocktailId: null,
     lastOrderCandidateCocktailId: null,
     lastStoryTargetCocktailId: null,
+    disclosedFactKeysByCocktailId: {},
   }
 }
 
@@ -61,6 +64,17 @@ export function updateConversationContext(
         lastStoryTargetCocktailId: event.cocktailId,
         lastDiscussedCocktailId: event.cocktailId,
       }
+    case 'fact-disclosed': {
+      const disclosed = state.disclosedFactKeysByCocktailId[event.cocktailId] ?? []
+      if (disclosed.includes(event.factKey)) return state
+      return {
+        ...state,
+        disclosedFactKeysByCocktailId: {
+          ...state.disclosedFactKeysByCocktailId,
+          [event.cocktailId]: [...disclosed, event.factKey],
+        },
+      }
+    }
     case 'reset':
       return createConversationContext()
   }
@@ -92,4 +106,11 @@ export function getLoreFollowupCocktailId(state: ConversationContextState): stri
     ?? state.lastServedCocktailId
     ?? state.lastOrderCandidateCocktailId
     ?? state.lastDiscussedCocktailId
+}
+
+export function getDisclosedCocktailFactKeys(
+  state: ConversationContextState,
+  cocktailId: string,
+): string[] {
+  return state.disclosedFactKeysByCocktailId[cocktailId] ?? []
 }

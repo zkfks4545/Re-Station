@@ -1,5 +1,20 @@
 # 작업 이력 (축약)
 
+## 2026-06-30 / Codex / 정보 요청 최우선 라우팅과 점진적 칵테일 설명
+- 내용: 안전·퇴장 예외 뒤 정보 요청을 시크릿 암구호, 정확한 칵테일명 주문, 직전 주문 재주문보다 먼저 판정하도록 입력 우선순위를 정리. `설명`, `자세히`, `이야기`, `일화`, `유래`, `스토리`, `레시피`, `재료`, `맛`, `오마주`, `왜`, `어떻게`, `알려줘`, `더 말해줘` 계열은 언급된 칵테일 또는 직전 칵테일의 후속 정보 요청으로 연결
+- 설명 이력: `ConversationContextState.disclosedFactKeysByCocktailId`와 `fact-disclosed` 이벤트를 추가해 칵테일별로 이미 출력한 팩트를 기록. `story-query.ts`는 아직 공개하지 않은 `talkingPoints → description → recipe → tasting → trivia`를 우선해 한 번에 1~2문장만 출력하고, 소진 뒤 자연스러운 종료 문구를 반환
+- 서빙 연결: 추천·웰컴드링크·직접 주문·사이드바 주문에서 이미 사용한 이야깃거리를 공개 이력에 기록해 후속 설명에서 같은 내용을 반복하지 않음
+- Final Drink: 신규 주문·추천만 차단하고 이미 주문한 칵테일의 설명·이야기·유래·레시피·재료·맛·오마주 질문은 계속 허용. 자동 턴 수 종료를 제거하고 명시적 퇴장 입력으로 귀가
+- 수정: `bar_tend/src/lib/dialogue/input-router.ts`, `conversation-context.ts`, `story-query.ts`, `bar_tend/src/hooks/useRestationController.ts` 및 관련 테스트
+- 검증: 관련 6개 파일 146/146 tests pass, check/lint/build 통과. 전체 381개 중 379개 통과, 기존 safety 응답 문구 계약 2개(`1393`, `다칠 위험`) 실패
+
+## 2026-06-30 / Codex / 시크릿 메뉴·칵테일 DB·주문 이야기 연결 확장
+- 내용: Long Island Iced Tea, Corpse Reviver No. 2, Zombie, Death in the Afternoon, Last Word, Vesper, White Russian 등 칵테일 데이터와 레시피·맛·이야깃거리 보강. `PUKEY Goddess Shot`, `Glitch Rain`을 일반 목록·추천·랜덤에서 제외되는 시크릿 메뉴로 분리
+- 주문 규칙: 정확한 칵테일명은 기본 주문으로 처리하고, 시크릿 암구호는 직전 주문 컨텍스트보다 우선해 해당 메뉴의 일반 제조·서빙 흐름으로 연결. 서빙 대사는 `story` 전체가 아니라 선택된 1~2문장만 사용
+- 응답 정렬: 추천 결과, 웰컴드링크, 레시피 사이드바 직접 주문이 공통 `talkingPoints` 선택 규칙을 사용하도록 정리
+- 수정: `bar_tend/src/data/cocktail-db.json`, `bar_tend/src/lib/cocktails/database.ts`, `secret-menu.ts`, 추천 응답·웰컴·사이드바·컨트롤러 및 관련 타입·테스트
+- 검증: 현재 통합 검증 결과는 위 2026-06-30 항목과 동일
+
 ## 2026-06-29 / Codex / Phase 3 선행 DialogueSessionState + Safety Hard Stop 정리
 - 내용: 분산된 대화/추천/웰컴/주문/farewell 상태를 `DialogueSessionState` reducer로 통합. 웰컴 피드백은 `served/resolved`에서 파생. safety-alert는 진행 중 작업을 즉시 중단하고 `safetyLocked`로 세션을 종료하며 XYZ/farewell을 실행하지 않음. 미성년자/무알코올 전용 intent·추천 제약·응답·대체 종료 제거
 - 검증: lint/check/build 통과, 323/323 tests pass, 메인 JS 450.28 kB (gzip 132.74 kB)

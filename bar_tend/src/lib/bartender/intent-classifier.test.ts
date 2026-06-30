@@ -93,6 +93,13 @@ describe('IntentClassifier', () => {
       expect(result.metadata.cocktailReferences).toHaveLength(1)
       expect(result.metadata.cocktailReferences[0].name).toBe('모히토')
     })
+
+    it('uses explicit information language instead of the default order intent', () => {
+      expect(classifier.classify('모히토', baseContext).intent).toBe('order-cocktail')
+      expect(classifier.classify('모히토 설명', baseContext).intent).toBe('cocktail-info-query')
+      expect(classifier.classify('모히토 뭐야?', baseContext).intent).toBe('cocktail-info-query')
+      expect(classifier.classify('모히토 일화', baseContext).intent).toBe('story-query')
+    })
   })
 
   describe('Pronoun references', () => {

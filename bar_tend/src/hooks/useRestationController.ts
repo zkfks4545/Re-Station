@@ -9,6 +9,7 @@ import { SHAKE_REFERENCE } from '@/lib/dialogue/pattern-utils.js'
 import { assembleResponse } from '@/lib/dialogue/response-pipeline.js'
 import {
   createConversationContext,
+  getDisclosedCocktailFactKeys,
   getDiscussedCocktailIds,
   getLoreFollowupCocktailId,
   getOrderCandidateCocktailId,
@@ -16,7 +17,10 @@ import {
   updateConversationContext,
   type ConversationContextEvent,
 } from '@/lib/dialogue/conversation-context.js'
-import { formatStoryQueryReply } from '@/lib/dialogue/story-query.js'
+import {
+  formatStoryQueryReply,
+  getSelectedCocktailStoryFactKey,
+} from '@/lib/dialogue/story-query.js'
 import { buildDialogueTurn, SAFETY_REDIRECT_REPLY } from '@/lib/dialogue/turn-builder.js'
 import {
   formatWelcomeDrinkFeedbackReply,
@@ -25,7 +29,10 @@ import {
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
 } from '@/lib/recommendation/welcome-drink.js'
-import { formatExplicitCocktailReply } from '@/lib/recommendation/response.js'
+import {
+  formatExplicitCocktailReply,
+  selectShortCocktailStory,
+} from '@/lib/recommendation/response.js'
 import {
   createDialogueSessionState,
   decideFarewellEntry,
@@ -39,7 +46,6 @@ import {
   isOrderingClosedPhase,
   nextPhaseAfterRoute,
   nextPhaseAfterServedCocktail,
-  shouldReturnHomeAfterFarewellTurn,
   shouldServeXyzAfterAlcoholLimit,
   XYZ_COCKTAIL_ID,
 } from '@/lib/session/session-flow.js'
@@ -114,7 +120,6 @@ export function useRestationController() {
   const actionSessionMode = dialogueSession.mode
   const sessionPhase = dialogueSession.phase
   const alcoholStarTotal = dialogueSession.order.alcoholStarTotal
-  const farewellTurnCount = dialogueSession.farewell.turnCount
   const welcomeDrinkServed = dialogueSession.welcomeDrink.served
   const welcomeDrinkFeedbackPending = isWelcomeDrinkFeedbackPending(dialogueSession)
 
@@ -138,6 +143,26 @@ export function useRestationController() {
   const recordConversationContext = useCallback((event: ConversationContextEvent) => {
     conversationContextRef.current = updateConversationContext(conversationContextRef.current, event)
   }, [])
+
+  const recordDisplayedCocktailStory = useCallback((cocktail: CocktailData, reply: string) => {
+    const factKey = getSelectedCocktailStoryFactKey(cocktail)
+    if (factKey && reply.includes(selectShortCocktailStory(cocktail))) {
+      recordConversationContext({ type: 'fact-disclosed', cocktailId: cocktail.id, factKey })
+    }
+  }, [recordConversationContext])
+
+  const continueCocktailExplanation = useCallback((cocktail: CocktailData | null) => {
+    const disclosed = cocktail
+      ? getDisclosedCocktailFactKeys(conversationContextRef.current, cocktail.id)
+      : []
+    const reply = formatStoryQueryReply(cocktail, disclosed)
+    if (cocktail) {
+      for (const factKey of reply.factKeys) {
+        recordConversationContext({ type: 'fact-disclosed', cocktailId: cocktail.id, factKey })
+      }
+    }
+    return reply
+  }, [recordConversationContext])
 
   const clearPendingWork = useCallback(() => {
     timerRegistry.current.clearAll()
@@ -219,7 +244,7 @@ export function useRestationController() {
         const typingSequence = typingSequenceRef.current + 1
         typingSequenceRef.current = typingSequence
         setInteractionStatus('typing')
-        setExpression('talk')
+        setExpression(exp)
 
         typingCompleteFnRef.current = () => {
           setExpression(exp)
@@ -334,7 +359,7 @@ export function useRestationController() {
     setLastServedCocktail(null)
     setServedCocktailMode('recommendation')
     setInteractionStatus('typing')
-    setExpression('talk')
+    setExpression('idle')
     typingCompleteFnRef.current = () => {
       setExpression('idle')
       setInteractionStatus('idle')
@@ -459,13 +484,16 @@ export function useRestationController() {
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
     recordConversationContext({ type: 'served', cocktailId: cocktail.id })
-    bartenderReply(formatWelcomeDrinkReply(cocktail, { alcoholStarTotal }), 'smirk', cocktail)
+    const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal })
+    recordDisplayedCocktailStory(cocktail, reply)
+    bartenderReply(reply, 'smirk', cocktail)
     return true
   }, [
     activeQuestion,
     alcoholStarTotal,
     bartenderReply,
     recordConversationContext,
+    recordDisplayedCocktailStory,
     resetRecommendation,
     servedCocktail,
     sessionPhase,
@@ -565,12 +593,8 @@ export function useRestationController() {
 
       // --- 세션 마감 처리(Farewell phase) ---
       if (sessionPhase === 'farewell') {
-        const nextCount = farewellTurnCount + 1
         dispatchDialogueSession({ type: 'increment-farewell-turn' })
-        if (
-          routeResult.route === 'exit'
-          || shouldReturnHomeAfterFarewellTurn({ phase: sessionPhase, farewellTurnCount: nextCount })
-        ) {
+        if (routeResult.route === 'exit') {
           resetRecommendation()
           dispatchDialogueSession({ type: 'set-phase', phase: 'returnHome' })
           setServedCocktail(null)
@@ -633,7 +657,7 @@ export function useRestationController() {
           recordConversationContext({ type: 'discussed', cocktailId: storyCocktail.id })
           recordConversationContext({ type: 'story-targeted', cocktailId: storyCocktail.id })
         }
-        const storyReply = formatStoryQueryReply(storyCocktail)
+        const storyReply = continueCocktailExplanation(storyCocktail)
         const storyResponse = assembleResponse({
           text: storyReply.text,
           preferredExpression: storyReply.expression,
@@ -658,8 +682,8 @@ export function useRestationController() {
           recordConversationContext({ type: 'discussed', cocktailId: loreCocktail.id })
           recordConversationContext({ type: 'story-targeted', cocktailId: loreCocktail.id })
         }
-        const loreResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, loreCocktail)
-        const turn = buildDialogueTurn(text, 'lore-query', loreResponse.response, loreResponse.expression, null, {
+        const loreReply = continueCocktailExplanation(loreCocktail)
+        const turn = buildDialogueTurn(text, 'lore-query', loreReply.text, loreReply.expression, null, {
           confidence: routeResult.confidence,
         })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
@@ -678,8 +702,8 @@ export function useRestationController() {
           recordConversationContext({ type: 'discussed', cocktailId: infoCocktail.id })
           recordConversationContext({ type: 'story-targeted', cocktailId: infoCocktail.id })
         }
-        const infoResponse = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent, infoCocktail)
-        const turn = buildDialogueTurn(text, 'cocktail-info-query', infoResponse.response, infoResponse.expression, null, {
+        const infoReply = continueCocktailExplanation(infoCocktail)
+        const turn = buildDialogueTurn(text, 'cocktail-info-query', infoReply.text, infoReply.expression, null, {
           confidence: routeResult.confidence,
         })
         if (!validateDialogueTurn(turn)) return handleInvalidTurn()
@@ -743,7 +767,9 @@ export function useRestationController() {
               ? actionCocktail
                 ? dialogueAction.type === 'loreBasedOrder'
                   ? resolveLoreBasedCocktail(actionCocktail)
-                  : resolveExplicitCocktail(actionCocktail)
+                  : resolveExplicitCocktail(actionCocktail, {
+                      secretPassphrase: routeResult.secretPassphrase,
+                    })
                 : null
               : null
           const fallback = getCocktailResponseFromClassified(text, nextMessages, classifiedIntent)
@@ -787,6 +813,7 @@ export function useRestationController() {
               recordConversationContext({ type: 'recommended', cocktailId: cocktail.id })
             }
             recordConversationContext({ type: 'served', cocktailId: cocktail.id })
+            recordDisplayedCocktailStory(cocktail, turn.reply)
     setScreenShake(true)
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(cocktail.id)
@@ -845,8 +872,8 @@ export function useRestationController() {
       bartenderReply,
       beginFarewell,
       clearPendingWork,
+      continueCocktailExplanation,
       dialogueSession,
-      farewellTurnCount,
       ingestUserMessage,
       lastServedCocktail,
       messages,
@@ -858,6 +885,7 @@ export function useRestationController() {
       resolveLoreBasedCocktail,
       resolveRecommendation,
       recordConversationContext,
+      recordDisplayedCocktailStory,
       servedCocktail,
       sessionPhase,
       setUnlockedIds,
@@ -920,6 +948,7 @@ export function useRestationController() {
     setSidebarOpen(false)
 
     const reply = formatExplicitCocktailReply(cocktail)
+    recordDisplayedCocktailStory(cocktail, reply)
     const response = assembleResponse({ text: reply, tone: 'confident' })
     const turn = buildDialogueTurn(text, 'explicit-cocktail', response.response, response.expression, null, {
       confidence: 0.95,
@@ -973,6 +1002,7 @@ export function useRestationController() {
     dialogueSession,
     ingestUserMessage,
     recordConversationContext,
+    recordDisplayedCocktailStory,
     sessionPhase,
     setUnlockedIds,
   ])

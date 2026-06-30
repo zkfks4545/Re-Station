@@ -114,8 +114,18 @@ html::before {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%, 100% {
+    transform: translate(
+      var(--sprite-eye-offset-x, 0%),
+      var(--sprite-eye-offset-y, 0%)
+    );
+  }
+  50% {
+    transform: translate(
+      var(--sprite-eye-offset-x, 0%),
+      calc(var(--sprite-eye-offset-y, 0%) - 5px)
+    );
+  }
 }
 .float {
   animation: float 3s ease-in-out infinite;
@@ -165,6 +175,22 @@ html::before {
   box-shadow: 0 0 40px rgba(120, 80, 180, 0.03);
 }
 
+.bartender-sprite--smirk .bartender-sprite__image.float {
+  --sprite-eye-offset-x: -0.01%;
+  --sprite-eye-offset-y: -0.15%;
+}
+
+.bartender-sprite--thinking .bartender-sprite__image.float {
+  --sprite-eye-offset-x: -0.04%;
+  --sprite-eye-offset-y: 0.08%;
+}
+
+.bartender-sprite--embarrassed .bartender-sprite__image.float,
+.bartender-sprite--disappointed .bartender-sprite__image.float {
+  --sprite-eye-offset-x: -0.01%;
+  --sprite-eye-offset-y: 0.06%;
+}
+
 .bartender-sprite__image--shaking {
   animation: none;
 }
@@ -175,28 +201,28 @@ html::before {
   color: #b088d0;
   text-shadow: 0 0 6px rgba(120, 80, 180, 0.25);
   background: rgba(120, 80, 180, 0.06);
-  border: 1px solid rgba(180,136,208,0.2);
+  border: 1px solid rgba(180, 136, 208, 0.2);
   padding: 4px 12px;
   font-family: inherit;
   letter-spacing: 0.12em;
 }
 
-.session-mode-btn {
+.session-mode-btn:hover:not(:disabled),
+.welcome-drink-btn:hover:not([aria-disabled='true']),
+.exit-btn:hover:not(:disabled),
+.session-mode-btn:focus-visible,
+.welcome-drink-btn:focus-visible,
+.exit-btn:focus-visible {
   color: #d9c6e8;
+  border-color: rgba(180, 136, 208, 0.42);
+  background: rgba(120, 80, 180, 0.12);
+  outline: none;
 }
 
 .session-mode-btn--active {
-  color: #f2d27a;
-  border-color: rgba(242, 210, 122, 0.48);
-  background: rgba(196, 163, 90, 0.12);
-  text-shadow: 0 0 8px rgba(242, 210, 122, 0.22);
-}
-
-.welcome-drink-btn {
-  color: #d8bd7a;
-  background: rgba(196, 163, 90, 0.08);
-  border-color: rgba(196, 163, 90, 0.22);
-  text-shadow: 0 0 6px rgba(196, 163, 90, 0.18);
+  color: #d9c6e8;
+  border-color: rgba(180, 136, 208, 0.42);
+  background: rgba(120, 80, 180, 0.12);
 }
 
 .session-mode-btn:disabled,

@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-06-29
+> 최종 갱신일: 2026-06-30
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -81,7 +81,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/bartender/engine.ts` | 안전 응답을 우선 처리하고 통합 분류 결과를 일반 대화 응답 선택기로 전달 |
 | `bar_tend/src/lib/bartender/intent-classifier.ts` | 추천/대화/이야기/캐릭터/안전 의도 분류와 컨텍스트 메타데이터 |
 | `bar_tend/src/lib/bartender/intent-classifier-adapter.ts` | 기존 대화 엔진이 IntentClassifier를 사용하도록 연결 |
-| `bar_tend/src/lib/dialogue/conversation-context.ts` | 직전 논의·추천·서빙·주문 후보 칵테일의 순수 상태 전이 |
+| `bar_tend/src/lib/dialogue/conversation-context.ts` | 직전 논의·추천·서빙·주문 후보와 칵테일별 공개 완료 팩트의 순수 상태 전이 |
 | `bar_tend/src/lib/dialogue/action-resolver.ts` | 통합 분류 결과와 컨텍스트를 주문·추천·후속 이야기 등 행동 객체로 변환 |
 | `bar_tend/src/lib/cocktails/lore-reference.ts` | DB의 lore·talking points·대중문화 단서로 인물/작품/이름 유래 참조 검색 |
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 키워드 규칙으로 컴파일 |
@@ -102,7 +102,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/types/dialogue-turn.ts` | 구조화된 대화 턴 계약 |
 | `bar_tend/src/lib/dialogue/turn-builder.ts` | DialogueTurn 구성과 복구 템플릿 |
 | `bar_tend/src/lib/dialogue/input-router.ts` | 안전, 퇴장, 추천, 주문, 이야기, 유래, 칵테일 정보, 캐릭터 질문, 이름 검색 등 입력 경로 판정 |
-| `bar_tend/src/lib/dialogue/story-query.ts` | 직전/현재 칵테일의 `talkingPoints` 또는 바 세계관 lore 응답 포맷 |
+| `bar_tend/src/lib/dialogue/story-query.ts` | 직전/현재 칵테일에서 아직 공개하지 않은 이야기·설명·레시피·맛·trivia를 1~2문장씩 선택하거나 바 세계관 lore로 폴백 |
 
 ### 4.4 추천 시스템
 
@@ -121,6 +121,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 |---|---|
 | `bar_tend/src/data/cocktail-db.json` | 실제 추천 후보 칵테일 DB |
 | `bar_tend/src/lib/cocktails/database.ts` | 칵테일 검색, 이름/별칭 매칭, 데이터 접근 |
+| `bar_tend/src/lib/cocktails/secret-menu.ts` | 일반 후보에서 숨긴 시크릿 메뉴의 정확한 이름·암구호 주문 매칭 |
 | `bar_tend/src/lib/cocktails/cocktail-db.ts` | 정규화 DB 로드 |
 | `bar_tend/src/types.ts` | 공통 칵테일, 메시지, 표정 타입 |
 | `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 |
@@ -162,12 +163,14 @@ useRestationController
   - safety / exit / recommendation-cancel
   - story-query / lore-query / cocktail-info-query / character-query
   - explicit-cocktail / cocktail-mention / recommendation / general
+  - 비안전 입력 우선순위: 정보 요청 → 시크릿 암구호 → 정확한 칵테일명 주문 → 직전 주문 후속 주문 → 일반 대화
   ↓
 최근 칵테일 컨텍스트 확인
   - lastDiscussedCocktailId
   - lastRecommendedCocktailId
   - lastServedCocktailId
   - lastOrderCandidateCocktailId
+  - disclosedFactKeysByCocktailId
   ↓
 Conversation Context를 참조해 Action Resolver가 행동 선택
   ↓
@@ -191,7 +194,11 @@ assembleResponse 공통 조립
 
 `safety-alert`는 이 흐름의 최상위 예외다. 감지 즉시 추천 FSM, 주문/제조, 웰컴, XYZ/farewell 예약을 중단하고 직접적인 안전 안내만 출력한 뒤 `DialogueSessionState.safetyLocked`로 세션을 종료한다. 이후 일반 대화로 복귀하지 않는다.
 
-`이야기`, `얽힌`, `유래`, `배경`, `더 들려줘`, `설명해줘` 계열 입력은 일반 경청 fallback으로 보내지 않고 `story-query`, `lore-query`, `cocktail-info-query` 계열로 먼저 분류한다. 직전 추천 칵테일 또는 현재 표시 중인 칵테일 카드가 있으면 해당 칵테일의 `talkingPoints`를 우선 사용하고, 없으면 Re:Station 바 세계관 lore 응답으로 처리한다.
+안전 입력은 계속 최상위 Hard Stop이다. 그 예외 뒤에는 정보 요청을 시크릿 암구호, 정확한 칵테일명 주문, 직전 주문 재주문보다 먼저 판정한다. `설명`, `자세히`, `이야기`, `일화`, `유래`, `스토리`, `레시피`, `재료`, `맛`, `오마주`, `왜`, `어떻게`, `알려줘`, `더 말해줘` 계열은 주문 동사가 함께 있더라도 새 주문으로 처리하지 않는다.
+
+정보 요청에 칵테일명이 있으면 그 칵테일을, 없으면 현재 표시·직전 논의·추천·서빙·주문 후보 컨텍스트를 사용한다. 칵테일 컨텍스트가 있으면 이미 출력한 팩트를 제외하고 `talkingPoints → description → recipe → tasting → trivia` 순서로 아직 공개하지 않은 내용을 한 번에 1~2문장만 이어간다. 모든 팩트를 소진하면 자연스러운 종료 문구를 반환하며, 대상 칵테일이 전혀 없을 때만 Re:Station 바 세계관 lore로 폴백한다.
+
+정확한 칵테일명만 입력하거나 이름에 `줘/주세요/한 잔/부탁`을 붙이면 주문으로 처리한다. 단, 같은 입력에 정보 요청 표현이 있으면 정보 요청이 우선한다. `PUKEY Goddess Shot`, `Glitch Rain`은 일반 메뉴·일반 추천·랜덤 추천에서 제외되며 정확한 이름 또는 등록 암구호로만 주문할 수 있다. 암구호 주문도 일반 제조·서빙 흐름을 사용하고, 선택한 메뉴의 짧은 이야깃거리만 출력한다.
 
 `그걸로 주세요`, `한 잔 주세요`처럼 칵테일명을 생략한 주문형 입력은 Conversation Context의 `lastOrderCandidateCocktailId`를 사용해 `explicit-cocktail`로 라우팅하고, Action Resolver가 대상 ID를 가진 `order` 행동으로 변환한다. 추천 엔진은 원문에서 이름을 다시 찾지 않고 이 ID의 칵테일을 직접 주문 경로로 처리한다.
 
@@ -210,7 +217,7 @@ assembleResponse 공통 조립
 ```
 
 * **도수 한계:** 웰컴드링크를 제외한 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행합니다.
-* **Farewell Phase:** 이 구간에서는 신규 추천, 주문, 재추천이 모두 차단됩니다. 2~3턴(총 3턴) 동안 XYZ의 배경, 유래, 후기, 가벼운 잡담만을 허용하며 이후 자동으로 퇴장 및 귀가 단계로 전환됩니다.
+* **Farewell Phase:** 이 구간에서는 신규 추천, 신규 주문, 재추천만 차단합니다. 이미 주문했거나 방금 마신 칵테일의 설명·이야기·유래·레시피·재료·맛·오마주 질문과 일반 대화는 계속 허용하며, 자동 턴 수 종료 대신 사용자의 명시적 퇴장 입력으로 귀가 단계에 진입합니다.
 * **상태값 활용:** 세션 분위기 상태값(`trust`, `familiarity`, `playfulness`, `tension`)은 엔딩 분기나 평가용이 아니며, 오직 카루아의 대사 톤과 반응 조절용으로만 사용됩니다.
 * **구조 정합성:** 주문이 닫힌 단계(`xyz`, `farewell`, `returnHome`)는 `isOrderingClosedPhase`로 명시되어 있습니다. 컨트롤러는 이 함수로 흐름을 판정하고, 실제 종료·차단 응답 문구는 `farewell-replies.ts`가 담당합니다.
 
@@ -300,12 +307,14 @@ assembleResponse 공통 조립
 
 | 입력 계열 | 라우트 | 응답 출처 |
 |---|---|---|
-| “여기 얽힌 이야기 더 들려줘요” | `story-query` | 직전/현재 칵테일의 `talkingPoints`, 없으면 바 세계관 lore |
-| “이름 유래가 뭐예요” | `lore-query` | 칵테일명이 있으면 해당 데이터, 없으면 대화 엔진 intent 응답 |
-| “레시피/재료/도수 알려줘요” | `cocktail-info-query` | 칵테일 설명/정보 응답 |
+| “여기 얽힌 이야기 더 들려줘요” | `story-query` | 대상 칵테일의 아직 공개하지 않은 이야기 팩트, 대상이 없으면 바 세계관 lore |
+| “이름 유래가 뭐예요” | `lore-query` | 대상 칵테일의 아직 공개하지 않은 lore·trivia를 포함한 다음 팩트 |
+| “레시피/재료/도수 알려줘요” | `cocktail-info-query` | 대상 칵테일의 아직 공개하지 않은 description·recipe·tasting을 포함한 다음 팩트 |
 | “당신은 누구예요” | `character-query` | 캐릭터 질문 전용 응답 |
 
-추천 멘트, 웰컴드링크 멘트, 사이드바 레시피 주문 멘트는 모두 `selectCocktailTalkingPoint()`를 통해 `cocktail.talkingPoints`를 반영하는 방향으로 정리되어 있다. Phase 2 범위의 추천 결과, 이야기 응답, 캐릭터 응답과 사이드바 주문은 최종 출력 전에 공통 `assembleResponse()`를 통과한다.
+`story-query`, `lore-query`, `cocktail-info-query`는 라우트 의미를 구분하되, 칵테일 대상이 확정된 뒤에는 공통 점진 설명 선택기를 사용한다. `ConversationContextState.disclosedFactKeysByCocktailId`가 칵테일별 공개 이력을 보유하므로 `설명을 더 해주세요`가 직전 칵테일 재주문으로 바뀌거나 이미 출력한 `story`를 그대로 반복하지 않는다.
+
+추천 멘트, 웰컴드링크 멘트, 직접 주문 멘트, 사이드바 레시피 주문 멘트는 모두 `selectCocktailTalkingPoint()`를 통해 `cocktail.talkingPoints`를 반영한다. 서빙 시 사용한 이야깃거리도 공개 이력에 기록되므로 후속 설명은 다음 팩트에서 시작한다. Phase 2 범위의 추천 결과, 이야기 응답, 캐릭터 응답과 사이드바 주문은 최종 출력 전에 공통 `assembleResponse()`를 통과한다.
 
 ### 6.5 공통 Response Pipeline
 
@@ -560,7 +569,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 - `dialogue-session.ts`: `DialogueSessionState` 전이, 웰컴 피드백 파생 상태, 알코올 제공 제한, farewell 진입 종류 결정
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
 - `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
-- `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조와 갱신 규칙
+- `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조, 칵테일별 공개 팩트 이력과 갱신 규칙
 - `action-resolver.ts`: route/intent와 컨텍스트를 행동 객체로 변환
 - `useRestationController.ts`: 확정된 행동의 UI 상태 반영, 메시지 표시와 연출 연결
 
@@ -568,7 +577,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 ### 11.6 Context + Action Layer 초기 분리 완료
 
-`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`는 `conversation-context.ts`의 순수 상태로 관리된다. 논의·추천·서빙 이벤트의 갱신 규칙이 테스트 가능한 단위로 분리되었고, 컨트롤러는 하나의 context ref만 보유한다.
+`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`, `disclosedFactKeysByCocktailId`는 `conversation-context.ts`의 순수 상태로 관리된다. 논의·추천·서빙·팩트 공개 이벤트의 갱신 규칙이 테스트 가능한 단위로 분리되었고, 컨트롤러는 하나의 context ref만 보유한다.
 
 `action-resolver.ts`는 현재 `order`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
 
@@ -654,7 +663,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 3. `Phase 2` Response Pipeline: 완료. 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리와 주요 응답 공통 조립
 4. `Phase 2.5` DialogueSessionState: 완료. 분산 세션 상태, Welcome-Farewell, safetyLocked Hard Stop 고정
 5. `Phase 3` DialogueService 분리: 다음 작업. `useRestationController`에서 대화 판단 로직 분리
-6. `Phase 4` Conversation Context 완성: `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate` 정리
+6. `Phase 4` Conversation Context 완성: 일부 진행. `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`와 칵테일별 공개 팩트 이력까지 구현했으며 갱신 정책의 서비스 계층 이동이 남음
 7. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
 8. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
 9. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
@@ -676,10 +685,11 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 타입체크 | 통과: `npm.cmd run check` |
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
-| 전체 테스트 | 통과: `npm.cmd test -- --run` 기준 25개 파일, 323개 테스트 |
-| 메인 JS | 빌드 기준 450.28 kB, gzip 132.74 kB |
+| 관련 회귀 테스트 | 통과: 입력 라우터·IntentClassifier·Action Resolver·Conversation Context·Story Query·Session Flow 6개 파일, 146개 테스트 |
+| 전체 테스트 | `npm.cmd test` 기준 26개 파일, 381개 중 379개 통과. 기존 safety 문구 계약 2개 실패 |
+| 메인 JS | 빌드 기준 465.05 kB, gzip 137.55 kB |
 
-마지막 확인 시점 기준으로 알려진 Vitest 실패는 없다. 코드 리뷰와 검수 시에는 입력 라우팅, 컨텍스트 이어받기, `talkingPoints` 응답 출처, 공통 응답 조립 경유, 세션 마감 정책을 중점 확인한다.
+알려진 실패 2개는 safety 응답에 테스트가 요구하는 `1393`, `다칠 위험` 문구가 없는 계약 불일치다. 이번 정보 요청·설명 이력 변경의 관련 테스트는 모두 통과한다. 코드 리뷰와 검수 시에는 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, 서빙 이야기 이력 기록, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.
 
 ## 16. 기획안 평가 기준
 

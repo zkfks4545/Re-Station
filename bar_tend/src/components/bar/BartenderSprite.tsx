@@ -84,8 +84,8 @@ export default function BartenderSprite({
   }, [isBartenderTyping, isPreparingCocktail, isShowingFinishFrame])
 
   const isAnimatingCocktail = isPreparingCocktail || isShowingFinishFrame
-  let activeImage = KARUA_STATIC_SPRITES.idle
-  let activeLabel = EXPRESSION_LABEL[expression]
+  let activeImage = KARUA_STATIC_SPRITES[expression]
+  let activeLabel = isBartenderTyping ? 'TALK' : EXPRESSION_LABEL[expression]
 
   if (isPreparingCocktail) {
     activeImage = KARUA_SHAKER_LOOP_FRAMES[shakeFrameIndex]
@@ -106,7 +106,6 @@ export default function BartenderSprite({
     >
       <div className="mood-indicator">{activeLabel}</div>
       <img
-        key={isAnimatingCocktail ? 'anim' : `idle-${expression}`}
         src={activeImage}
         alt="Karua"
         className={`bartender-sprite__image ${

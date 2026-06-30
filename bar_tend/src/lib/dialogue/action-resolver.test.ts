@@ -14,11 +14,11 @@ const dialogueContext: DialogueContext = {
 }
 
 describe('dialogue action resolver', () => {
-  it('turns a cocktail mention into a discuss action', () => {
+  it('turns a bare cocktail name into an order action', () => {
     const classified = classifier.classify('모히토', dialogueContext)
     const action = resolveDialogueAction(classified, createConversationContext())
 
-    expect(action).toEqual({ type: 'discuss', cocktailId: mojito.id })
+    expect(action).toEqual({ type: 'order', cocktailId: mojito.id })
   })
 
   it('turns an omitted-name order into an order for the context candidate', () => {

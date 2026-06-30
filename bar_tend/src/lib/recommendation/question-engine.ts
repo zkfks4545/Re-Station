@@ -6,7 +6,7 @@ import type {
   RecommendationQuestionChoice,
   RecommendationState,
 } from '../../types/recommendation.js'
-import { getAllCocktailData, scoreCocktailMatch } from '../cocktails/cocktail-db.js'
+import { getPublicCocktailData, scoreCocktailMatch } from '../cocktails/cocktail-db.js'
 import { kf } from '../dialogue/pattern-utils.js'
 import { renderTextPreset } from '../dialogue/text-presets.js'
 import {
@@ -64,7 +64,7 @@ export function ingestTasteSignals(text: string, current: TastePreference): Tast
 }
 
 export function initCandidatePool(): CocktailData[] {
-  return getAllCocktailData()
+  return getPublicCocktailData()
 }
 
 export function createRecommendationSourcePool(

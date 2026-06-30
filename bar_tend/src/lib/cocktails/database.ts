@@ -710,7 +710,7 @@ function parseRecipeIngredients(recipe: string): string[] {
     .map((part) => part.trim())
     .map((part) => part
       .replace(/\s+바 스푼 \d+개$/, '')
-      .replace(/\s+\d+(?:\.\d+)?(?:~\d+(?:\.\d+)?)?\s*(?:ml|oz|대시|티스푼|개|조각)$/i, '')
+      .replace(/\s+\d+(?:\.\d+)?(?:~\d+(?:\.\d+)?)?\s*(?:ml|oz|대시|티스푼|개|조각|방울)$/i, '')
       .replace(/\s+(?:한 꼬집|약간(?: \(선택\))?)$/, '')
       .trim())
     .filter((ingredient) => ingredient && !ingredient.startsWith('배합 비공개'))
@@ -743,7 +743,9 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     base_spirit: record.base_spirit,
     recipe_source_url: record.recipe_source_url,
     official_category: record.official_category,
-    talkingPoints: record.talking_points,
+    secret: record.secret === true,
+    secretPhrases: record.secret_phrases,
+    talkingPoints: record.story ?? record.talking_points,
     lore: record.lore,
     bar_id: isSignatureCocktail(record) ? record.bar_id : undefined,
     bar_name: isSignatureCocktail(record) ? record.bar_name : undefined,
@@ -760,7 +762,7 @@ function createCocktailData(record: CocktailRecord): CocktailData {
     base: record.base_spirit ?? (isSignatureCocktail(record) ? record.bar_name : 'Classic'),
     ingredients,
     recipeText: record.recipe,
-    story: description,
+    story: record.story?.join('\n') ?? description,
     vibe: legacyMatch?.vibe ?? (
       isSignatureCocktail(record)
         ? `Signature @ ${record.bar_name}`
@@ -778,6 +780,7 @@ function createCocktailData(record: CocktailRecord): CocktailData {
 }
 
 export const cocktails: CocktailData[] = cocktailDatabase.cocktails.map(createCocktailData)
+export const publicCocktails: CocktailData[] = cocktails.filter((cocktail) => !cocktail.secret)
 
 export function findCocktailByKeyword(keyword: string): CocktailData | null {
   const lower = keyword.toLowerCase()
@@ -822,7 +825,7 @@ export function searchCocktail(query: string): CocktailData | null {
 }
 
 export function getRandomCocktail(): CocktailData {
-  return cocktails[Math.floor(Math.random() * cocktails.length)]
+  return publicCocktails[Math.floor(Math.random() * publicCocktails.length)]
 }
 
 export function getPartnerBars(activeOnly = true): PartnerBar[] {
@@ -839,12 +842,16 @@ export function getAllCocktailData(): CocktailData[] {
   return cocktails
 }
 
+export function getPublicCocktailData(): CocktailData[] {
+  return publicCocktails
+}
+
 export function getClassicCocktails(): CocktailData[] {
-  return cocktails.filter((c) => c.type === 'CLASSIC')
+  return publicCocktails.filter((c) => c.type === 'CLASSIC')
 }
 
 export function getSignatureCocktails(): CocktailData[] {
-  return cocktails.filter((c) => c.type === 'SIGNATURE')
+  return publicCocktails.filter((c) => c.type === 'SIGNATURE')
 }
 
 export function getCocktailById(id: string): CocktailData | undefined {
@@ -852,7 +859,7 @@ export function getCocktailById(id: string): CocktailData | undefined {
 }
 
 export function getCocktailsForBar(barId: string): CocktailData[] {
-  return cocktails.filter((c) => c.type === 'SIGNATURE' && c.bar_id === barId)
+  return publicCocktails.filter((c) => c.type === 'SIGNATURE' && c.bar_id === barId)
 }
 
 export function scoreCocktailMatch(

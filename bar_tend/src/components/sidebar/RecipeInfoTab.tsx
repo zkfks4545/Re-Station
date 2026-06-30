@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { cocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/database.js'
 import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 import type { CocktailData } from '@/types.js'
 
@@ -38,8 +38,8 @@ export default function RecipeInfoTab({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     const qNorm = normalizeForSearch(query)
-    if (!qNorm) return cocktails
-    return cocktails.filter(
+    if (!qNorm) return publicCocktails
+    return publicCocktails.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.nameEn?.toLowerCase().includes(q) ||

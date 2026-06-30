@@ -11,7 +11,6 @@ export type SessionPhase =
   | 'returnHome'
 
 export const ALCOHOL_STARS_BEFORE_XYZ = 10
-export const MAX_FAREWELL_TURNS = 3
 export const XYZ_COCKTAIL_ID = 'cocktail_classic_043'
 
 const ORDER_ROUTES: InputRoute[] = [
@@ -60,11 +59,4 @@ export function nextPhaseAfterServedCocktail(options: {
   if (options.isXyz) return 'farewell'
   if (options.current === 'xyz' || options.current === 'farewell') return options.current
   return 'aftertalk'
-}
-
-export function shouldReturnHomeAfterFarewellTurn(options: {
-  phase: SessionPhase
-  farewellTurnCount: number
-}): boolean {
-  return options.phase === 'farewell' && options.farewellTurnCount >= MAX_FAREWELL_TURNS
 }
