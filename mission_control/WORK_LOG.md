@@ -1,6 +1,6 @@
 # 작업 이력 (축약)
 
-## 2026-06-30 / Codex / Phase 3 DialogueService 분리
+## 2026-06-30 / Codex / Phase 3 DialogueService 분리 [1c97d8c]
 - 내용: `DialogueService`를 추가해 대화 컨텍스트 구성, IntentClassifier 실행, DialogueAction 해석, 이야기·정보·캐릭터·미등록 칵테일 직접 응답, DialogueTurn 조립·검증을 컨트롤러 밖으로 이동
 - 계약: 서비스는 입력·메시지·Conversation Context·세션 스냅샷을 받아 `DialogueResolution`을 반환한다. 결과에는 route/intent/action, 즉시 적용할 컨텍스트 이벤트, 직접 응답 턴이 포함된다. 추천 계산은 기존 추천 훅이 유지하고, 계산 결과의 최종 대화 턴 조립만 서비스가 담당
 - 책임 분리 보완: `DialogueResolution.blockedBySession`에서 주문 차단을 먼저 확정하고 차단된 주문에는 Context 이벤트를 생성하지 않음. 텍스트 주문과 사이드바 주문이 모두 `resolve → Action → buildMainTurn → serving events` 계약을 사용하며, 서빙 완료는 `cocktail-served` reducer 액션으로 항상 conversation 모드에 복귀
