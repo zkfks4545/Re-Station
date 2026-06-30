@@ -130,7 +130,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 
 | 파일 | 역할 |
 |---|---|
-| `bar_tend/src/data/cocktail-db.json` | 실제 추천 후보 칵테일 DB (45종, IBA 공식 31종 포함) |
+| `bar_tend/src/data/cocktail-db.json` | 총 51종의 칵테일 DB. 공개 메뉴 49종과 일반 목록·추천에서 제외되는 시크릿 메뉴 2종 포함 |
 | `bar_tend/src/lib/cocktails/database.ts` | 칵테일 검색, 이름/별칭 매칭, 점수 기반 추천 정렬 |
 | `bar_tend/src/lib/cocktails/secret-menu.ts` | 일반 후보에서 숨긴 시크릿 메뉴의 정확한 이름·암구호 주문 매칭 |
 | `bar_tend/src/lib/cocktails/cocktail-db.ts` | 정규화 DB 로드 |
@@ -138,14 +138,14 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/cocktails/taste-format.ts` | 맛 별점 포맷 (수치 → 별표 문자열) |
 | `bar_tend/src/lib/cocktails/iba-verify.ts` | IBA 공식 항목 검증 (URL/분류/베이스 확인) |
 | `bar_tend/src/lib/cocktails/description-gen.ts` | 정규화 DB용 중립 설명 생성 |
-| `bar_tend/src/lib/cocktails/api.ts` | TheCocktailDB API 연동 (검색/랜덤/조회/캐시) |
+| `bar_tend/src/lib/cocktails/api.ts` | TheCocktailDB 검색/랜덤/조회용 보조 모듈. 현재 핵심 추천 런타임은 정적 DB를 사용 |
 | `bar_tend/src/lib/cocktails/ingestion-pipeline.ts` | 레시피 후보 처리 파이프라인 (공식 등록/검증 큐 분기) |
 | `bar_tend/src/lib/cocktails/admin-queue-manager.ts` | 관리자 검증 큐 (미확인/시그니처/출처 충돌 후보 관리) |
 | `bar_tend/src/types.ts` | 공통 칵테일, 메시지, 표정 타입 |
 | `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 (CocktailFeatures, CocktailRecord, PartnerBar 등) |
 | `bar_tend/src/types/admin-queue.ts` | 관리자 큐 타입 (QueueCandidate, PendingCocktailStatus, IBA 상수) |
 
-### 4.8 저장소 및 인프라 (Storage / Timing / Idol)
+### 4.6 저장소 및 인프라 (Storage / Timing / Idol)
 
 | 파일 | 역할 |
 |---|---|
@@ -154,7 +154,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/timing/timer-registry.ts` | 타이머 생명주기 관리 (setTimeout 일괄 정리) |
 | `bar_tend/src/lib/idol/memory.ts` | 게스트 감정/대화 주제 메모리 (sentiment 추적, 최근 주제 기록) |
 
-### 4.9 시에스타 만담
+### 4.7 시에스타 만담
 
 | 파일 | 역할 |
 |---|---|
@@ -162,7 +162,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/banter/siesta-event.test.ts` | 만담 이벤트 조건과 구조 테스트 |
 | `bar_tend/src/hooks/useRestationController.ts` | `SIESTA_EVENTS_ENABLED`가 켜진 경우에만 본 답변 뒤 시에스타 이벤트 예약 |
 
-### 4.10 세션 흐름 및 마감 정책
+### 4.8 세션 흐름 및 마감 정책
 
 | 파일 | 역할 |
 |---|---|
@@ -178,14 +178,10 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 사용자 입력
   ↓
 useRestationController
-  ↓
-현재 actionSessionMode 확인
+  - 사용자 메시지와 취향 신호 반영
+  - 현재 actionSessionMode 확인
   - conversation: 일반 대화 기본, 추천 라우트 제한
   - recommendation: 추천 질문/추천 라우트 허용
-  ↓
-안전 입력 검사
-  ↓
-웰컴드링크 피드백 또는 추천 질문 진행 중인지 확인
   ↓
 DialogueService
   - Conversation Context + 세션 스냅샷으로 DialogueContext 구성
@@ -198,27 +194,29 @@ DialogueService
     - lastDiscussedCocktailId / lastRecommendedCocktailId / lastServedCocktailId
     - lastOrderCandidateCocktailId / disclosedFactKeysByCocktailId
   - Conversation Context를 참조해 Action Resolver가 행동 선택
-  - 직접 응답이면 DialogueTurn과 컨텍스트 이벤트 반환
+  - closed/farewell/safetyLocked의 주문·추천 차단을 먼저 판정
+  - 허용된 행동에만 Context 이벤트 생성
+  - 직접 응답이면 검증된 DialogueTurn 반환
   ↓
-응답 출처 선택
-  - dialogue category / intent template / story formatter / recommendation formatter
+useRestationController
+  - safety Hard Stop, 웰컴 피드백, Farewell/XYZ 세션 정책 적용
+  - 서비스가 허용한 Context 이벤트 반영
+  - recommend/order Action이면 기존 추천 엔진 실행
   ↓
-ResponseDraft 또는 확정 텍스트 생성
-  - text + tone/affect + 필요 시 dialogue data의 preferredExpression
+DialogueService.buildMainTurn
+  - 추천 엔진 결과 또는 일반 응답 출처를 공통 Response Pipeline으로 조립
+  - 최종 DialogueTurn 검증
   ↓
-assembleResponse 공통 조립
-  - 최종 response + expression
-  ↓
-추천 칵테일이 있으면 카루아 제조 애니메이션
-  ↓
-메시지 표시 + 표정 변경 + 필요 시 추천 카드 표시
-  ↓
-현재는 시에스타 이벤트 비활성화
+useRestationController
+  - 추천 칵테일이 있으면 제조 애니메이션
+  - 메시지·표정·추천 카드·도감 해제 반영
+  - 서빙 완료 시 cocktail-served로 conversation 모드 복귀
+  - 현재는 시에스타 이벤트 비활성화
 ```
 
 중요한 점은 “추천 판단”과 “대사 표현”이 분리되어 있다는 것이다. 추천 엔진은 칵테일과 근거를 결정하고, 대사 계층은 그것을 어떤 말투와 문단으로 보여줄지 결정한다.
 
-`safety-alert`는 이 흐름의 최상위 예외다. 감지 즉시 추천 FSM, 주문/제조, 웰컴, XYZ/farewell 예약을 중단하고 직접적인 안전 안내만 출력한 뒤 `DialogueSessionState.safetyLocked`로 세션을 종료한다. 이후 일반 대화로 복귀하지 않는다.
+`safety-alert`는 이 흐름의 최상위 예외다. `handleSend`의 빠른 안전 검사로 진행 중 큐보다 우선하고, 서비스에서도 safety route로 확정한다. 감지 즉시 추천 FSM, 주문/제조, 웰컴, XYZ/farewell 예약을 중단하고 직접적인 안전 안내만 출력한 뒤 `DialogueSessionState.safetyLocked`로 세션을 종료한다. `safetyLocked`는 명시적인 새 세션 `reset` 외의 reducer 액션을 무시하는 흡수 상태다.
 
 안전 입력은 계속 최상위 Hard Stop이다. 그 예외 뒤에는 정보 요청을 시크릿 암구호, 정확한 칵테일명 주문, 직전 주문 재주문보다 먼저 판정한다. `설명`, `자세히`, `이야기`, `일화`, `유래`, `스토리`, `레시피`, `재료`, `맛`, `오마주`, `왜`, `어떻게`, `알려줘`, `더 말해줘` 계열은 주문 동사가 함께 있더라도 새 주문으로 처리하지 않는다.
 
@@ -245,7 +243,7 @@ assembleResponse 공통 조립
 * **도수 한계:** 웰컴드링크를 제외한 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행합니다.
 * **Farewell Phase:** 이 구간에서는 신규 추천, 신규 주문, 재추천만 차단합니다. 이미 주문했거나 방금 마신 칵테일의 설명·이야기·유래·레시피·재료·맛·오마주 질문과 일반 대화는 계속 허용하며, 자동 턴 수 종료 대신 사용자의 명시적 퇴장 입력으로 귀가 단계에 진입합니다.
 * **상태값 활용:** 세션 분위기 상태값(`trust`, `familiarity`, `playfulness`, `tension`)은 엔딩 분기나 평가용이 아니며, 오직 카루아의 대사 톤과 반응 조절용으로만 사용됩니다.
-* **구조 정합성:** 주문이 닫힌 단계(`xyz`, `farewell`, `returnHome`)는 `isOrderingClosedPhase`로 명시되어 있습니다. 컨트롤러는 이 함수로 흐름을 판정하고, 실제 종료·차단 응답 문구는 `farewell-replies.ts`가 담당합니다.
+* **구조 정합성:** 주문이 닫힌 단계(`xyz`, `farewell`, `safetyLocked`, `returnHome`)는 `isOrderingClosedPhase`로 명시되어 있습니다. `DialogueService`는 Context 이벤트를 만들기 전에 차단 여부를 확정하고, 실제 종료·차단 응답 문구는 `farewell-replies.ts`가 담당합니다.
 
 ## 6. 현재 대사 구조
 
@@ -483,7 +481,7 @@ BartenderResponse { response, expression }
 
 ### 10.1 칵테일 DB
 
-`cocktail-db.json`은 실제 추천 후보의 핵심 데이터입니다. 현재 IBA 공식 31종을 포함해 총 45종의 칵테일 데이터가 구축되어 있습니다.
+`cocktail-db.json`은 실제 추천 후보의 핵심 데이터입니다. 현재 총 51종이며, 공개 메뉴 49종과 정확한 이름·암구호로만 접근하는 시크릿 메뉴 2종으로 구성됩니다. IBA 출처가 있는 항목은 `recipe_source_url`과 `official_category`를 보존하지만, 보고서에서는 URL 존재만으로 공식성 수를 다시 산정하지 않습니다.
 
 대표 필드:
 
@@ -585,19 +583,19 @@ BartenderResponse { response, expression }
 
 `useRestationController.ts`는 입장, 퇴장, 추천 세션 실행, 세션 종료, 타이핑/제조 연출을 조율한다. 원문 입력의 분류, 컨텍스트 해석, 행동 선택, 직접 응답 생성은 더 이상 컨트롤러가 직접 수행하지 않는다.
 
-세션 단계와 마감 정책은 `lib/session/session-flow.ts`가 담당한다. 주문이 닫힌 단계는 `isOrderingClosedPhase`가 판정하며, 해당 단계는 `xyz`, `farewell`, `returnHome`이다.
+세션 단계와 마감 정책은 `lib/session/session-flow.ts`가 담당한다. 주문이 닫힌 단계는 `isOrderingClosedPhase`가 판정하며, 해당 단계는 `xyz`, `farewell`, `safetyLocked`, `returnHome`이다.
 
 XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/farewell-replies.ts`가 담당한다. 컨트롤러는 이 모듈들이 제공하는 판정과 응답을 사용해 실제 메시지 출력, 타이핑 상태, 카드 표시, 퇴장 지연 같은 화면 흐름을 연결한다.
 
 현재 책임 경계:
 
 - `session-flow.ts`: 세션 단계, 주문 가능 여부, 서브 이후 도수 한계 기반 XYZ 후속 서빙, Farewell 종료 조건
-- `dialogue-session.ts`: `DialogueSessionState` 전이, 웰컴 피드백 파생 상태, 알코올 제공 제한, farewell 진입 종류 결정
+- `dialogue-session.ts`: `DialogueSessionState` 전이, 웰컴 피드백 파생 상태, 누적 도수, 서빙 후 conversation 복귀, farewell 진입 종류와 safety 흡수 상태
 - `farewell-replies.ts`: 세션 마감 구간에서 사용자에게 보여줄 응답 문구
 - `input-router.ts`: 사용자의 원문 입력을 안전, 퇴장, 추천, 이야기, 정보, 캐릭터, 주문, 일반 대화 라우트로 분류
 - `conversation-context.ts`: 직전 논의·추천·서빙·주문 후보 참조, 칵테일별 공개 팩트 이력과 갱신 규칙
 - `action-resolver.ts`: route/intent와 컨텍스트를 행동 객체로 변환
-- `dialogue-service.ts`: 분류기와 Action Resolver를 오케스트레이션하고 직접 응답·컨텍스트 이벤트·검증된 DialogueTurn 반환
+- `dialogue-service.ts`: 분류기와 Action Resolver를 오케스트레이션하고 세션 차단, 허용된 Context 이벤트, 직접 응답과 검증된 DialogueTurn 반환
 - `useRestationController.ts`: 서비스가 확정한 결과의 세션 상태 반영, 추천 엔진 호출, 메시지 표시와 연출 연결
 
 이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
@@ -606,7 +604,7 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 `lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`, `disclosedFactKeysByCocktailId`는 `conversation-context.ts`의 순수 상태로 관리된다. 논의·추천·서빙·팩트 공개 이벤트의 갱신 규칙이 테스트 가능한 단위로 분리되었고, 컨트롤러는 하나의 context ref만 보유한다.
 
-`action-resolver.ts`는 현재 `order`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
+`action-resolver.ts`는 현재 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
 
 ### 11.7 Response Pipeline 분리 완료
 
@@ -689,8 +687,8 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 2. `Phase 1.5` Context + Action Layer: 완료. 생략 주문과 후속 이야기 컨텍스트 연결
 3. `Phase 2` Response Pipeline: 완료. 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리와 주요 응답 공통 조립
 4. `Phase 2.5` DialogueSessionState: 완료. 분산 세션 상태, Welcome-Farewell, safetyLocked Hard Stop 고정
-5. `Phase 3` DialogueService 분리: 완료. 컨텍스트 구성·분류·행동·직접 응답·턴 검증을 서비스로 이동
-6. `Phase 4` Conversation Context 완성: 다음 작업. `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`와 칵테일별 공개 팩트 이력은 구현됐으며 갱신 조건과 소유권 고정이 남음
+5. `Phase 3` DialogueService 분리: 완료. 컨텍스트 구성·분류·세션 차단·행동·Context 이벤트·직접 응답·턴 검증을 서비스로 이동하고 텍스트/사이드바 주문 계약 통합
+6. `Phase 4` Conversation Context 완성: 다음 작업. 주요 필드와 이벤트 생성 책임은 구현됐으며 참조 우선순위, 필드별 수명, 세션 reset 범위와 의미 계약의 최종 고정이 남음
 7. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
 8. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
 9. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
@@ -712,7 +710,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 타입체크 | 통과: `npm.cmd run check` |
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
-| 관련 회귀 테스트 | 통과: 입력 라우터·IntentClassifier·Action Resolver·Conversation Context·Story Query·Session Flow 6개 파일, 146개 테스트 |
+| Phase 3 책임 경계 회귀 | 통과: DialogueService·DialogueSessionState·Session Flow 3개 파일, 20개 테스트 |
 | 전체 테스트 | 통과: `npm.cmd test` 기준 27개 파일, 390개 테스트 |
 | 메인 JS | 빌드 기준 467.19 kB, gzip 138.28 kB |
 
