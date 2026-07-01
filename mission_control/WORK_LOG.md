@@ -1,5 +1,60 @@
 # 작업 이력 (축약)
 
+## 2026-07-01 / Codex / Phase 8 Talking Points 2차 확장 완료
+
+- Paper Plane, Penicillin, Piña Colada, Irish Coffee, Manhattan, Mint Julep, Sazerac, Singapore Sling, Clover Club, Bramble을 2차 확장했다.
+- talking point 10개와 lore reference 20개를 추가해 Phase 8 누적 확장량을 대표 클래식 20종·포인트 20개·참조 40개로 늘렸다.
+- 공개 칵테일 structured lore 커버리지는 20/49에서 30/49로 증가했다.
+- Paper Plane의 기존 뉴욕 기원 표현을 2008년 시카고 The Violet Hour 공개 맥락으로 교정하고, 기원 논쟁·공식 지정·문화 일화는 완곡한 문체로 유지했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (33 files, 435 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 485.98 kB, gzip 143.56 kB.
+
+## 2026-07-01 / Codex / Phase 7 Dialogue Quality 완료
+
+- `character-query` 템플릿이 실제 JSON 카테고리 부재로 일반 fallback만 사용하던 문제를 찾아 전용 대사 풀을 추가했다.
+- 대상 없는 lore follow-up이 사용자의 이야기를 계속 듣겠다는 `story-request`로 응답하던 출처 오류를 `story-unresolved` 풀로 분리했다.
+- 누락되어 fallback만 사용하던 `random-request`, `unknown-cocktail-request`, `recommendation-cancel` 전용 대사 풀을 추가했다.
+- bar/character/unresolved-story 출처가 서로 구분되는지, 템플릿이 참조하는 27개 카테고리가 모두 존재하고 비어 있지 않은지 테스트로 고정했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (33 files, 434 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 479.93 kB, gzip 141.99 kB.
+
+## 2026-07-01 / Codex / Reaction·Conversation Flow 통합 회귀 보강
+
+- `conversation-regression.test.ts`를 추가해 DialogueService, ActionExecutor, 추천 후보 풀을 잇는 회귀 경계를 고정했다.
+- negative feedback 뒤 이전 추천 ID가 제외된 후보에서 다른 칵테일을 선택하는지 검증했다.
+- another-request가 기존 `recommend(preference)` Action을 거쳐 새 추천 결과와 선행 반응을 출력하는지 검증했다.
+- lore follow-up의 `fact-disclosed` key가 이전 응답과 겹치지 않는지, Conversation Flow의 반응 문장이 lore 본문보다 먼저 출력되는지 검증했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (32 files, 430 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 477.31 kB, gzip 141.38 kB.
+
+## 2026-07-01 / Codex / Talking Points·Lore 1차 확장
+
+- Old Fashioned, Margarita, Negroni, Aviation, Boulevardier, Cosmopolitan, Bellini, Moscow Mule, French 75, Espresso Martini의 콘텐츠를 확장했다.
+- 실제 인물·작품·역사·문화 기반 talking point 10개와 lore reference 20개를 추가했다.
+- 기원이 충돌하거나 일화성이 강한 내용은 `전해집니다`, `알려져 있습니다`, `대표적으로 언급됩니다` 같은 완곡한 문체로 기록했다.
+- 데이터 테스트에 10종의 포인트·참조 수와 lore 세부 문체 계약을 추가했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (31 files, 426 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 477.31 kB, gzip 141.38 kB.
+
+## 2026-07-01 / Codex / Conversation Flow 선행 반응 보강
+
+- 기존 Intent·Action·FSM을 유지하고 story/lore/info 직접 응답 조립에만 `[reaction] → [본문]` 순서를 적용했다.
+- 최초 질문은 콘텐츠 종류별 짧은 반응을, 이미 사실이 공개된 후속 질문은 연결 반응을 사용한다.
+- 기존 `formatStoryQueryReply`의 사실 선택과 `fact-disclosed` 공개 이력은 그대로 유지해 정보 반복 방지 계약을 보존했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (31 files, 425 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 471.13 kB, gzip 139.78 kB.
+
+## 2026-07-01 / Codex / Phase 6 Slot Filling 추천 FSM 완료
+
+- 기존 `RecommendationState`와 질문 FSM을 유지하면서 자유입력의 taste/base/strength/fizz 신호를 순서와 무관하게 먼저 저장하도록 보강했다.
+- 활성 질문의 선택지 문구가 포함된 복합 답변도 선택지 신호와 자유입력 신호를 병합해, 같은 문장에 말한 다른 슬롯을 잃지 않게 했다.
+- 이미 채워진 topic은 기존 `getKnownTopics`/`selectNextQuestion` 경계에서 제외되어 같은 취향을 다시 묻지 않는다.
+- `약하게`, `순하게`, `적당하게`, `탄산은 빼고/싫어` 같은 자연어 strength/fizz 표현을 추가했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (30 files, 421 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 470.71 kB, gzip 139.63 kB.
+
+## 2026-07-01 / Codex / Reaction Layer 완료
+
+- `reaction-layer.ts`에 `positive-feedback`, `negative-feedback`, `another-request`, `agreement`, `confused` 감지와 짧은 선행 반응을 추가했다.
+- `DialogueService`가 명시적 안전·주문·정보 요청 경계를 보존하면서 Reaction을 먼저 판정하도록 연결했다.
+- `ActionResolver`는 단순 반응을 `respond`로 유지하고 `another-request`만 기존 `recommend(preference)` 행동으로 연결한다.
+- 추천 결과가 필요한 경우 `[reaction]` 뒤에 기존 추천 결과를 붙여 반응 우선 출력 순서를 보장했다.
+- 검증: `npm.cmd run lint`, `npm.cmd test` (30 files, 417 tests), `npm.cmd run check`, `npm.cmd run build` 통과. 메인 JS 470.47 kB, gzip 139.55 kB.
+
 ## 2026-07-01 / Codex / Phase 5 Action Layer 완료
 - 내용: `action-executor.ts`가 `DialogueAction`을 추천·랜덤·명시 주문·lore 주문 포트로 실행하고 `serve/respond` 효과와 성공·미결정·대상 누락 결과를 반환하도록 완성
 - 경로 통합: 텍스트 입력과 사이드바 주문이 같은 `executeAction` 어댑터를 사용. 컨트롤러에서 `DialogueAction.type` 직접 해석과 추천 훅 선택 분기 제거

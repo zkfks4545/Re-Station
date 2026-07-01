@@ -91,8 +91,9 @@ export function applyQuestionAnswer(
 ): { state: RecommendationState; acknowledgement: string | null; finishRecommendation: boolean } {
   const choice = findChoice(question, answer)
   if (choice) {
+    const answerSignals = extractRecommendationSignals(answer)
     return {
-      state: applyRecommendationSignals(state, choice.signals),
+      state: applyRecommendationSignals(state, mergeSignals(choice.signals, answerSignals)),
       acknowledgement: renderTextPreset(choice.acknowledgementPreset, choice.acknowledgement),
       finishRecommendation: choice.finishRecommendation === true,
     }
@@ -103,6 +104,17 @@ export function applyQuestionAnswer(
     acknowledgement: answer.trim() ? '네, 말씀해 주신 내용도 함께 볼게요.' : null,
     finishRecommendation: false,
   }
+}
+
+function mergeSignals(
+  choiceSignals: RecommendationQuestionChoice['signals'],
+  answerSignals: RecommendationQuestionChoice['signals'],
+): RecommendationQuestionChoice['signals'] {
+  const merged = new Map<string, RecommendationQuestionChoice['signals'][number]>()
+  for (const signal of [...answerSignals, ...choiceSignals]) {
+    merged.set(`${signal.field}:${String(signal.value)}`, signal)
+  }
+  return [...merged.values()]
 }
 
 export function selectNextQuestion(

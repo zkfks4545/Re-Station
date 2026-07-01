@@ -22,7 +22,9 @@ import {
   type ConversationContextState,
 } from './conversation-context.js'
 import type { RouteResult } from './input-router.js'
+import { getContentLeadReaction } from './conversation-flow.js'
 import { SHAKE_REFERENCE } from './pattern-utils.js'
+import { detectUserReaction, type UserReaction } from './reaction-layer.js'
 import { assembleResponse } from './response-pipeline.js'
 import {
   formatStoryQueryReply,
@@ -72,6 +74,7 @@ export interface DirectDialogueResponse {
 export interface DialogueResolution {
   classifiedIntent: ClassifiedIntent
   routeResult: RouteResult
+  reaction: UserReaction | null
   action: DialogueAction
   blockedBySession: boolean
   contextEvents: ConversationContextEvent[]
@@ -96,7 +99,8 @@ export class DialogueService {
     const dialogueContext = this.buildDialogueContext(request)
     const classifiedIntent = this.classifier.classify(request.text, dialogueContext)
     const routeResult = classifiedIntent.route
-    const action = resolveDialogueAction(classifiedIntent, request.conversationContext)
+    const reaction = this.resolveReaction(request.text, routeResult)
+    const action = resolveDialogueAction(classifiedIntent, request.conversationContext, reaction)
     const blockedBySession = isRecommendationBlockedInPhase(
       request.session.phase,
       routeResult.route,
@@ -104,11 +108,14 @@ export class DialogueService {
     const contextEvents = blockedBySession
       ? []
       : this.resolveActionContextEvents(action)
-    const directResponse = this.resolveDirectResponse(request, classifiedIntent, action)
+    const directResponse = reaction
+      ? null
+      : this.resolveDirectResponse(request, classifiedIntent, action)
 
     return {
       classifiedIntent,
       routeResult,
+      reaction,
       action,
       blockedBySession,
       contextEvents,
@@ -153,22 +160,45 @@ export class DialogueService {
       request.messages,
       resolution.classifiedIntent,
     )
+    const reactedFallback = resolution.reaction
+      ? assembleResponse({ text: resolution.reaction.reply, tone: resolution.reaction.tone })
+      : fallback
     const fallbackResponse = options.inviteRecommendation
       ? assembleResponse({
-          text: `${fallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`,
+          text: `${reactedFallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`,
           tone: 'smirk',
         })
-      : fallback
+      : reactedFallback
     const outcome = this.applyPreparationStyle(request.text, resolution, options.outcome)
+    const reactedOutcome = outcome && resolution.reaction
+      ? {
+          ...outcome,
+          reply: `${resolution.reaction.reply}\n${outcome.reply}`,
+        }
+      : outcome
     const turn = buildDialogueTurn(
       request.text,
       resolution.routeResult.route,
       fallbackResponse.response,
       fallbackResponse.expression,
-      outcome,
+      reactedOutcome,
       { confidence: resolution.routeResult.confidence },
     )
     return validateDialogueTurn(turn) ? turn : null
+  }
+
+  private resolveReaction(text: string, routeResult: RouteResult): UserReaction | null {
+    const reaction = detectUserReaction(text)
+    if (!reaction) return null
+
+    if (['safety', 'exit', 'recommendation-cancel', 'explicit-cocktail', 'lore-based-order', 'character-query', 'unknown-cocktail-query'].includes(routeResult.route)) {
+      return null
+    }
+    const explicitContentRequest = /알려|설명|들려|말해\s*줘|이야기\s*(?:해|줘)|유래|레시피|재료|도수|왜|어떻게|누가/.test(text)
+    if (explicitContentRequest && ['story-query', 'lore-query', 'cocktail-info-query'].includes(routeResult.route)) {
+      return null
+    }
+    return reaction
   }
 
   private buildDialogueContext(request: DialogueServiceRequest): DialogueContext {
@@ -289,8 +319,12 @@ export class DialogueService {
       ? getDisclosedCocktailFactKeys(request.conversationContext, cocktail.id)
       : []
     const reply = formatStoryQueryReply(cocktail, disclosed)
+    const leadReaction = getContentLeadReaction(classifiedIntent.route.route, {
+      hasCocktail: cocktail !== null,
+      isFollowup: disclosed.length > 0,
+    })
     const response = assembleResponse({
-      text: reply.text,
+      text: `${leadReaction}\n${reply.text}`,
       preferredExpression: reply.expression,
     })
     const turn = this.createTurn(

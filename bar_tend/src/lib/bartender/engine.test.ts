@@ -302,7 +302,7 @@ describe('story/lore query integration — intent preserved through engine', () 
       expect(result.expression).toBe('smirk')
     })
 
-    it('no prior cocktail + lore-followup → generic story fallback', () => {
+    it('no prior cocktail + lore-followup → asks for a cocktail target', () => {
       const classified = new IntentClassifier(cocktails).classify('흔들어서 만들었겠죠?', context)
       expect(classified.intent).toBe('lore-followup')
 
@@ -311,6 +311,8 @@ describe('story/lore query integration — intent preserved through engine', () 
       expect(result.response).toBeTruthy()
       expect(result.response).not.toContain('007')
       expect(result.response).not.toContain('본드')
+      expect(result.response).toMatch(/잔|칵테일|이름|실마리/)
+      expect(result.response).not.toMatch(/듣고 있어요|계속 하셔도/)
     })
   })
 })

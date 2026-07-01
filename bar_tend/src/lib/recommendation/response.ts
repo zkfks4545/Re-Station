@@ -22,7 +22,7 @@ export interface SelectedRecommendationOpening {
   text: string
 }
 
-const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
+export const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
   {
     id: 'mood-context',
     route: 'moodOrder',

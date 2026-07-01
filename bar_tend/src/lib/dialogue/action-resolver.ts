@@ -4,6 +4,7 @@ import {
   getStoryCocktailId,
   type ConversationContextState,
 } from './conversation-context.js'
+import type { UserReaction } from './reaction-layer.js'
 
 export type DialogueAction =
   | { type: 'order'; cocktailId: string }
@@ -16,9 +17,16 @@ export type DialogueAction =
 export function resolveDialogueAction(
   classified: ClassifiedIntent,
   context: ConversationContextState,
+  reaction: UserReaction | null = null,
 ): DialogueAction {
   const { route } = classified.route
   const matchedCocktailId = classified.route.matchedCocktailId
+
+  if (reaction) {
+    return reaction.type === 'another-request'
+      ? { type: 'recommend', mode: 'preference' }
+      : { type: 'respond' }
+  }
 
   if (route === 'lore-based-order') {
     return matchedCocktailId

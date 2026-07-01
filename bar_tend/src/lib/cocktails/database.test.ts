@@ -3,6 +3,7 @@ import { initCandidatePool, isRecommendationIntent } from '../recommendation/que
 import {
   cocktails,
   findCocktailByName,
+  getCocktailById,
   getAllCocktailData,
   getPublicCocktailData,
   getRandomCocktail,
@@ -56,6 +57,35 @@ describe('cocktail data contract', () => {
     expect(findCocktailByName('라스트 워드')?.talkingPoints).toContain(
       '이름이 라스트 워드라고 대화까지 끝낼 필요는 없어요. 오히려 한 모금 뒤에 할 말이 더 생기는 쪽에 가깝습니다.',
     )
+  })
+
+  it('keeps expanded real-world lore attributed with cautious wording', () => {
+    const expanded = ['003', '004', '005', '009', '010', '020', '021', '022', '024', '042']
+      .map((suffix) => `cocktail_classic_${suffix}`)
+
+    for (const id of expanded) {
+      const cocktail = getCocktailById(id)
+      expect(cocktail?.talkingPoints).toHaveLength(3)
+      expect(cocktail?.lore?.references).toHaveLength(2)
+      expect(cocktail?.lore?.references.every((reference) =>
+        /전해집니다|알려져 있습니다|언급됩니다/.test(reference.details),
+      )).toBe(true)
+    }
+  })
+
+  it('covers the second talking-points expansion with structured lore', () => {
+    const expanded = ['013', '015', '019', '025', '030', '031', '034', '035', '040', '041']
+      .map((suffix) => `cocktail_classic_${suffix}`)
+
+    for (const id of expanded) {
+      const cocktail = getCocktailById(id)
+      expect(cocktail?.talkingPoints).toHaveLength(3)
+      expect(cocktail?.lore?.keywords.length).toBeGreaterThanOrEqual(4)
+      expect(cocktail?.lore?.references).toHaveLength(2)
+      expect(cocktail?.lore?.references.every((reference) =>
+        /전해집니다|알려져 있습니다|언급됩니다/.test(reference.details),
+      )).toBe(true)
+    }
   })
 
   it('uses one neutral DB style for recipes, ingredients, and descriptions', () => {

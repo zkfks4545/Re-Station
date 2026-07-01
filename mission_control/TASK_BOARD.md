@@ -665,9 +665,10 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | Phase 3 | DialogueService 분리 | 완료 | `useRestationController`에서 대화 로직을 떼어내기 | 서비스가 컨텍스트 구성·분류·세션 차단·Action·Context 이벤트·응답·턴 검증을 담당. 텍스트/사이드바 주문 계약 통합, 서빙 후 conversation 복귀, safetyLocked 흡수 상태. 390 tests pass |
 | Phase 4 | Conversation Context 완성 | 완료 | 대화 중 참조 가능한 컨텍스트 정리 | 단일 context reducer로 통합하고 컨트롤러의 `lastServedCocktail` 객체 상태 제거. 필드 전이·참조 우선순위·reset 수명·서빙 완료 시점 기록을 테스트로 고정. 396 tests pass |
 | Phase 5 | Action Layer | 완료 | `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 | 공통 executor가 추천·주문 포트와 serve/respond 효과를 반환하고 텍스트·사이드바 경로가 동일 계약 사용. `serving-plan.ts`로 도수·XYZ·farewell·다음 phase 계산 분리. 컨트롤러는 UI 효과만 적용. 404 tests pass |
-| Phase 6 | Slot Filling 추천 FSM | 미착수 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | 기존 추천 엔진은 유지하되, 입력으로 채워진 슬롯을 질문 선택보다 우선 반영 |
-| Phase 7 | Dialogue Quality | 미착수 | fallback 줄이기, bar/character/story 전용 응답 강화 | 말투 개선보다 응답 출처와 의도 적합성 검증을 우선 |
-| Phase 8 | Talking Points 확장 | 일부 착수 | lore/talking_points를 더 풍부하게 만들기 | 칵테일별 이야기, 세계관 lore, 인물·유래 질문 응답의 사실성 경계 유지 |
+| Phase 5.5 | Reaction Layer | 완료 | 사용자 평가·동의·혼란에 먼저 반응하고 필요한 경우에만 기존 행동으로 연결 | 5개 반응 타입을 얇은 계층으로 분리. 단순 반응은 `respond`, `another-request`는 기존 `recommend` Action 사용. negative 재추천 제외·another 새 추천·lore 비반복·반응 우선 통합 회귀까지 고정. 430 tests pass |
+| Phase 6 | Slot Filling 추천 FSM | 완료 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | taste/base/strength/fizz를 자유 순서로 저장하고 복합 답변의 선택지·자유입력 신호를 병합. 알려진 topic은 재질문하지 않으며 기존 FSM·최대 질문 수·추천 엔진 유지. 421 tests pass |
+| Phase 7 | Dialogue Quality | 완료 | fallback 줄이기, bar/character/story 전용 응답 강화 | story/lore/info 선행 반응, character/story 전용 풀, 누락된 random/unknown/cancel 풀 보강. 템플릿 참조 27개가 모두 유효한 JSON 대사 풀을 갖는 출처 계약 고정. Intent·사실 선택·공개 이력 유지. 434 tests pass |
+| Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 9 | Character Layer | 보류 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Phase 1~8의 의도·행동·응답 출처가 안정된 뒤 적용 |
 
 ## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션

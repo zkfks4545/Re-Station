@@ -195,9 +195,9 @@ export const RUDE_KEYWORD_MAP: Record<string, string[]> = {
 }
 
 export const STORY_FALLBACK: IntentResponseTemplate = {
-  dialogueCategory: 'story-request',
-  fallback: '듣고 있어요.',
-  tone: 'talk',
+  dialogueCategory: 'story-unresolved',
+  fallback: '어느 칵테일 이야기인지 이름을 말씀해 주세요.',
+  tone: 'thinking',
 }
 
 export const STORY_PERSON_MISSING_TEMPLATE = (person: string): ResponseDraft => ({

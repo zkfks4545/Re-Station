@@ -3,6 +3,7 @@ import { IntentClassifier, type DialogueContext } from '../bartender/intent-clas
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { resolveDialogueAction } from './action-resolver.js'
 import { createConversationContext, updateConversationContext } from './conversation-context.js'
+import { detectUserReaction } from './reaction-layer.js'
 
 const classifier = new IntentClassifier(cocktails)
 const mojito = findCocktailByName('모히토')!
@@ -116,5 +117,25 @@ describe('dialogue action resolver', () => {
       topic: 'story',
       cocktailId: null,
     })
+  })
+
+  it('turns another-request into the existing recommendation action', () => {
+    const classified = classifier.classify('다른 걸로 추천해줘', dialogueContext)
+
+    expect(resolveDialogueAction(
+      classified,
+      createConversationContext(),
+      detectUserReaction('다른 걸로 추천해줘'),
+    )).toEqual({ type: 'recommend', mode: 'preference' })
+  })
+
+  it('keeps feedback as a response instead of starting an unrelated action', () => {
+    const classified = classifier.classify('맛있어요', dialogueContext)
+
+    expect(resolveDialogueAction(
+      classified,
+      createConversationContext(),
+      detectUserReaction('맛있어요'),
+    )).toEqual({ type: 'respond' })
   })
 })

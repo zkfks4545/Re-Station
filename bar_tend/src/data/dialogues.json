@@ -70,6 +70,48 @@
         { "text": "Re:Station에 오신 걸 환영합니다. 저는 카루아예요. 오늘은 어떤 기분으로 오셨나요?", "expression": "smirk" }
       ]
     },
+    "character-query": {
+      "description": "카루아의 역할과 정체 질문",
+      "lines": [
+        { "text": "카루아예요. Re:Station에서 잔을 고르고 만드는 바텐더죠.", "expression": "talk" },
+        { "text": "여기 바텐더 카루아입니다. 손님 취향을 듣고 잔으로 옮기는 쪽을 맡고 있어요.", "expression": "smirk" },
+        { "text": "저는 카루아예요. 이 바에선 설명보다 잔을 먼저 챙기는 사람이고요.", "expression": "smirk" },
+        { "text": "Re:Station의 바텐더 카루아예요. 주문과 이야기가 엉키지 않게 잔을 잡고 있죠.", "expression": "talk" }
+      ]
+    },
+    "story-unresolved": {
+      "description": "대상 없이 이어진 이야기·lore 질문",
+      "lines": [
+        { "text": "어느 잔 이야기인지 한 번만 짚어주세요. 이름을 알면 그다음은 제가 이어갈게요.", "expression": "thinking" },
+        { "text": "이야기의 주인공이 빠졌네요. 칵테일 이름을 말씀해 주시면 이어보죠.", "expression": "thinking" },
+        { "text": "그 이야기만으로는 잔을 특정하기 어렵네요. 방금 보신 칵테일 이름을 알려주세요.", "expression": "talk" },
+        { "text": "실마리가 하나 모자라네요. 어떤 칵테일 이야기인지 말씀해 주세요.", "expression": "thinking" }
+      ]
+    },
+    "random-request": {
+      "description": "조건 위임형 랜덤 추천",
+      "lines": [
+        { "text": "좋아요. 조건은 제가 잡고 한 잔 골라볼게요.", "expression": "smirk" },
+        { "text": "아무거나가 제일 어려운 주문이죠. 그래도 한 잔 골라보겠습니다.", "expression": "smirk" },
+        { "text": "선택은 이쪽에 맡기신 거죠. 잔 하나 꺼내볼게요.", "expression": "thinking" }
+      ]
+    },
+    "unknown-cocktail-request": {
+      "description": "등록되지 않은 칵테일 요청",
+      "lines": [
+        { "text": "그 이름은 지금 메뉴에서 찾기 어렵네요. 비슷한 맛으로 다시 찾아볼까요?", "expression": "thinking" },
+        { "text": "아직 이쪽 장부에는 없는 잔이네요. 원하신 맛을 말씀해 주시면 다른 후보를 보죠.", "expression": "thinking" },
+        { "text": "그 칵테일은 등록되어 있지 않네요. 베이스나 맛을 알려주시면 가까운 잔을 찾아볼게요.", "expression": "talk" }
+      ]
+    },
+    "recommendation-cancel": {
+      "description": "추천 질문 취소",
+      "lines": [
+        { "text": "추천 질문은 여기서 접을게요. 필요할 때 다시 말씀해 주세요.", "expression": "talk" },
+        { "text": "좋아요, 고르는 건 잠깐 멈추죠. 다른 얘기로 넘어가도 됩니다.", "expression": "talk" },
+        { "text": "추천은 여기까지 해둘게요. 잔보다 숨 돌리는 게 먼저일 때도 있으니까요.", "expression": "smirk" }
+      ]
+    },
     "exit": {
       "description": "퇴장 인사",
       "lines": [

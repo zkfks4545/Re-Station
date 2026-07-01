@@ -73,6 +73,31 @@ describe('DialogueService', () => {
     expect(first.directResponse?.contextEvents.some((event) => event.type === 'fact-disclosed')).toBe(true)
   })
 
+  it('reacts before continuing with cocktail lore', () => {
+    const result = service.resolve(request('모히토 유래가 뭐죠?'))
+    const lines = result.directResponse?.turn.reply.split('\n') ?? []
+
+    expect(result.routeResult.route).toBe('story-query')
+    expect(lines[0]).toBe('그 이야기는 꽤 유명하죠.')
+    expect(lines.slice(1).join('\n').trim().length).toBeGreaterThan(0)
+    expect(result.directResponse?.contextEvents.some((event) => event.type === 'fact-disclosed')).toBe(true)
+  })
+
+  it('uses a continuation reaction without repeating the disclosed fact', () => {
+    let context = updateConversationContext(createConversationContext(), {
+      type: 'served',
+      cocktailId: 'cocktail_classic_001',
+    })
+    const first = service.resolve({ ...request('이야기를 들려줘'), conversationContext: context })
+    for (const event of first.directResponse?.contextEvents ?? []) {
+      context = updateConversationContext(context, event)
+    }
+    const second = service.resolve({ ...request('조금 더 알려줘'), conversationContext: context })
+
+    expect(second.directResponse?.turn.reply.split('\n')[0]).toBe('조금 더 이어가보죠.')
+    expect(second.directResponse?.turn.reply).not.toContain(first.directResponse?.turn.reply ?? '')
+  })
+
   it('builds the general dialogue turn after recommendation execution is resolved externally', () => {
     const serviceRequest = request('오늘 좀 피곤하네요')
     const resolution = service.resolve(serviceRequest)
@@ -133,5 +158,40 @@ describe('DialogueService', () => {
       type: 'order-candidate',
       cocktailId: typed.action.cocktailId,
     }])
+  })
+
+  it.each([
+    ['맛있어요', 'positive-feedback'],
+    ['별로예요', 'negative-feedback'],
+    ['맞아요', 'agreement'],
+    ['무슨 말인지 모르겠어요', 'confused'],
+  ] as const)('reacts to %s without continuing into lore or an order', (text, reactionType) => {
+    const serviceRequest = request(text)
+    const resolution = service.resolve(serviceRequest)
+    const turn = service.buildMainTurn(serviceRequest, resolution, { outcome: null })
+
+    expect(resolution.reaction?.type).toBe(reactionType)
+    expect(resolution.action).toEqual({ type: 'respond' })
+    expect(resolution.directResponse).toBeNull()
+    expect(turn?.reply).toBe(resolution.reaction?.reply)
+  })
+
+  it('reacts first and then uses the existing recommendation action for another-request', () => {
+    const serviceRequest = {
+      ...request('다른 걸로 추천해줘'),
+      session: { ...request('').session, allowRecommendationRoutes: true },
+    }
+    const resolution = service.resolve(serviceRequest)
+    const turn = service.buildMainTurn(serviceRequest, resolution, {
+      outcome: {
+        reply: '새 후보를 골랐어요.',
+        expression: 'talk',
+        decision: null,
+      },
+    })
+
+    expect(resolution.reaction?.type).toBe('another-request')
+    expect(resolution.action).toEqual({ type: 'recommend', mode: 'preference' })
+    expect(turn?.reply).toBe(`${resolution.reaction?.reply}\n새 후보를 골랐어요.`)
   })
 })

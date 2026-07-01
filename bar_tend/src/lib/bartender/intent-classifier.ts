@@ -14,8 +14,6 @@ export type IntentType =
   | 'story-query-followup'
   | 'story-query-cocktail-specific'
   | 'lore-followup'
-  | 'welcome-drink'
-  | 'welcome-drink-feedback'
   | 'recognition'
   | 'mood-talk'
   | 'quiet-talk'
@@ -180,6 +178,7 @@ export class IntentClassifier {
       finalIntent = this.mapKeywordResultToIntent(keywordRulesResult.intent)
       finalConfidence = keywordRulesResult.confidence
       finalSource = 'keyword-rules'
+      if (keywordRulesResult.matched) matchedKeywords.push(keywordRulesResult.matched)
     } else {
       finalIntent = 'general-chat'
       finalConfidence = 0.5
@@ -251,6 +250,7 @@ export class IntentClassifier {
     return {
       intent,
       confidence: keywordMatch ? 0.8 : 0.5,
+      matched: keywordMatch,
     }
   }
 
