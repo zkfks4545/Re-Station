@@ -52,7 +52,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 도입하더라도 말투 포장만 담당한다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. Phase 3 DialogueService 분리는 완료되었다. 현재 향후 구조 우선순위는 `Phase 4` Conversation Context의 갱신 조건과 소유권 완성이다.
+12. Phase 4 Conversation Context 완성까지 완료되었다. 현재 향후 구조 우선순위는 `Phase 5` Action 실행 계층 완성이다.
 13. DLG-807~DLG-809 같은 대사 수렴 작업은 의도·행동·응답 출처가 안정된 뒤 재검토한다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
@@ -600,9 +600,11 @@ XYZ, Farewell Phase, 주문 차단, 귀가 관련 응답 문구는 `lib/session/
 
 이 경계는 코드 검수 시 컨트롤러가 도메인 판단을 과도하게 직접 수행하는지 확인하는 기준으로 사용한다.
 
-### 11.6 Context + Action Layer 초기 분리 완료
+### 11.6 Conversation Context 완성
 
-`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`, `disclosedFactKeysByCocktailId`는 `conversation-context.ts`의 순수 상태로 관리된다. 논의·추천·서빙·팩트 공개 이벤트의 갱신 규칙이 테스트 가능한 단위로 분리되었고, 컨트롤러는 하나의 context ref만 보유한다.
+`lastDiscussedCocktailId`, `lastRecommendedCocktailId`, `lastServedCocktailId`, `lastOrderCandidateCocktailId`, `lastStoryTargetCocktailId`, `disclosedFactKeysByCocktailId`는 `conversation-context.ts`의 순수 reducer 상태로 관리된다. 컨트롤러의 별도 `lastServedCocktail` 객체 상태는 제거했으며, UI와 서비스는 context ID를 칵테일 DB에서 조회한다.
+
+생략 주문은 주문 후보→추천→서빙→논의, 일반 이야기는 논의→추천→서빙, lore 후속은 story target→서빙→주문 후보→논의 순으로 참조한다. 명시적 칵테일명과 lore/person/media 검색 결과는 이 참조보다 우선한다. `served`는 실제 칵테일 카드 공개 완료 뒤 기록하고, context는 추천 모드 전환과 farewell에서 유지되며 새 세션 reset에서만 공개 이력과 함께 초기화된다.
 
 `action-resolver.ts`는 현재 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동을 제공한다. 이로써 `모히토` → `그걸로 주세요` → 실제 모히토 주문, `그 이야기 더 들려줘요` → 직전 칵테일 `talkingPoints` 흐름을 단위 테스트로 고정했다. Phase 5에서는 `serve`를 포함한 전체 행동 실행과 부수 효과를 컨트롤러 밖으로 더 분리한다.
 
@@ -688,8 +690,8 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 3. `Phase 2` Response Pipeline: 완료. 응답 선택, 템플릿, 데이터 삽입, 표정 선택 분리와 주요 응답 공통 조립
 4. `Phase 2.5` DialogueSessionState: 완료. 분산 세션 상태, Welcome-Farewell, safetyLocked Hard Stop 고정
 5. `Phase 3` DialogueService 분리: 완료. 컨텍스트 구성·분류·세션 차단·행동·Context 이벤트·직접 응답·턴 검증을 서비스로 이동하고 텍스트/사이드바 주문 계약 통합
-6. `Phase 4` Conversation Context 완성: 다음 작업. 주요 필드와 이벤트 생성 책임은 구현됐으며 참조 우선순위, 필드별 수명, 세션 reset 범위와 의미 계약의 최종 고정이 남음
-7. `Phase 5` Action Layer: `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
+6. `Phase 4` Conversation Context 완성: 완료. 단일 reducer, 참조 우선순위, 필드 수명, 세션 reset 범위와 서빙 완료 전이를 고정
+7. `Phase 5` Action Layer: 다음 작업. `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 계층 구현
 8. `Phase 6` Slot Filling 추천 FSM: 질문 순서 강제보다 사용자가 말한 취향 슬롯을 자유롭게 채움
 9. `Phase 7` Dialogue Quality: fallback 감소, bar/character/story 전용 응답 강화
 10. `Phase 8` Talking Points 확장: lore/talking_points 풍부화
@@ -711,7 +713,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
 | Phase 3 책임 경계 회귀 | 통과: DialogueService·DialogueSessionState·Session Flow 3개 파일, 20개 테스트 |
-| 전체 테스트 | 통과: `npm.cmd test` 기준 27개 파일, 390개 테스트 |
+| 전체 테스트 | 통과: `npm.cmd test` 기준 27개 파일, 396개 테스트 |
 | 메인 JS | 빌드 기준 467.19 kB, gzip 138.28 kB |
 
 알려진 Vitest 실패는 없다. safety 응답은 즉시 위험 확인과 119/112/1393 안내를 공통 상수에서 다시 보장한다. 코드 리뷰와 검수 시에는 DialogueService와 컨트롤러의 책임 경계, 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.

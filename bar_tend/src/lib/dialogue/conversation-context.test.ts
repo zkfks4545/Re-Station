@@ -10,6 +10,63 @@ import {
 } from './conversation-context.js'
 
 describe('conversation context', () => {
+  const seededState = {
+    lastDiscussedCocktailId: 'discussed',
+    lastRecommendedCocktailId: 'recommended',
+    lastServedCocktailId: 'served',
+    lastOrderCandidateCocktailId: 'candidate',
+    lastStoryTargetCocktailId: 'story',
+    disclosedFactKeysByCocktailId: { mojito: ['story:0'] },
+  }
+
+  it.each([
+    ['discussed', { type: 'discussed', cocktailId: 'next' }, {
+      ...seededState,
+      lastDiscussedCocktailId: 'next',
+      lastOrderCandidateCocktailId: 'next',
+    }],
+    ['recommended', { type: 'recommended', cocktailId: 'next' }, {
+      ...seededState,
+      lastDiscussedCocktailId: 'next',
+      lastRecommendedCocktailId: 'next',
+      lastOrderCandidateCocktailId: 'next',
+    }],
+    ['served', { type: 'served', cocktailId: 'next' }, {
+      ...seededState,
+      lastDiscussedCocktailId: 'next',
+      lastServedCocktailId: 'next',
+      lastOrderCandidateCocktailId: 'next',
+      lastStoryTargetCocktailId: 'next',
+    }],
+    ['order-candidate', { type: 'order-candidate', cocktailId: 'next' }, {
+      ...seededState,
+      lastOrderCandidateCocktailId: 'next',
+    }],
+    ['story-targeted', { type: 'story-targeted', cocktailId: 'next' }, {
+      ...seededState,
+      lastDiscussedCocktailId: 'next',
+      lastStoryTargetCocktailId: 'next',
+    }],
+  ] as const)('applies only the contracted fields for %s', (_name, event, expected) => {
+    expect(updateConversationContext(seededState, event)).toEqual(expected)
+  })
+
+  it('uses the contracted selector priorities', () => {
+    expect(getOrderCandidateCocktailId(seededState)).toBe('candidate')
+    expect(getStoryCocktailId(seededState)).toBe('discussed')
+    expect(getLoreFollowupCocktailId(seededState)).toBe('story')
+
+    const withoutPrimaryReferences = {
+      ...seededState,
+      lastDiscussedCocktailId: null,
+      lastOrderCandidateCocktailId: null,
+      lastStoryTargetCocktailId: null,
+    }
+    expect(getOrderCandidateCocktailId(withoutPrimaryReferences)).toBe('recommended')
+    expect(getStoryCocktailId(withoutPrimaryReferences)).toBe('recommended')
+    expect(getLoreFollowupCocktailId(withoutPrimaryReferences)).toBe('served')
+  })
+
   it('uses a discussed cocktail as the next order candidate', () => {
     const state = updateConversationContext(createConversationContext(), {
       type: 'discussed',

@@ -77,7 +77,6 @@ export function useRestationController() {
   const [interactionStatus, setInteractionStatus] = useState<InteractionStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [servedCocktail, setServedCocktail] = useState<CocktailData | null>(null)
-  const [lastServedCocktail, setLastServedCocktail] = useState<CocktailData | null>(null)
   const [servedCocktailMode, setServedCocktailMode] = useState<ServedCocktailMode>('recommendation')
   const [isPreparingCocktail, setIsPreparingCocktail] = useState(false)
   const [dialogueSession, dispatchDialogueSession] = useReducer(
@@ -95,13 +94,20 @@ export function useRestationController() {
   const queuedInteractionsRef = useRef<QueuedInteraction[]>([])
   const queuedInteractionScheduledRef = useRef(false)
   const typingSequenceRef = useRef(0)
-  const conversationContextRef = useRef(createConversationContext())
+  const [conversationContext, dispatchConversationContext] = useReducer(
+    updateConversationContext,
+    undefined,
+    createConversationContext,
+  )
 
   const actionSessionMode = dialogueSession.mode
   const sessionPhase = dialogueSession.phase
   const alcoholStarTotal = dialogueSession.order.alcoholStarTotal
   const welcomeDrinkServed = dialogueSession.welcomeDrink.served
   const welcomeDrinkFeedbackPending = isWelcomeDrinkFeedbackPending(dialogueSession)
+  const lastServedCocktail = conversationContext.lastServedCocktailId
+    ? getCocktailById(conversationContext.lastServedCocktailId) ?? null
+    : null
 
   const {
     preference,
@@ -121,7 +127,7 @@ export function useRestationController() {
   } = useRecommendationSession()
 
   const recordConversationContext = useCallback((event: ConversationContextEvent) => {
-    conversationContextRef.current = updateConversationContext(conversationContextRef.current, event)
+    dispatchConversationContext(event)
   }, [])
 
   const recordConversationEvents = useCallback((events: ConversationContextEvent[]) => {
@@ -200,7 +206,6 @@ export function useRestationController() {
         timerRegistry.current.schedule(() => {
           setServedCocktailMode('recommendation')
           setServedCocktail(cocktail)
-          setLastServedCocktail(cocktail)
           afterCocktailRevealed?.()
         }, 600)
       }
@@ -264,7 +269,7 @@ export function useRestationController() {
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(xyzCocktail.id)
     setUnlockedIds(ids)
-    recordConversationEvents(dialogueService.buildServingContextEvents(xyzCocktail))
+    const servingEvents = dialogueService.buildServingContextEvents(xyzCocktail)
     bartenderReply(
       entryKind === 'welcome-farewell-xyz'
         ? formatWelcomeFarewellXyzReply(xyzCocktail)
@@ -273,7 +278,10 @@ export function useRestationController() {
       xyzCocktail,
       'idle',
       [],
-      () => dispatchDialogueSession({ type: 'set-phase', phase: 'farewell' }),
+      () => {
+        recordConversationEvents(servingEvents)
+        dispatchDialogueSession({ type: 'set-phase', phase: 'farewell' })
+      },
     )
   }, [bartenderReply, recordConversationEvents, setUnlockedIds])
 
@@ -307,7 +315,6 @@ export function useRestationController() {
       setIsPreparingCocktail(false)
       setSidebarOpen(false)
       setServedCocktail(null)
-      setLastServedCocktail(null)
       setServedCocktailMode('recommendation')
       clearExcludedCocktailIds()
       resetRecommendation()
@@ -322,7 +329,6 @@ export function useRestationController() {
     setErrorMessage(null)
     setScene('inside')
     setServedCocktail(null)
-    setLastServedCocktail(null)
     setServedCocktailMode('recommendation')
     setInteractionStatus('typing')
     setExpression('idle')
@@ -378,7 +384,6 @@ export function useRestationController() {
     setExpression('idle')
     setErrorMessage(null)
     setServedCocktail(null)
-    setLastServedCocktail(null)
     setServedCocktailMode('recommendation')
     setIsPreparingCocktail(false)
     clearExcludedCocktailIds()
@@ -450,8 +455,15 @@ export function useRestationController() {
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
     const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal })
-    recordConversationEvents(dialogueService.buildServingContextEvents(cocktail, { reply }))
-    bartenderReply(reply, 'smirk', cocktail)
+    const servingEvents = dialogueService.buildServingContextEvents(cocktail, { reply })
+    bartenderReply(
+      reply,
+      'smirk',
+      cocktail,
+      'idle',
+      [],
+      () => recordConversationEvents(servingEvents),
+    )
     return true
   }, [
     activeQuestion,
@@ -484,7 +496,7 @@ export function useRestationController() {
     return dialogueService.resolve({
       text,
       messages: nextMessages,
-      conversationContext: conversationContextRef.current,
+      conversationContext,
       session: {
         phase: sessionPhase,
         activeRecommendationSession: effectiveSessionMode === 'recommendation' && activeQuestion !== null,
@@ -496,14 +508,13 @@ export function useRestationController() {
         conversationTurnCount: dialogueSession.dialogue.turnCount,
       },
       displayedCocktail: servedCocktail,
-      lastServedCocktail,
     })
   }, [
     actionSessionMode,
     activeQuestion,
     alcoholStarTotal,
+    conversationContext,
     dialogueSession.dialogue.turnCount,
-    lastServedCocktail,
     servedCocktail,
     sessionPhase,
     welcomeDrinkFeedbackPending,
@@ -686,14 +697,15 @@ export function useRestationController() {
 
           if (cocktail) {
             dispatchDialogueSession({ type: 'cocktail-served' })
-            recordConversationEvents(dialogueService.buildServingContextEvents(cocktail, {
+            const servingEvents = dialogueService.buildServingContextEvents(cocktail, {
               reply: turn.reply,
               recommended: dialogueAction.type === 'recommend',
-            }))
-    setScreenShake(true)
-    timerRegistry.current.schedule(() => setScreenShake(false), 500)
-    const ids = unlockCocktailId(cocktail.id)
-    setUnlockedIds(ids)
+            })
+            afterCocktailRevealed = () => recordConversationEvents(servingEvents)
+            setScreenShake(true)
+            timerRegistry.current.schedule(() => setScreenShake(false), 500)
+            const ids = unlockCocktailId(cocktail.id)
+            setUnlockedIds(ids)
             const nextAlcoholStarTotal = isXyzCocktail
               ? alcoholStarTotal
               : alcoholStarTotal + cocktail.taste.alcohol
@@ -711,7 +723,10 @@ export function useRestationController() {
                   ? 'xyz'
                   : 'farewell',
               })
-              afterCocktailRevealed = () => beginFarewell(dialogueSession, 'alcohol-limit')
+              afterCocktailRevealed = () => {
+                recordConversationEvents(servingEvents)
+                beginFarewell(dialogueSession, 'alcohol-limit')
+              }
             } else {
               dispatchDialogueSession({
                 type: 'set-phase',
@@ -847,10 +862,8 @@ export function useRestationController() {
     }
 
     dispatchDialogueSession({ type: 'cocktail-served' })
-    recordConversationEvents([
-      ...dialogueResolution.contextEvents,
-      ...dialogueService.buildServingContextEvents(orderedCocktail, { reply: turn.reply }),
-    ])
+    recordConversationEvents(dialogueResolution.contextEvents)
+    const servingEvents = dialogueService.buildServingContextEvents(orderedCocktail, { reply: turn.reply })
 
     setScreenShake(true)
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
@@ -862,7 +875,7 @@ export function useRestationController() {
       : alcoholStarTotal + orderedCocktail.taste.alcohol
     if (!isXyzCocktail) dispatchDialogueSession({ type: 'set-alcohol-total', total: nextAlcoholStarTotal })
 
-    let afterCocktailRevealed: (() => void) | undefined
+    let afterCocktailRevealed = () => recordConversationEvents(servingEvents)
     if (shouldServeXyzAfterAlcoholLimit({
       current: sessionPhase,
       alcoholStarTotal: nextAlcoholStarTotal,
@@ -875,7 +888,10 @@ export function useRestationController() {
           ? 'xyz'
           : 'farewell',
       })
-      afterCocktailRevealed = () => beginFarewell(dialogueSession, 'alcohol-limit')
+      afterCocktailRevealed = () => {
+        recordConversationEvents(servingEvents)
+        beginFarewell(dialogueSession, 'alcohol-limit')
+      }
     } else {
       dispatchDialogueSession({
         type: 'set-phase',

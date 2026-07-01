@@ -663,7 +663,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | Phase 2 | Response Pipeline | 완료 | 응답 선택, 템플릿, 데이터 삽입, 표정 선택을 분리 | `ResponseDraft`와 `assembleResponse` 계약 추가. 템플릿은 최종 표정 대신 tone을 제공하고 추천 결과, 이야기 응답, 캐릭터 응답이 같은 조립 파이프라인을 통과 |
 | Phase 2.5 | DialogueSessionState 정리 | 완료 | Phase 3 전에 컨트롤러의 세션 상태와 종료 흐름을 단일 계약으로 고정 | `phase/mode/dialogue/welcomeDrink/order/farewell/safetyLocked` 통합. safety-alert는 추천·주문·웰컴·farewell을 중단하고 세션을 강제 종료. 미성년자/무알코올 전용 정책은 제외 |
 | Phase 3 | DialogueService 분리 | 완료 | `useRestationController`에서 대화 로직을 떼어내기 | 서비스가 컨텍스트 구성·분류·세션 차단·Action·Context 이벤트·응답·턴 검증을 담당. 텍스트/사이드바 주문 계약 통합, 서빙 후 conversation 복귀, safetyLocked 흡수 상태. 390 tests pass |
-| Phase 4 | Conversation Context 완성 | 일부 착수 | 대화 중 참조 가능한 컨텍스트 정리 | `lastDiscussed`, `lastRecommended`, `lastServed`, `lastOrderCandidate`의 의미와 갱신 조건 고정 |
+| Phase 4 | Conversation Context 완성 | 완료 | 대화 중 참조 가능한 컨텍스트 정리 | 단일 context reducer로 통합하고 컨트롤러의 `lastServedCocktail` 객체 상태 제거. 필드 전이·참조 우선순위·reset 수명·서빙 완료 시점 기록을 테스트로 고정. 396 tests pass |
 | Phase 5 | Action Layer | 미착수에 가까움 | `order`, `serve`, `recommend`, `continueStory` 같은 행동 실행 | 의도 분류 결과가 곧 응답 문자열이 아니라 검증 가능한 행동으로 이어지게 함 |
 | Phase 6 | Slot Filling 추천 FSM | 미착수 | 질문 순서 강제 대신 사용자가 말한 취향 슬롯을 자유롭게 채움 | 기존 추천 엔진은 유지하되, 입력으로 채워진 슬롯을 질문 선택보다 우선 반영 |
 | Phase 7 | Dialogue Quality | 미착수 | fallback 줄이기, bar/character/story 전용 응답 강화 | 말투 개선보다 응답 출처와 의도 적합성 검증을 우선 |

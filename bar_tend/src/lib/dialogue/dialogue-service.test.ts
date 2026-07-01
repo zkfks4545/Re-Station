@@ -20,7 +20,6 @@ function request(text: string): DialogueServiceRequest {
       conversationTurnCount: 0,
     },
     displayedCocktail: null,
-    lastServedCocktail: null,
   }
 }
 

@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-01 / Codex / Phase 4 Conversation Context 완료
+- 내용: Conversation Context를 컨트롤러의 `useReducer(updateConversationContext)` 단일 상태로 승격하고, 별도 `lastServedCocktail` 객체 상태와 `DialogueServiceRequest.lastServedCocktail` 전달을 제거
+- 참조 계약: 생략 주문, 일반 이야기, lore 후속 selector의 우선순위와 이벤트별 필드 전이를 table-driven 테스트로 고정. 명시적 칵테일/lore 단서의 기존 우선순위 유지
+- 서빙 계약: 추천·웰컴·직접 주문·XYZ의 `served` 이벤트를 주문 접수 시점이 아니라 실제 칵테일 카드 공개 완료 콜백에서 기록
+- 세션 계약: recommendation 전환과 farewell에서는 context를 유지하고 새 입장·전체 reset에서 모든 참조와 공개 이력을 제거. safetyLocked 뒤에는 기존 서비스 차단 계약 유지
+- 수정: `conversation-context.test.ts`, `dialogue-service.ts`, `dialogue-service.test.ts`, `useRestationController.ts` 및 현황 문서
+- 검증: 핵심 회귀 7개 파일 163개, 전체 Vitest 27개 파일 396개 통과. check/lint/build 통과, 메인 JS 467.29 kB (gzip 138.31 kB)
+
 ## 2026-06-30 / Codex / Phase 3 DialogueService 분리 [1c97d8c]
 - 내용: `DialogueService`를 추가해 대화 컨텍스트 구성, IntentClassifier 실행, DialogueAction 해석, 이야기·정보·캐릭터·미등록 칵테일 직접 응답, DialogueTurn 조립·검증을 컨트롤러 밖으로 이동
 - 계약: 서비스는 입력·메시지·Conversation Context·세션 스냅샷을 받아 `DialogueResolution`을 반환한다. 결과에는 route/intent/action, 즉시 적용할 컨텍스트 이벤트, 직접 응답 턴이 포함된다. 추천 계산은 기존 추천 훅이 유지하고, 계산 결과의 최종 대화 턴 조립만 서비스가 담당

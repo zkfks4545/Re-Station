@@ -50,7 +50,6 @@ export interface DialogueServiceRequest {
   conversationContext: ConversationContextState
   session: DialogueServiceSessionSnapshot
   displayedCocktail: CocktailData | null
-  lastServedCocktail: CocktailData | null
 }
 
 export type DirectDialogueKind =
@@ -177,8 +176,10 @@ export class DialogueService {
       .map((id) => this.getCocktail(id))
       .filter((cocktail): cocktail is CocktailData => cocktail !== null)
 
+    const lastServedCocktail = this.getCocktail(request.conversationContext.lastServedCocktailId)
+
     return {
-      lastServedCocktail: request.lastServedCocktail,
+      lastServedCocktail,
       mentionedCocktails: discussedCocktails,
       sessionPhase: request.session.phase,
       activeRecommendationSession: request.session.activeRecommendationSession,
@@ -283,7 +284,7 @@ export class DialogueService {
       : classifiedIntent.route.matchedCocktailId ?? null
     const cocktail = this.getCocktail(cocktailId)
       ?? request.displayedCocktail
-      ?? request.lastServedCocktail
+      ?? this.getCocktail(request.conversationContext.lastServedCocktailId)
     const disclosed = cocktail
       ? getDisclosedCocktailFactKeys(request.conversationContext, cocktail.id)
       : []
