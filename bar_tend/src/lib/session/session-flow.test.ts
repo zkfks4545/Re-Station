@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isDialogueActionBlockedInPhase,
   isRecommendationBlockedInPhase,
   isOrderingClosedPhase,
   nextPhaseAfterServedCocktail,
@@ -56,6 +57,18 @@ describe('closed Re:Station session flow', () => {
     expect(isRecommendationBlockedInPhase('farewell', 'character-query')).toBe(false)
     expect(isRecommendationBlockedInPhase('safetyLocked', 'recommendation')).toBe(true)
     expect(isRecommendationBlockedInPhase('safetyLocked', 'explicit-cocktail')).toBe(true)
+  })
+
+  it('blocks a recommend action even when the original route was general', () => {
+    expect(isDialogueActionBlockedInPhase('farewell', {
+      type: 'recommend',
+      mode: 'preference',
+    })).toBe(true)
+    expect(isDialogueActionBlockedInPhase('safetyLocked', {
+      type: 'recommend',
+      mode: 'preference',
+    })).toBe(true)
+    expect(isDialogueActionBlockedInPhase('farewell', { type: 'respond' })).toBe(false)
   })
 
   it('moves into farewell after the XYZ drink is served', () => {

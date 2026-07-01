@@ -1,4 +1,5 @@
 import type { InputRoute } from '../dialogue/input-router.js'
+import type { DialogueAction } from '../dialogue/action-resolver.js'
 
 export type SessionPhase =
   | 'entry'
@@ -42,6 +43,16 @@ export function shouldServeXyzAfterAlcoholLimit(options: {
 export function isRecommendationBlockedInPhase(phase: SessionPhase, route: InputRoute): boolean {
   if (!isOrderingClosedPhase(phase)) return false
   return isOrderRoute(route)
+}
+
+export function isDialogueActionBlockedInPhase(
+  phase: SessionPhase,
+  action: DialogueAction,
+): boolean {
+  if (!isOrderingClosedPhase(phase)) return false
+  return action.type === 'recommend'
+    || action.type === 'order'
+    || action.type === 'loreBasedOrder'
 }
 
 export function nextPhaseAfterRoute(route: InputRoute, current: SessionPhase): SessionPhase {

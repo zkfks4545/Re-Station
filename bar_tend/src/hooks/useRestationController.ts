@@ -8,6 +8,7 @@ import {
   type ConversationContextEvent,
 } from '@/lib/dialogue/conversation-context.js'
 import { executeDialogueAction } from '@/lib/dialogue/action-executor.js'
+import { getFeedbackExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogue-service.js'
 import { createServingPlan } from '@/lib/dialogue/serving-plan.js'
 import {
@@ -119,6 +120,7 @@ export function useRestationController() {
   const {
     activeQuestion,
     clearExcludedCocktailIds,
+    excludeCocktailFromRecommendations,
     resetRecommendation,
     resolveRandomRecommendation,
     resolveExplicitCocktail,
@@ -647,6 +649,14 @@ export function useRestationController() {
         return
       }
 
+      const feedbackExcludedCocktailId = getFeedbackExcludedCocktailId(
+        dialogueResolution.reaction,
+        conversationContext,
+      )
+      if (feedbackExcludedCocktailId) {
+        excludeCocktailFromRecommendations(feedbackExcludedCocktailId)
+      }
+
       recordConversationEvents(dialogueResolution.contextEvents)
 
       // --- 서비스에서 확정된 직접 응답 처리 ---
@@ -775,7 +785,9 @@ export function useRestationController() {
       bartenderReply,
       beginFarewell,
       clearPendingWork,
+      conversationContext,
       dialogueSession,
+      excludeCocktailFromRecommendations,
       executeAction,
       ingestUserMessage,
       lastServedCocktail,

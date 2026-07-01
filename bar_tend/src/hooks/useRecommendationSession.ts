@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   applyQuestionAnswer,
   createRecommendationSourcePool,
@@ -34,6 +34,7 @@ import {
 import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
 import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
+import { addExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 
 export interface RecommendationResult {
   reply: string
@@ -49,6 +50,7 @@ export function useRecommendationSession() {
     createRecommendationState,
   )
   const [excludedCocktailIds, setExcludedCocktailIds] = useState<string[]>([])
+  const excludedCocktailIdsRef = useRef<string[]>([])
   const [recentDialogueLineIds, setRecentDialogueLineIds] = useState<string[]>([])
 
   const resetRecommendation = useCallback(() => {
@@ -58,7 +60,14 @@ export function useRecommendationSession() {
   }, [])
 
   const clearExcludedCocktailIds = useCallback(() => {
+    excludedCocktailIdsRef.current = []
     setExcludedCocktailIds([])
+  }, [])
+
+  const excludeCocktailFromRecommendations = useCallback((cocktailId: string) => {
+    const next = addExcludedCocktailId(excludedCocktailIdsRef.current, cocktailId)
+    excludedCocktailIdsRef.current = next
+    setExcludedCocktailIds(next)
   }, [])
 
   const resolveRandomRecommendation = useCallback((): RecommendationResult => {
@@ -146,9 +155,10 @@ export function useRecommendationSession() {
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
-      const sourcePool = createRecommendationSourcePool(excludedCocktailIds)
+      const sourcePool = createRecommendationSourcePool(excludedCocktailIdsRef.current)
 
       if (sourcePool.exhausted) {
+        excludedCocktailIdsRef.current = []
         setExcludedCocktailIds([])
         resetRecommendation()
         return assembleRecommendationResult(
@@ -205,7 +215,7 @@ export function useRecommendationSession() {
       const selectedOpening = acknowledgement
         ? null
         : selectRecommendationOpening(decision, recentDialogueLineIds)
-      setExcludedCocktailIds((prev) => [...prev, cocktail.id])
+      excludeCocktailFromRecommendations(cocktail.id)
       if (selectedOpening) {
         setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
       }
@@ -227,7 +237,7 @@ export function useRecommendationSession() {
       candidatePool,
       recommendationState,
       resetRecommendation,
-      excludedCocktailIds,
+      excludeCocktailFromRecommendations,
       recentDialogueLineIds,
       resolveExplicitCocktail,
     ],
@@ -236,6 +246,7 @@ export function useRecommendationSession() {
   return {
     activeQuestion: getQuestionById(activeQuestionId),
     clearExcludedCocktailIds,
+    excludeCocktailFromRecommendations,
     excludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,

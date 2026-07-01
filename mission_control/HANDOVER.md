@@ -1,6 +1,6 @@
 # 인수인계 (축약)
 
-> 최종 갱신일: 2026-07-01 (Phase 8 Talking Points 완료, Vitest 435개)
+> 최종 갱신일: 2026-07-01 (Phase 9 진입 전 기능 경계 보완 완료, Vitest 457개)
 > 각 작업의 상세 커밋 해시는 `WORK_LOG.md` 참조.
 
 ## 현재 목표
@@ -22,6 +22,7 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Reaction/Conversation Flow 회귀 보강: negative feedback 뒤 기존 추천 ID가 후보 풀에서 제외되는지, another-request가 새 추천 Action/실행으로 이어지는지, lore fact key가 후속 턴에서 반복되지 않는지, 반응 문장이 본문보다 먼저 출력되는지 통합 테스트로 고정했다.
 - Phase 7 완료: 누락되어 항상 fallback으로 떨어지던 `character-query`와 대상 없는 lore follow-up의 응답 출처를 전용 `character-query`/`story-unresolved` 풀로 분리했다. `random-request`, `unknown-cocktail-request`, `recommendation-cancel` 풀도 보강했으며, 템플릿이 참조하는 27개 JSON 카테고리가 모두 존재하고 비어 있지 않은지 테스트로 고정했다.
 - Phase 8 완료: 대표 클래식 20종에 talking point 20개와 lore reference 40개를 누적 추가했다. 공개 칵테일 structured lore 커버리지는 20/49에서 30/49로 증가했다. 2차 배치는 Paper Plane, Penicillin, Piña Colada, Irish Coffee, Manhattan, Mint Julep, Sazerac, Singapore Sling, Clover Club, Bramble이며, 기원 논쟁과 일화는 완곡한 출처 문체로 유지한다.
+- Phase 9 진입 전 경계 보완 완료: closed/farewell/safetyLocked/returnHome 차단은 원래 route와 최종 DialogueAction을 함께 검사한다. story/lore/info는 사실 공개 순서를 분리했고, Reaction은 일반·독립 feedback 또는 칵테일 대상 feedback에만 적용한다. negative/another feedback은 Conversation Context의 직전 추천·서빙 ID를 추천 제외 목록에 같은 턴 즉시 반영한다.
 - 미성년자/무알코올 전용 intent·추천 제약·응답·대체 farewell은 Phase 3 범위에서 제거
 - 공통 `kf`, `SHAKE_REFERENCE`, mood/switch 응답 헬퍼 정리 완료 [`a73342f`][`c82cbc6`][`4f6c90d`]
 - `모히토`→`그걸로 주세요` 같은 생략 입력이 직전 대상 주문/이야기로 연결 [`0404c58`]
@@ -43,13 +44,13 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **435개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 485.98 kB)
+- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **457개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 487.95 kB)
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
-1. 카루아 말투 금지/권장 테스트(보류 해제 시)
-2. Phase 9 Character Layer 적용
+1. Phase 9 Character Layer 적용 여부 결정
+2. 카루아 말투 금지/권장 계약은 Phase 9 범위에서만 변경
 3. 나머지 19개 공개 칵테일 lore는 필요 시 점진 확장
 
 ## 주의사항 (미완료)

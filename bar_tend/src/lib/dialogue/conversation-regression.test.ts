@@ -5,6 +5,10 @@ import {
   createRecommendationSourcePool,
   pickFromPool,
 } from '../recommendation/question-engine.js'
+import {
+  addExcludedCocktailId,
+  getFeedbackExcludedCocktailId,
+} from '../recommendation/feedback-exclusion.js'
 import { executeDialogueAction, type ActionExecutionPorts } from './action-executor.js'
 import {
   createConversationContext,
@@ -58,18 +62,46 @@ function recommendationPorts(excludedCocktailIds: string[]): ActionExecutionPort
 }
 
 describe('reaction and conversation flow regressions', () => {
+  it('does not execute another-request recommendation during farewell', () => {
+    const resolution = service.resolve({
+      ...request('다른 걸로 추천해줘'),
+      session: {
+        ...request('').session,
+        phase: 'farewell',
+        allowRecommendationRoutes: false,
+      },
+    })
+    const actionPorts = recommendationPorts([])
+
+    if (!resolution.blockedBySession) {
+      executeDialogueAction({ action: resolution.action, text: '다른 걸로 추천해줘' }, actionPorts)
+    }
+
+    expect(resolution.action).toEqual({ type: 'recommend', mode: 'preference' })
+    expect(resolution.blockedBySession).toBe(true)
+    expect(actionPorts.recommendByPreference).not.toHaveBeenCalled()
+  })
+
   it('does not recommend the same cocktail again after negative feedback', () => {
     const previous = publicCocktails[0]
-    const feedback = service.resolve(request('별로예요'))
+    const context = updateConversationContext(createConversationContext(), {
+      type: 'recommended',
+      cocktailId: previous.id,
+    })
+    const feedback = service.resolve(request('별로예요', context))
 
     expect(feedback.reaction?.type).toBe('negative-feedback')
     expect(feedback.action).toEqual({ type: 'respond' })
 
-    const retry = service.resolve(request('다시 추천해 주세요'))
+    const rejectedId = getFeedbackExcludedCocktailId(feedback.reaction, context)
+    expect(rejectedId).toBe(previous.id)
+    const excludedIds = addExcludedCocktailId([], rejectedId!)
+
+    const retry = service.resolve(request('다시 추천해 주세요', context))
     const execution = executeDialogueAction({
       action: retry.action,
       text: '다시 추천해 주세요',
-    }, recommendationPorts([previous.id]))
+    }, recommendationPorts(excludedIds))
 
     expect(execution.status).toBe('completed')
     expect(execution.outcome?.cocktail?.id).not.toBe(previous.id)
@@ -77,16 +109,23 @@ describe('reaction and conversation flow regressions', () => {
 
   it('turns another-request into a new recommendation', () => {
     const previous = publicCocktails[0]
-    const resolution = service.resolve(request('다른 걸로 추천해줘'))
+    const context = updateConversationContext(createConversationContext(), {
+      type: 'recommended',
+      cocktailId: previous.id,
+    })
+    const resolution = service.resolve(request('다른 걸로 추천해줘', context))
+    const rejectedId = getFeedbackExcludedCocktailId(resolution.reaction, context)
+    const excludedIds = rejectedId ? addExcludedCocktailId([], rejectedId) : []
     const execution = executeDialogueAction({
       action: resolution.action,
       text: '다른 걸로 추천해줘',
-    }, recommendationPorts([previous.id]))
-    const turn = service.buildMainTurn(request('다른 걸로 추천해줘'), resolution, {
+    }, recommendationPorts(excludedIds))
+    const turn = service.buildMainTurn(request('다른 걸로 추천해줘', context), resolution, {
       outcome: execution.outcome,
     })
 
     expect(resolution.reaction?.type).toBe('another-request')
+    expect(rejectedId).toBe(previous.id)
     expect(resolution.action).toEqual({ type: 'recommend', mode: 'preference' })
     expect(execution.outcome?.cocktail?.id).not.toBe(previous.id)
     expect(turn?.reply.split('\n')[0]).toBe(resolution.reaction?.reply)

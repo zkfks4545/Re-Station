@@ -146,6 +146,60 @@ describe('DialogueService', () => {
     expect(recommendation.blockedBySession).toBe(true)
   })
 
+  it.each(['farewell', 'safetyLocked', 'returnHome'] as const)(
+    'blocks another-request after it becomes a recommend action in %s',
+    (phase) => {
+      const result = service.resolve({
+        ...request('다른 걸로 추천해줘'),
+        session: {
+          ...request('').session,
+          phase,
+          allowRecommendationRoutes: false,
+        },
+      })
+
+      expect(result.routeResult.route).toBe('general')
+      expect(result.action).toEqual({ type: 'recommend', mode: 'preference' })
+      expect(result.blockedBySession).toBe(true)
+      expect(result.contextEvents).toEqual([])
+    },
+  )
+
+  it('keeps bar atmosphere intent above positive feedback', () => {
+    const serviceRequest = request('여기 분위기 좋아요')
+    const resolution = service.resolve(serviceRequest)
+    const turn = service.buildMainTurn(serviceRequest, resolution, { outcome: null })
+
+    expect(resolution.classifiedIntent.intent).toBe('bar-atmosphere')
+    expect(resolution.reaction).toBeNull()
+    expect(turn?.reply).not.toBe('입에 맞았다니 다행이네요. 잔이 제 몫은 했군요.')
+  })
+
+  it('keeps happy mood intent above positive feedback', () => {
+    const result = service.resolve(request('오늘 기분 좋아요'))
+
+    expect(result.classifiedIntent.intent).toBe('mood-talk')
+    expect(result.reaction).toBeNull()
+  })
+
+  it('allows cocktail-targeted positive feedback', () => {
+    const result = service.resolve(request('이 칵테일 좋아요'))
+
+    expect(result.reaction?.type).toBe('positive-feedback')
+    expect(result.action).toEqual({ type: 'respond' })
+  })
+
+  it('answers a recipe request before cocktail stories', () => {
+    const result = service.resolve(request('모히토 레시피 알려줘'))
+    const cocktail = cocktails.find((item) => item.name === '모히토')!
+    const reply = result.directResponse?.turn.reply ?? ''
+
+    expect(result.routeResult.route).toBe('cocktail-info-query')
+    expect(reply).toContain('레시피는')
+    expect(reply).toContain(cocktail.recipeText)
+    expect(cocktail.talkingPoints?.every((point) => !reply.includes(point))).toBe(true)
+  })
+
   it('uses the same order-candidate event contract for typed and sidebar-style orders', () => {
     const typed = service.resolve(request('모히토'))
     const sidebar = service.resolve(request('모히토 주세요'))

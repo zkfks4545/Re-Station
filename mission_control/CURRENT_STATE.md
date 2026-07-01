@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~8 완료, 다음=말투 계약 또는 Phase 9 Character Layer |
+| 단계 | RST-000 MVP + Phase 1~8 완료, Phase 9 진입 전 기능 경계 보완 완료 |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 잠정 보류 |
-| 빌드/린트 | 통과 (메인 JS 485.98 kB, gzip 143.56 kB) |
-| 테스트 | **Vitest 435개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 487.95 kB, gzip 144.09 kB) |
+| 테스트 | **Vitest 457개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -29,6 +29,7 @@
 | Reaction/Conversation Flow 통합 회귀 (negative 재추천 제외·another 새 추천·lore 비반복·반응 우선) | 현재 작업 |
 | Phase 7 Dialogue Quality 완료 (전용 character/story 풀·누락 fallback 5종 보강·27개 출처 계약) | 현재 작업 |
 | Phase 8 Talking Points 완료 (대표 클래식 20종 확장·공개 30/49종 structured lore) | 현재 작업 |
+| Phase 9 진입 전 경계 보완 (Action 기준 closed 차단·콘텐츠 우선순위·Reaction intent 보호·실제 feedback 제외) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -45,11 +46,11 @@
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 485.98 kB, 레시피/BGM chunk | 유지 |
+| 번들 | 메인 487.95 kB, 레시피/BGM chunk | 유지 |
 
 ## 현재 우선순위
-1. 카루아 말투 금지/권장 테스트(보류 해제 시)
-2. Phase 9 Character Layer 적용
+1. Phase 9 Character Layer 적용 여부 결정
+2. 카루아 말투 금지/권장 계약은 Phase 9 범위에서만 변경
 3. 나머지 19개 공개 칵테일 lore는 필요 시 점진 확장
 
 ## 주요 이슈

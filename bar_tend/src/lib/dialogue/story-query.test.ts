@@ -51,4 +51,16 @@ describe('story and lore query replies', () => {
     expect(reply.facts).toEqual([reply.text])
     expect(reply.factKeys).toEqual([])
   })
+
+  it('orders facts by content kind without changing disclosure keys', () => {
+    const cocktail = getCocktailById('cocktail_classic_002')!
+    const story = formatStoryQueryReply(cocktail, [], 'story')
+    const lore = formatStoryQueryReply(cocktail, [], 'lore')
+    const info = formatStoryQueryReply(cocktail, [], 'info')
+
+    expect(story.factKeys[0]).toMatch(/^story:/)
+    expect(lore.factKeys[0]).toMatch(/^trivia:/)
+    expect(info.factKeys[0]).toBe('recipe')
+    expect(info.text).toContain(cocktail.recipeText)
+  })
 })

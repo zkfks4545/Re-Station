@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-01 / Codex / Phase 9 진입 전 기능 경계 보완
+
+- `isDialogueActionBlockedInPhase`를 추가해 closed/farewell/safetyLocked/returnHome에서 원래 route가 `general`이어도 최종 Action이 recommend/order이면 차단하도록 수정했다.
+- `formatStoryQueryReply`에 story/lore/info별 fact 순서를 추가했다. info는 recipe→ingredients→tasting→description, lore는 trivia→talking points, story는 talking points→lore 순으로 시작한다.
+- Reaction 판정에 최종 intent를 반영해 `여기 분위기 좋아요`, `오늘 기분 좋아요`가 positive-feedback으로 덮이지 않게 했으며 칵테일 대상 feedback과 독립 feedback은 유지했다.
+- negative/another feedback 대상 ID를 Conversation Context에서 결정하고, 추천 세션의 ref/state 제외 목록에 즉시 반영해 같은 턴 재추천도 막았다.
+- farewell another-request 실행 차단, 모히토 recipe 우선, 정상 intent 보존, 실제 feedback 제외 흐름 회귀 테스트를 추가했다.
+- Phase 9 Character Layer와 대사 말투 원문은 변경하지 않았다.
+- 검증: `npm.cmd test` (35 files, 457 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과. 메인 JS 487.95 kB, gzip 144.09 kB.
+
 ## 2026-07-01 / Codex / Phase 8 Talking Points 2차 확장 완료
 
 - Paper Plane, Penicillin, Piña Colada, Irish Coffee, Manhattan, Mint Julep, Sazerac, Singapore Sling, Clover Club, Bramble을 2차 확장했다.
