@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-01 / Codex / Phase 5 Action Layer 완료
+- 내용: `action-executor.ts`가 `DialogueAction`을 추천·랜덤·명시 주문·lore 주문 포트로 실행하고 `serve/respond` 효과와 성공·미결정·대상 누락 결과를 반환하도록 완성
+- 경로 통합: 텍스트 입력과 사이드바 주문이 같은 `executeAction` 어댑터를 사용. 컨트롤러에서 `DialogueAction.type` 직접 해석과 추천 훅 선택 분기 제거
+- 서빙 계획: `serving-plan.ts`를 추가해 도수 누적, XYZ 여부, farewell 필요 여부, 다음 세션 phase를 순수 계산. 두 주문 경로의 중복 판단 제거
+- 책임 경계: executor와 serving plan은 무엇을 실행하고 어떤 상태 전이가 필요한지 결정하며, 컨트롤러는 타이머·애니메이션·화면 흔들림·도감 해제·메시지 표시를 적용
+- 수정: `action-executor.ts`, `action-executor.test.ts`, `serving-plan.ts`, `serving-plan.test.ts`, `useRestationController.ts` 및 현황 문서
+- 검증: 핵심 4개 파일 20개, 전체 Vitest 29개 파일 404개 통과. check/lint/build 통과, 메인 JS 468.39 kB (gzip 138.74 kB)
+
 ## 2026-07-01 / Codex / Phase 4 Conversation Context 완료
 - 내용: Conversation Context를 컨트롤러의 `useReducer(updateConversationContext)` 단일 상태로 승격하고, 별도 `lastServedCocktail` 객체 상태와 `DialogueServiceRequest.lastServedCocktail` 전달을 제거
 - 참조 계약: 생략 주문, 일반 이야기, lore 후속 selector의 우선순위와 이벤트별 필드 전이를 table-driven 테스트로 고정. 명시적 칵테일/lore 단서의 기존 우선순위 유지

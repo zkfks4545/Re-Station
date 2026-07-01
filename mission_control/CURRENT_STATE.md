@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~4 완료, 다음=Phase 5 |
+| 단계 | RST-000 MVP + Phase 1~5 완료, 다음=Phase 6 |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 잠정 보류 |
 | 빌드/린트 | 통과 (메인 JS 467.19 kB, gzip 138.28 kB) |
-| 테스트 | **Vitest 396개 전체 통과** |
+| 테스트 | **Vitest 404개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -21,6 +21,7 @@
 | Phase 3 선행 DialogueSessionState 정리 (웰컴 플래그·종료 종류·safetyLocked Hard Stop) | 현재 작업 |
 | Phase 3 DialogueService 분리 (분류·차단·Action·Context 이벤트·응답·턴 검증) | 현재 작업 |
 | Phase 4 Conversation Context 완성 (단일 reducer·참조 우선순위·세션 수명·서빙 완료 전이) | 현재 작업 |
+| Phase 5 Action Layer 완성 (공통 executor·serve/respond 효과·서빙 계획) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -40,8 +41,8 @@
 | 번들 | 메인 467.19 kB, 레시피/BGM chunk | 유지 |
 
 ## 현재 우선순위
-1. Phase 5 Action Layer 실행 계층 완성
-2. Phase 6~8 구조 작업 (Slot Filling→Dialogue Quality→Talking Points)
+1. Phase 6 Slot Filling 추천 FSM
+2. Phase 7~8 구조 작업 (Dialogue Quality→Talking Points)
 3. DLG-807~809 말투·대사 출처·문단 프리셋과 SPR-001~005는 구조 안정화 후 재검토
 4. Phase 9 Character Layer는 의도·행동·응답 출처 안정화 뒤 적용
 
