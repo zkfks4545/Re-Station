@@ -37,7 +37,7 @@ export interface ParagraphPresetContext {
 
 type TextPresetRenderer = (slots: Record<string, string>) => string
 
-interface ParagraphPreset {
+export interface ParagraphPreset {
   id: string
   speaker: DialogueSpeaker
   intent: DialogueParagraphIntent
@@ -69,7 +69,7 @@ export function renderTextPreset(ref: TextPresetRef | undefined, fallback = ''):
   return rendered || fallback
 }
 
-const PARAGRAPH_PRESETS: ParagraphPreset[] = [
+export const PARAGRAPH_PRESETS: readonly ParagraphPreset[] = [
   {
     id: 'karua.recommend.tired.light',
     speaker: 'karua',
@@ -169,8 +169,9 @@ const PARAGRAPH_PRESETS: ParagraphPreset[] = [
   },
 ]
 
-export function renderParagraphPreset(context: ParagraphPresetContext): string {
+export function renderParagraphPreset(context: ParagraphPresetContext, fallbackText = ''): string {
   const preset = selectParagraphPreset(context)
+  if (!preset) return fallbackText
   const seed = context.seed ?? `${context.speaker}:${context.intent}:${context.state ?? ''}:${context.request ?? ''}`
   return (['reaction', 'recommend', 'explanation'] as const)
     .map((block) => renderParagraphBlock(preset.blocks[block], context.slots, `${seed}:${block}`))
@@ -178,7 +179,7 @@ export function renderParagraphPreset(context: ParagraphPresetContext): string {
     .join('\n')
 }
 
-function selectParagraphPreset(context: ParagraphPresetContext): ParagraphPreset {
+export function selectParagraphPreset(context: ParagraphPresetContext): ParagraphPreset | null {
   return PARAGRAPH_PRESETS.find((preset) =>
     preset.speaker === context.speaker &&
     preset.intent === context.intent &&
@@ -189,7 +190,7 @@ function selectParagraphPreset(context: ParagraphPresetContext): ParagraphPreset
     preset.intent === context.intent &&
     !preset.state &&
     !preset.request
-  ) ?? PARAGRAPH_PRESETS[0]
+  ) ?? null
 }
 
 function renderParagraphBlock(

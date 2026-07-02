@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Message } from '../../types.js'
+import dialoguesData from '../../data/dialogues.json'
+import type { DialoguesData, Message } from '../../types.js'
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { detectSafetyConcern, getCocktailResponse, getCocktailResponseFromClassified } from './engine.js'
 import { IntentClassifier, type DialogueContext } from './intent-classifier.js'
@@ -12,6 +13,11 @@ const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /내려놓는 게 답/,
   /괜찮아질 거예요/,
 ]
+
+const MOOD_TIRED_TEXTS = (dialoguesData as DialoguesData).categories['mood-tired'].lines
+  .map((line) => line.text)
+const BAR_INTRO_TEXTS = (dialoguesData as DialoguesData).categories['bar-intro'].lines
+  .map((line) => line.text)
 
 function expectKahluaBoundary(response: string) {
   for (const forbidden of DIRECT_COMFORT_OR_ALCOHOL_SOLUTION) {
@@ -47,7 +53,7 @@ describe('neutral runtime dialogue contract', () => {
   it('explains the virtual bar setting without pretending to be a real venue', () => {
     const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
 
-    expect(response).toMatch(/Re:Station|가상의 바|취향|한 잔|카루아|기분|칵테일/)
+    expect(BAR_INTRO_TEXTS).toContain(response)
   })
 
   it('handles real venue questions as virtual bar limitations', () => {
@@ -105,7 +111,7 @@ describe('neutral runtime dialogue contract', () => {
   it('routes tired mood to tired-specific dialogue variants', () => {
     const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
 
-    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍|무리|편한|에너지|자리부터|배터리|연료등|눈 밑|기운|의자|메뉴/)
+    expect(MOOD_TIRED_TEXTS).toContain(result.response)
     expect(result.expression).toBe('sympathy')
     expectKahluaBoundary(result.response)
   })
