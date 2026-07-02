@@ -8,8 +8,10 @@ import CocktailCard from '@/components/bar/CocktailCard.jsx'
 import WelcomeDrinkButton from '@/components/bar/WelcomeDrinkButton.jsx'
 import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useRestationController } from '@/hooks/useRestationController.js'
+import { useExperimentalWebLLMPreparation } from '@/hooks/useExperimentalWebLLMPreparation.js'
 
 export default function App() {
+  useExperimentalWebLLMPreparation()
   const {
     scene,
     messages,
