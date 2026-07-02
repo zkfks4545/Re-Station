@@ -672,7 +672,7 @@ DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 �
 | Phase 7 | Dialogue Quality | 완료 | fallback 줄이기, bar/character/story 전용 응답 강화 | story/lore/info 선행 반응, character/story 전용 풀, 누락된 random/unknown/cancel 풀 보강. 템플릿 참조 27개가 모두 유효한 JSON 대사 풀을 갖는 출처 계약 고정. Intent·사실 선택·공개 이력 유지. 434 tests pass |
 | Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
-| Phase 9 | Character Layer | 진행 중 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Character Profile·검증기·메타데이터·Response Pipeline 연결 완료. DLG-807 실제 대사 재검수와 DLG-808/809 이관은 후속. 471 tests pass |
+| Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정 + RapportState v2.0.0 (15 tests). WebLLM 실험 인프라·ResponsePlan 스키마는 밑준비 완료. 530 tests pass |
 | Phase 10 | ResponsePlan DB 리팩토링 | 준비 완료·이관 대기 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | ResponsePlan 타입·구체도 선택·검증·명시적 fallback 계약 완료. 실제 `text-presets.ts`·`dialogues.json` 이관은 미착수 |
 | Phase 11 | 대사 출처 정상화 | 계획 | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 정규화하고 카루아 말투 기준으로 전수 재검수 |
 | Phase 12 | WebLLM 스타일 어댑터 | 계획 | 확정된 일부 대사의 표현만 선택적으로 다듬기 | 추천·주문·웰컴 대사만 허용. 추천 결과·칵테일 ID·추천 이유·세션 상태 변경 금지. 실패 시 규칙 기반 원문 사용 |

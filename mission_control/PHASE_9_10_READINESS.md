@@ -1,15 +1,16 @@
 # Phase 9~10 진입 전 검수와 이관 준비
 
 > 작성일: 2026-07-02  
-> 상태: Phase 9 진행 중, Phase 10 계약 준비 완료·데이터 이관 미착수
+> 최종 갱신: 2026-07-02  
+> 상태: Phase 9 **완료**, Phase 10 계약 준비 완료·데이터 이관 미착수
 
 ## 결론
 
-Phase 9의 기반 계층은 동작하지만 전체 대사 품질 검수가 끝나지 않았으므로 완료 처리하지 않는다. Phase 10은 ResponsePlan 타입·선택·검증 계약까지 준비됐으며, 기존 DB를 한 번에 교체하지 않고 어댑터와 카테고리 배치 단위로 진행한다.
+Phase 9의 기반 계층(Character Layer) + 전체 대사 감사(525개 문자열, 3건 금지 패턴 수정) + Hidden RapportState v2.0.0 완료. Phase 10은 ResponsePlan 타입·선택·검증 계약까지 준비됐으며, 기존 DB를 한 번에 교체하지 않고 어댑터와 카테고리 배치 단위로 진행한다.
 
 ## Phase 9 검수 결과
 
-완료된 기반:
+완료된 기반 (+ 감사·RapportState):
 
 - `persona.ts`를 직접 참조하는 Character Profile
 - 금지·권장 표현, 문장 수, 반존대, 능청, 추천 어조 검증
@@ -17,14 +18,14 @@ Phase 9의 기반 계층은 동작하지만 전체 대사 품질 검수가 끝�
 - 응답 텍스트·표정·추천 결과를 바꾸지 않는 회귀
 - 실제 `PARAGRAPH_PRESETS` 원본을 직접 검사하는 카루아 말투 테스트
 - WebLLM 금지 route가 reaction 표식으로 우회되지 않는 차단 계약
+- **전체 대사 감사**: `dialogues.json` 55개 카테고리·525개 문자열 스캔, 금지 패턴 위반 3건 수정 (counselor-prompt 2건, blanket-reassurance 1건)
+- **Hidden RapportState v2.0.0**: 단일 축 0-100, JSON 기반 config, 4단계 구간, 갱신 규칙, 성향 가중치, 대사 변이 선택기, 개발용 Debug UI, 테스트 15개
+- **회귀 테스트 보강**: character-layer +5, karua-speech-contract +2, 합계 530개 통과
 
-Phase 9 완료 전 남은 조건:
+Phase 10 이관 전 참고 조건:
 
-- `dialogues.json` 전체 55개 카테고리·436개 문장을 출처별로 재검수
-- `response-templates.ts`, 추천·웰컴·배웅·이야기 포매터의 상담원형 fallback 정리
-- 권장 말투 검증의 오탐·누락 대표 입력 세트 확장
-- Character 메타데이터를 관찰용으로 어디까지 보존할지 결정
-- WebLLM timeout 뒤 실제 엔진 작업 종료 보장과 준비 중 다운로드 취소 문제 해결
+- `response-templates.ts`, 추천·웰컴·배웅·이야기 포매터의 상담원형 fallback 정리 → Phase 10 첫 배치 대상
+- WebLLM timeout·취소·다운로드 취소 → 실험 인프라 단계 (`WEBLLM_EXPERIMENT.md` 참조)
 
 ## Phase 10 이관 대상 인벤토리
 

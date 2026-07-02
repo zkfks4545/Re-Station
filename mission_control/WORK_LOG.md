@@ -1,6 +1,15 @@
 # 작업 이력 (축약)
 
-## 2026-07-02 / Codex / Phase 9~10 진입 전 검수와 ResponsePlan 밑준비
+## 2026-07-02 / Codex / Phase 9 마무리 — 커밋 정리 [71e6f2b][141d915][78fd049][944d2dd][45c1839]
+
+- **dialogue audit** [`71e6f2b`]: 금지 패턴 3건 수정(counselor-prompt 2건 + blanket-reassurance 1건), character layer 경계 테스트 +5, 문장 길이 계약 +2, 자동 감사 스크립트 추가
+- **RapportState v2.0.0** [`141d915`]: 단일 축 0-100, JSON 기반 config, 4단계 구간, 갱신 규칙, 성향 가중치, 개발용 Debug UI, 테스트 15개
+- **WebLLM experimental** [`78fd049`]: @mlc-ai/web-llm 0.2.84, preload hook, capability check, Worker infra (response 기본 OFF)
+- **ResponsePlan schema** [`944d2dd`]: ResponsePlan 타입·선택·검증 테스트, text-presets export/fallback 리팩토링, engine.test JSON text matching
+- **Docs** [`45c1839`]: mission_control 전반 갱신 (CHARACTER_DESIGN, CURRENT_STATE, ARCHITECTURE, HANDOVER 등)
+- 검증: 전체 Vitest 43개 파일·530개 테스트, typecheck, lint, build 통과
+
+## 2026-07-02 / Codex / Phase 9~10 진입 전 검수와 ResponsePlan 밑준비 [d1791b4]
 
 - Phase 9 완료 조건과 Phase 10 대사 출처 인벤토리를 `PHASE_9_10_READINESS.md`에 정리했다.
 - 미등록 화자·intent가 `PARAGRAPH_PRESETS[0]`으로 떨어지는 암묵적 fallback을 제거하고 명시적 fallbackText를 사용하도록 바꿨다.
@@ -18,7 +27,7 @@
 - RESPONSE는 계속 기본 OFF이며 실제 DialogueService 출력에는 아직 연결하지 않았다.
 - 검증: 전체 Vitest 41개 파일·498개 테스트, typecheck, lint, build 통과. 메인 JS 501.27 kB, gzip 149.61 kB.
 
-## 2026-07-02 / Codex / WebLLM 실험 인프라 재연결
+## 2026-07-02 / Codex / WebLLM 실험 인프라 재연결 [d1791b4]
 
 - `@mlc-ai/web-llm` 0.2.84와 Web Worker 엔진 기반을 추가했다.
 - PRELOAD와 RESPONSE 기능 플래그를 분리하고 둘 다 기본 OFF로 설정했다.
@@ -28,7 +37,7 @@
 - WebLLM 패키지와 Worker는 동적 분리해 초기 메인 번들에서 제외했다. 실제 DialogueService와 메시지 출력에는 연결하지 않았다.
 - 검증: 전체 Vitest 40개 파일·495개 테스트, typecheck, lint, build 통과. 메인 JS 501.50 kB, gzip 149.67 kB이며 WebLLM 라이브러리와 Worker는 별도 지연 자산이다. 프로덕션 의존성 audit 취약점 0개.
 
-## 2026-07-02 / Codex / Phase 9 Character Layer 기반 구현
+## 2026-07-02 / Codex / Phase 9 Character Layer 기반 구현 [b324289]
 
 - `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결하고 기존 텍스트와 표정을 보존했다.
 - `persona.ts`를 직접 참조하는 카루아 프로필에 말투 원칙, 설정형 금지/권장 표현, 문장 길이, 능청 수준, 반존대, 감정 강도를 정리했다.
@@ -39,7 +48,7 @@
 - `mood-tired` 랜덤 대사의 의미를 특정 단어 하나로 제한하던 테스트를 현재 대사 풀에 맞게 안정화했다.
 - 검증: `npm.cmd run test` (36 files, 471 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과. 메인 JS 492.34 kB, gzip 146.26 kB.
 
-## 2026-07-01 / Codex / Phase 9 진입 전 기능 경계 보완
+## 2026-07-01 / Codex / Phase 9 진입 전 기능 경계 보완 [7bcd422]
 
 - `isDialogueActionBlockedInPhase`를 추가해 closed/farewell/safetyLocked/returnHome에서 원래 route가 `general`이어도 최종 Action이 recommend/order이면 차단하도록 수정했다.
 - `formatStoryQueryReply`에 story/lore/info별 fact 순서를 추가했다. info는 recipe→ingredients→tasting→description, lore는 trivia→talking points, story는 talking points→lore 순으로 시작한다.
