@@ -1,5 +1,33 @@
 # 작업 이력 (축약)
 
+## 2026-07-02 / Codex / Phase 9~10 진입 전 검수와 ResponsePlan 밑준비
+
+- Phase 9 완료 조건과 Phase 10 대사 출처 인벤토리를 `PHASE_9_10_READINESS.md`에 정리했다.
+- 미등록 화자·intent가 `PARAGRAPH_PRESETS[0]`으로 떨어지는 암묵적 fallback을 제거하고 명시적 fallbackText를 사용하도록 바꿨다.
+- `ResponsePlan`의 speaker/intent/state/request/blocks/fallbackText 타입, 구체도 기반 선택, 구조 검증 계약과 테스트를 추가했다.
+- 카루아 말투 테스트가 복사된 프리셋이 아니라 실제 `PARAGRAPH_PRESETS` 원본을 검사하도록 수정했다.
+- WebLLM safety·주문·farewell·lore·recipe 금지 경로는 reaction 표식으로 우회할 수 없도록 차단 테스트를 추가했다.
+- 실제 `dialogues.json`·`text-presets.ts` 데이터 이관은 수행하지 않았다.
+- 검증: 전체 Vitest 42개 파일·508개 테스트, typecheck, lint, build 통과. 메인 JS 501.57 kB, gzip 149.70 kB.
+
+## 2026-07-02 / Codex / WebLLM 접속 직후 자동 준비 전환
+
+- PRELOAD 기본값을 ON으로 바꾸고 첫 렌더 직후 capability 검사를 거쳐 모델 준비를 시작하도록 변경했다.
+- 기존 2초 지연과 idle callback을 제거했다. 모델 준비는 Web Worker에서 실행되며 JSON 대화와 화면 입력은 계속 동작한다.
+- `VITE_WEB_LLM_PRELOAD_ENABLED=false`를 명시하면 운영상 자동 준비를 중지할 수 있다.
+- RESPONSE는 계속 기본 OFF이며 실제 DialogueService 출력에는 아직 연결하지 않았다.
+- 검증: 전체 Vitest 41개 파일·498개 테스트, typecheck, lint, build 통과. 메인 JS 501.27 kB, gzip 149.61 kB.
+
+## 2026-07-02 / Codex / WebLLM 실험 인프라 재연결
+
+- `@mlc-ai/web-llm` 0.2.84와 Web Worker 엔진 기반을 추가했다.
+- PRELOAD와 RESPONSE 기능 플래그를 분리하고 둘 다 기본 OFF로 설정했다.
+- Chromium/WebGPU/secure context/deviceMemory/CPU capability 검사와 싱글턴 준비 Promise를 추가했다.
+- 준비 실패는 세션 중 자동 재시도하지 않으며 생성은 단일 요청, 4초 제한, 취소와 stale guard를 적용했다.
+- 한국어, 1~3문장, 마크다운·목록·프롬프트 노출·상담가·AI 도우미·카루아 금지 표현 검증 실패 시 규칙 응답으로 복구한다.
+- WebLLM 패키지와 Worker는 동적 분리해 초기 메인 번들에서 제외했다. 실제 DialogueService와 메시지 출력에는 연결하지 않았다.
+- 검증: 전체 Vitest 40개 파일·495개 테스트, typecheck, lint, build 통과. 메인 JS 501.50 kB, gzip 149.67 kB이며 WebLLM 라이브러리와 Worker는 별도 지연 자산이다. 프로덕션 의존성 audit 취약점 0개.
+
 ## 2026-07-02 / Codex / Phase 9 Character Layer 기반 구현
 
 - `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결하고 기존 텍스트와 표정을 보존했다.

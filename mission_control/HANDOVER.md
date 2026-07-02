@@ -1,6 +1,6 @@
 # 인수인계 (축약)
 
-> 최종 갱신일: 2026-07-02 (Phase 9 Character Layer 기반 구현, Vitest 471개)
+> 최종 갱신일: 2026-07-02 (Phase 9~10 선행 검수·ResponsePlan 계약, Vitest 508개)
 > 각 작업의 상세 커밋 해시는 `WORK_LOG.md` 참조.
 
 ## 현재 목표
@@ -24,6 +24,8 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 8 완료: 대표 클래식 20종에 talking point 20개와 lore reference 40개를 누적 추가했다. 공개 칵테일 structured lore 커버리지는 20/49에서 30/49로 증가했다. 2차 배치는 Paper Plane, Penicillin, Piña Colada, Irish Coffee, Manhattan, Mint Julep, Sazerac, Singapore Sling, Clover Club, Bramble이며, 기원 논쟁과 일화는 완곡한 출처 문체로 유지한다.
 - Phase 9 진입 전 경계 보완 완료: closed/farewell/safetyLocked/returnHome 차단은 원래 route와 최종 DialogueAction을 함께 검사한다. story/lore/info는 사실 공개 순서를 분리했고, Reaction은 일반·독립 feedback 또는 칵테일 대상 feedback에만 적용한다. negative/another feedback은 Conversation Context의 직전 추천·서빙 ID를 추천 제외 목록에 같은 턴 즉시 반영한다.
 - Phase 9 Character Layer 진행 중: `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결했다. `persona.ts`를 직접 참조하는 카루아 프로필, 설정형 금지/권장 표현, 문장 수·반존대·능청·추천 어조 검증과 응답 메타데이터를 추가했다. 추천 결과·결정·상태·Action은 변경하지 않으며 WebLLM은 포함하지 않았다.
+- WebLLM 실험 인프라 재연결: 접속 직후 capability 검사를 통과하면 싱글턴 Worker에서 모델 준비를 시작한다. 응답 생성은 기본 OFF이며 timeout·취소·stale·한국어/문장 수/금지 표현 검증 실패는 규칙 응답으로 복구한다. 실제 DialogueService 출력에는 아직 연결하지 않았다.
+- Phase 9~10 선행 검수: 미등록 문단 문맥이 첫 카루아 tired/light 프리셋으로 떨어지는 암묵적 fallback을 제거했다. ResponsePlan의 speaker/intent/state/request/blocks/fallbackText 계약과 선택·검증 테스트를 추가했으며 실제 DB 이관은 시작하지 않았다.
 - 미성년자/무알코올 전용 intent·추천 제약·응답·대체 farewell은 Phase 3 범위에서 제거
 - 공통 `kf`, `SHAKE_REFERENCE`, mood/switch 응답 헬퍼 정리 완료 [`a73342f`][`c82cbc6`][`4f6c90d`]
 - `모히토`→`그걸로 주세요` 같은 생략 입력이 직전 대상 주문/이야기로 연결 [`0404c58`]
@@ -45,13 +47,13 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **471개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 492.34 kB)
+- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **508개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 501.57 kB, WebLLM 지연 청크 분리)
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
 1. DLG-807 실제 런타임 대사에 대한 금지/권장 계약 재검수
-2. Phase 10 `text-presets.ts`·`dialogues.json` ResponsePlan DB 전환 계획 수행
+2. `PHASE_9_10_READINESS.md`의 잔여 검수 뒤 Phase 10 첫 카테고리 배치 이관
 3. Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
 4. Phase 12 스타일 어댑터 → Phase 13 일반 대화 → Phase 14 이야기 표현 보정 순으로 WebLLM 범위 확대 검토
 5. Phase 15 최종 캐릭터 QA와 시에스타 이벤트 재활성화 여부 평가
@@ -59,7 +61,7 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 ## 주의사항 (미완료)
 - [ ] 카루아 대사는 농담 우선, 의미 직접 해설 금지
 - [ ] persona.ts JSON화 별도 승인 전까지 금지
-- [ ] Phase 10~11 완료 전 WebLLM 런타임 연결 금지
+- [ ] Phase 10~11 완료 전 WebLLM을 실제 대화 출력에 연결하지 않음
 - [ ] WebLLM은 추천 결과·칵테일 ID·추천 이유·세션 상태·Action을 변경하지 않음
 - [ ] WebLLM 실패 또는 검증 실패 시 규칙 기반 폴백 유지
 - [ ] 새 대사 = 상담원도 할 수 있는 말인지, 문제 해결인지, 관찰 출발인지 검수

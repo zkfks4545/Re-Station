@@ -25,7 +25,7 @@
 | 3 | 애플리케이션 로직 분리 | 완료 |
 | 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
-| 6 | WebLLM 말투 포장 계층 | 잠정 보류 |
+| 6 | WebLLM 말투 포장 계층 | 실험 인프라 REVIEW, 실제 대화 연결 보류 |
 | 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
 | 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
@@ -278,17 +278,18 @@
 | 완료 조건 | 모바일 핵심 흐름 완료, 키보드와 포커스 사용 가능. 기존 따뜻한 분위기 유지 + 신비로운 느낌 추가 확인 |
 | 변경 파일 | `src/index.css`, `App.tsx`, `components/entrance/BarExterior.tsx`, `components/bar/BarInterior.tsx`, `components/bar/CocktailCard.tsx`, `components/bar/ChatInput.tsx`, `components/bar/DialogueBox.tsx`, `mission_control/` 관련 문서 일괄 갱신 |
 
-## 단계 6: WebLLM 말투 포장 계층 (잠정 보류)
+## 단계 6: WebLLM 말투 포장 계층 (실험 기반 재개)
 
-DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라도 JSON·DB·규칙 로직이 확정한 답안의 말투 포장만 허용하며, 입력 해석과 상태·추천 판단 책임은 포함하지 않는다.
+DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 재개한다. JSON·DB·규칙 로직이 확정한 답안의 말투 포장만 허용하며, 입력 해석과 상태·추천 판단 책임은 포함하지 않는다. 실제 대화 출력 연결은 계속 보류한다.
 
 ### RST-601: WebLLM Worker 기반 구축
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | REVIEW |
 | 예상 | 3~4일 |
-| 완료 조건 | 재개 결정 후 확정 답안의 말투 변환만 Web Worker에서 실행 가능 |
+| 구현 결과 | `@mlc-ai/web-llm` Web Worker, capability 검사, 싱글턴 준비, 기능 플래그, 동적 import, 수동 unload 기반을 추가했다. 실제 대화 출력은 미연결 |
+| 완료 조건 | 접속 직후 capability 검사 뒤 중복 준비 없이 Worker에서 모델 준비하며 렌더링과 JSON 대화를 차단하지 않음 |
 
 ### RST-602: Qwen 및 Gemma 후보 실행 검증
 
@@ -672,7 +673,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
 | Phase 9 | Character Layer | 진행 중 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Character Profile·검증기·메타데이터·Response Pipeline 연결 완료. DLG-807 실제 대사 재검수와 DLG-808/809 이관은 후속. 471 tests pass |
-| Phase 10 | ResponsePlan DB 리팩토링 | 계획 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | `text-presets.ts`와 `dialogues.json`을 intent/speaker/state/request/block 구조로 정리하고 `fallbackText`와 WebLLM 없는 런타임을 보존 |
+| Phase 10 | ResponsePlan DB 리팩토링 | 준비 완료·이관 대기 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | ResponsePlan 타입·구체도 선택·검증·명시적 fallback 계약 완료. 실제 `text-presets.ts`·`dialogues.json` 이관은 미착수 |
 | Phase 11 | 대사 출처 정상화 | 계획 | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 정규화하고 카루아 말투 기준으로 전수 재검수 |
 | Phase 12 | WebLLM 스타일 어댑터 | 계획 | 확정된 일부 대사의 표현만 선택적으로 다듬기 | 추천·주문·웰컴 대사만 허용. 추천 결과·칵테일 ID·추천 이유·세션 상태 변경 금지. 실패 시 규칙 기반 원문 사용 |
 | Phase 13 | WebLLM 일반 대화 | 계획 | `general-chat` 표현에만 WebLLM 사용 | Action 생성과 Session 변경 금지, 1~3문장 제한, 검증 실패 시 `dialogues.json` 폴백 |

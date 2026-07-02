@@ -31,6 +31,8 @@
 | `mission_control/AI_WORKFLOW.md` | AI 작업 절차, 기록 방식, 협업 규칙을 확인할 때 |
 | `mission_control/WORK_LOG.md` | 과거 작업의 세부 이력, 수정 파일, 검증 결과를 추적할 때 |
 | `mission_control/REFACTORING_LOG.md` | 동작 보존 리팩토링의 문제점, 개선 이유, 변경 내용, 기대 효과를 추적할 때 |
+| `mission_control/WEBLLM_EXPERIMENT.md` | WebLLM 실험 플래그, 준비 조건, 생성 금지선과 복구 경로를 확인할 때 |
+| `mission_control/PHASE_9_10_READINESS.md` | Phase 9 완료 잔여 조건과 Phase 10 ResponsePlan 이관 순서를 확인할 때 |
 
 ## 수정 기준
 
