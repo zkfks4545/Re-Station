@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "description": "Re:Station Hidden RapportState 설정 — 카루아 대화 온도를 위한 단일 축 내부값",
+  "initial": 20,
+  "min": 0,
+  "max": 100,
+  "ranges": {
+    "low":       { "min": 0,  "max": 30 },
+    "normal":    { "min": 31, "max": 60 },
+    "high":      { "min": 61, "max": 80 },
+    "veryHigh":  { "min": 81, "max": 100 }
+  },
+  "weightScaleFactor": 0.3,
+  "decay": {
+    "perTurn": 0.3
+  },
+  "personality": {
+    "id": "karua-default",
+    "label": "카루아 (기본)",
+    "description": "Re:Station 바텐더 카루아의 성향. 가벼운 농담과 대화를 좋아하고, 무례함과 성적 발언을 싫어한다.",
+    "likes": [
+      "cocktail-order",
+      "recommend-request",
+      "taste-statement",
+      "mood-expression",
+      "general-chat",
+      "story-query",
+      "recipe-query"
+    ],
+    "dislikes": [
+      "rude-talk",
+      "safety-alert",
+      "harassment",
+      "sexual-remark",
+      "hate-speech"
+    ],
+    "neutral": [
+      "weather-talk",
+      "daily-life",
+      "food-talk",
+      "hobby-talk",
+      "music-talk"
+    ],
+    "weights": {
+      "cocktail-order": 1.5,
+      "recommend-request": 1.2,
+      "taste-statement": 0.8,
+      "mood-expression": 1.5,
+      "general-chat": 0.5,
+      "story-query": 1.0,
+      "recipe-query": 0.5,
+      "rude-talk": -2.0,
+      "safety-alert": -1.0,
+      "harassment": -3.0,
+      "sexual-remark": -2.5,
+      "hate-speech": -4.0,
+      "weather-talk": 0.3,
+      "daily-life": 0.3,
+      "food-talk": 0.4,
+      "hobby-talk": 0.5,
+      "music-talk": 0.4
+    }
+  },
+  "updateRules": [
+    {
+      "id": "positive-order",
+      "context": ["cocktail-order", "taste-statement", "mood-expression"],
+      "delta": 0.5,
+      "maxPerSession": 3
+    },
+    {
+      "id": "positive-trust",
+      "context": ["recommend-request", "story-query"],
+      "delta": 0.5,
+      "maxPerSession": 3
+    },
+    {
+      "id": "playful-chat",
+      "context": ["general-chat", "mood-expression"],
+      "delta": 0.5,
+      "maxPerSession": 4
+    },
+    {
+      "id": "penalty-rude",
+      "context": ["rude-talk"],
+      "delta": -1.5,
+      "cooldown": 3,
+      "maxPerSession": 3
+    },
+    {
+      "id": "penalty-safety",
+      "context": ["safety-alert"],
+      "delta": -2.0,
+      "cooldown": 5,
+      "maxPerSession": 2
+    },
+    {
+      "id": "penalty-severe",
+      "context": ["harassment", "sexual-remark", "hate-speech"],
+      "delta": -3.0,
+      "cooldown": 10,
+      "maxPerSession": 1
+    },
+    {
+      "id": "recovery",
+      "context": ["general-chat", "cocktail-order", "recommend-request", "taste-statement", "mood-expression", "story-query", "weather-talk", "daily-life", "food-talk", "hobby-talk", "music-talk"],
+      "delta": 0.3,
+      "maxPerSession": 3
+    }
+  ]
+}
