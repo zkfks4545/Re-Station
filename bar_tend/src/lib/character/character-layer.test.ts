@@ -106,3 +106,58 @@ describe('카루아 persona 계약', () => {
     })).toThrow('등록되지 않은 캐릭터 프로필입니다: siesta')
   })
 })
+
+describe('Phase 9 — Character Layer 경계 조건', () => {
+  it('safety-critical 컨텍스트에서는 농담·반존대·추천 어조 경고를 생략한다', () => {
+    const result = validateCharacterText(
+      '지금은 안전이 먼저예요. 119에 연락해 주세요.',
+      KARUA_CHARACTER_PROFILE,
+      { safetyCritical: true },
+    )
+
+    expect(result.validationPassed).toBe(true)
+    expect(result.warnings).not.toContain('가벼운 능청이나 비틀기 표현이 없습니다.')
+    expect(result.warnings).not.toContain('카루아의 존댓말 기반 반존대 어미가 확인되지 않습니다.')
+  })
+
+  it('빈 문자열은 validationPassed = false를 반환한다', () => {
+    const result = validateCharacterText('', KARUA_CHARACTER_PROFILE)
+    expect(result.validationPassed).toBe(false)
+    expect(result.warnings).toContain('문장이 비어 있습니다.')
+  })
+
+  it('220자 초과 응답을 경고한다', () => {
+    const longText = '가.'.repeat(150)
+    const result = validateCharacterText(longText, KARUA_CHARACTER_PROFILE)
+    expect(result.validationPassed).toBe(false)
+    expect(result.warnings).toContain('응답이 220자를 초과합니다.')
+  })
+
+  it('normalizePresentation이 연속 공백과 빈 줄을 정리한다', () => {
+    const result = applyCharacterLayer({
+      text: '  첫 문장입니다.  \n\n  두 번째 문장입니다.  ',
+      expression: 'talk',
+    })
+    expect(result.response).toBe('첫 문장입니다.\n두 번째 문장입니다.')
+  })
+
+  it('10개의 금지 표현 패턴을 모두 개별 탐지한다', () => {
+    const patterns = [
+      { text: '힘드셨겠어요.', id: 'direct-comfort' },
+      { text: '힘내세요.', id: 'direct-encouragement' },
+      { text: '괜찮아요.', id: 'blanket-reassurance' },
+      { text: '괜찮아질 거예요.', id: 'fixed-hope' },
+      { text: '좋은 결과가 있을 거예요.', id: 'fixed-hope' },
+      { text: '제가 도와드릴게요.', id: 'helper-promise' },
+      { text: '천천히 말씀해 주세요.', id: 'counselor-prompt' },
+      { text: '해결해 드릴게요.', id: 'solution-promise' },
+      { text: '마음이 나아질 거예요.', id: 'emotional-recovery-promise' },
+      { text: '기분이 좋아질 거예요.', id: 'emotional-recovery-promise' },
+    ]
+    for (const { text, id: expectedId } of patterns) {
+      const result = validateCharacterText(text, KARUA_CHARACTER_PROFILE)
+      expect(result.validationPassed).toBe(false)
+      expect(result.blockedPatterns).toContain(expectedId)
+    }
+  })
+})

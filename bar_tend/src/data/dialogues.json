@@ -4,7 +4,7 @@
     "rude-annoyed": {
       "description": "무례한 말투·욕설에 짜증",
       "lines": [
-        { "text": "그런 말씀은 듣기 좋지 않네요. 기분이 안 좋으시다면 천천히 말씀해 주세요.", "expression": "annoyed" },
+        { "text": "그런 말씀은 듣기 좋지 않네요. 다른 이야기로 넘어가시는 게 좋겠어요.", "expression": "annoyed" },
         { "text": "その言い方はちょっと… 기분이 상하셨다면 조금만 쉽게 말씀해 주시겠어요?", "expression": "annoyed" },
         { "text": "여긴 편한 분위기로 이야기하는 공간이에요. 너무 험한 말은 자제해 주시면 좋겠어요.", "expression": "annoyed" },
         { "text": "전 기분 나쁘지 않아요. 다만, 이런 대화는 처음이라 조금 당황스럽네요.", "expression": "annoyed" },
@@ -507,7 +507,7 @@
         { "text": "네, 제가 카운터 보고 있어요. 사장님은 뒤쪽에 계세요. 필요하시면 바로 불러 주세요.", "expression": "talk" },
         { "text": "오늘은 저 혼자 앞을 보고 있어요. 사장님은 뒤에서 일하시고 계세요.", "expression": "talk" },
         { "text": "네, 제가 카루아예요. 오늘 앞은 저 혼자예요. 사장님은 뒤쪽에서 정리 중이세요.", "expression": "talk" },
-        { "text": "혼자서 보고 있어요. 그래도 불편하신 건 없죠? 천천히 말씀해 주세요.", "expression": "talk" },
+        { "text": "혼자서 보고 있어요. 그래도 불편하신 건 없죠? 편하게 말씀해 주세요.", "expression": "talk" },
         { "text": "네, 제가 카루아예요. 앞은 제가 보고 있고, 사장님은 뒤에서 정리 중이세요.", "expression": "talk" },
         { "text": "오늘은 평소보다 한가한 편이에요. 천천히 이야기 나누기 좋은 날이네요.", "expression": "smirk" },
         { "text": "혼자라서 잠깐 기다리게 해드릴 수도 있어요. 그래도 최대한 신경 써서 도와드릴게요.", "expression": "talk" }
@@ -657,7 +657,7 @@
     "feedback-different": {
       "description": "웰컴드링크 피드백 - 다른 느낌",
       "lines": [
-        { "text": "괜찮아요. 첫 잔은 기준점이니까요. 다음에는 다른 결로 맞춰볼게요.", "expression": "talk" },
+        { "text": "첫 잔은 기준점이니까요. 다음에는 다른 결로 맞춰볼게요.", "expression": "talk" },
         { "text": "네, 첫 잔이 항상 정답은 아니죠. 다음에는 완전히 다른 쪽으로 가볼게요.", "expression": "talk" },
         { "text": "좋아요. 첫 잔은 시험 삼아 드셨다고 생각하시면 돼요. 다음에는 새로 맞춰볼게요.", "expression": "talk" },
         { "text": "첫 잔이 기준점이 되어줄 거예요. 다음에는 완전히 다른 결로 가보죠.", "expression": "talk" },

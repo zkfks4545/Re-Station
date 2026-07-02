@@ -42,6 +42,7 @@ import {
   RECOMMENDATION_OPENING_LINES,
 } from '../recommendation/response.js'
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
+import { PARAGRAPH_PRESETS } from '../dialogue/text-presets.js'
 
 const FORBIDDEN_PHRASES: { pattern: RegExp; reason: string }[] = [
   { pattern: /힘드셨겠어요/, reason: '직접 위로 금지' },
@@ -120,41 +121,10 @@ function collectTemplateDraftTexts(): string[] {
 }
 
 function collectPresetKaruaTexts(): string[] {
-  const karuaPresets = [
-    {
-      reaction: [
-        '그럼 너무 무거운 건 말고요.',
-        '오늘은 좀 가볍게 가죠.',
-        '연료 부족 경고등이 켜진 것 같은데요.',
-        '피곤할 땐 취하는 것보다 쉬는 게 먼저긴 한데...',
-        '그래도 빈손으로 보내긴 아쉽고요.',
-      ],
-      recommend: [
-        '{cocktail_name} 괜찮겠네요.',
-        '{cocktail_name} 쪽으로 드릴까요?',
-        '오늘은 {cocktail_name_subject} 어울릴 것 같아요.',
-      ],
-      explanation: ['{taste_desc}', '{reason_desc}', '{effect_desc}', '{closing_desc}'],
-    },
-    {
-      reaction: [
-        '그럼 지금 흐름에 맞춰볼게요.',
-        '좋아요, 조건은 대충 잡혔어요.',
-        '이쪽이면 크게 빗나가진 않을 것 같네요.',
-      ],
-      recommend: [
-        '{cocktail_name} 괜찮겠네요.',
-        '{cocktail_name} 쪽으로 가볼게요.',
-        '오늘은 {cocktail_name_subject} 어울릴 것 같아요.',
-      ],
-      explanation: ['{taste_desc}', '{reason_desc}', '{effect_desc}', '{closing_desc}'],
-    },
-  ]
-
   const texts: string[] = []
-  for (const preset of karuaPresets) {
+  for (const preset of PARAGRAPH_PRESETS.filter((item) => item.speaker === 'karua')) {
     for (const block of ['reaction', 'recommend', 'explanation'] as const) {
-      for (const line of preset[block]) {
+      for (const line of preset.blocks[block]) {
         const resolved = line.replace(/\{[a-zA-Z0-9_]+\}/g, '모히토')
         texts.push(resolved)
       }
@@ -260,6 +230,13 @@ function collectRecommendationTexts(): string[] {
   return texts
 }
 
+function countSentences(text: string): number {
+  const normalized = text.trim()
+  if (!normalized) return 0
+  const marked = normalized.match(/[^.!?…\n]+(?:[.!?…]+|$)/g)
+  return marked?.filter((sentence) => sentence.trim()).length ?? 0
+}
+
 describe('karua speech contract — dialogues.json', () => {
   const categories = (dialoguesData as unknown as { categories: Record<string, { lines: { text: string }[] }> }).categories
   const texts: string[] = []
@@ -281,6 +258,20 @@ describe('karua speech contract — dialogues.json', () => {
       }
     }
     expect(violations, `dialogues.json violations:\n${violations.map(v => `  [${v.category}] ${v.reason}: "${v.text}"`).join('\n')}`).toHaveLength(0)
+  })
+
+  it('모든 응답이 220자 이내이다', () => {
+    const violations = sourceMap
+      .filter(({ text }) => text.length > 220)
+      .map(({ text, category }) => `  [${category}] ${text.length}자: "${text.slice(0, 50)}..."`)
+    expect(violations, `dialogues.json 220자 초과:\n${violations.join('\n')}`).toHaveLength(0)
+  })
+
+  it('safety 카테고리를 제외한 모든 응답이 3문장 이내이다', () => {
+    const violations = sourceMap
+      .filter(({ text, category }) => category !== 'safety' && countSentences(text) > 3)
+      .map(({ text, category }) => `  [${category}] ${countSentences(text)}문장: "${text.slice(0, 50)}..."`)
+    expect(violations, `dialogues.json 3문장 초과:\n${violations.join('\n')}`).toHaveLength(0)
   })
 })
 
