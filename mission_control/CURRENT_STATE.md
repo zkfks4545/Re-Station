@@ -1,15 +1,15 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-01
+> 최종 갱신일: 2026-07-02
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~8 완료, Phase 9 진입 전 기능 경계 보완 완료 |
+| 단계 | RST-000 MVP + Phase 1~8 완료, Phase 9 Character Layer 진행 중 |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 잠정 보류 |
-| 빌드/린트 | 통과 (메인 JS 487.95 kB, gzip 144.09 kB) |
-| 테스트 | **Vitest 457개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 492.34 kB, gzip 146.26 kB) |
+| 테스트 | **Vitest 471개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -30,6 +30,7 @@
 | Phase 7 Dialogue Quality 완료 (전용 character/story 풀·누락 fallback 5종 보강·27개 출처 계약) | 현재 작업 |
 | Phase 8 Talking Points 완료 (대표 클래식 20종 확장·공개 30/49종 structured lore) | 현재 작업 |
 | Phase 9 진입 전 경계 보완 (Action 기준 closed 차단·콘텐츠 우선순위·Reaction intent 보호·실제 feedback 제외) | 현재 작업 |
+| Phase 9 Character Layer 기반 (persona 참조 프로필·금지/권장 검증·응답 메타데이터·Response Pipeline 연결) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -49,9 +50,11 @@
 | 번들 | 메인 487.95 kB, 레시피/BGM chunk | 유지 |
 
 ## 현재 우선순위
-1. Phase 9 Character Layer 적용 여부 결정
-2. 카루아 말투 금지/권장 계약은 Phase 9 범위에서만 변경
-3. 나머지 19개 공개 칵테일 lore는 필요 시 점진 확장
+1. DLG-807 카루아 말투 계약의 실제 런타임 대사 재검수
+2. Phase 10 ResponsePlan DB 리팩토링
+3. Phase 11 대사 출처 정상화
+4. Phase 12~14 WebLLM 단계는 앞선 정규화 완료 후 순차 검토
+5. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -73,7 +76,7 @@
 | ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 해결됨 | 현재 작업 |
 
 ## 향후 방침
-- DLG-807~809 전 WebLLM·새알고리즘·새캐릭터·추가이벤트 보류
+- Phase 10~11 완료 전 WebLLM 런타임 연결 금지
 - 칵테일 확장 = IBA 우선, 관리자 검증 큐 (DEC-020)
 - 대사 풀 = 입력 경로 선택, FSM=말투·리듬, affectState=표정
 - 스프라이트 작업은 WebLLM보다 우선

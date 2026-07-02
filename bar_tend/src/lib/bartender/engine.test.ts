@@ -105,7 +105,7 @@ describe('neutral runtime dialogue contract', () => {
   it('routes tired mood to tired-specific dialogue variants', () => {
     const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
 
-    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게|무리|편한|에너지|자리부터/)
+    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍|무리|편한|에너지|자리부터|배터리|연료등|눈 밑|기운|의자|메뉴/)
     expect(result.expression).toBe('sympathy')
     expectKahluaBoundary(result.response)
   })

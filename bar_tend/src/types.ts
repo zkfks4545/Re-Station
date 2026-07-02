@@ -70,6 +70,16 @@ export interface Message {
 export interface BartenderResponse {
   response: string
   expression: Expression
+  character?: CharacterResponseMetadata
+}
+
+export interface CharacterResponseMetadata {
+  speaker: 'karua' | 'siesta'
+  styled: boolean
+  validationPassed: boolean
+  warnings: string[]
+  blockedPatterns: string[]
+  preferredPatterns: string[]
 }
 
 export interface KeywordRule {

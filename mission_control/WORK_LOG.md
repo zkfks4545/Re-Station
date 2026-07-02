@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-02 / Codex / Phase 9 Character Layer 기반 구현
+
+- `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결하고 기존 텍스트와 표정을 보존했다.
+- `persona.ts`를 직접 참조하는 카루아 프로필에 말투 원칙, 설정형 금지/권장 표현, 문장 길이, 능청 수준, 반존대, 감정 강도를 정리했다.
+- 금지 표현, 문장 수, 과도한 설명, 반존대, 가벼운 능청, 추천 어조를 평가하는 독립 검증기를 추가했다.
+- `BartenderResponse`에 `styled`, `validationPassed`, `warnings`, `blockedPatterns`, `preferredPatterns`, `speaker` 메타데이터를 선택적으로 추가했다.
+- 미등록 시에스타 프로필을 카루아와 섞지 않도록 화자 레지스트리 확장 경계를 고정했다.
+- 기존 추천 결과와 추천 이유가 Character Layer 적용 전후 동일한지 회귀 테스트로 검증했다. WebLLM·추천 엔진·세션·Action·DialogueService는 변경하지 않았다.
+- `mood-tired` 랜덤 대사의 의미를 특정 단어 하나로 제한하던 테스트를 현재 대사 풀에 맞게 안정화했다.
+- 검증: `npm.cmd run test` (36 files, 471 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과. 메인 JS 492.34 kB, gzip 146.26 kB.
+
 ## 2026-07-01 / Codex / Phase 9 진입 전 기능 경계 보완
 
 - `isDialogueActionBlockedInPhase`를 추가해 closed/farewell/safetyLocked/returnHome에서 원래 route가 `general`이어도 최종 Action이 recommend/order이면 차단하도록 수정했다.

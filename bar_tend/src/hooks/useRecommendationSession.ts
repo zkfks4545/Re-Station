@@ -262,7 +262,14 @@ function assembleRecommendationResult(
   cocktail: CocktailData | null,
   decision: RecommendationDecision | null,
 ): RecommendationResult {
-  const assembled = assembleResponse({ text, tone })
+  const assembled = assembleResponse({
+    text,
+    tone,
+    character: {
+      intent: decision?.dialogue.route ?? 'recommendation-query',
+      recommendationExpected: true,
+    },
+  })
   return {
     reply: assembled.response,
     expression: assembled.expression,

@@ -52,8 +52,8 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 도입하더라도 말투 포장만 담당한다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. Phase 6~8까지 완료되었다. 현재 다음 우선순위는 카루아 말투 금지/권장 테스트와 Phase 9 Character Layer 적용이다.
-13. DLG-807~DLG-809 같은 대사 수렴 작업은 Phase 9 후 재검토한다.
+12. Phase 6~8까지 완료되었고 Phase 9 Character Layer 기반이 적용되었다. 현재 다음 우선순위는 DLG-807 실제 대사 재검수와 DLG-808~809 대사 수렴이다.
+13. Character Layer는 표현과 검증만 담당하며 추천·상태·행동·intent를 변경하지 않는다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 
 ## 4. 주요 파일 지도
@@ -97,6 +97,9 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/bartender/conversation.ts` | 이미 분류된 intent와 참조 칵테일을 받아 템플릿·대사·데이터 포매터를 선택하고 공통 응답 조립기로 전달 |
 | `bar_tend/src/lib/bartender/persona.ts` | 현재 카루아 말투 기준 프롬프트 |
 | `bar_tend/src/lib/bartender/prompts.ts` | persona와 대화 기록을 조합해 프롬프트 구성 |
+| `bar_tend/src/lib/character/character-profile.ts` | persona를 참조하는 화자별 말투·금지/권장 표현·길이·감정 강도 계약 |
+| `bar_tend/src/lib/character/character-validator.ts` | 금지 표현과 문장 수·반존대·능청·추천 어조 검증 및 메타데이터 생성 |
+| `bar_tend/src/lib/character/character-layer.ts` | Response Pipeline 결과를 의미 변경 없이 정리하고 Character 검증을 적용하는 계층 |
 
 ### 4.3 대사 데이터와 프리셋
 
@@ -351,7 +354,9 @@ ResponseDraft { text, tone, preferredExpression? }
   ↓
 assembleResponse()
   ↓
-BartenderResponse { response, expression }
+Character Layer
+  ↓
+BartenderResponse { response, expression, character? }
 ```
 
 - intent 템플릿은 최종 표정 대신 `tone`을 제공한다.
@@ -359,6 +364,8 @@ BartenderResponse { response, expression }
 - 칵테일 이름·설명·본드식 주문 같은 데이터 삽입은 `response-templates.ts`의 Draft 포매터가 담당한다.
 - `dialogues.json`에서 이미 표정이 지정된 대사는 호환을 위해 `preferredExpression`으로 전달하되, 최종 응답 객체 생성은 같은 조립기를 사용한다.
 - 추천 결과의 칵테일 선택과 근거 결정은 여전히 추천 엔진 책임이며, Response Pipeline은 결정된 내용을 표현하는 역할만 맡는다.
+- Character Layer는 문구와 표정을 보존하면서 금지/권장 스타일을 검사하고 `styled`, `validationPassed`, `warnings`, `blockedPatterns`, `preferredPatterns` 메타데이터를 생성한다.
+- 향후 WebLLM은 Character Layer의 구조화된 표현 계약 뒤에 선택적으로 붙일 수 있지만, 현재 Phase 9에는 구현하지 않는다.
 
 ## 7. 카루아 말투 계약
 
@@ -704,10 +711,16 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 8. `Phase 6` Slot Filling + Conversation Flow + Talking Points/Lore + Reaction/Conversation Flow 통합 회귀: 완료. 자유 순서 slot filling, story/lore/info 선행 반응과 후속 연결, 클래식 10종 talking points 확장, reaction 우선·negative 재추천 제외·another 새 추천·lore 비반복 회귀 보강
 9. `Phase 7` Dialogue Quality: 완료. 전용 character/story 풀 분리, 누락 fallback 5종(`random-request`, `unknown-cocktail-request`, `recommendation-cancel`, `story-unresolved`, `character-query`) 보강, 27개 출처 계약 고정
 10. `Phase 8` Talking Points 확장: 완료. 대표 클래식 20종 talking point 20개 + lore reference 40개 누적 확장, 공개 칵테일 structured lore 30/49 coverage
-11. `Phase 9` Character Layer: 다음 작업(제안됨). 카루아 말투 금지/권장 테스트(DLG-807), 대사 풀 정상화(DLG-808), 문단 프리셋 계약 확장(DLG-809)
+11. `Phase 9` Character Layer: 진행 중. persona 참조 프로필, 금지/권장 검증기, 응답 메타데이터와 Response Pipeline 연결 완료. DLG-807 실제 대사 재검수, DLG-808 대사 풀 정상화, DLG-809 문단 프리셋 확장은 후속
+12. `Phase 10` ResponsePlan DB 리팩토링: 계획. `text-presets.ts`와 `dialogues.json`을 intent/speaker/state/request/block 기반 ResponsePlan으로 전환하고 `fallbackText`와 규칙 기반 런타임 유지
+13. `Phase 11` 대사 출처 정상화: 계획. 키워드·템플릿·이야기·웰컴·배웅 출처의 결정/표현 책임 분리, 중복 제거, 카루아 말투 재검수
+14. `Phase 12` WebLLM 스타일 어댑터: 계획. 추천·주문·웰컴 표현만 보정하고 추천 결과·ID·이유·세션 상태는 잠금. 실패 시 규칙 기반 폴백
+15. `Phase 13` WebLLM 일반 대화: 계획. `general-chat`만 허용하며 Action·Session 변경 금지, 1~3문장 제한, 검증 실패 시 `dialogues.json` 폴백
+16. `Phase 14` WebLLM 이야기 표현 보정: 계획. 내부 DB를 단일 사실 출처로 유지하고 `lockedFacts`로 lore·재료·효과 창작 차단
+17. `Phase 15` 최종 캐릭터 QA: 계획. 카루아 회귀 확대, 상담가·AI 도우미형 표현 제거, 전 응답 경로 어조 검수와 시에스타 재활성화 여부 평가
 
 * **FLOW-002 (XYZ/Farewell 머신)** 작업은 완료되었습니다.
-* 기존 `DLG-807~809`, `SPR-001~005`, WebLLM RST-601~606은 위 구조 수렴과 충돌하지 않는 순서로 재검토한다.
+* WebLLM은 Phase 10~11의 ResponsePlan·대사 출처 정규화가 끝난 뒤 Phase 12부터 순차 검토한다. Phase 12 이전에는 런타임에 연결하지 않는다.
 * 현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있습니다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준입니다.
 
 외부 기획안은 지금 단계에서는 새 기능보다 intent별 문단 구조, 대사 출처별 품질 기준, 카루아 말투 검수 규칙에 연결되는 것이 가장 좋다.

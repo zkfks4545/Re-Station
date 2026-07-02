@@ -370,7 +370,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | DLG-804 일반 대화 입력 연결성 보정 | DONE |
 | DLG-805 추천 질문과 추천 응답 문단 프리셋 전환 | DONE |
 | DLG-806 키워드 규칙 JSON 분리와 persona 보존 | DONE |
-| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | PROPOSED |
+| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | DOING |
 | DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | PROPOSED |
 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | PROPOSED |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
@@ -428,6 +428,7 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | 범위 | `dialogues.json`, `conversation.ts`, 추천 질문 프리셋, 추천 응답 문단 프리셋, 안전·예외상황 문구 |
 | 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨. 새 대사는 "관찰에서 출발하는가", "상담원도 할 수 있는 말인가" 검수 질문을 통과해야 한다. |
 | 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`와 `CONVERGENCE_PRINCIPLES.md`를 기준 파일로 둔다. |
+| 현재 구현 | `persona.ts`를 직접 참조하는 `CharacterStyleProfile`과 설정형 금지/권장 패턴, 문장 수·반존대·능청·추천 어조 검증기를 추가했다. `assembleResponse` 뒤에서 문구·표정은 보존하고 Character 메타데이터를 생성한다. 전체 런타임 대사 재검수는 계속 진행한다. |
 
 #### DLG-808: `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
 
@@ -670,7 +671,72 @@ DEC-015에 따라 아래 작업은 모두 잠정 보류한다. 재개하더라�
 | Phase 7 | Dialogue Quality | 완료 | fallback 줄이기, bar/character/story 전용 응답 강화 | story/lore/info 선행 반응, character/story 전용 풀, 누락된 random/unknown/cancel 풀 보강. 템플릿 참조 27개가 모두 유효한 JSON 대사 풀을 갖는 출처 계약 고정. Intent·사실 선택·공개 이력 유지. 434 tests pass |
 | Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
-| Phase 9 | Character Layer | 보류 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Phase 1~8의 의도·행동·응답 출처가 안정된 뒤 적용 |
+| Phase 9 | Character Layer | 진행 중 | 카루아 말투, 농담, 반존대, 표정 FSM 반영 | Character Profile·검증기·메타데이터·Response Pipeline 연결 완료. DLG-807 실제 대사 재검수와 DLG-808/809 이관은 후속. 471 tests pass |
+| Phase 10 | ResponsePlan DB 리팩토링 | 계획 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | `text-presets.ts`와 `dialogues.json`을 intent/speaker/state/request/block 구조로 정리하고 `fallbackText`와 WebLLM 없는 런타임을 보존 |
+| Phase 11 | 대사 출처 정상화 | 계획 | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 정규화하고 카루아 말투 기준으로 전수 재검수 |
+| Phase 12 | WebLLM 스타일 어댑터 | 계획 | 확정된 일부 대사의 표현만 선택적으로 다듬기 | 추천·주문·웰컴 대사만 허용. 추천 결과·칵테일 ID·추천 이유·세션 상태 변경 금지. 실패 시 규칙 기반 원문 사용 |
+| Phase 13 | WebLLM 일반 대화 | 계획 | `general-chat` 표현에만 WebLLM 사용 | Action 생성과 Session 변경 금지, 1~3문장 제한, 검증 실패 시 `dialogues.json` 폴백 |
+| Phase 14 | WebLLM 이야기 표현 보정 | 계획 | 내부 DB 사실을 유지한 채 이야기 문구만 개선 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. lore·재료·효과 창작 금지. `lockedFacts` 검증 도입 |
+| Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
+
+### Phase 9~15 후속 계획 계약
+
+#### Phase 9: Character Layer
+
+- 카루아 금지·권장 표현 회귀 테스트를 추가하고 확장한다.
+- `persona.ts`를 대체하지 않고 구조화된 말투 검증의 기준으로 참조한다.
+- 기존 Response Pipeline 뒤에 표현 검증 계층을 둔다.
+- Character Layer는 말하는 방식만 담당하며 추천 결과, 행동, intent, 세션 상태를 변경하지 않는다.
+
+#### Phase 10: ResponsePlan DB 리팩토링
+
+- `text-presets.ts`와 `dialogues.json`을 완성 대사 저장소에서 ResponsePlan 저장소로 전환한다.
+- ResponsePlan은 `intent`, `speaker`, `state`, `request`, `block` 기준으로 조회할 수 있어야 한다.
+- WebLLM 미지원·미준비·실패 시 사용할 `fallbackText`를 반드시 보존한다.
+- Phase 10 완료 후에도 현재 규칙 기반 런타임만으로 전체 핵심 흐름이 동작해야 한다.
+
+#### Phase 11: 대사 출처 정상화
+
+정규화 대상:
+
+- `keyword-rules.json`
+- `response-templates.ts`
+- `story-query.ts`
+- `welcome-drink.ts`
+- `farewell-replies.ts`
+
+목표:
+
+- 의사결정·사실 선택과 최종 표현 책임을 명확히 분리한다.
+- 동일 의미의 완성 대사가 여러 출처에 중복 저장되지 않게 한다.
+- 모든 대사를 카루아 금지·권장 말투 계약으로 다시 검수한다.
+
+#### Phase 12: WebLLM 스타일 어댑터
+
+- WebLLM은 추천·주문·웰컴 대사의 표현을 다듬는 선택적 스타일 어댑터로만 사용한다.
+- 추천 결과, 칵테일 ID, 추천 이유, 세션 상태는 변경할 수 없다.
+- 어댑터 오류, 시간 초과, 검증 실패 시 규칙 기반 `fallbackText`를 그대로 사용한다.
+
+#### Phase 13: WebLLM 일반 대화
+
+- WebLLM 적용 범위는 `general-chat`으로 제한한다.
+- Action을 생성하거나 Session을 변경할 수 없다.
+- 최종 응답은 1~3문장으로 제한한다.
+- Character 검증 실패 시 `dialogues.json` 응답으로 복구한다.
+
+#### Phase 14: WebLLM 이야기 표현 보정
+
+- 내부 칵테일 DB를 단일 사실 출처로 유지한다.
+- `talkingPoints`, `lore`, `recipe`, `taste` 선택은 내부 DB와 규칙 로직이 담당한다.
+- WebLLM은 lore, 재료, 효과를 새로 만들 수 없으며 문구만 개선한다.
+- 원문 사실이 결과에서 보존됐는지 확인하는 `lockedFacts` 검증을 도입한다.
+
+#### Phase 15: 최종 캐릭터 QA
+
+- 카루아 말투 회귀 테스트를 전체 응답 출처로 확대한다.
+- 상담가·치료자·AI 도우미형 표현을 제거한다.
+- 추천, 잡담, 이야기, 배웅, 정보 응답의 어조 일관성을 함께 검수한다.
+- 카루아 단독 흐름 검수가 끝난 뒤 시에스타 이벤트 재활성화 여부를 평가한다.
 
 ## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
 
