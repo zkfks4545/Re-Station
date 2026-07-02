@@ -137,7 +137,7 @@ export class ExperimentalWebLLMLoader {
       errorReason,
       validationWarnings: [],
       prepared: this.isPrepared(),
-      enabled: this.flags().responseEnabled,
+      enabled: this.flags().semanticEnabled,
       generationSkippedReason,
     }
   }

@@ -15,17 +15,45 @@ export interface WebLLMMetadata {
   generationSkippedReason?: WebLLMSkipReason
 }
 
-export interface WebLLMPolishRequest {
+export const SEMANTIC_TOPICS = [
+  'work', 'music', 'travel', 'nostalgia', 'daily-life', 'relationship', 'rest', 'weather',
+] as const
+export type SemanticTopic = typeof SEMANTIC_TOPICS[number]
+
+export const CONVERSATION_STANCES = ['neutral', 'playful', 'curious', 'quiet', 'observant'] as const
+export type ConversationStance = typeof CONVERSATION_STANCES[number]
+
+export const RESPONSE_BLOCK_SUGGESTIONS = [
+  'reaction', 'metaphor', 'joke', 'idiom', 'transition', 'closing',
+] as const
+export type ResponseBlockSuggestion = typeof RESPONSE_BLOCK_SUGGESTIONS[number]
+
+export const SESSION_TAGS = [
+  'burnout', 'music', 'work', 'travel', 'nostalgia', 'energetic', 'quiet',
+] as const
+export type SemanticSessionTag = typeof SESSION_TAGS[number]
+
+export const RAPPORT_HINTS = ['neutral', 'warmer', 'reserved'] as const
+export type RapportHint = typeof RAPPORT_HINTS[number]
+
+export interface WebLLMSemanticRequest {
   input: string
   route: string
   speaker?: 'karua'
-  fallbackResponse: string
   history?: Message[]
-  reactionKind?: 'simple' | 'light-small-talk'
 }
 
-export interface WebLLMPolishResult {
-  response: string
+export interface WebLLMSemanticAnalysis {
+  topic?: SemanticTopic
+  stance?: ConversationStance
+  responseBlocks: ResponseBlockSuggestion[]
+  rapportHint?: RapportHint
+  sessionTags: SemanticSessionTag[]
+  confidence: number
+}
+
+export interface WebLLMSemanticResult {
+  analysis: WebLLMSemanticAnalysis | null
   usedWebLLM: boolean
   metadata: WebLLMMetadata
 }

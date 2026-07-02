@@ -35,7 +35,7 @@ function validateConfig(data: Record<string, unknown>): RapportConfig {
   for (let i = 1; i < order.length; i++) {
     const prev = ranges[order[i - 1]]
     const curr = ranges[order[i]]
-    if (prev.max >= curr.min) {
+    if ((prev.max as number) >= (curr.min as number)) {
       throw new Error(`RapportConfig: range ${order[i - 1]}.max (${prev.max}) must be less than ${order[i]}.min (${curr.min})`)
     }
   }

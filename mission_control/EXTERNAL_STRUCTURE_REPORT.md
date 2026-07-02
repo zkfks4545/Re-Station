@@ -1,7 +1,7 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-07-01 (Phase 6~8 완료 반영, 검증 상태·후속 작업 순서 갱신)
+> 최종 갱신일: 2026-07-02 (Phase 9 완료: Character Layer + 전체 대사 감사 + Hidden RapportState v2.0.0 반영, 검증 상태·후속 작업 순서 갱신)
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -18,7 +18,9 @@
 
 Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대화하고, 취향·상태·요청을 바탕으로 칵테일 추천을 받는 React/Vite 기반 프론트엔드 앱이다. 현재 구조는 기본 대화 세션과 `추천받기` 버튼으로 시작하는 추천 세션을 구분하며, 추천 결과는 규칙과 JSON 데이터가 결정하고 캐릭터 대사는 규칙 기반 대사 풀과 프리셋으로 출력한다.
 
-현재 WebLLM은 준비·생성·검증·폴백 실험 인프라만 연결되어 있다. 접속 직후 capability 검사를 통과하면 모델 준비를 시작하며 응답 생성은 기본 OFF다. 실제 대화 출력에는 연결하지 않는다. 향후 적용하더라도 추천 판단이나 상태 변경이 아니라, 이미 확정된 답변의 말투 포장만 담당해야 한다.
+현재 WebLLM은 준비·구조화 의미 분석·검증 인프라만 연결되어 있다. 브라우저 idle 시 capability 검사를 통과하면 모델을 준비하며 의미 분석은 기본 OFF다. WebLLM은 최종 대사를 생성하지 않고 JSON/FSM이 최종 대화와 행동을 결정한다.
+
+현재 **Hidden RapportState v2.0.0**이 탑재되어 있다. 단일 축(0~100) 내부값으로 카루아와 손님의 대화 온도를 표현하며, 사용자에게 노출되지 않고 추천·게임플레이에 영향을 주지 않는다. JSON 기반 config로 구간·갱신 규칙·성향 가중치를 제어한다.
 
 ## 2. 현재 제품 컨셉
 
@@ -30,7 +32,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | 핵심 경험 | 바에 들어와 짧게 대화하고, 취향에 맞는 칵테일을 추천받는다 |
 | 추천 방식 | DB + 규칙 엔진 + JSON 질문 |
 | 대화 방식 | 기본 대화 세션, `추천받기` 버튼 기반 추천 세션, 입력 라우터, 키워드 규칙, 추천 응답 프리셋 |
-| 현재 톤 | 카루아 말투 계약은 존재하지만, 말투는 아직 재검수 대상 |
+| 현재 톤 | 카루아 말투 계약 + 전체 525개 대사 감사 완료 (3건 수정). Hidden RapportState로 대화 온도 추적 |
 | 기획상 주의 | 상담/치료/과한 위로가 아니라 농담과 추천을 통한 환기 |
 
 현재 런타임에서는 `SIESTA_EVENTS_ENABLED = false` 상태로 시에스타 만담 이벤트가 비활성화되어 있다. 시에스타 이벤트 엔진, 4발화 구조, 쿨다운/세션 빈도 제한, 보호 경계는 보존되어 있으며 플래그 전환 시 즉시 복구된다.
@@ -50,11 +52,12 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 7. `persona.ts`를 JSON 어댑터로 바꾸지 않는다.
 8. 시에스타는 상시 대화 캐릭터가 아니라 짧은 만담 이벤트 캐릭터다.
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
-10. WebLLM은 도입하더라도 말투 포장만 담당한다.
+10. WebLLM은 topic·stance·block·세션 태그 의미 보조만 담당하며 최종 대사를 생성하지 않는다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
 12. Phase 6~8까지 완료되었고 Phase 9 Character Layer 기반이 적용되었다. 현재 다음 우선순위는 DLG-807 실제 대사 재검수와 DLG-808~809 대사 수렴이다.
 13. Character Layer는 표현과 검증만 담당하며 추천·상태·행동·intent를 변경하지 않는다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
+15. Hidden RapportState는 단일 축 내부값이며 사용자에게 노출하지 않고 추천·게임플레이에 영향을 주지 않는다.
 
 ## 4. 주요 파일 지도
 
@@ -100,6 +103,14 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/lib/character/character-profile.ts` | persona를 참조하는 화자별 말투·금지/권장 표현·길이·감정 강도 계약 |
 | `bar_tend/src/lib/character/character-validator.ts` | 금지 표현과 문장 수·반존대·능청·추천 어조 검증 및 메타데이터 생성 |
 | `bar_tend/src/lib/character/character-layer.ts` | Response Pipeline 결과를 의미 변경 없이 정리하고 Character 검증을 적용하는 계층 |
+| `bar_tend/src/lib/relationship/types.ts` | Hidden RapportState 타입 정의 (RapportRange, RangeConfig, UpdateRule 등) |
+| `bar_tend/src/lib/relationship/config.ts` | JSON config 로더·검증·각종 getter |
+| `bar_tend/src/lib/relationship/state.ts` | 초기값 생성·clamp·delta 적용·자연 감쇠 |
+| `bar_tend/src/lib/relationship/updater.ts` | intent 기반 갱신·트래커·쿨다운·최대 횟수 제한 |
+| `bar_tend/src/lib/relationship/ranges.ts` | 수치→구간 매핑 (low/normal/high/very-high) |
+| `bar_tend/src/lib/relationship/dialogue-selector.ts` | rapport 구간 기반 대사 변이 선택 |
+| `bar_tend/src/data/relationship-config.json` | 초기값 20, 4단계 구간, 갱신 규칙 7개, 성향 가중치 17종 |
+| `bar_tend/src/components/bar/RapportDebugDisplay.tsx` | 개발용 debug UI (`import.meta.env.DEV` 가드, 제거 대상) |
 
 ### 4.3 대사 데이터와 프리셋
 
@@ -365,7 +376,7 @@ BartenderResponse { response, expression, character? }
 - `dialogues.json`에서 이미 표정이 지정된 대사는 호환을 위해 `preferredExpression`으로 전달하되, 최종 응답 객체 생성은 같은 조립기를 사용한다.
 - 추천 결과의 칵테일 선택과 근거 결정은 여전히 추천 엔진 책임이며, Response Pipeline은 결정된 내용을 표현하는 역할만 맡는다.
 - Character Layer는 문구와 표정을 보존하면서 금지/권장 스타일을 검사하고 `styled`, `validationPassed`, `warnings`, `blockedPatterns`, `preferredPatterns` 메타데이터를 생성한다.
-- 향후 WebLLM은 Character Layer의 구조화된 표현 계약 뒤에 선택적으로 붙일 수 있지만, 현재 Phase 9에는 구현하지 않는다.
+- WebLLM은 capability 검사·Worker 준비·4초 timeout·구조 검증을 거쳐 의미 태그만 제안한다. 현재 응답은 기다리지 않으며 ResponsePlan 선택 연결은 Phase 10 이후 검토한다.
 
 ## 7. 카루아 말투 계약
 
@@ -520,6 +531,8 @@ BartenderResponse { response, expression, character? }
 | 키워드 규칙 | `keyword-rules.json` | JSON 분리 완료 |
 | intent fallback/tone과 데이터 삽입 Draft | `response-templates.ts` | Phase 2 분리 완료 |
 | 프리셋/문단 블록 | `text-presets.ts` | 초기 도입 완료 |
+| ResponsePlan 계약 | `response-plan.ts` | Phase 10 선행 계약 확정 (speaker/intent/state/request/blocks/fallbackText) |
+| 관계성 설정 | `relationship-config.json` | v2.0.0 (초기값·구간·갱신 규칙·성향 가중치) |
 
 조립 책임은 `response-pipeline.ts`로 모였지만, 다음 기획의 핵심은 각 대사 데이터 출처의 편집 기준과 적용 범위를 명확히 나누는 것이다.
 
@@ -560,20 +573,19 @@ BartenderResponse { response, expression, character? }
 - `cocktail-info-query`
 - `character-query`
 
-### 11.3 카루아 말투 검수 기준이 테스트로 충분히 고정되지 않음
+### 11.3 카루아 말투 검수 완료 — 자동 감사로 금지 패턴 3건 수정
 
-`persona.ts`에는 금지 문장과 좋은 예시가 있지만, 실제 대사 풀 전체가 이 계약을 지키는지는 아직 충분히 자동 검증되지 않는다.
+Phase 9에서 전체 대사 자동 감사 스크립트(`scripts/phase9-audit.ts`)로 `dialogues.json` 55개 카테고리·525개 문자열을 전수 스캔했다. 감사는 `persona.ts`와 `character-profile.ts`의 금지 패턴 10종을 기준으로 수행했다.
 
-특히 점검해야 할 문장:
+발견 및 수정:
 
-- “괜찮으시면 천천히 말씀해 주세요”
-- “힘드셨겠어요”
-- “괜찮아요”
-- “제가 도와드릴게요”
-- “해결해드릴게요”
-- “마음이 나아질 거예요”
+| 위반 패턴 | 원문 | 수정 |
+|-----------|------|------|
+| `counselor-prompt` | "기분이 안 좋으시다면 천천히 말씀해 주세요" | "다른 이야기로 넘어가시는 게 좋겠어요" |
+| `counselor-prompt` | "천천히 말씀해 주세요" | "편하게 말씀해 주세요" |
+| `blanket-reassurance` | "괜찮아요. 첫 잔은 기준점이니까요." | "첫 잔은 기준점이니까요." |
 
-이런 문장은 카루아 톤과 어긋날 가능성이 높다.
+3건 모두 수정 완료했으며, 문장 길이 계약(안전 제외 3문장 이내)도 karua-speech-contract 테스트로 고정되었다. 추후 `keyword-rules.json`, `response-templates.ts`, `story-query.ts` 등 다른 출처도 같은 감사가 필요하다.
 
 ### 11.4 시에스타 말투와 카루아 말투의 구조적 분리가 더 필요함
 
@@ -711,16 +723,16 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 8. `Phase 6` Slot Filling + Conversation Flow + Talking Points/Lore + Reaction/Conversation Flow 통합 회귀: 완료. 자유 순서 slot filling, story/lore/info 선행 반응과 후속 연결, 클래식 10종 talking points 확장, reaction 우선·negative 재추천 제외·another 새 추천·lore 비반복 회귀 보강
 9. `Phase 7` Dialogue Quality: 완료. 전용 character/story 풀 분리, 누락 fallback 5종(`random-request`, `unknown-cocktail-request`, `recommendation-cancel`, `story-unresolved`, `character-query`) 보강, 27개 출처 계약 고정
 10. `Phase 8` Talking Points 확장: 완료. 대표 클래식 20종 talking point 20개 + lore reference 40개 누적 확장, 공개 칵테일 structured lore 30/49 coverage
-11. `Phase 9` Character Layer: 진행 중. persona 참조 프로필, 금지/권장 검증기, 응답 메타데이터와 Response Pipeline 연결 완료. DLG-807 실제 대사 재검수, DLG-808 대사 풀 정상화, DLG-809 문단 프리셋 확장은 후속
-12. `Phase 10` ResponsePlan DB 리팩토링: 계획. `text-presets.ts`와 `dialogues.json`을 intent/speaker/state/request/block 기반 ResponsePlan으로 전환하고 `fallbackText`와 규칙 기반 런타임 유지
+11. `Phase 9` Character Layer + 전체 대사 감사 + Hidden RapportState: **완료**. persona 참조 프로필, 금지/권장 검증기, 응답 메타데이터, Response Pipeline 연결. dialogues.json 525개 문자열 전수 감사 + 금지 패턴 3건 수정. 숨은 관계성 단일 축 0~100 (JSON config, 4단계 구간, 갱신 규칙, 15개 테스트). WebLLM 의미 보조·ResponsePlan 스키마는 밑준비 완료. **527 tests pass**
+12. `Phase 10` ResponsePlan DB 리팩토링: 계획. `text-presets.ts`와 `dialogues.json`을 intent/speaker/state/request/block 기반 ResponsePlan으로 전환하고 `fallbackText`와 규칙 기반 런타임 유지. 첫 배치: `general-chat`, `mood-*`, `bar-intro`, `character-query`부터 이관
 13. `Phase 11` 대사 출처 정상화: 계획. 키워드·템플릿·이야기·웰컴·배웅 출처의 결정/표현 책임 분리, 중복 제거, 카루아 말투 재검수
-14. `Phase 12` WebLLM 스타일 어댑터: 계획. 추천·주문·웰컴 표현만 보정하고 추천 결과·ID·이유·세션 상태는 잠금. 실패 시 규칙 기반 폴백
-15. `Phase 13` WebLLM 일반 대화: 계획. `general-chat`만 허용하며 Action·Session 변경 금지, 1~3문장 제한, 검증 실패 시 `dialogues.json` 폴백
-16. `Phase 14` WebLLM 이야기 표현 보정: 계획. 내부 DB를 단일 사실 출처로 유지하고 `lockedFacts`로 lore·재료·효과 창작 차단
+14. `Phase 12` WebLLM 의미 보조: 진행 중. topic·stance·block 후보·세션 태그 구조화 분석과 검증, 비차단 실행
+15. `Phase 13` 의미 태그 기반 ResponsePlan 선택 보조: 계획. 힌트가 없거나 충돌하면 기존 JSON 규칙 유지
+16. `Phase 14` 이야기 주제 의미 분류: 계획. 내부 DB 사실은 고정하고 topic과 block 종류만 제안
 17. `Phase 15` 최종 캐릭터 QA: 계획. 카루아 회귀 확대, 상담가·AI 도우미형 표현 제거, 전 응답 경로 어조 검수와 시에스타 재활성화 여부 평가
 
 * **FLOW-002 (XYZ/Farewell 머신)** 작업은 완료되었습니다.
-* WebLLM 실험 준비 인프라는 먼저 검증할 수 있지만, Phase 10~11의 ResponsePlan·대사 출처 정규화가 끝나기 전에는 실제 대화 출력에 연결하지 않는다.
+* WebLLM 의미 분석은 비동기로 실행할 수 있지만, Phase 10 ResponsePlan 이관 전에는 태그를 실제 대사 선택에 반영하지 않는다.
 * 현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있습니다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준입니다.
 
 외부 기획안은 지금 단계에서는 새 기능보다 intent별 문단 구조, 대사 출처별 품질 기준, 카루아 말투 검수 규칙에 연결되는 것이 가장 좋다.
@@ -735,8 +747,9 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 린트 | 통과: `npm.cmd run lint` |
 | 빌드 | 통과: `npm.cmd run build` |
 | Phase 3 책임 경계 회귀 | 통과: DialogueService·DialogueSessionState·Session Flow 3개 파일, 20개 테스트 |
-| 전체 테스트 | 통과: `npm.cmd test` 기준 42개 파일, **508개 테스트** |
-| 메인 JS | 빌드 기준 501.57 kB, gzip 149.70 kB. WebLLM 라이브러리와 Worker는 별도 지연 자산 |
+| Phase 9 회귀 | 통과: character-layer +7, karua-speech-contract +2, 관계 모듈 +15 |
+| 전체 테스트 | 통과: `npm.cmd test` 기준 44개 파일, **527개 테스트** |
+| 메인 JS | 빌드 기준 505.72 kB, gzip 151.17 kB. WebLLM 라이브러리와 Worker는 별도 지연 자산 |
 
 알려진 Vitest 실패는 없다. safety 응답은 즉시 위험 확인과 119/112/1393 안내를 공통 상수에서 다시 보장한다. 코드 리뷰와 검수 시에는 DialogueService와 컨트롤러의 책임 경계, 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.
 
@@ -753,3 +766,35 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 확장성 | 카루아/시에스타/상태/의도별로 확장 가능한가 |
 | 구현 가능성 | 현재 JSON/프리셋 구조에 옮기기 쉬운가 |
 | 검수 가능성 | 금지 문장과 좋은 예시가 명확한가 |
+
+---
+
+## 17. 후속 작업 요약 (Phase 9 완료 기준)
+
+Phase 9 완료 후 다음 작업은 크게 4개 트랙으로 나뉜다.
+
+### 트랙 A: ResponsePlan DB 이관 (Phase 10)
+- **목표**: `dialogues.json`과 `text-presets.ts` 대사 출처를 ResponsePlan DB로 전환
+- **순서**: `general-chat`·`mood-*`·`bar-intro`·`character-query`부터 첫 배치 이관 → 동등성 검증 → 나머지 배치 순차 이관
+- **제약**: JSON 대사는 이관 중에도 항상 동작, 한 번에 전체 교체 금지
+- **선행 조건**: `feature/phase-10-responseplan-migration` 브랜치 생성
+
+### 트랙 B: WebLLM 의미 보조
+- **목표**: topic·stance·block 후보·세션 태그의 구조화 의미 분석
+- **현재**: 비차단 분석·허용 목록 검증·세션 전용 태그 저장 구현, 최종 대사 생성 없음
+- **후속**: ResponsePlan 이관 후 검증 태그를 낮은 우선순위 선택 힌트로 연결
+
+### 트랙 C: 대사 출처 정상화 (Phase 11)
+- **목표**: `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`의 결정/표현 책임 분리, 중복 제거, 카루아 말투 전수 재검수
+- **선행 조건**: Phase 10 ResponsePlan 이관 완료
+
+### 트랙 D: WebLLM 단계 적용 (Phase 12~14)
+- **순서**: 의미 보조(Phase 12) → ResponsePlan 선택 힌트(Phase 13) → 이야기 topic 분류(Phase 14)
+- **제약**: 최종 대사·추천 결과·칵테일 ID·추천 이유·세션 상태 생성·변경 금지
+- **선행 조건**: Phase 10~11의 정규화 완료
+
+### 당장 시작 가능한 작업
+1. Phase 10 첫 배치 이관 준비 — `response-plan.ts` 기반 어댑터 구현
+2. 나머지 대사 출처(keyword-rules, response-templates, 도메인 포매터) 금지 패턴 감사
+3. RapportState를 DialogueService에 연결 (현재 독립 모듈, 미연결)
+4. 시에스타 이벤트 재활성화 여부 평가 (Phase 15)

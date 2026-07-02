@@ -2,7 +2,7 @@ import { WEB_LLM_RUNTIME_CONFIG } from './config.js'
 
 export type WebLLMSkipReason =
   | 'preload-disabled'
-  | 'response-disabled'
+  | 'semantic-disabled'
   | 'unsupported-browser'
   | 'insecure-context'
   | 'webgpu-unavailable'

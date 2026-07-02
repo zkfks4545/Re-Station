@@ -144,7 +144,6 @@ function extractTextPresetsStrings(filePath: string): SourceInfo[] {
   const lines = content.split('\n')
   let currentSpeaker = ''
   let inBlock = false
-  let blockStart = 0
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -159,7 +158,6 @@ function extractTextPresetsStrings(filePath: string): SourceInfo[] {
     // Detect start of blocks
     if (/blocks:\s*\{/.test(line)) {
       inBlock = true
-      blockStart = i
       continue
     }
 
@@ -416,7 +414,7 @@ function runAudit(): string {
   report.push('2. **Sentence length issues** should be reviewed for conciseness.')
   report.push('3. **Missing preferred patterns** indicate responses that lack Karua\'s characteristic voice.')
   report.push('4. **Design flag issues** need manual review for character consistency.')
-  report.push('5. Template strings containing placeholders (\`{}\` or \`${\}\`) will be resolved at runtime — verify final rendered output separately.')
+  report.push('5. Template strings containing placeholders (`{}` or `${}`) will be resolved at runtime — verify final rendered output separately.')
   report.push('')
 
   return report.join('\n')

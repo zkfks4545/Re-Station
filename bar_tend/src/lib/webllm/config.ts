@@ -2,7 +2,7 @@ export const WEB_LLM_DEFAULT_MODEL = 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC'
 
 export interface WebLLMFeatureFlags {
   preloadEnabled: boolean
-  responseEnabled: boolean
+  semanticEnabled: boolean
 }
 
 export interface WebLLMRuntimeConfig {
@@ -32,6 +32,6 @@ export function readWebLLMFeatureFlags(
 ): WebLLMFeatureFlags {
   return {
     preloadEnabled: env.VITE_WEB_LLM_PRELOAD_ENABLED !== 'false',
-    responseEnabled: env.VITE_WEB_LLM_RESPONSE_ENABLED === 'true',
+    semanticEnabled: env.VITE_WEB_LLM_SEMANTIC_ENABLED === 'true',
   }
 }

@@ -15,7 +15,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const factory = vi.fn(async () => fakeEngine())
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: true, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: true, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
 
@@ -29,7 +29,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const factory = vi.fn(async () => fakeEngine())
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: false, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: false, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
 
@@ -39,11 +39,11 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     expect(result.generationSkippedReason).toBe('preload-disabled')
   })
 
-  it('PRELOAD만 켜면 응답 생성과 무관하게 모델을 준비한다', async () => {
+  it('PRELOAD만 켜면 의미 분석 활성화 여부와 무관하게 모델을 준비한다', async () => {
     const factory = vi.fn(async () => fakeEngine())
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: true, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: true, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
 
@@ -59,7 +59,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const factory = vi.fn(() => new Promise<WebLLMEngine>((resolve) => { resolveEngine = resolve }))
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: true, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: true, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
 
@@ -76,7 +76,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const factory = vi.fn(async () => fakeEngine())
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: true, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: true, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: false, reason: 'webgpu-unavailable' }),
     })
 
@@ -92,7 +92,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const factory = vi.fn(async () => { throw new Error('모델 준비 실패') })
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: factory,
-      flags: () => ({ preloadEnabled: true, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: true, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
 
@@ -108,7 +108,7 @@ describe('실험 WebLLM 싱글턴 로더', () => {
     const engine = fakeEngine()
     const loader = new ExperimentalWebLLMLoader({
       engineFactory: async () => engine,
-      flags: () => ({ preloadEnabled: false, responseEnabled: false }),
+      flags: () => ({ preloadEnabled: false, semanticEnabled: false }),
       capabilityCheck: () => ({ supported: true }),
     })
     await loader.prepare({ manual: true })

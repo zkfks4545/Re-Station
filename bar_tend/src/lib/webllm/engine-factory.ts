@@ -16,7 +16,7 @@ export const createWebLLMEngine: WebLLMEngineFactory = async (model, onProgress)
         try {
           const completion = await engine.chat.completions.create({
             messages: [
-              { role: 'system', content: '지시된 카루아 대사 한 문단만 한국어로 출력하세요.' },
+              { role: 'system', content: '대사를 만들지 말고 요청된 의미 분석 JSON 객체만 출력하세요.' },
               { role: 'user', content: prompt },
             ],
             temperature: WEB_LLM_RUNTIME_CONFIG.temperature,

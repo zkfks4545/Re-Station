@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-02 / Codex / WebLLM 구조화 의미 보조 전환
+
+- WebLLM의 자유 문장 생성 경로를 제거하고 topic, stance, 응답 블록 후보, 세션 태그, rapport 힌트, confidence만 반환하는 구조화 의미 분석기로 전환했다.
+- 허용 목록 기반 검증기를 추가해 알 수 없는 topic·태그·블록 후보를 폐기하고 자유 문장·마크다운·비정상 JSON을 거부한다.
+- 의미 분석은 비동기 fire-and-forget으로 실행하며, 엔진 사용 중·시간 초과·실패 시 JSON/FSM 응답을 즉시 그대로 사용한다.
+- 세션 태그는 메모리에만 유지하고 입장·퇴장·밤 초기화 시 삭제하도록 했다.
+- 추천·주문·안전·farewell·lore 등 결정 경로는 의미 분석 대상에서 제외했다.
+- 모델 준비는 브라우저 idle callback에서 시작하고, 의미 분석 기능은 기본 OFF로 유지했다.
+- 검증: Vitest 44개 파일·527개 테스트, typecheck, lint, build 통과. 메인 JS 505.72 kB, gzip 151.17 kB.
+
 ## 2026-07-02 / Codex / Phase 9 마무리 — 커밋 정리 [71e6f2b][141d915][78fd049][944d2dd][45c1839]
 
 - **dialogue audit** [`71e6f2b`]: 금지 패턴 3건 수정(counselor-prompt 2건 + blanket-reassurance 1건), character layer 경계 테스트 +5, 문장 길이 계약 +2, 자동 감사 스크립트 추가

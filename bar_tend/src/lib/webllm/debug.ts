@@ -1,13 +1,16 @@
 import { experimentalWebLLMLoader } from './loader.js'
-import { experimentalWebLLMService } from './service.js'
-import type { WebLLMPolishResult } from './types.js'
+import { experimentalSemanticAssistant } from './service.js'
+import { semanticSessionTags } from './session-tags.js'
+import type { WebLLMSemanticResult } from './types.js'
 
 interface WebLLMDebugApi {
   status: () => ReturnType<typeof experimentalWebLLMLoader.getMetadata>
   prepare: () => ReturnType<typeof experimentalWebLLMLoader.prepare>
   unload: () => Promise<void>
   disable: () => void
-  test: (input: string) => Promise<WebLLMPolishResult>
+  tags: () => ReturnType<typeof semanticSessionTags.snapshot>
+  resetTags: () => void
+  test: (input: string) => Promise<WebLLMSemanticResult>
 }
 
 declare global {
@@ -23,10 +26,11 @@ export function installExperimentalWebLLMDebugApi(): void {
     prepare: () => experimentalWebLLMLoader.prepare({ manual: true }),
     unload: () => experimentalWebLLMLoader.unload(),
     disable: () => experimentalWebLLMLoader.disableForSession(),
-    test: (input) => experimentalWebLLMService.polish({
+    tags: () => semanticSessionTags.snapshot(),
+    resetTags: () => semanticSessionTags.reset(),
+    test: (input) => experimentalSemanticAssistant.analyze({
       input,
       route: 'general-chat',
-      fallbackResponse: '그 얘기, 조금 더 들어볼 만하네요.',
     }),
   }
 }

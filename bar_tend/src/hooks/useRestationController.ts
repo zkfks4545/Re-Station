@@ -43,8 +43,12 @@ import {
 } from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
+import { experimentalSemanticAssistant } from '@/lib/webllm/service.js'
+import { semanticSessionTags } from '@/lib/webllm/session-tags.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
 import type { CocktailData, Expression, Message } from '@/types.js'
+import type { IntentType } from '@/lib/bartender/intent-classifier.js'
+import { createInitialRapport, updateRapport, createUpdateTracker } from '@/lib/relationship/index.js'
 import { useGuestPreferenceSession } from './useGuestPreferenceSession.js'
 import { useRecommendationSession } from './useRecommendationSession.js'
 
@@ -87,6 +91,10 @@ export function useRestationController() {
   )
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
+  const [rapport, setRapport] = useState(createInitialRapport)
+  const rapportRef = useRef(rapport)
+  const rapportTrackerRef = useRef(createUpdateTracker())
+  const rapportTurnRef = useRef(0)
   const timerRegistry = useRef(createTimerRegistry())
   const userMessageCountRef = useRef(0)
   const siestaEventCountRef = useRef(0)
@@ -321,13 +329,20 @@ export function useRestationController() {
       clearExcludedCocktailIds()
       resetRecommendation()
       resetSessionFlow('entry')
+      semanticSessionTags.reset()
     }, delayMs)
   }, [clearExcludedCocktailIds, resetRecommendation, resetSessionFlow])
 
   const handleEnter = useCallback(() => {
     clearPendingWork()
     resetSiestaEventSession()
+    semanticSessionTags.reset()
     resetSessionFlow('conversation')
+    const initialRapport = createInitialRapport()
+    rapportRef.current = initialRapport
+    setRapport(initialRapport)
+    rapportTrackerRef.current = createUpdateTracker()
+    rapportTurnRef.current = 0
     setErrorMessage(null)
     setScene('inside')
     setServedCocktail(null)
@@ -381,7 +396,13 @@ export function useRestationController() {
     clearPendingWork()
     resetSiestaEventSession()
     resetNight()
+    semanticSessionTags.reset()
     resetSessionFlow('conversation')
+    const initialRapport = createInitialRapport()
+    rapportRef.current = initialRapport
+    setRapport(initialRapport)
+    rapportTrackerRef.current = createUpdateTracker()
+    rapportTurnRef.current = 0
     setMessages([])
     setExpression('idle')
     setErrorMessage(null)
@@ -541,6 +562,31 @@ export function useRestationController() {
     resolveRecommendation,
   ])
 
+  const mapIntentToRapportContext = useCallback((intent: IntentType): string => {
+    const MAP: Partial<Record<IntentType, string>> = {
+      'order-cocktail': 'cocktail-order',
+      'order-cocktail-mixed': 'cocktail-order',
+      'recommendation-query': 'recommend-request',
+      'mood-talk': 'mood-expression',
+      'taste-query': 'taste-statement',
+      'uncertain-talk': 'general-chat',
+    }
+    return MAP[intent] ?? intent
+  }, [])
+
+  const applyRapportUpdate = useCallback((intent: IntentType) => {
+    rapportTurnRef.current += 1
+    const ctx = mapIntentToRapportContext(intent)
+    const result = updateRapport(rapportRef.current, {
+      intent: ctx,
+      sessionTurnCount: rapportTurnRef.current,
+    }, rapportTrackerRef.current)
+    if (result.rapport !== rapportRef.current) {
+      rapportRef.current = result.rapport
+      setRapport(result.rapport)
+    }
+  }, [mapIntentToRapportContext])
+
   const performSend = useCallback(
     (text: string, forcedSessionMode?: ActionSessionMode) => {
       setErrorMessage(null)
@@ -553,7 +599,13 @@ export function useRestationController() {
 
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
       const dialogueResolution = resolveDialogueInput(text, nextMessages, forcedSessionMode)
-      const { routeResult, action: dialogueAction } = dialogueResolution
+      const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
+      applyRapportUpdate(classifiedIntent.intent)
+      void experimentalSemanticAssistant.analyze({
+        input: text,
+        route: classifiedIntent.intent,
+        history: messages,
+      })
       const isConversationFreeTurn = effectiveActionSessionMode === 'conversation' && routeResult.route === 'general'
       let shouldInviteRecommendationFromConversation = false
       if (isConversationFreeTurn) {
@@ -782,6 +834,7 @@ export function useRestationController() {
       actionSessionMode,
       activeQuestion,
       alcoholStarTotal,
+      applyRapportUpdate,
       bartenderReply,
       beginFarewell,
       clearPendingWork,
@@ -1042,6 +1095,7 @@ export function useRestationController() {
     servedCocktailMode,
     sidebarOpen,
     screenShake,
+    rapport,
     unlockedIds,
     canReRecommend,
     handleEnter,

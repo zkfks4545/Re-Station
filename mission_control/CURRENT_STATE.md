@@ -7,9 +7,9 @@
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
 | 단계 | RST-000 MVP + Phase 1~8 완료, **Phase 9 Character Layer 완료** |
-| 기술 | React+Vite+프론트엔드 단독, WebLLM 실험 인프라 연결·기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/린트 | 통과 (메인 JS 501.57 kB, gzip 149.70 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 530개 전체 통과 (Phase 9 회귀 +7, RapportState +15)** |
+| 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
+| 빌드/린트 | 통과 (메인 JS 505.72 kB, gzip 151.17 kB, WebLLM 지연 청크 분리) |
+| 테스트 | **Vitest 527개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -34,7 +34,7 @@
 | Phase 9 전체 대사 감사 + 금지 패턴 위반 3건 수정 + 회귀 테스트 7건 보강 (515 total) | [`완료`] |
 | Phase 9 Hidden RapportState (JSON 기반 단일 축 0~100·갱신 규칙·4단계 구간·대사 변이·15개 테스트·개발용 Debug UI) | [`완료`] |
 | Phase 10 ResponsePlan 스키마 확정 + 이중 읽기 어댑터 + 배치 이관 | 대기 (Phase 9 완료 후) |
-| WebLLM 실험 기반 (Worker·capability·싱글턴·timeout/취소·검증 폴백, 실제 대화 미연결) | 현재 작업 |
+| WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -57,80 +57,23 @@
 1. Phase 10 ResponsePlan 스키마 확정 + 이중 읽기 어댑터 구현
 2. 첫 배치 이관 및 동등성 검증
 3. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
-4. **Phase X: LLM Database Refactoring** (WebLLM 연동 전 선행 설계, 아래 상세)
-5. Phase 12~14 WebLLM 단계는 앞선 정규화 완료 후 순차 검토
+4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 10 이후 검토
+5. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
 6. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
 
 ---
 
-### Phase X: LLM Database Refactoring (설계·문서화 단계)
+### WebLLM 의미 보조 구조
 
-**목적**: 향후 WebLLM 연동을 위한 LLM 전용 참조 레이어 설계. 기존 JSON 규칙 기반 대사 시스템은 유지하며, WebLLM이 읽을 보조 데이터베이스를 추가한다. 이 단계에서는 **코드 수정과 기존 DB 개편을 하지 않고 설계와 문서화만 수행**한다.
-
-**핵심 원칙**:
-- 기존 JSON 대사 시스템을 완전히 보존한다 (LLM OFF시 지금과 동일하게 동작)
-- 추천 엔진, Session Flow, Action Resolver 등 기존 로직은 변경하지 않는다
-- 내부 로직이 판단을 내리고, DB는 지식을 저장하며, Context Builder가 필요한 정보만 선별한다
-- WebLLM은 DB 전체를 읽지 않고 Context Builder가 조립한 최소 입력만 받는다
-- 규칙 기반 응답 → Context Builder → WebLLM → Validator → 규칙 기반 fallback 순서로 흐름을 설계한다
-
-**계획 구성 요소**:
-
-**1. LLM 참조 DB (Reference Database)**
-WebLLM 전용 독립 데이터베이스를 신규 설계한다. 포함 항목:
-- service-manual: 바텐더 행동 철학, 응대 지침
-- stance-policy: 주제별 대응 방침 (정치→회피, 혐오→차단, 칭찬→가볍게 등)
-- style-examples: 대화 유형별 1~3개의 고품질 예시 대사
-- forbidden-patterns: 현행 금지 표현 패턴 정리
-- rewrite-rules: 어색한 표현을 캐릭터 말투로 교정하는 규칙
-- locked-facts: WebLLM이 절대 변경해서는 안 되는 정보 정의 (칵테일명, 재료, 추천 이유, 세션 상태 등)
-
-**2. Context Builder (내부 로직)**
-WebLLM 입력을 조립하는 내부 모듈 설계. 책임:
-- 현 route/topic 분석
-- 적절한 stance 결정
-- 관련 매뉴얼·예시·금지표현·locked-facts 검색
-- 압축된 LLM 입력 생성
-
-**3. Stance Policy (화제 대응 방침)**
-- 정치·종교 → 회피
-- 성적 발언 → 불쾌감 표시
-- 혐오 발언 → 대화 차단
-- 위험 주제 → safety route
-- 칭찬 → 가볍게 받기
-- 일상 대화 → 편하게 응대
-LLM이 stance를 자체 판단하지 않고 내부 로직이 지정한 stance를 받도록 설계한다.
-
-**4. Style Examples (말뭉치 참조)**
-대화 유형별 1~3개의 캐릭터 말투 예시를 보관한다. 템플릿이 아니라 참조용으로 사용한다.
-- 카루아 어조, 문장 리듬, 반존대, 유머 수준, 간접적 공감
-
-**5. Hidden Relationship State (비공개 관계 상태)**
-향후 대화 변주를 위한 내부 관계 상태를 설계한다. 사용자에게 노출되지 않는다.
-- 지표: familiarity, trust, playfulness, tension
-- 단일 키워드로 급변하지 않도록 설계
-- 문맥을 통해 자연스럽게 회복 가능하도록 한다
-
-**6. Validator Compatibility**
-DB 구조를 미래 validator가 아래 항목을 검증할 수 있도록 설계한다:
-- 금지 표현 사용 여부
-- 상담가·치료자 말투 감지
-- 사실 생성 여부 (hallucination)
-- 어조 일관성
-- 문장 수 제한
-- stance 일관성
-
-**설계 원칙 요약**:
 | 역할 | 담당 |
-|------|------|
-| 판단 | 내부 로직 (기존 규칙 엔진) |
-| 지식 저장 | LLM 참조 DB |
-| 정보 선별 | Context Builder |
-| 대사 생성 | WebLLM |
-| 결과 검증 | Validator |
-| 최종 fallback | 기존 JSON 대사 시스템 |
+|---|---|
+| intent·Action·안전·추천·세션 판단 | 기존 JSON/FSM/Rule Engine |
+| 대사 블록·농담·비유·마무리 | ResponsePlan DB |
+| topic·stance·block·세션 태그 후보 | WebLLM 구조화 의미 분석 |
+| 허용 목록·confidence 검증 | Semantic Validator |
+| 최종 대사 조립 | Rule Engine |
 
-> **⚠️ 이 단계는 설계와 문서화만 수행한다. 기존 JSON 파일, 추천 엔진, Session Flow, Action Resolver, 게임플레이 로직을 수정하지 않는다.**
+WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 10 전에는 태그를 실제 대사 선택에 반영하지 않는다.
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -141,7 +84,7 @@ DB 구조를 미래 validator가 아래 항목을 검증할 수 있도록 설계
 | ISSUE-004 자동 테스트 부족 | 해결됨 | [`de40d39`] |
 | ISSUE-005 JS 번들 593kB | 해결됨 | [`dcbbda5`] |
 | ISSUE-006 OpenAI/Ollama 잔재 | 해결됨 | [`dcbbda5`] |
-| ISSUE-007 WebLLM 안정성 미검증 | 실험 인프라 재연결, 기본 OFF, 실제 장치 준비·생성 검증 필요 | 현재 작업 |
+| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, 실제 장치 준비·구조화 분석 검증 필요 | 현재 작업 |
 | ISSUE-008 카루아 규칙 계약 | 해결됨 | [`bc23714`] |
 | ISSUE-009 안전 fallback/빈 응답 | 해결됨 | [`2ad13e4`] |
 | ISSUE-010 추천 UI 잔존 | 해결됨 | [`2ad13e4`] |
@@ -152,7 +95,7 @@ DB 구조를 미래 validator가 아래 항목을 검증할 수 있도록 설계
 | ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 해결됨 | 현재 작업 |
 
 ## 향후 방침
-- 실험 준비 인프라는 허용하되 Phase 10~11 완료 전 실제 대화 출력 연결 금지
+- WebLLM 자유대사 생성 금지, Phase 10 전 의미 태그의 ResponsePlan 선택 반영 금지
 - 칵테일 확장 = IBA 우선, 관리자 검증 큐 (DEC-020)
 - 대사 풀 = 입력 경로 선택, FSM=말투·리듬, affectState=표정
 - 스프라이트 작업은 WebLLM보다 우선

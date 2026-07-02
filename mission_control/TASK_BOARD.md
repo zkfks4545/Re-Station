@@ -25,7 +25,7 @@
 | 3 | 애플리케이션 로직 분리 | 완료 |
 | 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
-| 6 | WebLLM 말투 포장 계층 | 실험 인프라 REVIEW, 실제 대화 연결 보류 |
+| 6 | WebLLM 의미 보조 계층 | 구조화 분석 인프라 진행 중, ResponsePlan 선택 연결 보류 |
 | 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
 | 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
@@ -278,9 +278,9 @@
 | 완료 조건 | 모바일 핵심 흐름 완료, 키보드와 포커스 사용 가능. 기존 따뜻한 분위기 유지 + 신비로운 느낌 추가 확인 |
 | 변경 파일 | `src/index.css`, `App.tsx`, `components/entrance/BarExterior.tsx`, `components/bar/BarInterior.tsx`, `components/bar/CocktailCard.tsx`, `components/bar/ChatInput.tsx`, `components/bar/DialogueBox.tsx`, `mission_control/` 관련 문서 일괄 갱신 |
 
-## 단계 6: WebLLM 말투 포장 계층 (실험 기반 재개)
+## 단계 6: WebLLM 의미 보조 계층 (실험 기반 재개)
 
-DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 재개한다. JSON·DB·규칙 로직이 확정한 답안의 말투 포장만 허용하며, 입력 해석과 상태·추천 판단 책임은 포함하지 않는다. 실제 대화 출력 연결은 계속 보류한다.
+DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·규칙 로직이 최종 대사를 만들며, WebLLM은 허용 목록 안의 topic·stance·응답 블록 후보·세션 태그·rapport 힌트만 제안한다. 상태·추천 판단과 실제 대사 생성 책임은 포함하지 않는다.
 
 ### RST-601: WebLLM Worker 기반 구축
 
@@ -289,7 +289,7 @@ DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 �
 | 상태 | REVIEW |
 | 예상 | 3~4일 |
 | 구현 결과 | `@mlc-ai/web-llm` Web Worker, capability 검사, 싱글턴 준비, 기능 플래그, 동적 import, 수동 unload 기반을 추가했다. 실제 대화 출력은 미연결 |
-| 완료 조건 | 접속 직후 capability 검사 뒤 중복 준비 없이 Worker에서 모델 준비하며 렌더링과 JSON 대화를 차단하지 않음 |
+| 완료 조건 | 브라우저 유휴 시간에 capability 검사 뒤 중복 준비 없이 Worker에서 모델을 준비하며 렌더링과 JSON 대화를 차단하지 않음 |
 
 ### RST-602: Qwen 및 Gemma 후보 실행 검증
 
@@ -619,7 +619,7 @@ DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 �
 | 목적 | LLM 사용 여부와 관계없이 대화의 의미, 상태 변경, 다음 행동을 검증 가능한 JSON으로 관리 |
 | 범위 | `intent`, `entities`, `route`, `routeTags`, `statePatch`, `action`, `responseGoal`, `facts`, `forbidden`, `confidence` 최소 계약과 스키마 검증, 규칙 엔진 복구 경로 |
 | JSON 통제 | 대사 전문을 JSON에 저장하지 않고 입력 경로 태그, 공통 의미 계약과 소수 기본 템플릿만 유지. 전체 대화 대신 상태 요약만 WebLLM에 전달 |
-| 역할 경계 | 검색 API는 사실 수집, 코드는 상태·행동 결정과 대사 풀 선택, WebLLM은 검증된 응답 목표와 사실의 말투 포장만 담당 |
+| 역할 경계 | 검색 API는 사실 수집, 코드는 상태·행동 결정과 대사 풀 선택, WebLLM은 구조화 의미 후보만 제안 |
 | 완료 조건 | 규칙 엔진과 선택적 LLM이 동일 계약을 사용하고, 잘못된 JSON은 상태를 변경하지 않으며, WebLLM 없이 기본 템플릿만으로 핵심 흐름을 완료 |
 | 구현 결과 | `validateDialogueTurn`이 intent/action/route/routeTags/statePatch/expression enum, confidence 범위, 필수 문자열과 배열을 검증한다. `buildDialogueTurn`은 응답이 비어도 action별 기본 템플릿으로 복구하며, 안전·퇴장·추천 취소·미등록 칵테일 흐름은 상태 변경 전에 계약 검증을 통과해야 한다. |
 
@@ -672,12 +672,12 @@ DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 �
 | Phase 7 | Dialogue Quality | 완료 | fallback 줄이기, bar/character/story 전용 응답 강화 | story/lore/info 선행 반응, character/story 전용 풀, 누락된 random/unknown/cancel 풀 보강. 템플릿 참조 27개가 모두 유효한 JSON 대사 풀을 갖는 출처 계약 고정. Intent·사실 선택·공개 이력 유지. 434 tests pass |
 | Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
-| Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정 + RapportState v2.0.0 (15 tests). WebLLM 실험 인프라·ResponsePlan 스키마는 밑준비 완료. 530 tests pass |
+| Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정 + RapportState v2.0.0 (15 tests). WebLLM 의미 보조·ResponsePlan 스키마는 밑준비 완료. 527 tests pass |
 | Phase 10 | ResponsePlan DB 리팩토링 | 준비 완료·이관 대기 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | ResponsePlan 타입·구체도 선택·검증·명시적 fallback 계약 완료. 실제 `text-presets.ts`·`dialogues.json` 이관은 미착수 |
 | Phase 11 | 대사 출처 정상화 | 계획 | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 정규화하고 카루아 말투 기준으로 전수 재검수 |
-| Phase 12 | WebLLM 스타일 어댑터 | 계획 | 확정된 일부 대사의 표현만 선택적으로 다듬기 | 추천·주문·웰컴 대사만 허용. 추천 결과·칵테일 ID·추천 이유·세션 상태 변경 금지. 실패 시 규칙 기반 원문 사용 |
-| Phase 13 | WebLLM 일반 대화 | 계획 | `general-chat` 표현에만 WebLLM 사용 | Action 생성과 Session 변경 금지, 1~3문장 제한, 검증 실패 시 `dialogues.json` 폴백 |
-| Phase 14 | WebLLM 이야기 표현 보정 | 계획 | 내부 DB 사실을 유지한 채 이야기 문구만 개선 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. lore·재료·효과 창작 금지. `lockedFacts` 검증 도입 |
+| Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 비차단 분석·허용 목록 검증·세션 태그 메모리 저장 완료. ResponsePlan 선택 연결은 Phase 10 이후 |
+| Phase 13 | 의미 태그 기반 ResponsePlan 선택 보조 | 계획 | 검증된 태그와 block 후보로 기존 JSON 블록 조합 다양화 | WebLLM 힌트가 없거나 충돌하면 기존 규칙 선택 유지. Action·Session 변경 금지 |
+| Phase 14 | 이야기 주제 의미 분류 | 계획 | 내부 DB 사실을 바꾸지 않고 story topic과 공개할 block 종류만 제안 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. 자유문장·사실·재료·효과 생성 금지 |
 | Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
 
 ### Phase 9~15 후속 계획 계약
@@ -712,25 +712,24 @@ DEC-015와 DEC-025에 따라 준비·검증·폴백 기반만 실험적으로 �
 - 동일 의미의 완성 대사가 여러 출처에 중복 저장되지 않게 한다.
 - 모든 대사를 카루아 금지·권장 말투 계약으로 다시 검수한다.
 
-#### Phase 12: WebLLM 스타일 어댑터
+#### Phase 12: WebLLM 의미 보조
 
-- WebLLM은 추천·주문·웰컴 대사의 표현을 다듬는 선택적 스타일 어댑터로만 사용한다.
-- 추천 결과, 칵테일 ID, 추천 이유, 세션 상태는 변경할 수 없다.
-- 어댑터 오류, 시간 초과, 검증 실패 시 규칙 기반 `fallbackText`를 그대로 사용한다.
+- WebLLM은 topic·stance·ResponsePlan block 후보·세션 태그·rapport 힌트를 구조화 JSON으로만 제안한다.
+- 최종 문장을 생성하지 않으며 추천 결과, 칵테일 ID, 추천 이유, Action, 세션 상태를 변경할 수 없다.
+- 분석 오류, 시간 초과, 검증 실패는 무시하고 JSON/FSM 흐름을 그대로 사용한다.
 
-#### Phase 13: WebLLM 일반 대화
+#### Phase 13: 의미 태그 기반 ResponsePlan 선택 보조
 
-- WebLLM 적용 범위는 `general-chat`으로 제한한다.
-- Action을 생성하거나 Session을 변경할 수 없다.
-- 최종 응답은 1~3문장으로 제한한다.
-- Character 검증 실패 시 `dialogues.json` 응답으로 복구한다.
+- 검증된 세션 태그와 block 후보는 이후 턴의 ResponsePlan 선택 힌트로만 사용한다.
+- 힌트가 없거나 규칙과 충돌하면 기존 JSON 선택을 유지한다.
+- WebLLM 분석 때문에 현재 응답을 기다리게 하지 않는다.
 
-#### Phase 14: WebLLM 이야기 표현 보정
+#### Phase 14: 이야기 주제 의미 분류
 
 - 내부 칵테일 DB를 단일 사실 출처로 유지한다.
-- `talkingPoints`, `lore`, `recipe`, `taste` 선택은 내부 DB와 규칙 로직이 담당한다.
-- WebLLM은 lore, 재료, 효과를 새로 만들 수 없으며 문구만 개선한다.
-- 원문 사실이 결과에서 보존됐는지 확인하는 `lockedFacts` 검증을 도입한다.
+- WebLLM은 이야기 topic과 사용할 block 종류만 제안한다.
+- `talkingPoints`, `lore`, `recipe`, `taste`와 공개 이력은 내부 DB와 규칙 로직이 결정한다.
+- lore, 재료, 효과, 레시피, 최종 문장 생성은 금지한다.
 
 #### Phase 15: 최종 캐릭터 QA
 

@@ -11,11 +11,10 @@
  * @DEV-ONLY - 제거 대상 컴포넌트
  */
 
-import { useMemo } from 'react'
-import { getRapportRange } from '../../lib/relationship/index.js'
+import { getRapportRange, createInitialRapport } from '../../lib/relationship/index.js'
 
 interface RapportDebugDisplayProps {
-  rapport: number
+  rapport?: number
 }
 
 const RANGE_LABELS: Record<string, string> = {
@@ -32,22 +31,23 @@ const RANGE_COLORS: Record<string, string> = {
   'very-high': '#3b82f6',
 }
 
-export function RapportDebugDisplay({ rapport }: RapportDebugDisplayProps) {
+export default function RapportDebugDisplay({ rapport }: RapportDebugDisplayProps) {
+  const current = rapport ?? createInitialRapport()
+  const range = getRapportRange(current)
   if (!import.meta.env.DEV) return null
-  const range = useMemo(() => getRapportRange(rapport), [rapport])
   const label = RANGE_LABELS[range]
   const color = RANGE_COLORS[range]
 
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: 8,
-        left: 8,
-        padding: '6px 12px',
-        background: 'rgba(0,0,0,0.8)',
+        position: 'absolute',
+        bottom: 4,
+        left: 4,
+        padding: '4px 10px',
+        background: 'rgba(0,0,0,0.75)',
         color: '#fff',
-        fontSize: 12,
+        fontSize: 11,
         fontFamily: 'monospace',
         borderRadius: 4,
         zIndex: 9999,
@@ -71,7 +71,7 @@ export function RapportDebugDisplay({ rapport }: RapportDebugDisplayProps) {
         >
           <div
             style={{
-              width: `${rapport}%`,
+              width: `${current}%`,
               height: '100%',
               background: color,
               borderRadius: 3,
@@ -80,7 +80,7 @@ export function RapportDebugDisplay({ rapport }: RapportDebugDisplayProps) {
           />
         </div>
         <span style={{ color, fontWeight: 'bold' }}>
-          {rapport}
+          {current}
         </span>
         <span style={{ color: '#999' }}>
           {label}

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { readWebLLMFeatureFlags } from './config.js'
 
 describe('WebLLM 기능 플래그 기본값', () => {
-  it('PRELOAD는 기본 ON, RESPONSE는 기본 OFF다', () => {
+  it('PRELOAD는 기본 ON, SEMANTIC은 기본 OFF다', () => {
     expect(readWebLLMFeatureFlags({})).toEqual({
       preloadEnabled: true,
-      responseEnabled: false,
+      semanticEnabled: false,
     })
   })
 
