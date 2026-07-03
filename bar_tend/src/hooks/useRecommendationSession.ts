@@ -15,7 +15,7 @@ import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pip
 import {
   formatExplicitCocktailReply,
   formatLoreBasedOrderReply,
-  formatRandomRecommendationReply,
+  formatRandomRecommendationResponse,
   formatRecommendationReply,
   formatSecretMenuOrderReply,
   selectRecommendationOpening,
@@ -86,11 +86,13 @@ export function useRecommendationSession() {
     const selectedOpening = selectRecommendationOpening(decision, recentDialogueLineIds)
     setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
     resetRecommendation()
+    const formatted = formatRandomRecommendationResponse(cocktail, selectedOpening.text)
     return assembleRecommendationResult(
-      formatRandomRecommendationReply(cocktail, selectedOpening.text),
+      formatted.text,
       'playful',
       cocktail,
       decision,
+      formatted.expression,
     )
   }, [recentDialogueLineIds, resetRecommendation])
 
@@ -261,10 +263,12 @@ function assembleRecommendationResult(
   tone: ResponseTone,
   cocktail: CocktailData | null,
   decision: RecommendationDecision | null,
+  preferredExpression?: Expression,
 ): RecommendationResult {
   const assembled = assembleResponse({
     text,
     tone,
+    preferredExpression,
     character: {
       intent: decision?.dialogue.route ?? 'recommendation-query',
       recommendationExpected: true,

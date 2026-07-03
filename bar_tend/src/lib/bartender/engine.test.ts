@@ -18,6 +18,10 @@ const MOOD_TIRED_TEXTS = (dialoguesData as DialoguesData).categories['mood-tired
   .map((line) => line.text)
 const BAR_INTRO_TEXTS = (dialoguesData as DialoguesData).categories['bar-intro'].lines
   .map((line) => line.text)
+const CHARACTER_QUERY_TEXTS = (dialoguesData as DialoguesData).categories['character-query'].lines
+  .map((line) => line.text)
+const SIESTA_MENTION_TEXTS = (dialoguesData as DialoguesData).categories['siesta-mention'].lines
+  .map((line) => line.text)
 
 function expectKahluaBoundary(response: string) {
   for (const forbidden of DIRECT_COMFORT_OR_ALCOHOL_SOLUTION) {
@@ -54,6 +58,43 @@ describe('neutral runtime dialogue contract', () => {
     const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
 
     expect(BAR_INTRO_TEXTS).toContain(response)
+  })
+
+  it.each([
+    '여긴 뭐죠',
+    '여긴 뭐하는 곳인가요',
+    '여긴 뭐하는 바인가요',
+    'Re:Station이 뭐예요',
+  ])('routes bar-setting variant "%s" to bar-intro', (input) => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('bar-setting')
+    expect(BAR_INTRO_TEXTS).toContain(response)
+  })
+
+  it.each([
+    '당신은 누구예요',
+    '카루아는 뭐하는 사람이에요',
+    '여기 직원은 누구예요',
+  ])('routes character variant "%s" to character-query', (input) => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('character-query')
+    expect(CHARACTER_QUERY_TEXTS).toContain(response)
+  })
+
+  it('keeps Siesta identity questions on the dedicated character path', () => {
+    const input = '시에스타는 누구예요'
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('siesta-setting')
+    expect(SIESTA_MENTION_TEXTS).toContain(response)
   })
 
   it('handles real venue questions as virtual bar limitations', () => {

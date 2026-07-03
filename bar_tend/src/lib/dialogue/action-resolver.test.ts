@@ -129,6 +129,27 @@ describe('dialogue action resolver', () => {
     )).toEqual({ type: 'recommend', mode: 'preference' })
   })
 
+  it.each([
+    { input: '아무거나 추천해줘', activeRecommendationSession: false },
+    { input: '랜덤으로 골라줘', activeRecommendationSession: false },
+    { input: '맡길게', activeRecommendationSession: true },
+    { input: '추천해줘', activeRecommendationSession: false },
+  ])('keeps "$input" on the existing Recommendation Action', ({ input, activeRecommendationSession }) => {
+    const classified = classifier.classify(input, {
+      ...dialogueContext,
+      allowRecommendationRoutes: true,
+      activeRecommendationSession,
+    })
+    const action = resolveDialogueAction(classified, createConversationContext())
+
+    expect(action.type).toBe('recommend')
+    expect(classified.intent).not.toBe('order-cocktail')
+    expect(classified.intent).not.toBe('story-query')
+    expect(classified.intent).not.toBe('lore-query')
+    expect(classified.intent).not.toBe('cocktail-info-query')
+    expect(classified.intent).not.toBe('recommendation-cancel')
+  })
+
   it('keeps feedback as a response instead of starting an unrelated action', () => {
     const classified = classifier.classify('맛있어요', dialogueContext)
 

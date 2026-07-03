@@ -262,9 +262,9 @@ export class IntentClassifier {
     if (kf(['별로', '마음에 안 들어', '실망', '기대 이하', '못하네']).test(lower)) return ['rude-talk']
 
     if (kf(['Re:Station', '리스테이션', '처음 왔', '처음이야', '이게 무슨 곳']).test(lower)) return ['bar-setting']
-    if (/(?:여기|여긴|여기가)\s*(?:뭐\s*하는\s*(?:곳|데)|어디)/.test(lower)) return ['bar-setting']
+    if (/(?:여기|여긴|여기가)\s*(?:뭐(?:죠|예요|인가요)?[?.!]*$|뭐\s*하는\s*(?:곳|데|바)|어디)/.test(lower)) return ['bar-setting']
     if (kf(['시에스타', '사장님', '사장']).test(lower)) return ['siesta-setting']
-    if (/당신은\s*(?:그럼|누구|뭐|뭘)|넌\s*(?:뭐|누구)|너는\s*(?:누구|뭐)|바텐더(?:야|니|예요|인가)|네가\s*(?:누구|뭐|뭔데)/.test(lower)) return ['character-query']
+    if (/당신은\s*(?:그럼|누구|뭐|뭘)|넌\s*(?:뭐|누구)|너는\s*(?:누구|뭐)|카루아는?\s*(?:누구|뭐\s*하는)|(?:여기\s*)?직원은?\s*누구|바텐더(?:야|니|예요|인가)|네가\s*(?:누구|뭐|뭔데)/.test(lower)) return ['character-query']
     if (kf(['분위기', '음악', '조명', '바 좋', '좋은 곳', '멋지', '예쁘', '아늑']).test(lower)) return ['bar-atmosphere']
     if (kf(['비 오', '비가', '눈 오', '춥', '더워', '날씨', '바람', '습하']).test(lower)) return ['weather-talk']
     if (kf(['모르겠', '뭐하지', '고민', '아무 생각', '그냥 왔', '딱히']).test(lower)) return ['uncertain-talk']

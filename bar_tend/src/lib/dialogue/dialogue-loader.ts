@@ -1,13 +1,24 @@
 import dialoguesData from '../../data/dialogues.json'
 import type { DialogueLine, DialoguesData, Expression } from '../../types.js'
+import { pickResponsePlanDialogue } from './response-plan-adapter.js'
 
 const typedDialoguesData = dialoguesData as DialoguesData
 
 export function pickDialogue(category: string): DialogueLine | null {
   const cat = typedDialoguesData.categories[category]
-  if (!cat?.lines?.length) return null
-  const lines = cat.lines as DialogueLine[]
-  return lines[Math.floor(Math.random() * lines.length)]
+  const lines = (cat?.lines ?? []) as DialogueLine[]
+  return pickDialogueFromSources(category, lines)
+}
+
+export function pickDialogueFromSources(
+  category: string,
+  lines: readonly DialogueLine[],
+  random: () => number = Math.random,
+): DialogueLine | null {
+  const migrated = pickResponsePlanDialogue(category, lines, random)
+  if (migrated) return migrated
+  if (lines.length === 0) return null
+  return lines[Math.floor(random() * lines.length)]
 }
 
 export function pickDialogueText(category: string, fallback?: string): string {

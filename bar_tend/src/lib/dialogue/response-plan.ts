@@ -9,13 +9,18 @@ export type ResponsePlanBlockKind =
   | 'answer'
   | 'goodbye'
 
+export interface ResponsePlanLine {
+  text: string
+  expression: Expression
+}
+
 export interface ResponsePlan {
   id: string
   intent: DialogueParagraphIntent
   speaker: DialogueSpeaker
   state?: string
   request?: string
-  blocks: Partial<Record<ResponsePlanBlockKind, readonly string[]>>
+  blocks: Partial<Record<ResponsePlanBlockKind, readonly ResponsePlanLine[]>>
   fallbackText: string
   expression?: Expression
 }
@@ -54,7 +59,18 @@ export function validateResponsePlan(plan: ResponsePlan): ResponsePlanValidation
   if (blockEntries.length === 0) errors.push('응답 블록이 하나도 없습니다.')
   for (const [kind, lines] of blockEntries) {
     if (!lines || lines.length === 0) errors.push(`${kind} 블록이 비어 있습니다.`)
-    if (lines?.some((line) => !line.trim())) errors.push(`${kind} 블록에 빈 문장이 있습니다.`)
+    for (const line of lines ?? []) {
+      if (!line || typeof line !== 'object') {
+        errors.push(`${kind} 블록에는 ResponsePlanLine 객체만 사용할 수 있습니다.`)
+        continue
+      }
+      if (typeof line.text !== 'string' || !line.text.trim()) {
+        errors.push(`${kind} 블록에 빈 문장이 있습니다.`)
+      }
+      if (typeof line.expression !== 'string' || !line.expression.trim()) {
+        errors.push(`${kind} 블록 문장에 expression이 없습니다.`)
+      }
+    }
   }
   return { valid: errors.length === 0, errors }
 }

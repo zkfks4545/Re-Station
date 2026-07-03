@@ -1,4 +1,4 @@
-import type { CocktailData } from '../../types.js'
+import type { CocktailData, Expression } from '../../types.js'
 import type {
   AffectState,
   DialogueState,
@@ -7,6 +7,8 @@ import type {
   RecommendationRouteTag,
 } from '../../types/recommendation.js'
 import { renderParagraphPreset } from '../dialogue/text-presets.js'
+import { renderRandomPickResponsePlan } from '../dialogue/response-plan-renderer.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
 
 interface RecommendationOpeningLine {
   id: string
@@ -209,7 +211,25 @@ export function formatRandomRecommendationReply(
   cocktail: CocktailData,
   opening = '그럼 제가 하나 골라볼게요.',
 ): string {
-  return `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`
+  return formatRandomRecommendationResponse(cocktail, opening).text
+}
+
+export function formatRandomRecommendationResponse(
+  cocktail: CocktailData,
+  opening = '그럼 제가 하나 골라볼게요.',
+  options: { plans?: readonly ResponsePlan[] } = {},
+): { text: string; expression: Expression } {
+  const talkingPoint = selectCocktailTalkingPoint(cocktail)
+  const fallback = {
+    text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${talkingPoint}`,
+    expression: 'smirk' as const,
+  }
+  return renderRandomPickResponsePlan(
+    opening,
+    cocktail.name,
+    talkingPoint,
+    options.plans,
+  ) ?? fallback
 }
 
 export function formatRecommendationReply(

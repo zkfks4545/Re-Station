@@ -11,7 +11,7 @@ const plans: ResponsePlan[] = [
     id: 'karua.recommend.default',
     intent: 'recommend',
     speaker: 'karua',
-    blocks: { reaction: ['조건은 잡혔네요.'] },
+    blocks: { reaction: [{ text: '조건은 잡혔네요.', expression: 'talk' }] },
     fallbackText: '한 잔 골라볼게요.',
   },
   {
@@ -20,7 +20,7 @@ const plans: ResponsePlan[] = [
     speaker: 'karua',
     state: 'tired',
     request: 'light',
-    blocks: { reaction: ['연료등이 켜졌네요.'] },
+    blocks: { reaction: [{ text: '연료등이 켜졌네요.', expression: 'thinking' }] },
     fallbackText: '가벼운 한 잔으로 보죠.',
   },
 ]
@@ -57,6 +57,34 @@ describe('Phase 10 ResponsePlan 선행 계약', () => {
       blocks: {},
       fallbackText: '',
     }).valid).toBe(false)
+  })
+
+  it('expression이 없는 ResponsePlanLine을 거부한다', () => {
+    const invalid = {
+      ...plans[0],
+      blocks: { reaction: [{ text: '표정이 빠진 문장입니다.' }] },
+    } as unknown as ResponsePlan
+
+    expect(validateResponsePlan(invalid)).toEqual({
+      valid: false,
+      errors: ['reaction 블록 문장에 expression이 없습니다.'],
+    })
+  })
+
+  it('문자열 line을 타입과 runtime validation에서 허용하지 않는다', () => {
+    const compileTimeContract: ResponsePlan = {
+      ...plans[0],
+      blocks: {
+        // @ts-expect-error ResponsePlan blocks require ResponsePlanLine objects.
+        reaction: ['문자열 line은 허용하지 않습니다.'],
+      },
+    }
+    const invalid = compileTimeContract as unknown as ResponsePlan
+
+    expect(validateResponsePlan(invalid)).toEqual({
+      valid: false,
+      errors: ['reaction 블록에는 ResponsePlanLine 객체만 사용할 수 있습니다.'],
+    })
   })
 })
 
