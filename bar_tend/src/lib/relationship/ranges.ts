@@ -7,10 +7,10 @@ function loadRanges(): RangeConfig {
 }
 
 function rangeForValue(value: number, ranges: RangeConfig): RapportRange {
-  if (value >= ranges.veryHigh.min) return 'very-high'
-  if (value >= ranges.high.min) return 'high'
+  if (value >= ranges.close.min) return 'close'
+  if (value >= ranges.warm.min) return 'warm'
   if (value >= ranges.normal.min) return 'normal'
-  return 'low'
+  return 'distant'
 }
 
 export function getRapportRange(value: number): RapportRange {

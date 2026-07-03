@@ -18,17 +18,17 @@ interface RapportDebugDisplayProps {
 }
 
 const RANGE_LABELS: Record<string, string> = {
-  low: '낮음',
+  distant: '거리 있음',
   normal: '보통',
-  high: '높음',
-  'very-high': '매우 높음',
+  warm: '따뜻함',
+  close: '가까움',
 }
 
 const RANGE_COLORS: Record<string, string> = {
-  low: '#ef4444',
+  distant: '#ef4444',
   normal: '#f59e0b',
-  high: '#22c55e',
-  'very-high': '#3b82f6',
+  warm: '#22c55e',
+  close: '#3b82f6',
 }
 
 export default function RapportDebugDisplay({ rapport }: RapportDebugDisplayProps) {
@@ -71,7 +71,7 @@ export default function RapportDebugDisplay({ rapport }: RapportDebugDisplayProp
         >
           <div
             style={{
-              width: `${current}%`,
+              width: `${current * 10}%`,
               height: '100%',
               background: color,
               borderRadius: 3,

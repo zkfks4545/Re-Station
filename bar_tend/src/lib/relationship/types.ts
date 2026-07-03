@@ -1,14 +1,14 @@
-export type RapportRange = 'low' | 'normal' | 'high' | 'very-high'
+export type RapportRange = 'distant' | 'normal' | 'warm' | 'close'
 
 export const RAPPORT_RANGES: readonly RapportRange[] = [
-  'low',
+  'distant',
   'normal',
-  'high',
-  'very-high',
+  'warm',
+  'close',
 ]
 
 export const RAPPORT_MIN = 0
-export const RAPPORT_MAX = 100
+export const RAPPORT_MAX = 10
 
 export interface RangeDefinition {
   min: number
@@ -16,10 +16,10 @@ export interface RangeDefinition {
 }
 
 export interface RangeConfig {
-  low: RangeDefinition
+  distant: RangeDefinition
   normal: RangeDefinition
-  high: RangeDefinition
-  veryHigh: RangeDefinition
+  warm: RangeDefinition
+  close: RangeDefinition
 }
 
 export interface UpdateRule {

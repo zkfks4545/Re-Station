@@ -1,101 +1,114 @@
 import { describe, expect, it } from 'vitest'
 import {
-  createInitialRapport,
-  clampRapport,
   applyDelta,
-  naturalDecay,
-  updateRapport,
+  clampRapport,
+  createInitialRapport,
   createUpdateTracker,
   getRapportRange,
+  naturalDecay,
   rangeIndex,
   selectVariation,
+  updateRapport,
 } from './index.js'
 import type { VariationCategory } from './index.js'
 
+function update(intent: string, rapport = 4, turn = 1) {
+  return updateRapport(rapport, { intent, sessionTurnCount: turn }, createUpdateTracker())
+}
+
 describe('RapportState', () => {
-  it('초기값은 20이다', () => {
-    expect(createInitialRapport()).toBe(20)
+  it('초기값은 4다', () => {
+    expect(createInitialRapport()).toBe(4)
   })
 
-  it('clampRapport는 0~100 범위를 유지한다', () => {
+  it('0~10 정수 범위로 반올림하고 clamp한다', () => {
     expect(clampRapport(-10)).toBe(0)
-    expect(clampRapport(150)).toBe(100)
-    expect(clampRapport(50)).toBe(50)
-    expect(clampRapport(50.37)).toBe(50.37)
+    expect(clampRapport(15)).toBe(10)
+    expect(clampRapport(5.49)).toBe(5)
+    expect(clampRapport(5.5)).toBe(6)
   })
 
-  it('applyDelta가 값을 증감한다', () => {
-    expect(applyDelta(50, 10)).toBe(60)
-    expect(applyDelta(50, -10)).toBe(40)
-    expect(applyDelta(0, -10)).toBe(0)
-    expect(applyDelta(100, 10)).toBe(100)
-  })
-
-  it('naturalDecay가 값을 서서히 감소시킨다', () => {
-    const result = naturalDecay(50)
-    expect(result).toBe(49.7)
+  it('delta와 decay 뒤에도 정수 범위를 유지한다', () => {
+    expect(applyDelta(9, 2)).toBe(10)
+    expect(applyDelta(1, -2)).toBe(0)
+    expect(naturalDecay(4)).toBe(4)
   })
 })
 
 describe('RapportRange', () => {
-  it('수치에 맞는 구간을 반환한다', () => {
-    expect(getRapportRange(10)).toBe('low')
-    expect(getRapportRange(45)).toBe('normal')
-    expect(getRapportRange(70)).toBe('high')
-    expect(getRapportRange(90)).toBe('very-high')
+  it('새 구간 경계를 정확히 매핑한다', () => {
+    expect(getRapportRange(0)).toBe('distant')
+    expect(getRapportRange(2)).toBe('distant')
+    expect(getRapportRange(3)).toBe('normal')
+    expect(getRapportRange(5)).toBe('normal')
+    expect(getRapportRange(6)).toBe('warm')
+    expect(getRapportRange(8)).toBe('warm')
+    expect(getRapportRange(9)).toBe('close')
+    expect(getRapportRange(10)).toBe('close')
   })
 
-  it('rangeIndex가 올바른 인덱스를 반환한다', () => {
-    expect(rangeIndex('low')).toBe(0)
+  it('rangeIndex가 distant → normal → warm → close 순서를 유지한다', () => {
+    expect(rangeIndex('distant')).toBe(0)
     expect(rangeIndex('normal')).toBe(1)
-    expect(rangeIndex('high')).toBe(2)
-    expect(rangeIndex('very-high')).toBe(3)
+    expect(rangeIndex('warm')).toBe(2)
+    expect(rangeIndex('close')).toBe(3)
   })
 })
 
 describe('updateRapport', () => {
-  it('좋아하는 맥락에서 rapport가 증가한다', () => {
-    const tracker = createUpdateTracker()
-    const { rapport } = updateRapport(20, { intent: 'cocktail-order', sessionTurnCount: 1 }, tracker)
-    expect(rapport).toBeGreaterThan(20)
+  it.each([
+    'general-chat',
+    'taste-statement',
+    'mood-expression',
+    'cocktail-order',
+    'story-query',
+    'recipe-query',
+    'positive-feedback',
+  ])('%s는 +1을 적용한다', (intent) => {
+    expect(update(intent)).toEqual({ rapport: 5, delta: 1 })
   })
 
-  it('싫어하는 맥락에서 rapport가 감소한다', () => {
-    const tracker = createUpdateTracker()
-    const { rapport } = updateRapport(50, { intent: 'rude-talk', sessionTurnCount: 1 }, tracker)
-    expect(rapport).toBeLessThan(50)
+  it.each(['welcome-positive', 'secret-event-success'])('%s는 +2를 적용한다', (intent) => {
+    expect(update(intent)).toEqual({ rapport: 6, delta: 2 })
   })
 
-  it('반복 행동이 누적된다', () => {
-    const tracker = createUpdateTracker()
-    const ctx = { intent: 'cocktail-order' as const, sessionTurnCount: 1 }
-    const r1 = updateRapport(20, { ...ctx }, tracker)
-    const r2 = updateRapport(r1.rapport, { ...ctx, sessionTurnCount: 2 }, tracker)
-    const r3 = updateRapport(r2.rapport, { ...ctx, sessionTurnCount: 3 }, tracker)
-    expect(r3.rapport).toBeGreaterThan(r1.rapport)
+  it.each([
+    'recommendation-cancel',
+    'negative-feedback',
+    'confused',
+    'minor-rude',
+  ])('%s는 -1을 적용한다', (intent) => {
+    expect(update(intent)).toEqual({ rapport: 3, delta: -1 })
   })
 
-  it('최대 횟수 제한 이후 규칙 델타가 적용되지 않는다', () => {
+  it.each(['severe-rude', 'troll-disruptive'])('%s는 -2를 적용한다', (intent) => {
+    expect(update(intent)).toEqual({ rapport: 2, delta: -2 })
+  })
+
+  it('SafetyLocked용 safety-alert는 Rapport delta가 아니다', () => {
+    expect(update('safety-alert')).toEqual({ rapport: 4, delta: 0 })
+  })
+
+  it('max-count 보호를 유지한다', () => {
     const tracker = createUpdateTracker()
-    const ctx = { intent: 'cocktail-order' as const, sessionTurnCount: 1 }
-    for (let i = 1; i <= 5; i++) {
-      updateRapport(20, { ...ctx, sessionTurnCount: i }, tracker)
+    let rapport = 0
+    for (let turn = 1; turn <= 6; turn += 1) {
+      rapport = updateRapport(rapport, { intent: 'general-chat', sessionTurnCount: turn }, tracker).rapport
     }
-    const { delta } = updateRapport(20, { ...ctx, sessionTurnCount: 99 }, tracker)
-    expect(delta).toBeLessThanOrEqual(0.5)
+    expect(updateRapport(rapport, { intent: 'general-chat', sessionTurnCount: 7 }, tracker)).toEqual({
+      rapport: 6,
+      delta: 0,
+    })
   })
 
-  it('cooldown이 적용된다', () => {
+  it('cooldown 보호를 유지한다', () => {
     const tracker = createUpdateTracker()
-    const ctx = { intent: 'rude-talk' as const, sessionTurnCount: 1 }
-    const r1 = updateRapport(50, { ...ctx }, tracker)
-    expect(r1.delta).toBeLessThan(-1.5)
-
-    const r2 = updateRapport(r1.rapport, { ...ctx, sessionTurnCount: 2 }, tracker)
-    expect(r2.delta).toBeGreaterThan(-1.5)
-
-    const r3 = updateRapport(r2.rapport, { ...ctx, sessionTurnCount: 3 }, tracker)
-    expect(r3.delta).toBeGreaterThan(-1.5)
+    const first = updateRapport(5, { intent: 'recommendation-cancel', sessionTurnCount: 1 }, tracker)
+    const blocked = updateRapport(first.rapport, { intent: 'recommendation-cancel', sessionTurnCount: 2 }, tracker)
+    const resumed = updateRapport(blocked.rapport, { intent: 'recommendation-cancel', sessionTurnCount: 3 }, tracker)
+    expect(first.delta).toBe(-1)
+    expect(blocked.delta).toBe(0)
+    expect(resumed.delta).toBe(-1)
   })
 })
 
@@ -104,37 +117,31 @@ describe('dialogueSelectVariation', () => {
     {
       category: 'greeting',
       variations: [
-        { rangeMin: 'low', rangeMax: 'low', text: '어서 오세요.', expression: 'talk' },
-        { rangeMin: 'low', rangeMax: 'normal', text: '어서 오세요, 기다리고 있었어요.', expression: 'smirk' },
-        { rangeMin: 'normal', rangeMax: 'very-high', text: '또 오셨네요! 오늘은 뭐 드실래요?', expression: 'smirk' },
+        { rangeMin: 'distant', rangeMax: 'distant', text: '어서 오세요.', expression: 'talk' },
+        { rangeMin: 'distant', rangeMax: 'normal', text: '어서 오세요. 기다리고 있었어요.', expression: 'smirk' },
+        { rangeMin: 'normal', rangeMax: 'close', text: '또 오셨네요! 오늘은 뭐 드실래요?', expression: 'smirk' },
       ],
     },
   ]
 
-  it('rapport low에 맞는 변이를 선택한다', () => {
-    const result = selectVariation(categories, 'greeting', 10, 'fixed-seed')
-    expect(
-      result?.text === '어서 오세요.' || result?.text === '어서 오세요, 기다리고 있었어요.',
-    ).toBe(true)
+  it('distant 구간 변이를 선택한다', () => {
+    const result = selectVariation(categories, 'greeting', 1, 'fixed-seed')
+    expect(['어서 오세요.', '어서 오세요. 기다리고 있었어요.']).toContain(result?.text)
   })
 
-  it('rapport very-high는 가장 친밀한 변이를 선택한다', () => {
-    const result = selectVariation(categories, 'greeting', 90, 'fixed-seed')
-    expect(result?.text).toBe('또 오셨네요! 오늘은 뭐 드실래요?')
+  it('close 구간 변이를 선택한다', () => {
+    expect(selectVariation(categories, 'greeting', 10, 'fixed-seed')?.text)
+      .toBe('또 오셨네요! 오늘은 뭐 드실래요?')
   })
 
   it('존재하지 않는 카테고리는 null을 반환한다', () => {
-    const result = selectVariation(categories, 'nonexistent', 50)
-    expect(result).toBeNull()
+    expect(selectVariation(categories, 'nonexistent', 4)).toBeNull()
   })
 })
 
-describe('추천/게임플레이 무영향', () => {
-  it('rapport 갱신이 추천 로직과 독립적이다', () => {
-    const tracker = createUpdateTracker()
-    const { rapport } = updateRapport(20, { intent: 'cocktail-order', sessionTurnCount: 1 }, tracker)
-    expect(typeof rapport).toBe('number')
-    const coords = { sweetness: 0.5, sourness: 0.3, alcohol_strength: 0.4, fizz: 0.2 }
-    expect(Object.keys(coords)).toEqual(['sweetness', 'sourness', 'alcohol_strength', 'fizz'])
+describe('Rapport 경계 독립성', () => {
+  it('Rapport 갱신은 입력 context와 tracker 외의 도메인 상태를 받거나 반환하지 않는다', () => {
+    const result = update('general-chat')
+    expect(Object.keys(result).sort()).toEqual(['delta', 'rapport'])
   })
 })

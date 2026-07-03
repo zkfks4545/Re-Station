@@ -562,7 +562,7 @@ export function useRestationController() {
     resolveRecommendation,
   ])
 
-  const mapIntentToRapportContext = useCallback((intent: IntentType): string => {
+  const mapIntentToRapportContext = useCallback((intent: string): string => {
     const MAP: Partial<Record<IntentType, string>> = {
       'order-cocktail': 'cocktail-order',
       'order-cocktail-mixed': 'cocktail-order',
@@ -571,10 +571,10 @@ export function useRestationController() {
       'taste-query': 'taste-statement',
       'uncertain-talk': 'general-chat',
     }
-    return MAP[intent] ?? intent
+    return MAP[intent as IntentType] ?? intent
   }, [])
 
-  const applyRapportUpdate = useCallback((intent: IntentType) => {
+  const applyRapportUpdate = useCallback((intent: string) => {
     rapportTurnRef.current += 1
     const ctx = mapIntentToRapportContext(intent)
     const result = updateRapport(rapportRef.current, {
@@ -600,7 +600,17 @@ export function useRestationController() {
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
       const dialogueResolution = resolveDialogueInput(text, nextMessages, forcedSessionMode)
       const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
-      applyRapportUpdate(classifiedIntent.intent)
+      const handlesWelcomeFeedback = welcomeDrinkFeedbackPending
+        && shouldHandleWelcomeDrinkFeedback(routeResult.route, text)
+      const welcomeFeedback = handlesWelcomeFeedback
+        ? formatWelcomeDrinkFeedbackReply(text)
+        : null
+      const rapportContext = welcomeFeedback
+        ? (welcomeFeedback.expression === 'smirk' ? 'welcome-positive' : 'negative-feedback')
+        : (dialogueResolution.reaction?.type ?? mapIntentToRapportContext(classifiedIntent.intent))
+      const deferRapportUntilServe = rapportContext === 'cocktail-order'
+        || routeResult.secretPassphrase !== undefined
+      if (!deferRapportUntilServe) applyRapportUpdate(rapportContext)
       void experimentalSemanticAssistant.analyze({
         input: text,
         route: classifiedIntent.intent,
@@ -619,9 +629,9 @@ export function useRestationController() {
         })
       }
 
-      if (welcomeDrinkFeedbackPending && shouldHandleWelcomeDrinkFeedback(routeResult.route, text)) {
+      if (welcomeDrinkFeedbackPending && handlesWelcomeFeedback) {
         dispatchDialogueSession({ type: 'welcome-resolved' })
-        const feedback = formatWelcomeDrinkFeedbackReply(text)
+        const feedback = welcomeFeedback ?? formatWelcomeDrinkFeedbackReply(text)
         bartenderReply(feedback.text, feedback.expression)
         return
       }
@@ -770,6 +780,11 @@ export function useRestationController() {
           let afterCocktailRevealed: (() => void) | undefined
 
           if (cocktail) {
+            if (routeResult.secretPassphrase !== undefined) {
+              applyRapportUpdate('secret-event-success')
+            } else if (deferRapportUntilServe) {
+              applyRapportUpdate('cocktail-order')
+            }
             const servingPlan = createServingPlan({
               cocktail,
               currentPhase: sessionPhase,
@@ -844,6 +859,7 @@ export function useRestationController() {
       executeAction,
       ingestUserMessage,
       lastServedCocktail,
+      mapIntentToRapportContext,
       messages,
       moveOutsideAfterDelay,
       resetRecommendation,

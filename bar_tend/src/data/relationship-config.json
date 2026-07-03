@@ -1,23 +1,23 @@
 {
-  "version": "2.0.0",
-  "description": "Re:Station Hidden RapportState 설정 — 카루아 대화 온도를 위한 단일 축 내부값",
-  "initial": 20,
+  "version": "3.0.0",
+  "description": "Re:Station Hidden RapportState configuration — hidden integer relationship temperature",
+  "initial": 4,
   "min": 0,
-  "max": 100,
+  "max": 10,
   "ranges": {
-    "low":       { "min": 0,  "max": 30 },
-    "normal":    { "min": 31, "max": 60 },
-    "high":      { "min": 61, "max": 80 },
-    "veryHigh":  { "min": 81, "max": 100 }
+    "distant": { "min": 0, "max": 2 },
+    "normal":  { "min": 3, "max": 5 },
+    "warm":    { "min": 6, "max": 8 },
+    "close":   { "min": 9, "max": 10 }
   },
-  "weightScaleFactor": 0.3,
+  "weightScaleFactor": 0,
   "decay": {
-    "perTurn": 0.3
+    "perTurn": 0
   },
   "personality": {
     "id": "karua-default",
-    "label": "카루아 (기본)",
-    "description": "Re:Station 바텐더 카루아의 성향. 가벼운 농담과 대화를 좋아하고, 무례함과 성적 발언을 싫어한다.",
+    "label": "Karua (default)",
+    "description": "Karua's hidden relationship profile. Personality weights are retained as metadata but do not alter exact integer deltas.",
     "likes": [
       "cocktail-order",
       "recommend-request",
@@ -29,7 +29,6 @@
     ],
     "dislikes": [
       "rude-talk",
-      "safety-alert",
       "harassment",
       "sexual-remark",
       "hate-speech"
@@ -50,7 +49,6 @@
       "story-query": 1.0,
       "recipe-query": 0.5,
       "rude-talk": -2.0,
-      "safety-alert": -1.0,
       "harassment": -3.0,
       "sexual-remark": -2.5,
       "hate-speech": -4.0,
@@ -63,49 +61,31 @@
   },
   "updateRules": [
     {
-      "id": "positive-order",
-      "context": ["cocktail-order", "taste-statement", "mood-expression"],
-      "delta": 0.5,
-      "maxPerSession": 3
+      "id": "positive-standard",
+      "context": ["general-chat", "taste-statement", "mood-expression", "cocktail-order", "story-query", "recipe-query", "positive-feedback"],
+      "delta": 1,
+      "maxPerSession": 6
     },
     {
-      "id": "positive-trust",
-      "context": ["recommend-request", "story-query"],
-      "delta": 0.5,
-      "maxPerSession": 3
-    },
-    {
-      "id": "playful-chat",
-      "context": ["general-chat", "mood-expression"],
-      "delta": 0.5,
-      "maxPerSession": 4
-    },
-    {
-      "id": "penalty-rude",
-      "context": ["rude-talk"],
-      "delta": -1.5,
-      "cooldown": 3,
-      "maxPerSession": 3
-    },
-    {
-      "id": "penalty-safety",
-      "context": ["safety-alert"],
-      "delta": -2.0,
-      "cooldown": 5,
+      "id": "positive-special",
+      "context": ["welcome-positive", "secret-event-success"],
+      "delta": 2,
+      "cooldown": 1,
       "maxPerSession": 2
     },
     {
-      "id": "penalty-severe",
-      "context": ["harassment", "sexual-remark", "hate-speech"],
-      "delta": -3.0,
-      "cooldown": 10,
-      "maxPerSession": 1
+      "id": "negative-standard",
+      "context": ["recommendation-cancel", "negative-feedback", "confused", "minor-rude", "rude-talk"],
+      "delta": -1,
+      "cooldown": 2,
+      "maxPerSession": 4
     },
     {
-      "id": "recovery",
-      "context": ["general-chat", "cocktail-order", "recommend-request", "taste-statement", "mood-expression", "story-query", "weather-talk", "daily-life", "food-talk", "hobby-talk", "music-talk"],
-      "delta": 0.3,
-      "maxPerSession": 3
+      "id": "negative-severe",
+      "context": ["severe-rude", "troll-disruptive", "harassment", "sexual-remark", "hate-speech"],
+      "delta": -2,
+      "cooldown": 3,
+      "maxPerSession": 2
     }
   ]
 }
