@@ -333,13 +333,13 @@
 
 ## RapportState (단일 축)
 
-단일 내부 값 (0~100):
+단일 내부 정수 값 (0~10):
 
 | 속성 | 값 |
 |------|-----|
-| 기본값 | 20 |
+| 기본값 | 4 |
 | 최소 | 0 |
-| 최대 | 100 |
+| 최대 | 10 |
 
 - 자연스러운 대화는 rapport를 서서히 증가시킨다
 - 무례한 행동은 rapport를 감소시킨다
@@ -352,10 +352,10 @@
 
 | 구간 | 범위 | 설명 |
 |------|------|------|
-| low | 0~30 | 초기, 약간 거리감 있음 |
-| normal | 31~60 | 기본 상태 (현재 대사 스타일) |
-| high | 61~80 | 다소 친밀, 장난기 증가 |
-| very-high | 81~100 | 매우 친밀, 편안한 어조 |
+| distant | 0~2 | 거리감 있음 |
+| normal | 3~5 | 기본 상태 |
+| warm | 6~8 | 따뜻하고 친밀함 |
+| close | 9~10 | 가까움 |
 
 ## 상태 갱신 규칙
 
@@ -364,7 +364,8 @@
 - **반복 누적**: 같은 행동이 반복되면 누적 효과 발생
 - **최대 횟수 제한**: 세션당 규칙별 최대 적용 횟수 존재
 - **cooldown**: 특정 규칙은 재사용 대기시간 존재
-- **자연 감쇠**: 시간(턴)이 지나면 rapport가 서서히 회복됨
+- **정수 delta**: 일반 긍정 +1, 특별 성공 +2, 일반 부정 -1, 심각한 방해 -2
+- **SafetyLocked 분리**: 안전 잠금은 hard stop이며 Rapport delta로 처리하지 않음
 - **JSON 기반 설정**: 모든 갱신 규칙은 `relationship-config.json`에서 관리
 - **하드코딩 분기 금지**: 데이터 기반으로만 동작
 
@@ -385,9 +386,9 @@
 {
   category: 'greeting',
   variations: [
-    { rangeMin: 'low', rangeMax: 'low', text: '어서 오세요.', expression: 'talk' },
-    { rangeMin: 'low', rangeMax: 'normal', text: '어서 오세요, 기다리고 있었어요.', expression: 'smirk' },
-    { rangeMin: 'normal', rangeMax: 'very-high', text: '또 오셨네요! 오늘은 뭐 드실래요?', expression: 'smirk' },
+    { rangeMin: 'distant', rangeMax: 'distant', text: '어서 오세요.', expression: 'talk' },
+    { rangeMin: 'distant', rangeMax: 'normal', text: '어서 오세요, 기다리고 있었어요.', expression: 'smirk' },
+    { rangeMin: 'normal', rangeMax: 'close', text: '또 오셨네요! 오늘은 뭐 드실래요?', expression: 'smirk' },
   ]
 }
 ```
@@ -398,7 +399,7 @@
 
 ```
 [DEV] RapportState — 제거 대상
-▓▓▓▓▓▓▓░░░░░░░  45  보통
+▓▓▓▓▓▓▓░░░░░░░  4  보통
 ```
 
 **이 컴포넌트는 최종 빌드 전 반드시 제거해야 한다.**
@@ -422,18 +423,18 @@
 ## 미래 WebLLM 호환성
 
 - RapportState는 WebLLM과 독립적으로 설계됨
-- JSON 대사 시스템이 먼저 RapportState를 사용함
-- WebLLM은 오직 rapport 구간만 참조 가능
+- 현재 JSON/ResponsePlan 대사 선택에는 RapportState를 사용하지 않음
+- 추천·FSM·Action·SessionState에도 영향을 주지 않음
 - WebLLM은 RapportState를 직접 소유하거나 수정할 수 없음
 
-## 테스트 항목 (15개 통과, 43개 파일 530개 전체 통과)
+## 테스트 항목 (현재 Vitest 46개 파일·598개 전체 통과)
 
 - 점진적 Rapport 갱신
 - 반복 행동 누적
 - 최대 횟수 제한
 - Cooldown 적용
 - 자연 감쇠
-- 구간 변환 정확도 (low/normal/high/very-high)
+- 구간 변환 정확도 (distant/normal/warm/close)
 - 대화 변이 선택
 - 존재하지 않는 카테고리 fallback
 - 추천 엔진/게임플레이 무영향 확인

@@ -1,6 +1,6 @@
 # 인수인계 (축약)
 
-> 최종 갱신일: 2026-07-02 (WebLLM 의미 보조 전환, Vitest 527개)
+> 최종 갱신일: 2026-07-03 (Phase 10 대화 14개·108문장 + randomPick formatter plan 1개·template line 1개)
 > 각 작업의 상세 커밋 해시는 `WORK_LOG.md` 참조.
 
 ## 현재 목표
@@ -23,9 +23,21 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 7 완료: 누락되어 항상 fallback으로 떨어지던 `character-query`와 대상 없는 lore follow-up의 응답 출처를 전용 `character-query`/`story-unresolved` 풀로 분리했다. `random-request`, `unknown-cocktail-request`, `recommendation-cancel` 풀도 보강했으며, 템플릿이 참조하는 27개 JSON 카테고리가 모두 존재하고 비어 있지 않은지 테스트로 고정했다.
 - Phase 8 완료: 대표 클래식 20종에 talking point 20개와 lore reference 40개를 누적 추가했다. 공개 칵테일 structured lore 커버리지는 20/49에서 30/49로 증가했다. 2차 배치는 Paper Plane, Penicillin, Piña Colada, Irish Coffee, Manhattan, Mint Julep, Sazerac, Singapore Sling, Clover Club, Bramble이며, 기원 논쟁과 일화는 완곡한 출처 문체로 유지한다.
 - Phase 9 진입 전 경계 보완 완료: closed/farewell/safetyLocked/returnHome 차단은 원래 route와 최종 DialogueAction을 함께 검사한다. story/lore/info는 사실 공개 순서를 분리했고, Reaction은 일반·독립 feedback 또는 칵테일 대상 feedback에만 적용한다. negative/another feedback은 Conversation Context의 직전 추천·서빙 ID를 추천 제외 목록에 같은 턴 즉시 반영한다.
-- Phase 9 Character Layer 진행 중: `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결했다. `persona.ts`를 직접 참조하는 카루아 프로필, 설정형 금지/권장 표현, 문장 수·반존대·능청·추천 어조 검증과 응답 메타데이터를 추가했다. 추천 결과·결정·상태·Action은 변경하지 않으며 WebLLM은 포함하지 않았다.
+- Phase 9 완료: `ResponseDraft → Response Pipeline → Character Layer → BartenderResponse` 경계를 연결했다. 전체 대사 525개 문자열을 감사해 금지 패턴 위반 3건을 수정했다. Hidden RapportState v3.0.0은 0~10 정수 축, 초기값 4, `distant/normal/warm/close` 구간이며 숨은 상태로만 유지된다. 추천·FSM·Action·SessionState·ResponsePlan 선택에는 영향을 주지 않는다.
 - WebLLM 의미 보조 전환: idle 시 싱글턴 Worker를 준비하고 의미 분석은 기본 OFF다. ON이어도 최종 문장을 생성하지 않고 topic·stance·block 후보·세션 태그만 제안한다. 현재 JSON 응답은 분석을 기다리지 않으며 세션 태그는 입장 초기화·퇴장·밤 초기화 때 삭제한다.
 - Phase 9~10 선행 검수: 미등록 문단 문맥이 첫 카루아 tired/light 프리셋으로 떨어지는 암묵적 fallback을 제거했다. ResponsePlan의 speaker/intent/state/request/blocks/fallbackText 계약과 선택·검증 테스트를 추가했으며 실제 DB 이관은 시작하지 않았다.
+- Phase 10 첫 슬라이스: `response-plan-data.ts`와 이중 읽기 어댑터를 추가하고 `general-chat` 13개 문장을 `karua + small_talk + general-chat + answer` 계획으로 이관했다. 문장 선택은 ResponsePlan이 담당하고, 이관 기간의 expression은 기존 JSON 동일 문장에서 보존한다. 미이관 카테고리는 기존 JSON 경로를 유지한다.
+- Phase 10 mood 슬라이스: 실제 라우트가 사용하는 `mood-tired/sad/happy` 34개 문장을 `karua + comfort + state/request + answer` 계획으로 이관했다. ResponsePlan을 legacy보다 먼저 읽고, JSON이 비어도 plan expression으로 동작한다. `mood-surprised`는 현재 미연결이라 제외했다.
+- Phase 10 bar-intro 슬라이스: 10개 문장을 `karua + small_talk + request=bar-intro + answer` 계획으로 이관했다. 전체 expression, JSON 제거 상황, `character-query` legacy fallback을 검증했다. `여긴 뭐죠`, `여긴 뭐하는 바인가요`를 포함한 소개 변형 입력 4종도 `bar-setting`으로 고정했다.
+- Phase 10 character-query 슬라이스: 4개 문장을 `karua + small_talk + request=character-query + answer` 계획으로 이관했다. 전체 expression, JSON 제거 상황, 미이관 `story-unresolved` fallback을 검증했다. 카루아·직원 질문은 `character-query`, 시에스타 질문은 기존 `siesta-setting` 전용 경로를 유지한다.
+- Phase 10 story 슬라이스: `story-request` 8개와 `story-unresolved` 4개 문장을 `karua + explain + request + answer` 계획으로 이관했다. story/lore 사실 선택·공개 이력은 변경하지 않았고 `story:* → trivia:* → description` 공개 순서를 회귀로 고정했다.
+- Phase 10 unknown-cocktail 슬라이스: 3개 문장을 `karua + explain + request=unknown-cocktail-request + answer` 계획으로 이관했다. unknown 감지·라우터·추천 FSM은 변경하지 않고 알려진 주문·story/info·추천·random 경계를 테스트했다.
+- Phase 10 random-request 슬라이스: 3개 문장을 `karua + recommend + request=random-request + answer` 계획으로 이관했다. 추천 엔진·Slot Filling·FSM은 변경하지 않았고, 일반 추천 입력과 활성 추천 세션의 `맡길게`가 기존 Recommendation Action에 연결되는지 고정했다.
+- Phase 10 recipe-request 슬라이스: 10개 문장을 `karua + explain + request=recipe-request + answer` 계획으로 이관했다. 레시피 생성·공개 순서·DialogueService는 변경하지 않았다. `레시피 알려줘`, `재료가 뭐예요`, `어떻게 만들어요`는 `recipe-query`를 유지하며, `만드는 법 알려줘`는 기존 `story-query` 분류를 보존했다.
+- Phase 10 recommendation-cancel 슬라이스: 3개 문장을 `karua + refusal + request=recommendation-cancel + answer` 계획으로 이관했다. ResponsePlan이 text/expression을 소유하며 JSON이 비어도 동작한다. 추천 FSM·`recommendationActive`·`actionSessionMode`·farewell 동작은 변경하지 않았다.
+- Phase 10 small fallback 슬라이스: 추천·웰컴·farewell·safety·story/lore와 직접 얽히지 않는 `bar-atmosphere`, `small-talk-weather` 각 8개 문장을 이관했다. 두 카테고리 모두 ResponsePlan 우선, JSON 제거 독립성, 문장별 expression 동등성을 검증했다.
+- Phase 10 중간검수 보완: ResponsePlanLine expression 필수 계약 보강 완료. block은 객체 line만 허용하고 validator가 문자열 line·expression 누락을 거부하며 adapter의 plan-level/`talk` 자동 대체를 제거했다.
+- Phase 10 Recommendation Formatter 첫 슬라이스: randomPick 최종 본문 `opening + cocktail_name + talking_point`만 ResponsePlan으로 이관했다. opening은 외부에서 그대로 전달하며 허용 slot은 `{cocktail_name}`, `{talking_point}` 두 개뿐이다. plan 실패·미허용 slot은 기존 formatter로 fallback하고 expression은 기존 `playful → smirk`와 동일하다.
 - 미성년자/무알코올 전용 intent·추천 제약·응답·대체 farewell은 Phase 3 범위에서 제거
 - 공통 `kf`, `SHAKE_REFERENCE`, mood/switch 응답 헬퍼 정리 완료 [`a73342f`][`c82cbc6`][`4f6c90d`]
 - `모히토`→`그걸로 주세요` 같은 생략 입력이 직전 대상 주문/이야기로 연결 [`0404c58`]
@@ -47,14 +59,14 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **527개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 505.72 kB, WebLLM 지연 청크 분리)
+- ✅ `npm.cmd run lint`, `npm.cmd test` (Vitest **598개 통과**), `npm.cmd run check`, `npm.cmd run build` (메인 JS 521.31 kB, gzip 154.91 kB, WebLLM 지연 청크 분리)
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
-1. DLG-807 실제 런타임 대사에 대한 금지/권장 계약 재검수
-2. `PHASE_9_10_READINESS.md`의 잔여 검수 뒤 Phase 10 첫 카테고리 배치 이관
-3. Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
+1. 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
+2. exact recommendation 기본 문단의 formatter 경계를 다음 작은 슬라이스로 재조사
+3. 추천·웰컴·배웅·이야기 포매터 등 후속 배치 이관 뒤 Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
 4. Phase 12 의미 보조 → Phase 13 ResponsePlan 선택 힌트 → Phase 14 이야기 topic 분류 순으로 검토
 5. Phase 15 최종 캐릭터 QA와 시에스타 이벤트 재활성화 여부 평가
 

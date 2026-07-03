@@ -371,9 +371,9 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | DLG-804 일반 대화 입력 연결성 보정 | DONE |
 | DLG-805 추천 질문과 추천 응답 문단 프리셋 전환 | DONE |
 | DLG-806 키워드 규칙 JSON 분리와 persona 보존 | DONE |
-| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | DOING |
-| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | PROPOSED |
-| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | PROPOSED |
+| DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | DONE |
+| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | DOING (Phase 10 병행) |
+| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DOING (Phase 10 병행) |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
 | SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
 | SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
@@ -424,32 +424,34 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DONE |
 | 목적 | `CONVERGENCE_PRINCIPLES.md`와 현재 `persona.ts`를 기준으로 실제 런타임 대사들이 상담가식 문장, 직접 위로, 과한 공손함으로 흐르지 않는지 재검수 |
 | 범위 | `dialogues.json`, `conversation.ts`, 추천 질문 프리셋, 추천 응답 문단 프리셋, 안전·예외상황 문구 |
 | 완료 조건 | 금지 문장 패턴 목록을 코드/테스트 또는 문서 기준으로 정리하고, 대표 입력 세트에서 카루아 말투와 안전 경계가 동시에 유지됨. 새 대사는 "관찰에서 출발하는가", "상담원도 할 수 있는 말인가" 검수 질문을 통과해야 한다. |
 | 주의 | persona 자체를 JSON으로 옮기지 않는다. 사용자가 말투를 다시 손보기 전까지는 현재 `persona.ts`와 `CONVERGENCE_PRINCIPLES.md`를 기준 파일로 둔다. |
-| 현재 구현 | `persona.ts`를 직접 참조하는 `CharacterStyleProfile`과 설정형 금지/권장 패턴, 문장 수·반존대·능청·추천 어조 검증기를 추가했다. `assembleResponse` 뒤에서 문구·표정은 보존하고 Character 메타데이터를 생성한다. 전체 런타임 대사 재검수는 계속 진행한다. |
+| 완료 결과 | `persona.ts`를 직접 참조하는 `CharacterStyleProfile`과 설정형 금지/권장 패턴, 문장 수·반존대·능청·추천 어조 검증기를 추가했다. `assembleResponse` 뒤에서 문구·표정은 보존하고 Character 메타데이터를 생성한다. 전체 대사 525개 문자열을 감사해 금지 패턴 위반 3건을 수정하고 회귀 테스트를 보강했다. |
 
 #### DLG-808: `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DOING (Phase 10 병행) |
 | 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
 | 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `ingredient-constraint` |
 | 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨. 대사 출처와 사용 경로를 추적할 수 있어야 한다. |
 | 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. 정리 우선순위는 `persona.ts` → `dialogues.json` → `keyword-rules.json` → `text-presets.ts` → `conversation.ts` → `response.ts`다. |
+| 현재 진행 | 첫 배치 61개, story 12개, unknown 3개, random 3개, recipe 10개 문장을 ResponsePlan `answer` 블록에 이관했다. 기존 JSON은 fallback 호환용으로 유지하며 삭제하지 않았다. |
 
 #### DLG-809: 화자·상태·요청별 문단 프리셋 계약 확장
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DOING (Phase 10 병행) |
 | 목적 | 카루아와 시에스타가 같은 의미 상태를 받아도 서로 다른 말투와 문단 구성을 쓰도록 프리셋 계약을 확장 |
 | 범위 | `greeting`, `welcome_drink`, `ask_preference`, `recommend`, `explain`, `small_talk`, `joke`, `comfort`, `refusal`, `goodbye` 의도와 `state/request` 조합 |
 | 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함. 추천 카드보다 캐릭터 반응이 먼저 보이는 출력 순서를 전제로 한다. |
 | 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. 문장을 조립하지 않고 문단 블록을 조립한다. |
+| 현재 진행 | `karua + small_talk + general-chat`과 `karua + comfort + mood state/request` 계획을 추가하고 이중 읽기 어댑터에서 구체도 선택·검증 계약을 사용한다. |
 
 #### FLOW-001: 환상주점 세션 흐름 사양
 
@@ -672,8 +674,8 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 7 | Dialogue Quality | 완료 | fallback 줄이기, bar/character/story 전용 응답 강화 | story/lore/info 선행 반응, character/story 전용 풀, 누락된 random/unknown/cancel 풀 보강. 템플릿 참조 27개가 모두 유효한 JSON 대사 풀을 갖는 출처 계약 고정. Intent·사실 선택·공개 이력 유지. 434 tests pass |
 | Phase 8 | Talking Points 확장 | 완료 | lore/talking_points를 더 풍부하게 만들기 | 대표 클래식 20종에 talking point 20개와 lore reference 40개 누적 추가. 공개 structured lore 30/49종 확보. 실제 인물·작품·역사·문화 연결과 완곡한 출처 표현을 테스트로 고정. 나머지는 점진적 콘텐츠 확장으로 분리. 435 tests pass |
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
-| Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정 + RapportState v2.0.0 (15 tests). WebLLM 의미 보조·ResponsePlan 스키마는 밑준비 완료. 527 tests pass |
-| Phase 10 | ResponsePlan DB 리팩토링 | 준비 완료·이관 대기 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | ResponsePlan 타입·구체도 선택·검증·명시적 fallback 계약 완료. 실제 `text-presets.ts`·`dialogues.json` 이관은 미착수 |
+| Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정. RapportState v3.0.0은 숨은 정수 축 0~10(초기값 4)이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 미연결 |
+| Phase 10 | ResponsePlan DB 리팩토링 | 진행 중 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | 대화 14개 카테고리·108개 문장 + randomPick formatter plan 1개·template line 1개. 필수 expression·제한 slot·legacy formatter fallback 고정 |
 | Phase 11 | 대사 출처 정상화 | 계획 | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | `keyword-rules.json`, `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 정규화하고 카루아 말투 기준으로 전수 재검수 |
 | Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 비차단 분석·허용 목록 검증·세션 태그 메모리 저장 완료. ResponsePlan 선택 연결은 Phase 10 이후 |
 | Phase 13 | 의미 태그 기반 ResponsePlan 선택 보조 | 계획 | 검증된 태그와 block 후보로 기존 JSON 블록 조합 다양화 | WebLLM 힌트가 없거나 충돌하면 기존 규칙 선택 유지. Action·Session 변경 금지 |
@@ -693,8 +695,14 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 - `text-presets.ts`와 `dialogues.json`을 완성 대사 저장소에서 ResponsePlan 저장소로 전환한다.
 - ResponsePlan은 `intent`, `speaker`, `state`, `request`, `block` 기준으로 조회할 수 있어야 한다.
+- 모든 `ResponsePlanLine`은 `text`와 `expression`을 직접 소유하며 문자열 line은 허용하지 않는다.
 - WebLLM 미지원·미준비·실패 시 사용할 `fallbackText`를 반드시 보존한다.
 - Phase 10 완료 후에도 현재 규칙 기반 런타임만으로 전체 핵심 흐름이 동작해야 한다.
+- ResponsePlan 우선, 미이관 legacy fallback, JSON 제거 독립성을 슬라이스마다 검증한다.
+- 추천 결과·Action·SessionState·ConversationContext·story/lore 사실 선택은 ResponsePlan이 결정하지 않는다.
+- 기존 대사 출처는 사용 경로가 0임을 확인하기 전까지 일괄 삭제하지 않는다.
+- 첫 배치는 `general-chat`, `mood-*`, `bar-intro`, `character-query`로 고정한다.
+- 추천·웰컴·배웅·이야기 포매터와 주문·안전·farewell은 첫 배치 안정화 이후의 후속 배치로 이관한다.
 
 #### Phase 11: 대사 출처 정상화
 

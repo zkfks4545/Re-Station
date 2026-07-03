@@ -1,5 +1,106 @@
 # 작업 이력 (축약)
 
+## 2026-07-03 / Codex / Phase 9~10 readiness 문서 통합
+
+- 전환기 문서 `PHASE_9_10_READINESS.md`의 보존 가치가 있는 내용을 기존 책임 문서로 통합했다.
+- Phase 10 시작 시점 출처 인벤토리는 `EXTERNAL_STRUCTURE_REPORT.md`, 지속 계약과 금지선은 `TASK_BOARD.md`, Phase 9 검수와 도입 이력은 기존 `WORK_LOG.md` 기록을 기준으로 유지한다.
+- 현재 상태는 `CURRENT_STATE.md`, 인수인계는 `HANDOVER.md`, 상세 구조와 Phase 10 진행률은 `EXTERNAL_STRUCTURE_REPORT.md`를 단일 기준으로 사용한다.
+- 중복 갱신과 상태 드리프트를 막기 위해 readiness 문서를 활성 문서 목록에서 제거했다.
+
+## 2026-07-03 / Codex / Phase 10 randomPick Recommendation Formatter
+
+- 이미 선택된 opening·cocktail·talking point를 받아 randomPick 최종 본문만 ResponsePlan으로 조립한다.
+- 순수 slot renderer는 `{cocktail_name}`, `{talking_point}`만 허용하며 plan 선택·검증·치환 실패 시 기존 formatter로 fallback한다.
+- 랜덤 칵테일 선택, opening ranking/최근 ID 회피, talking point 선택, RecommendationDecision, FSM·Action·Session·Context는 변경하지 않았다.
+- ResponsePlan `smirk`와 기존 `playful → smirk` expression 동등성을 검증했다.
+- 검증: Vitest 46개 파일·598개 테스트, typecheck, lint, build 통과. 메인 JS 521.31 kB, gzip 154.91 kB.
+
+## 2026-07-03 / Codex / Phase 10 ResponsePlanLine 필수 expression 계약
+
+- ResponsePlanLine의 expression을 필수화하고 block에서 문자열 line을 금지했다.
+- validator가 문자열 line과 expression 누락을 명시적으로 거부하며 adapter는 검증된 line expression만 사용한다.
+- 기존 14개 카테고리·108개 문장의 필수 계약, JSON 빈 배열 독립성, 미이관 legacy fallback을 유지했다.
+- 검증: Vitest 45개 파일·590개 테스트, typecheck, lint, build 통과. 메인 JS 520.28 kB, gzip 154.60 kB.
+
+## 2026-07-03 / Codex / Phase 10 small fallback ResponsePlan 슬라이스
+
+- 추천·웰컴·farewell·safety·story/lore와 독립된 `bar-atmosphere`, `small-talk-weather` 각 8개 문장을 ResponsePlan으로 이관했다.
+- ResponsePlan 우선, 문장별 text/expression 소유, JSON 제거·빈 배열 독립성, 미이관 `water-request` legacy fallback을 검증했다.
+- 분위기·음악 입력은 `bar-atmosphere`, 비·추위 입력은 `weather-talk`을 유지하며 추천·story로 오분기되지 않도록 회귀를 추가했다.
+- Phase 10은 총 14개 카테고리·108개 문장 이관 상태이며 다음 별도 작업으로 중간검수를 진행할 수 있다.
+- 검증: Vitest 45개 파일·587개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 520.10 kB, gzip 154.54 kB.
+
+## 2026-07-03 / Codex / recommendation-cancel ResponsePlan + RapportState 0~10
+
+- `recommendation-cancel` 3개 문장을 문장별 text/expression을 소유하는 ResponsePlan으로 이관했다. 추천 FSM·세션·farewell 동작은 변경하지 않았다.
+- Hidden RapportState를 0~10 정수 축으로 변경했다. 초기값 4, `distant(0~2) / normal(3~5) / warm(6~8) / close(9~10)`이며 cooldown/max-count 보호를 유지한다.
+- SafetyLocked는 Rapport delta가 아닌 hard stop이다. Rapport는 숨은 상태이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 영향을 주지 않는다.
+- 검증: Vitest 45개 파일·582개 테스트, typecheck, lint, build 통과. 메인 JS 517.69 kB, gzip 154.42 kB.
+
+## 2026-07-03 / Codex / Phase 10 recipe-request ResponsePlan 슬라이스
+
+- `recipe-request` 10개 문장을 `karua + explain + request + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy fallback, 문장별 expression, JSON 제거 상황을 검증했다. 기존 JSON은 삭제하지 않았다.
+- recipe 생성·story/lore·공개 순서·DialogueService·추천 엔진·분류/라우터 로직은 변경하지 않았다.
+- `레시피 알려줘`, `재료가 뭐예요`, `어떻게 만들어요`는 `recipe-query`를 유지한다. `만드는 법 알려줘`는 기존 계약상 `story-query`로 남아 있음을 회귀로 기록했다.
+- 검증: Vitest 45개 파일·568개 테스트, typecheck, lint, build 통과. 메인 JS 517.11 kB, gzip 154.29 kB.
+
+## 2026-07-03 / Codex / Phase 10 random-request ResponsePlan 슬라이스
+
+- `random-request` 3개 문장을 `karua + recommend + request + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy fallback, 문장별 expression, JSON 제거 상황을 검증했다. 기존 JSON은 삭제하지 않았다.
+- 추천 엔진·Slot Filling·FSM·IntentClassifier·input-router·칵테일 선택은 변경하지 않았다.
+- 아무거나/랜덤/일반 추천과 활성 추천 세션의 `맡길게`가 기존 Recommendation Action으로 연결되고 다른 intent로 오분기되지 않는지 고정했다.
+- 검증: Vitest 45개 파일·563개 테스트, typecheck, lint, build 통과. 메인 JS 515.84 kB, gzip 154.06 kB.
+
+## 2026-07-03 / Codex / Phase 10 unknown-cocktail ResponsePlan 슬라이스
+
+- `unknown-cocktail-request` 3개 문장을 `karua + explain + request + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy fallback, 문장별 expression, JSON 제거 상황을 검증했다. 기존 JSON은 삭제하지 않았다.
+- unknown 감지·input-router·IntentClassifier·추천 FSM은 변경하지 않았다.
+- 존재하지 않는 칵테일과 알려진 주문·story/info·recommendation·random 경계를 회귀로 고정했다.
+- 검증: Vitest 45개 파일·558개 테스트, typecheck, lint, build 통과. 메인 JS 515.34 kB, gzip 153.96 kB.
+
+## 2026-07-03 / Codex / Phase 10 story ResponsePlan 슬라이스
+
+- `story-request` 8개와 `story-unresolved` 4개 문장을 `karua + explain + request + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy fallback, 문장별 expression, JSON 제거 상황을 검증했다. 기존 JSON은 삭제하지 않았다.
+- story-query, lore-reference, talking_points 데이터와 공개 이력 로직은 변경하지 않았다.
+- `story:* → trivia:* → description` 공개 순서 회귀 테스트를 추가했다.
+- 검증: Vitest 45개 파일·554개 테스트, typecheck, lint, build 통과. 메인 JS 514.67 kB, gzip 153.88 kB.
+
+## 2026-07-03 / Codex / Phase 10 character-query ResponsePlan 슬라이스
+
+- `character-query` 4개 문장을 `karua + small_talk + request=character-query + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy JSON fallback, 전체 expression 동등성, JSON 제거 상황을 테스트했다. 기존 JSON은 삭제하지 않았다.
+- 미이관 `story-unresolved`가 기존 JSON 경로를 유지하는지 고정했다.
+- 카루아·직원 질문 3종은 `character-query`로 보강했다. `시에스타는 누구예요`는 의미가 다른 전용 `siesta-setting → siesta-mention` 경로를 보존했다.
+- 검증: Vitest 45개 파일·554개 테스트, typecheck, lint, build 통과. 메인 JS 512.72 kB, gzip 153.26 kB.
+
+## 2026-07-03 / Codex / Phase 10 bar-intro ResponsePlan 슬라이스
+
+- `bar-intro` 10개 문장을 `karua + small_talk + request=bar-intro + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy JSON fallback, 전체 expression 동등성, JSON 제거 상황을 테스트했다. 기존 JSON은 삭제하지 않았다.
+- 미이관 `character-query`가 기존 JSON 경로를 유지하는지 고정했다.
+- `여긴 뭐죠`, `여긴 뭐하는 곳인가요`, `여긴 뭐하는 바인가요`, `Re:Station이 뭐예요`를 `bar-setting`으로 분류하도록 최소 보강했다.
+- 검증: Vitest 45개 파일·547개 테스트, typecheck, lint, build 통과. 메인 JS 512.00 kB, gzip 153.07 kB.
+
+## 2026-07-03 / Codex / Phase 10 mood ResponsePlan 슬라이스
+
+- 실제 mood 라우트가 사용하는 `mood-tired`, `mood-sad`, `mood-happy` 34개 문장을 `karua + comfort + state/request + answer` ResponsePlan으로 이관했다.
+- ResponsePlan 우선, legacy JSON fallback 순서를 유지하고 JSON 데이터는 삭제하지 않았다.
+- mood 전체 문장 expression 동등성, JSON lines 제거 상황, 기존 미이관 카테고리 fallback을 테스트했다.
+- `mood-surprised`는 현재 라우터·템플릿 미연결이므로 이번 범위에서 제외했다.
+- 검증: Vitest 45개 파일·540개 테스트, typecheck, lint, build 통과. 메인 JS 510.84 kB, gzip 152.77 kB.
+
+## 2026-07-03 / Codex / Phase 10 첫 슬라이스 — general-chat ResponsePlan 이관
+
+- DLG-808·809를 Phase 10과 병행하는 첫 작업으로 `general-chat` 13개 문장을 `karua + small_talk + general-chat + answer` ResponsePlan으로 이관했다.
+- `response-plan-adapter.ts`를 `pickDialogue()` 앞에 연결했다. 이관된 문장은 ResponsePlan에서 선택하고, 기존 JSON의 동일 문장에서 expression을 보존한다.
+- 미이관 카테고리는 어댑터가 처리하지 않고 기존 JSON 선택 경로를 그대로 사용한다.
+- 동등성, expression 보존, 미이관 fallback 테스트 3개를 추가했다.
+- 검증: Vitest 45개 파일·530개 테스트, typecheck, lint, build 통과. 메인 JS 507.65 kB, gzip 151.68 kB.
+
 ## 2026-07-02 / Codex / WebLLM 구조화 의미 보조 전환
 
 - WebLLM의 자유 문장 생성 경로를 제거하고 topic, stance, 응답 블록 후보, 세션 태그, rapport 힌트, confidence만 반환하는 구조화 의미 분석기로 전환했다.
