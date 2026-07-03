@@ -3,6 +3,7 @@ import { findCocktailByName, getCocktailById } from '../cocktails/database.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
 import {
   formatExplicitCocktailReply,
+  formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
   formatRandomRecommendationResponse,
@@ -117,6 +118,90 @@ describe('neutral recommendation dialogue copy', () => {
       text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`,
       expression: 'smirk',
     })
+  })
+
+  it.each([
+    ['neutral', 'smirk'],
+    ['warm', 'smirk'],
+    ['curious', 'thinking'],
+    ['confident', 'smirk'],
+    ['playful', 'smirk'],
+    ['concerned', 'sympathy'],
+    ['awkward', 'thinking'],
+    ['tired', 'sympathy'],
+  ] as const)('keeps %s exact recommendation text/expression equal to legacy', (affectState, expression) => {
+    const cocktail = getCocktailById('cocktail_classic_008')!
+    const decision = createRecommendationDecision(cocktail, {
+      ...createRecommendationState(),
+      taste: { fizz: 0.8 },
+    }, {
+      route: 'tastePreferenceOrder',
+      routeTags: ['taste'],
+      dialogueState: 'recommending',
+      affectState,
+    })
+
+    const legacy = formatExactRecommendationResponse(decision, { plans: [] })
+    const migrated = formatExactRecommendationResponse(decision)
+
+    expect(migrated).toEqual(legacy)
+    expect(migrated.expression).toBe(expression)
+    expect(migrated.text).toContain(cocktail.name)
+    expect(migrated.text).toContain('탄산감 취향과 잘 맞아요')
+    expect(migrated.text).toContain(selectCocktailTalkingPoint(cocktail))
+  })
+
+  it('prioritizes the exact recommendation ResponsePlan over the legacy formatter', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const formatted = formatExactRecommendationResponse(decision, {
+      plans: [{
+        id: 'test.exact-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'exact-recommendation-body',
+        blocks: {
+          reaction: [{ text: 'ResponsePlan reaction', expression: 'smirk' }],
+          recommend: [{ text: '{cocktail_name}', expression: 'smirk' }],
+          explanation: [{ text: '{reason}', expression: 'smirk' }],
+          answer: [{ text: '{talking_point}', expression: 'smirk' }],
+        },
+        fallbackText: 'fallback',
+      }],
+    })
+
+    expect(formatted.text).toBe([
+      'ResponsePlan reaction',
+      cocktail.name,
+      decision.reasons.find((reason) => reason.code !== 'context')?.detail
+        ?? '말씀해 주신 취향을 기준으로 골랐어요.',
+      selectCocktailTalkingPoint(cocktail),
+    ].join('\n'))
+    expect(formatted.expression).toBe('smirk')
+  })
+
+  it('falls back to the legacy exact formatter when slot rendering fails', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const legacy = formatExactRecommendationResponse(decision, { plans: [] })
+
+    expect(formatExactRecommendationResponse(decision, {
+      plans: [{
+        id: 'invalid.exact-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'exact-recommendation-body',
+        blocks: {
+          reaction: [{ text: '{opening}', expression: 'smirk' }],
+          recommend: [{ text: '{cocktail_name}', expression: 'smirk' }],
+          explanation: [{ text: '{reason}', expression: 'smirk' }],
+          answer: [{ text: '{talking_point}', expression: 'smirk' }],
+        },
+        fallbackText: 'fallback',
+      }],
+    })).toEqual(legacy)
   })
 
   it('uses distinct copy for a nearest fallback recommendation', () => {

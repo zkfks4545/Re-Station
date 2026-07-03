@@ -8,8 +8,8 @@
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
 | 단계 | RST-000 MVP + Phase 1~8 완료, **Phase 9 Character Layer 완료** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/린트 | 통과 (메인 JS 521.31 kB, gzip 154.91 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 598개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 523.89 kB, gzip 155.58 kB, WebLLM 지연 청크 분리) |
+| 테스트 | **Vitest 609개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -36,7 +36,7 @@
 | Phase 10 ResponsePlan 타입·선택·검증·fallback 계약 | [`완료`] |
 | Phase 10 ResponsePlanLine expression 필수 계약 보강 | [`완료`] |
 | Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 진행 중 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
-| Phase 10 Recommendation Formatter | randomPick 본문 plan 1개·template line 1개 이관 완료 |
+| Phase 10 Recommendation Formatter | 2/4 완료: randomPick + exact recommendation 본문 (plan 9개·template line 91개) |
 | WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
@@ -54,11 +54,11 @@
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 521.31 kB, gzip 154.91 kB, WebLLM 지연 청크 분리 | 유지 |
+| 번들 | 메인 JS 523.89 kB, gzip 155.58 kB, WebLLM 지연 청크 분리 | 유지 |
 
 ## 현재 우선순위
 1. Phase 10 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-2. exact recommendation 기본 문단을 다음 formatter 슬라이스로 삼을지 작은 단위로 재조사
+2. nearest recommendation fallback 경계를 다음 formatter 슬라이스로 사전 조사
 3. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
 4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 10 이후 검토
 5. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토

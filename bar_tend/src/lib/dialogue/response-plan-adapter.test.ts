@@ -57,15 +57,17 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
   })
 
   it('이관된 14개 카테고리·108개 문장이 필수 expression 계약을 충족한다', () => {
-    const formatterPlanId = 'karua.recommend.random-pick-body'
-    const dialoguePlans = RESPONSE_PLANS.filter((plan) => plan.id !== formatterPlanId)
+    const formatterPlans = RESPONSE_PLANS.filter((plan) =>
+      plan.request === 'random-pick-body' || plan.request === 'exact-recommendation-body')
+    const dialoguePlans = RESPONSE_PLANS.filter((plan) => !formatterPlans.includes(plan))
     const answerLines = dialoguePlans.flatMap((plan) => plan.blocks.answer ?? [])
 
     expect(dialoguePlans).toHaveLength(14)
     expect(answerLines).toHaveLength(108)
     expect(RESPONSE_PLANS.every((plan) => validateResponsePlan(plan).valid)).toBe(true)
     expect(answerLines.every((line) => line.text.trim() && line.expression)).toBe(true)
-    expect(RESPONSE_PLANS.find((plan) => plan.id === formatterPlanId)?.blocks.answer).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'random-pick-body')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'exact-recommendation-body')).toHaveLength(8)
   })
 
   it('general-chat ResponsePlan은 기존 JSON 문장과 동등하다', () => {

@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-03 / Codex / Phase 10 exact Recommendation Formatter
+
+- RecommendationDecision 이후 이미 결정된 cocktail name·reason·talking point를 조립하는 exact recommendation 최종 본문만 ResponsePlan으로 이관했다.
+- affect별 8개 plan의 모든 line이 text/expression을 직접 소유하며 제한 slot `{cocktail_name}`, `{cocktail_name_subject}`, `{reason}`, `{talking_point}`만 렌더링한다.
+- opening·acknowledgement는 기존 경계에 남기고 plan 선택·검증·slot 치환 실패 시 기존 formatter로 fallback한다.
+- Recommendation Engine·Decision·opening 선택/회피·reason/talking point 선택·FSM·Action·SessionState·Context는 변경하지 않았다.
+- 검증: Vitest 46개 파일·609개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 523.89 kB, gzip 155.58 kB.
+
 ## 2026-07-03 / Codex / Phase 9~10 readiness 문서 통합
 
 - 전환기 문서 `PHASE_9_10_READINESS.md`의 보존 가치가 있는 내용을 기존 책임 문서로 통합했다.

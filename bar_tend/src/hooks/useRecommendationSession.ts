@@ -14,6 +14,7 @@ import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.
 import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
 import {
   formatExplicitCocktailReply,
+  formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
   formatRandomRecommendationResponse,
   formatRecommendationReply,
@@ -223,15 +224,23 @@ export function useRecommendationSession() {
       }
       resetRecommendation()
 
+      const exactFormatted = resolved.exactMatch && !acknowledgement
+        ? formatExactRecommendationResponse(decision)
+        : null
+      const reply = exactFormatted
+        ? [selectedOpening?.text, exactFormatted.text].filter(Boolean).join('\n')
+        : formatRecommendationReply(
+            decision,
+            acknowledgement ?? selectedOpening?.text,
+            resolved.exactMatch ? 'exact' : 'nearest',
+          )
+
       return assembleRecommendationResult(
-        formatRecommendationReply(
-          decision,
-          acknowledgement ?? selectedOpening?.text,
-          resolved.exactMatch ? 'exact' : 'nearest',
-        ),
+        reply,
         decision.dialogue.affectState,
         cocktail,
         decision,
+        exactFormatted?.expression,
       )
     },
     [

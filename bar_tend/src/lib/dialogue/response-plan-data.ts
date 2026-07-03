@@ -9,6 +9,68 @@ function uniformLines(expression: Expression, texts: readonly string[]): Respons
   return texts.map((text) => line(text, expression))
 }
 
+const EXACT_DEFAULT_BLOCKS = {
+  reaction: [
+    '그럼 지금 흐름에 맞춰볼게요.',
+    '좋아요, 조건은 대충 잡혔어요.',
+    '이쪽이면 크게 빗나가진 않을 것 같네요.',
+  ],
+  recommend: [
+    '{cocktail_name} 괜찮겠네요.',
+    '{cocktail_name} 쪽으로 가볼게요.',
+    '오늘은 {cocktail_name_subject} 어울릴 것 같아요.',
+  ],
+  explanation: ['{reason}', '{reason}', '{reason}', '{reason}'],
+} as const
+
+const EXACT_TIRED_BLOCKS = {
+  reaction: [
+    '그럼 너무 무거운 건 말고요.',
+    '오늘은 좀 가볍게 가죠.',
+    '연료 부족 경고등이 켜진 것 같은데요.',
+    '피곤할 땐 취하는 것보다 쉬는 게 먼저긴 한데...',
+    '그래도 빈손으로 보내긴 아쉽고요.',
+  ],
+  recommend: [
+    '{cocktail_name} 괜찮겠네요.',
+    '{cocktail_name} 쪽으로 드릴까요?',
+    '오늘은 {cocktail_name_subject} 어울릴 것 같아요.',
+  ],
+  explanation: ['{reason}', '{reason}', '{reason}', '{reason}'],
+} as const
+
+function exactRecommendationPlan(
+  affectState: string,
+  expression: Expression,
+): ResponsePlan {
+  const blocks = affectState === 'tired' ? EXACT_TIRED_BLOCKS : EXACT_DEFAULT_BLOCKS
+  return {
+    id: `karua.recommend.exact-${affectState}`,
+    speaker: 'karua',
+    intent: 'recommend',
+    state: affectState,
+    request: 'exact-recommendation-body',
+    blocks: {
+      reaction: uniformLines(expression, blocks.reaction),
+      recommend: uniformLines(expression, blocks.recommend),
+      explanation: uniformLines(expression, blocks.explanation),
+      answer: [line('{talking_point}', expression)],
+    },
+    fallbackText: '{cocktail_name}\n{reason}\n{talking_point}',
+  }
+}
+
+const EXACT_RECOMMENDATION_PLANS: readonly ResponsePlan[] = [
+  exactRecommendationPlan('neutral', 'smirk'),
+  exactRecommendationPlan('warm', 'smirk'),
+  exactRecommendationPlan('curious', 'thinking'),
+  exactRecommendationPlan('confident', 'smirk'),
+  exactRecommendationPlan('playful', 'smirk'),
+  exactRecommendationPlan('concerned', 'sympathy'),
+  exactRecommendationPlan('awkward', 'thinking'),
+  exactRecommendationPlan('tired', 'sympathy'),
+]
+
 export const RESPONSE_PLANS: readonly ResponsePlan[] = [
   {
     id: 'karua.small-talk.general-chat',
@@ -290,4 +352,5 @@ export const RESPONSE_PLANS: readonly ResponsePlan[] = [
     },
     fallbackText: '「{cocktail_name}」은 어떠세요?\n{talking_point}',
   },
+  ...EXACT_RECOMMENDATION_PLANS,
 ]
