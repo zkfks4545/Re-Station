@@ -5,6 +5,7 @@
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
+> 현재 구현 기준: `f02b950` (Phase 10 ResponsePlan), `97ae56d` (Rapport 0~10), `f5a0148` (mission_control 통합)
 
 ## 0. 문서 사용법
 
@@ -54,7 +55,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 topic·stance·block·세션 태그 의미 보조만 담당하며 최종 대사를 생성하지 않는다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. Phase 1~9와 DLG-807 전체 대사 감사는 완료되었다. 현재 다음 우선순위는 Phase 10 ResponsePlan 이중 읽기 어댑터와 첫 카테고리 배치 이관이다.
+12. Phase 1~9와 DLG-807 전체 대사 감사는 완료되었다. Phase 10은 전체 56%이며 다음 우선순위는 exact recommendation 기본 문단의 formatter 경계 조사다.
 13. Character Layer는 표현과 검증만 담당하며 추천·상태·행동·intent를 변경하지 않는다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 15. Hidden RapportState는 단일 축 내부값이며 사용자에게 노출하지 않고 추천·게임플레이에 영향을 주지 않는다.
@@ -119,7 +120,7 @@ RapportState는 `useRestationController.ts`에서 실제 사용자 입력의 분
 | 파일 | 역할 |
 |---|---|
 | `bar_tend/src/data/dialogues.json` | 카테고리별 짧은 대사 풀 |
-| `bar_tend/src/lib/dialogue/dialogue-loader.ts` | `dialogues.json`에서 카테고리 대사 선택 |
+| `bar_tend/src/lib/dialogue/dialogue-loader.ts` | ResponsePlan을 먼저 조회하고 미이관 category만 `dialogues.json`으로 fallback |
 | `bar_tend/src/lib/dialogue/response-templates.ts` | intent별 fallback/tone 템플릿과 칵테일 데이터 삽입용 `ResponseDraft` 포매터 |
 | `bar_tend/src/lib/dialogue/response-pipeline.ts` | `ResponseDraft`의 텍스트와 tone/affect를 최종 응답 문자열·표정으로 조립하는 공통 파이프라인 |
 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문 문장 프리셋과 추천 응답 문단 프리셋 |
@@ -149,9 +150,9 @@ Phase 10 시작 시점의 이관 출처 인벤토리는 다음과 같다. 이 �
 | `bar_tend/src/data/recommendation-questions.json` | 추천 질문, 선택지, 상태 갱신 신호, 프리셋 참조 |
 | `bar_tend/src/lib/recommendation/question-engine.ts` | 다음 질문 선택, 답변 반영, 후보 분별력 계산 |
 | `bar_tend/src/lib/recommendation/state.ts` | 자유 입력 신호 추출, 추천 상태, 후보 필터, 추천 근거 |
-| `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷 |
+| `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷. randomPick 본문은 ResponsePlan 우선, 실패 시 기존 formatter fallback |
 | `bar_tend/src/lib/recommendation/welcome-drink.ts` | 웰컴드링크 선정, 피드백 질문, 포맷 |
-| `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 질문 진행과 최종 추천 연결. 질문·실패·직접 주문·lore 주문·최종 추천 결과를 공통 응답 조립기로 전달 |
+| `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 FSM과 opening 최근 ID를 소유하고, 결정된 randomPick 입력을 formatter에 전달한 뒤 최종 추천 결과를 공통 응답 조립기로 연결 |
 | `bar_tend/src/hooks/useGuestPreferenceSession.ts` | 게스트 취향 세션 훅 (localStorage 저장/복원 + idol memory 통합) |
 | `bar_tend/src/types/recommendation.ts` | 추천 상태, 질문, 선택지, 결정 타입 |
 
@@ -447,7 +448,7 @@ BartenderResponse { response, expression, character? }
 - `dialogues.json`에서 이미 표정이 지정된 대사는 호환을 위해 `preferredExpression`으로 전달하되, 최종 응답 객체 생성은 같은 조립기를 사용한다.
 - 추천 결과의 칵테일 선택과 근거 결정은 여전히 추천 엔진 책임이며, Response Pipeline은 결정된 내용을 표현하는 역할만 맡는다.
 - Character Layer는 문구와 표정을 보존하면서 금지/권장 스타일을 검사하고 `styled`, `validationPassed`, `warnings`, `blockedPatterns`, `preferredPatterns` 메타데이터를 생성한다.
-- WebLLM은 capability 검사·Worker 준비·4초 timeout·구조 검증을 거쳐 의미 태그만 제안한다. 현재 응답은 기다리지 않으며 ResponsePlan 선택 연결은 Phase 10 이후 검토한다.
+- WebLLM은 capability 검사·Worker 준비·4초 timeout·구조 검증을 거쳐 의미 태그만 제안한다. 현재 응답은 기다리지 않으며 ResponsePlan 선택 연결은 Phase 10~11 정규화 완료 후 검토한다.
 - `response-plan.ts`의 필수 expression 계약과 이중 읽기 어댑터가 연결되어 있으며 현재 대화 14개 카테고리·108개 문장이 ResponsePlan 우선으로 동작한다. Recommendation Formatter는 randomPick 본문 1개 plan부터 이관을 시작했다.
 
 ## 7. 카루아 말투 계약
@@ -603,7 +604,7 @@ BartenderResponse { response, expression, character? }
 | 키워드 규칙 | `keyword-rules.json` | JSON 분리 완료 |
 | intent fallback/tone과 데이터 삽입 Draft | `response-templates.ts` | Phase 2 분리 완료 |
 | 프리셋/문단 블록 | `text-presets.ts` | 초기 도입 완료 |
-| ResponsePlan 계약 | `response-plan.ts` | ResponsePlanLine expression 필수 계약 보강 완료. 문자열 line 금지·validator 강제·이중 읽기 어댑터 연결, 14개 카테고리 이관 완료 |
+| ResponsePlan 계약 | `response-plan.ts` | 필수 expression·문자열 line 금지·validator 강제. 대화 14개 category와 randomPick formatter plan 1개 이관 완료 |
 | 관계성 설정 | `relationship-config.json` | v3.0.0 (0~10 정수 축, 초기값 4, 4단계 구간, 갱신 규칙) |
 
 조립 책임은 `response-pipeline.ts`로 모였지만, 다음 기획의 핵심은 각 대사 데이터 출처의 편집 기준과 적용 범위를 명확히 나누는 것이다.
@@ -804,7 +805,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 17. `Phase 15` 최종 캐릭터 QA: 계획. 카루아 회귀 확대, 상담가·AI 도우미형 표현 제거, 전 응답 경로 어조 검수와 시에스타 재활성화 여부 평가
 
 * **FLOW-002 (XYZ/Farewell 머신)** 작업은 완료되었습니다.
-* WebLLM 의미 분석은 비동기로 실행할 수 있지만, Phase 10 ResponsePlan 이관 전에는 태그를 실제 대사 선택에 반영하지 않는다.
+* WebLLM 의미 분석은 비동기로 실행할 수 있지만, Phase 10~11 정규화 완료 전에는 태그를 실제 대사 선택에 반영하지 않는다.
 * 현재 임시 판단 기준은 `mission_control/CURRENT_LOGIC_FOCUS.md`에 별도로 정리되어 있습니다. 이 문서는 시에스타를 제거하기 위한 문서가 아니라, 카루아 단독 추천·제조·서빙 루프를 먼저 안정화하기 위한 단기 기준입니다.
 
 외부 기획안은 지금 단계에서는 새 기능보다 intent별 문단 구조, 대사 출처별 품질 기준, 카루아 말투 검수 규칙에 연결되는 것이 가장 좋다.
@@ -841,9 +842,9 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 
 ---
 
-## 17. 후속 작업 요약 (Phase 9 완료 기준)
+## 17. 현재 후속 작업 요약
 
-Phase 9 완료 후 다음 작업은 크게 4개 트랙으로 나뉜다.
+현재 후속 작업은 크게 4개 트랙으로 나뉜다.
 
 ### 트랙 A: ResponsePlan DB 이관 (Phase 10)
 - **목표**: `dialogues.json`과 `text-presets.ts` 대사 출처를 ResponsePlan DB로 전환
