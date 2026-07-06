@@ -167,7 +167,9 @@ html::before {
 .bartender-sprite__image {
   display: block;
   width: auto;
-  height: clamp(180px, 36vh, 360px);
+  height: 100%;
+  min-height: 180px;
+  max-height: 360px;
   max-width: min(80vw, 360px);
   object-fit: contain;
   object-position: bottom center;
@@ -307,7 +309,8 @@ html::before {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2px;
-  padding: 8px 8px 0;
+  height: 52px;
+  padding: 4px 8px;
   border-bottom: 1px solid rgba(196, 163, 90, 0.12);
   flex-shrink: 0;
 }
@@ -722,8 +725,7 @@ html::before {
 }
 /* Bartender stage: stay anchored above chat when layout is tight */
 .restation-stage {
-  flex: 1;
-  min-height: 0;
+  min-height: calc(60vh - 60px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -738,23 +740,34 @@ html::before {
   margin-top: -0.75rem;
 }
 .restation-chat-dock {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+@media (max-height: 600px) {
+  .chat-input-wrap {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+  .chat-input-wrap__field {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
 }
 
 .chat-input-shell form {
-  padding: 12px 16px 16px;
+  padding: clamp(8px, 1.5vh, 16px) 16px clamp(5px, 1vh, 9px);
 }
 .recommendation-choices {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 16px 0;
+  gap: 0;
+  padding: 0;
 }
 .recommendation-choices__list {
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
   min-width: 0;
 }
 .recommendation-choice,
@@ -829,7 +842,9 @@ html::before {
 
   /* Reduce sprite height on small screens to give chat more room */
   .bartender-sprite__image {
-    height: clamp(120px, 28vh, 240px);
+    height: 100%;
+    min-height: 120px;
+    max-height: 240px;
   }
 
   /* Tighter dialogue padding on mobile */
@@ -856,11 +871,11 @@ html::before {
   }
   .recommendation-choices {
     display: block;
-    padding: 8px 12px 0;
+    padding: 0;
   }
   .recommendation-choices__list {
-    gap: 6px;
-    max-height: 86px;
+    gap: 5px;
+    max-height: 66px;
     overflow-y: auto;
   }
   .recommendation-choice {
@@ -893,7 +908,9 @@ html::before {
 
 @media (max-width: 480px) {
   .bartender-sprite__image {
-    height: clamp(100px, 24vh, 180px);
+    height: 100%;
+    min-height: 100px;
+    max-height: 180px;
   }
   .restation-chat-dock {
     min-height: 140px;
@@ -902,7 +919,9 @@ html::before {
 
 @media (max-width: 480px) {
   .bartender-sprite__image {
-    height: clamp(100px, 24vh, 180px);
+    height: 100%;
+    min-height: 100px;
+    max-height: 180px;
   }
   .restation-chat-dock {
     min-height: 140px;

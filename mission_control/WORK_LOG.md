@@ -1,5 +1,17 @@
 # 작업 이력 (축약)
 
+## 2026-07-06 / UI 개선 — 레이아웃·스크롤·추천 선택지 위치 변경
+
+- **레이아웃 보호**: 캐릭터 영역(stage)이 창 크기에 따라 먼저 찌그러지던 문제 수정. stage에 `flex-shrink: 0`, `min-height: calc(60vh - 60px)` 적용, chat-dock을 `flex: 1`로 변경
+- **캐릭터 이미지**: `height: clamp(180px, 36vh, 360px)` → `height: 100%` + min/max로 변경, viewport 높이에 직접 반응하지 않도록 수정
+- **입력창+버튼 그룹화**: ChatInput과 하단 버튼바를 `chat-input-wrap`으로 묶고 높이 기준(`max-height: 600px`)으로 같은 줄(row) 전환 트리거 추가
+- **추천 선택지 이동**: `recommendation-choices`를 ChatInput → DialogueBox 내부(메시지 영역 최하단)로 이동
+- **자동 스크롤 개선**: 유저가 위로 스크롤하면 자동 스크롤 중단, 최하단일 때만 새 메시지 따라가도록 `onScroll` 핸들링 추가
+- **컨테이너 여백 축소**: `.recommendation-choices` padding/gap 0, DialogueBox 하단 패딩 `p-6` → `pb-3`, chat-input-shell form 하단 패딩 절반으로 축소
+- **기타**: 미사용 코드(`Suspense`, `RapportDebugDisplay`, `rapport`) 정리, 테스트 수정
+- **검증**: TypeScript, Vitest 610개 통과
+- **미커밋** (검수 후 커밋 예정)
+
 ## 2026-07-06 / Card action buttons 변경
 
 - CocktailCard의 "다시 추천받기" 버튼을 "주문하기"·"이야기하기" 두 버튼으로 교체했다.

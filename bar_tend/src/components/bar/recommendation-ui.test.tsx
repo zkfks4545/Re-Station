@@ -30,16 +30,18 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('이야기하기')
   })
 
-  it('renders recommendation choices, unknown answer and cancel affordance', () => {
+  it('renders recommendation choices inside dialogue box', () => {
     const activeQuestion = getQuestionById('flavor-profile')
     expect(activeQuestion).not.toBeNull()
 
     const markup = renderToStaticMarkup(
-      <ChatInput
+      <DialogueBox
+        messages={[]}
+        isTyping={false}
         activeQuestion={activeQuestion}
-        disabled={false}
-        onCancelRecommendation={() => undefined}
         onSend={() => undefined}
+        onCancelRecommendation={() => undefined}
+        disabled={false}
       />,
     )
 
@@ -48,16 +50,17 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain(activeQuestion!.choices[0].label)
     expect(markup).toContain('잘 모르겠어요')
     expect(markup).toContain('추천 질문 취소')
-    expect(markup).toContain('바텐더에게 메시지 보내기')
   })
 
   it('renders welcome drink feedback as a one-step choice prompt', () => {
     const markup = renderToStaticMarkup(
-      <ChatInput
+      <DialogueBox
+        messages={[]}
+        isTyping={false}
         activeQuestion={WELCOME_DRINK_FEEDBACK_QUESTION}
-        disabled={false}
-        onCancelRecommendation={() => undefined}
         onSend={() => undefined}
+        onCancelRecommendation={() => undefined}
+        disabled={false}
       />,
     )
 
@@ -66,19 +69,20 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('조금 더 가볍게')
   })
 
-  it('does not render recommendation-only controls outside an active question', () => {
+  it('does not render recommendation controls outside an active question', () => {
     const markup = renderToStaticMarkup(
-      <ChatInput
+      <DialogueBox
+        messages={[]}
+        isTyping={false}
         activeQuestion={null}
-        disabled={false}
-        onCancelRecommendation={() => undefined}
         onSend={() => undefined}
+        onCancelRecommendation={() => undefined}
+        disabled={false}
       />,
     )
 
     expect(markup).not.toContain('추천 질문 취소')
     expect(markup).not.toContain('잘 모르겠어요')
-    expect(markup).toContain('바텐더에게 말을 걸어보세요...')
   })
 
   it('keeps recommendation choice controls disabled while processing', () => {
@@ -86,16 +90,28 @@ describe('recommendation UI rendering contracts', () => {
     expect(activeQuestion).not.toBeNull()
 
     const markup = renderToStaticMarkup(
-      <ChatInput
+      <DialogueBox
+        messages={[]}
+        isTyping={false}
         activeQuestion={activeQuestion}
-        disabled
-        onCancelRecommendation={() => undefined}
         onSend={() => undefined}
+        onCancelRecommendation={() => undefined}
+        disabled
       />,
     )
 
     expect(markup).toContain('disabled=""')
-    expect(markup).toContain('대답을 기다리는 중...')
+  })
+
+  it('renders ChatInput without choice controls', () => {
+    const markup = renderToStaticMarkup(
+      <ChatInput
+        disabled={false}
+        onSend={() => undefined}
+      />,
+    )
+
+    expect(markup).toContain('바텐더에게 말을 걸어보세요...')
   })
 
   it('hides the order/story actions when the flow does not provide them', () => {

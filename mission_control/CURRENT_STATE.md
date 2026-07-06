@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-06
+> 최종 갱신일: 2026-07-06 (UI 개선 작업 중)
 
 ## 상태 요약
 | 항목 | 상태 |
@@ -9,7 +9,7 @@
 | 단계 | RST-000 MVP + Phase 1~8 완료, **Phase 9 Character Layer 완료** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/린트 | 통과 (메인 JS 524.23 kB, gzip 155.65 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 609개 전체 통과** |
+| 테스트 | **Vitest 610개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
