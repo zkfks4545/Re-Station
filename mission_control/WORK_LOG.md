@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-06 / Card action buttons 변경
+
+- CocktailCard의 "다시 추천받기" 버튼을 "주문하기"·"이야기하기" 두 버튼으로 교체했다.
+- "주문하기"는 현 칵테일을 즉시 주문/서빙한다. `handleOrderCocktail(cocktail)`을 호출하며 주문→제조→서빙 전 과정을 실행한다.
+- "이야기하기"는 카드를 닫고 칵테일명을 포함한 story-query를 전송해 카루아가 이야기를 들려주는 흐름으로 전환한다. 새 `handleCardStory`/`performCardStory`를 추가했으며 queue 지원(`story-from-card` 타입)도 포함했다.
+- `handleReRecommend`/`performReRecommend` 및 `canReRecommend`는 제거하고 `canCardActions`로 대체했다.
+- 검증: Vitest 609개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.23 kB, gzip 155.65 kB.
+
 ## 2026-07-03 / Codex / Phase 10 exact Recommendation Formatter
 
 - RecommendationDecision 이후 이미 결정된 cocktail name·reason·talking point를 조립하는 exact recommendation 최종 본문만 ResponsePlan으로 이관했다.

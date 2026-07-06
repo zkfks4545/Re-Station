@@ -60,7 +60,7 @@ type QueuedInteraction =
   | { type: 'welcome-drink' }
   | { type: 'start-recommendation' }
   | { type: 'order-cocktail'; cocktail: CocktailData }
-  | { type: 're-recommend' }
+  | { type: 'story-from-card'; cocktail: CocktailData }
   | { type: 'cancel-recommendation' }
 
 const COCKTAIL_PREPARATION_DELAY_MS = 600
@@ -160,7 +160,7 @@ export function useRestationController() {
     const queue = queuedInteractionsRef.current
     const shouldKeepSingle =
       interaction.type === 'welcome-drink' ||
-      interaction.type === 're-recommend' ||
+      interaction.type === 'story-from-card' ||
       interaction.type === 'cancel-recommendation'
 
     if (shouldKeepSingle && queue.some((item) => item.type === interaction.type)) return
@@ -1019,27 +1019,21 @@ export function useRestationController() {
     recordConversationEvents(dialogueService.buildDiscussionContextEvents(cocktail))
   }, [recordConversationEvents])
 
-  const performReRecommend = useCallback(() => {
-    if (isOrderingClosedPhase(sessionPhase)) {
-      setServedCocktail(null)
-      bartenderReply(formatFarewellBlockReply(), 'smirk')
-      return true
-    }
+  const performCardStory = useCallback((cocktail: CocktailData) => {
     setServedCocktail(null)
     setServedCocktailMode('recommendation')
-    dispatchDialogueSession({ type: 'set-mode', mode: 'recommendation' })
-    performSend('다른 걸로 추천해줘', 'recommendation')
+    performSend(`${cocktail.name} 이야기 들려줘`, 'conversation')
     return true
-  }, [bartenderReply, performSend, sessionPhase])
+  }, [performSend])
 
-  const handleReRecommend = useCallback(() => {
+  const handleCardStory = useCallback((cocktail: CocktailData) => {
     if (interactionStatus === 'exiting') return
     if (interactionStatus !== 'idle') {
-      enqueueInteraction({ type: 're-recommend' })
+      enqueueInteraction({ type: 'story-from-card', cocktail })
       return
     }
-    performReRecommend()
-  }, [enqueueInteraction, interactionStatus, performReRecommend])
+    performCardStory(cocktail)
+  }, [enqueueInteraction, interactionStatus, performCardStory])
 
   const runQueuedInteraction = useCallback((interaction: QueuedInteraction): boolean => {
     switch (interaction.type) {
@@ -1052,15 +1046,15 @@ export function useRestationController() {
         return performStartRecommendation()
       case 'order-cocktail':
         return performOrderCocktail(interaction.cocktail)
-      case 're-recommend':
-        return performReRecommend()
+      case 'story-from-card':
+        return performCardStory(interaction.cocktail)
       case 'cancel-recommendation':
         return performCancelRecommendation()
     }
   }, [
     performCancelRecommendation,
+    performCardStory,
     performOrderCocktail,
-    performReRecommend,
     performSend,
     performStartRecommendation,
     performWelcomeDrink,
@@ -1090,7 +1084,7 @@ export function useRestationController() {
     drainQueuedInteractions()
   }, [drainQueuedInteractions])
 
-  const canReRecommend = !isOrderingClosedPhase(sessionPhase)
+  const canCardActions = !isOrderingClosedPhase(sessionPhase)
 
   return {
     scene,
@@ -1113,11 +1107,11 @@ export function useRestationController() {
     screenShake,
     rapport,
     unlockedIds,
-    canReRecommend,
+    canCardActions,
     handleEnter,
     handleExit,
     handleOrderCocktail,
-    handleReRecommend,
+    handleCardStory,
     handleResetNight,
     handleCancelRecommendation,
     handleViewCocktail,

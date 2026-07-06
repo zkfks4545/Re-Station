@@ -9,7 +9,7 @@ import DialogueBox from './DialogueBox.js'
 import WelcomeDrinkButton from './WelcomeDrinkButton.js'
 
 describe('recommendation UI rendering contracts', () => {
-  it('renders the recommendation card with details and the re-recommend action', () => {
+  it('renders the recommendation card with details and order/story actions', () => {
     const cocktail = getCocktailById('cocktail_classic_001')
     expect(cocktail).not.toBeNull()
 
@@ -17,7 +17,8 @@ describe('recommendation UI rendering contracts', () => {
       <CocktailCard
         cocktail={cocktail!}
         onClose={() => undefined}
-        onReRecommend={() => undefined}
+        onOrder={() => undefined}
+        onStory={() => undefined}
       />,
     )
 
@@ -25,7 +26,8 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain(cocktail!.description)
     expect(markup).toContain('설명')
     expect(markup).toContain('레시피')
-    expect(markup).toContain('다시 추천받기')
+    expect(markup).toContain('주문하기')
+    expect(markup).toContain('이야기하기')
   })
 
   it('renders recommendation choices, unknown answer and cancel affordance', () => {
@@ -96,7 +98,7 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('대답을 기다리는 중...')
   })
 
-  it('hides the re-recommend action when the flow does not provide it', () => {
+  it('hides the order/story actions when the flow does not provide them', () => {
     const cocktail = getCocktailById('cocktail_classic_001')
     expect(cocktail).not.toBeNull()
 
@@ -108,7 +110,8 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toContain(cocktail!.name)
-    expect(markup).not.toContain('다시 추천받기')
+    expect(markup).not.toContain('주문하기')
+    expect(markup).not.toContain('이야기하기')
   })
 
   it('renders distinct speaker labels for Siesta banter messages', () => {

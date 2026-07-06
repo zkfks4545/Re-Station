@@ -33,11 +33,11 @@ export default function App() {
     screenShake,
     rapport,
     unlockedIds,
-    canReRecommend,
+    canCardActions,
     handleEnter,
     handleExit,
     handleOrderCocktail,
-    handleReRecommend,
+    handleCardStory,
     handleResetNight,
     handleCancelRecommendation,
     handleViewCocktail,
@@ -169,7 +169,8 @@ export default function App() {
           <CocktailCard
             cocktail={servedCocktail}
             onClose={() => setServedCocktail(null)}
-            onReRecommend={canReRecommend ? handleReRecommend : undefined}
+            onOrder={canCardActions ? () => handleOrderCocktail(servedCocktail) : undefined}
+            onStory={canCardActions ? () => handleCardStory(servedCocktail) : undefined}
           />
         )}
       </div>

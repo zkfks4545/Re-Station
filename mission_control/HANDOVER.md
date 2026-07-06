@@ -60,16 +60,17 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd test` (Vitest **609개 통과**), typecheck, lint, build, `git diff --check` 통과. 메인 JS 523.89 kB, gzip 155.58 kB
+- ✅ `npm.cmd test` (Vitest **609개 통과**), typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.23 kB, gzip 155.65 kB
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
-1. 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-2. nearest recommendation fallback의 formatter 경계를 다음 작은 슬라이스로 사전 조사
-3. 추천·웰컴·배웅·이야기 포매터 등 후속 배치 이관 뒤 Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
-4. Phase 12 의미 보조 → Phase 13 ResponsePlan 선택 힌트 → Phase 14 이야기 topic 분류 순으로 검토
-5. Phase 15 최종 캐릭터 QA와 시에스타 이벤트 재활성화 여부 평가
+1. CocktailCard 버튼 기능 안정화 및 수동 검증
+2. 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
+3. nearest recommendation fallback의 formatter 경계를 다음 작은 슬라이스로 사전 조사
+4. 추천·웰컴·배웅·이야기 포매터 등 후속 배치 이관 뒤 Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
+5. Phase 12 의미 보조 → Phase 13 ResponsePlan 선택 힌트 → Phase 14 이야기 topic 분류 순으로 검토
+6. Phase 15 최종 캐릭터 QA와 시에스타 이벤트 재활성화 여부 평가
 
 ## 주의사항 (미완료)
 - [ ] 카루아 대사는 농담 우선, 의미 직접 해설 금지

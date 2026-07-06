@@ -3,13 +3,15 @@ import type { CocktailData } from '../../types.js'
 type CocktailCardProps = {
   cocktail: CocktailData
   onClose: () => void
-  onReRecommend?: () => void
+  onOrder?: () => void
+  onStory?: () => void
 }
 
 export default function CocktailCard({
   cocktail,
   onClose,
-  onReRecommend,
+  onOrder,
+  onStory,
 }: CocktailCardProps) {
   if (!cocktail) return null
 
@@ -64,19 +66,37 @@ export default function CocktailCard({
             </div>
         )}
         </div>
-        {onReRecommend && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onReRecommend() }}
-            className="w-full py-2 rounded text-sm transition-all duration-200 cursor-pointer"
-            style={{
-              color: '#b088d0',
-              border: '1px solid rgba(180,136,208,0.25)',
-              background: 'rgba(120,80,180,0.08)',
-              textShadow: '0 0 6px rgba(120,80,180,0.15)',
-            }}
-          >
-            다시 추천받기
-          </button>
+        {(onOrder || onStory) && (
+          <div className="flex gap-2">
+            {onOrder && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onOrder() }}
+                className="flex-1 py-2 rounded text-sm transition-all duration-200 cursor-pointer"
+                style={{
+                  color: '#C4A35A',
+                  border: '1px solid rgba(196,163,90,0.3)',
+                  background: 'rgba(196,163,90,0.08)',
+                  textShadow: '0 0 6px rgba(196,163,90,0.15)',
+                }}
+              >
+                주문하기
+              </button>
+            )}
+            {onStory && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onStory() }}
+                className="flex-1 py-2 rounded text-sm transition-all duration-200 cursor-pointer"
+                style={{
+                  color: '#b088d0',
+                  border: '1px solid rgba(180,136,208,0.25)',
+                  background: 'rgba(120,80,180,0.08)',
+                  textShadow: '0 0 6px rgba(120,80,180,0.15)',
+                }}
+              >
+                이야기하기
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
