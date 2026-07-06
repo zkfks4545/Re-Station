@@ -15,6 +15,8 @@
 
 **Re:Station** is a web application that helps you find the perfect cocktail through conversation with the bartender *Karua*. It features a recommendation engine, a character-driven dialogue system, and a session-based flow, with experimental WebLLM semantic analysis support.
 
+<!-- TODO: add screenshot — entrance screen or main chat view -->
+
 ### Features
 
 - **Conversational recommendations** — Natural language input like "I'm tired today" is analyzed across four axes (taste, strength, carbonation, base spirit) through adaptive questions
@@ -23,6 +25,8 @@
 - **Result card** — Shows description, recipe, and talking points for each recommended cocktail, with options to **order** or **ask for its story**
 - **Cocktail codex** — Every encountered cocktail is recorded in the sidebar codex
 - **XYZ · Farewell Phase** — When the cumulative alcohol star limit is reached, the final drink (XYZ) is served and the session naturally concludes
+
+<!-- TODO: add screenshot — result card with order/story buttons -->
 
 ### Tech Stack
 
@@ -88,6 +92,8 @@ bar_tend/
 
 **Re:Station** は、バーテンダー *カルア* との会話を通じてぴったりのカクテルを見つけられるウェブアプリケーションです。レコメンドエンジン、キャラクター主導の対話システム、セッションベースのフローを備え、実験的にWebLLMによる意味分析をサポートしています。
 
+<!-- TODO: スクリーンショット追加 — 入場画面またはメインチャット画面 -->
+
 ### 機能
 
 - **会話型レコメンド** — 「今日は疲れた」のような自然な入力から好みを分析。味・強さ・炭酸・ベースの4軸で質問を絞り込みます
@@ -96,6 +102,8 @@ bar_tend/
 - **結果カード** — おすすめカクテルの説明・レシピ・豆知識を表示。「注文する」または「話を聞く」を選択可能
 - **カクテル図鑑** — 出会ったカクテルはサイドバーの図鑑に記録されます
 - **XYZ · フェアウェルフェーズ** — 累積アルコールスターが上限に達すると最後の一杯（XYZ）を提供し、自然にセッションを終了します
+
+<!-- TODO: スクリーンショット追加 — 結果カード（注文/話を聞くボタン） -->
 
 ### 技術スタック
 
@@ -134,6 +142,8 @@ npm run dev
 
 **Re:Station**은 바텐더 *카루아*와의 대화를 통해 나에게 딱 맞는 칵테일을 찾아주는 웹 애플리케이션입니다. 추천 엔진, 캐릭터 대화 시스템, 세션 기반 플로우를 갖추고 있으며 WebLLM을 통한 의미 분석 보조를 실험적으로 지원합니다.
 
+<!-- TODO: 스크린샷 추가 — 입장 화면 또는 메인 채팅 화면 -->
+
 ### 주요 기능
 
 - **대화형 추천** — "오늘 좀 피곤해요" 같은 자연어 입력으로 취향을 파악하고 4축 질문(맛·도수·탄산·베이스)으로 좁혀가며 칵테일을 추천합니다
@@ -142,6 +152,8 @@ npm run dev
 - **추천 결과 카드** — 추천받은 칵테일의 설명·레시피·이야깃거리를 카드로 표시하고 **주문하기** 또는 **이야기하기**를 선택할 수 있습니다
 - **도감 시스템** — 만난 칵테일이 도감에 기록되며, 사이드바에서 다시 확인할 수 있습니다
 - **XYZ · Farewell Phase** — 도수 누적 한계에 도달하면 마지막 잔(XYZ)을 서빙하고 Farewell Phase로 자연스럽게 세션을 마무리합니다
+
+<!-- TODO: 스크린샷 추가 — 결과 카드 (주문하기/이야기하기 버튼) -->
 
 ### 기술 스택
 
