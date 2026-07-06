@@ -1,6 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionDraft } from './response-templates.js'
 import type { CocktailData } from '../../types.js'
+import dialoguesData from '../../data/dialogues.json'
+
+const templateGroups = [
+  INTENT_RESPONSE_TEMPLATES,
+  COCKTAIL_FALLBACK_TEMPLATES,
+  MOOD_SUB_TEMPLATES,
+  TASTE_SUB_TEMPLATES,
+  RUDE_SUB_TEMPLATES,
+  { story: STORY_FALLBACK },
+]
+
+describe('dialogue response source contract', () => {
+  it('backs every referenced dialogue category with a non-empty JSON pool', () => {
+    for (const templates of templateGroups) {
+      for (const template of Object.values(templates)) {
+        if (!template.dialogueCategory) continue
+        const category = dialoguesData.categories[template.dialogueCategory as keyof typeof dialoguesData.categories]
+        expect(category, `missing dialogue category "${template.dialogueCategory}"`).toBeDefined()
+        expect(category?.lines.length, `empty dialogue category "${template.dialogueCategory}"`).toBeGreaterThan(0)
+      }
+    }
+  })
+})
 
 describe('INTENT_RESPONSE_TEMPLATES', () => {
   it('covers all simple intents used in conversation.ts', () => {

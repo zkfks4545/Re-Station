@@ -3,6 +3,7 @@ import { IntentClassifier, type DialogueContext } from '../bartender/intent-clas
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { resolveDialogueAction } from './action-resolver.js'
 import { createConversationContext, updateConversationContext } from './conversation-context.js'
+import { detectUserReaction } from './reaction-layer.js'
 
 const classifier = new IntentClassifier(cocktails)
 const mojito = findCocktailByName('모히토')!
@@ -116,5 +117,46 @@ describe('dialogue action resolver', () => {
       topic: 'story',
       cocktailId: null,
     })
+  })
+
+  it('turns another-request into the existing recommendation action', () => {
+    const classified = classifier.classify('다른 걸로 추천해줘', dialogueContext)
+
+    expect(resolveDialogueAction(
+      classified,
+      createConversationContext(),
+      detectUserReaction('다른 걸로 추천해줘'),
+    )).toEqual({ type: 'recommend', mode: 'preference' })
+  })
+
+  it.each([
+    { input: '아무거나 추천해줘', activeRecommendationSession: false },
+    { input: '랜덤으로 골라줘', activeRecommendationSession: false },
+    { input: '맡길게', activeRecommendationSession: true },
+    { input: '추천해줘', activeRecommendationSession: false },
+  ])('keeps "$input" on the existing Recommendation Action', ({ input, activeRecommendationSession }) => {
+    const classified = classifier.classify(input, {
+      ...dialogueContext,
+      allowRecommendationRoutes: true,
+      activeRecommendationSession,
+    })
+    const action = resolveDialogueAction(classified, createConversationContext())
+
+    expect(action.type).toBe('recommend')
+    expect(classified.intent).not.toBe('order-cocktail')
+    expect(classified.intent).not.toBe('story-query')
+    expect(classified.intent).not.toBe('lore-query')
+    expect(classified.intent).not.toBe('cocktail-info-query')
+    expect(classified.intent).not.toBe('recommendation-cancel')
+  })
+
+  it('keeps feedback as a response instead of starting an unrelated action', () => {
+    const classified = classifier.classify('맛있어요', dialogueContext)
+
+    expect(resolveDialogueAction(
+      classified,
+      createConversationContext(),
+      detectUserReaction('맛있어요'),
+    )).toEqual({ type: 'respond' })
   })
 })

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import BarExterior from '@/components/entrance/BarExterior.jsx'
 import BarInterior from '@/components/bar/BarInterior.jsx'
 import BartenderSprite from '@/components/bar/BartenderSprite.jsx'
@@ -8,8 +9,14 @@ import CocktailCard from '@/components/bar/CocktailCard.jsx'
 import WelcomeDrinkButton from '@/components/bar/WelcomeDrinkButton.jsx'
 import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useRestationController } from '@/hooks/useRestationController.js'
+import { useExperimentalWebLLMPreparation } from '@/hooks/useExperimentalWebLLMPreparation.js'
+
+const RapportDebugDisplay = import.meta.env.DEV
+  ? lazy(() => import('@/components/bar/RapportDebugDisplay'))
+  : null
 
 export default function App() {
+  useExperimentalWebLLMPreparation()
   const {
     scene,
     messages,
@@ -24,12 +31,13 @@ export default function App() {
     lastServedCocktail,
     sidebarOpen,
     screenShake,
+    rapport,
     unlockedIds,
-    canReRecommend,
+    canCardActions,
     handleEnter,
     handleExit,
     handleOrderCocktail,
-    handleReRecommend,
+    handleCardStory,
     handleResetNight,
     handleCancelRecommendation,
     handleViewCocktail,
@@ -92,6 +100,11 @@ export default function App() {
               isPreparingCocktail={isPreparingCocktail}
               isBartenderTyping={isBartenderTyping}
             />
+            {RapportDebugDisplay && (
+              <Suspense fallback={null}>
+                <RapportDebugDisplay rapport={rapport} />
+              </Suspense>
+            )}
             <BarCounter />
           </div>
           <div
@@ -156,7 +169,8 @@ export default function App() {
           <CocktailCard
             cocktail={servedCocktail}
             onClose={() => setServedCocktail(null)}
-            onReRecommend={canReRecommend ? handleReRecommend : undefined}
+            onOrder={canCardActions ? () => handleOrderCocktail(servedCocktail) : undefined}
+            onStory={canCardActions ? () => handleCardStory(servedCocktail) : undefined}
           />
         )}
       </div>

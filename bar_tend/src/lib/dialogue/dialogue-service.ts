@@ -1,6 +1,7 @@
 import type { CocktailData, Expression, Message } from '../../types.js'
 import type { DialogueTurn } from '../../types/dialogue-turn.js'
 import {
+  isDialogueActionBlockedInPhase,
   isRecommendationBlockedInPhase,
   type SessionPhase,
 } from '../session/session-flow.js'
@@ -22,7 +23,9 @@ import {
   type ConversationContextState,
 } from './conversation-context.js'
 import type { RouteResult } from './input-router.js'
+import { getContentLeadReaction } from './conversation-flow.js'
 import { SHAKE_REFERENCE } from './pattern-utils.js'
+import { detectUserReaction, type UserReaction } from './reaction-layer.js'
 import { assembleResponse } from './response-pipeline.js'
 import {
   formatStoryQueryReply,
@@ -50,7 +53,6 @@ export interface DialogueServiceRequest {
   conversationContext: ConversationContextState
   session: DialogueServiceSessionSnapshot
   displayedCocktail: CocktailData | null
-  lastServedCocktail: CocktailData | null
 }
 
 export type DirectDialogueKind =
@@ -73,6 +75,7 @@ export interface DirectDialogueResponse {
 export interface DialogueResolution {
   classifiedIntent: ClassifiedIntent
   routeResult: RouteResult
+  reaction: UserReaction | null
   action: DialogueAction
   blockedBySession: boolean
   contextEvents: ConversationContextEvent[]
@@ -97,19 +100,21 @@ export class DialogueService {
     const dialogueContext = this.buildDialogueContext(request)
     const classifiedIntent = this.classifier.classify(request.text, dialogueContext)
     const routeResult = classifiedIntent.route
-    const action = resolveDialogueAction(classifiedIntent, request.conversationContext)
-    const blockedBySession = isRecommendationBlockedInPhase(
-      request.session.phase,
-      routeResult.route,
-    )
+    const reaction = this.resolveReaction(request.text, classifiedIntent)
+    const action = resolveDialogueAction(classifiedIntent, request.conversationContext, reaction)
+    const blockedBySession = isRecommendationBlockedInPhase(request.session.phase, routeResult.route)
+      || isDialogueActionBlockedInPhase(request.session.phase, action)
     const contextEvents = blockedBySession
       ? []
       : this.resolveActionContextEvents(action)
-    const directResponse = this.resolveDirectResponse(request, classifiedIntent, action)
+    const directResponse = reaction
+      ? null
+      : this.resolveDirectResponse(request, classifiedIntent, action)
 
     return {
       classifiedIntent,
       routeResult,
+      reaction,
       action,
       blockedBySession,
       contextEvents,
@@ -154,22 +159,55 @@ export class DialogueService {
       request.messages,
       resolution.classifiedIntent,
     )
+    const reactedFallback = resolution.reaction
+      ? assembleResponse({ text: resolution.reaction.reply, tone: resolution.reaction.tone })
+      : fallback
     const fallbackResponse = options.inviteRecommendation
       ? assembleResponse({
-          text: `${fallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`,
+          text: `${reactedFallback.response}\n슬슬 빈 잔이 심심해 보이네요. 괜찮으면 이제 제가 한 잔 맞춰볼까요?`,
           tone: 'smirk',
         })
-      : fallback
+      : reactedFallback
     const outcome = this.applyPreparationStyle(request.text, resolution, options.outcome)
+    const reactedOutcome = outcome && resolution.reaction
+      ? {
+          ...outcome,
+          reply: `${resolution.reaction.reply}\n${outcome.reply}`,
+        }
+      : outcome
     const turn = buildDialogueTurn(
       request.text,
       resolution.routeResult.route,
       fallbackResponse.response,
       fallbackResponse.expression,
-      outcome,
+      reactedOutcome,
       { confidence: resolution.routeResult.confidence },
     )
     return validateDialogueTurn(turn) ? turn : null
+  }
+
+  private resolveReaction(text: string, classifiedIntent: ClassifiedIntent): UserReaction | null {
+    const reaction = detectUserReaction(text)
+    if (!reaction) return null
+
+    const routeResult = classifiedIntent.route
+
+    if (['safety', 'exit', 'recommendation-cancel', 'explicit-cocktail', 'lore-based-order', 'character-query', 'unknown-cocktail-query'].includes(routeResult.route)) {
+      return null
+    }
+    const explicitContentRequest = /알려|설명|들려|말해\s*줘|이야기\s*(?:해|줘)|유래|레시피|재료|도수|왜|어떻게|누가/.test(text)
+    if (explicitContentRequest && ['story-query', 'lore-query', 'cocktail-info-query'].includes(routeResult.route)) {
+      return null
+    }
+
+    if (reaction.type === 'another-request') return reaction
+    if (classifiedIntent.intent === 'general-chat') return reaction
+    if (isStandaloneFeedback(text, reaction.type)) return reaction
+    if (
+      (reaction.type === 'positive-feedback' || reaction.type === 'negative-feedback')
+      && /(?:이|그|저)\s*(?:칵테일|잔|거)|방금\s*(?:그|이)거/.test(text)
+    ) return reaction
+    return null
   }
 
   private buildDialogueContext(request: DialogueServiceRequest): DialogueContext {
@@ -177,8 +215,10 @@ export class DialogueService {
       .map((id) => this.getCocktail(id))
       .filter((cocktail): cocktail is CocktailData => cocktail !== null)
 
+    const lastServedCocktail = this.getCocktail(request.conversationContext.lastServedCocktailId)
+
     return {
-      lastServedCocktail: request.lastServedCocktail,
+      lastServedCocktail,
       mentionedCocktails: discussedCocktails,
       sessionPhase: request.session.phase,
       activeRecommendationSession: request.session.activeRecommendationSession,
@@ -283,13 +323,18 @@ export class DialogueService {
       : classifiedIntent.route.matchedCocktailId ?? null
     const cocktail = this.getCocktail(cocktailId)
       ?? request.displayedCocktail
-      ?? request.lastServedCocktail
+      ?? this.getCocktail(request.conversationContext.lastServedCocktailId)
     const disclosed = cocktail
       ? getDisclosedCocktailFactKeys(request.conversationContext, cocktail.id)
       : []
-    const reply = formatStoryQueryReply(cocktail, disclosed)
+    const contentKind = action.type === 'continueStory' ? action.topic : 'story'
+    const reply = formatStoryQueryReply(cocktail, disclosed, contentKind)
+    const leadReaction = getContentLeadReaction(classifiedIntent.route.route, {
+      hasCocktail: cocktail !== null,
+      isFollowup: disclosed.length > 0,
+    })
     const response = assembleResponse({
-      text: reply.text,
+      text: `${leadReaction}\n${reply.text}`,
       preferredExpression: reply.expression,
     })
     const turn = this.createTurn(
@@ -357,4 +402,15 @@ export class DialogueService {
   private getCocktail(id: string | null | undefined): CocktailData | null {
     return id ? this.cocktailsById.get(id) ?? null : null
   }
+}
+
+function isStandaloneFeedback(text: string, reactionType: UserReaction['type']): boolean {
+  const normalized = text.trim().toLowerCase()
+  const patterns: Partial<Record<UserReaction['type'], RegExp>> = {
+    'positive-feedback': /^(?:정말\s*|진짜\s*)?(?:맛있|마음에\s*들|괜찮|좋|훌륭|최고).{0,8}[.!?]*$/,
+    'negative-feedback': /^(?:정말\s*|진짜\s*)?(?:별로|마음에\s*안\s*들|취향이\s*아니|실망|맛없|안\s*맞).{0,8}[.!?]*$/,
+    agreement: /^(?:네|응|맞아(?:요)?|그렇(?:죠|네요|습니다)?|동의해(?:요)?|그러게(?:요)?)[\s.!?]*$/,
+    confused: /^(?:무슨\s*말|이해(?:가)?\s*안|헷갈|잘\s*모르겠|뭔\s*소리).{0,12}[.!?]*$/,
+  }
+  return patterns[reactionType]?.test(normalized) ?? false
 }

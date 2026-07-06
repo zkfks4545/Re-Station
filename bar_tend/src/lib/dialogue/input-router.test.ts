@@ -263,9 +263,13 @@ describe('user input routing priority', () => {
 
   it('routes explicit cancellation only while a recommendation is active', () => {
     expect(r('취소', { recommendationActive: true })).toBe('recommendation-cancel')
-    expect(r('추천 그만', { recommendationActive: true })).toBe('recommendation-cancel')
-    expect(r('그만 물어봐', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(r('그만', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(r('추천 취소', { recommendationActive: true })).toBe('recommendation-cancel')
     expect(r('취소')).toBe('general')
+  })
+
+  it('keeps exit routing above active recommendation cancellation', () => {
+    expect(r('다음에 올게', { recommendationActive: true })).toBe('exit')
   })
 
   it('keeps safety above active recommendation cancellation', () => {

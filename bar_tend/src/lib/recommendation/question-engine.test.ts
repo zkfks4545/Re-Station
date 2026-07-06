@@ -110,6 +110,54 @@ describe('adaptive recommendation questions', () => {
     expect(rendered).not.toContain('1. 톡 쏘고 청량하게')
   })
 
+  it('fills taste, base, strength, and fizz from one freely ordered input', () => {
+    const signals = extractRecommendationSignals(
+      '탄산은 빼고 약하게, 달콤한 럼 베이스로 추천해줘',
+    )
+    const state = applyRecommendationSignals(createRecommendationState(), signals)
+
+    expect(state.taste.sweetness).toBe(0.8)
+    expect(state.taste.fizz).toBe(0.1)
+    expect(state.alcoholPreference).toBe('low')
+    expect(state.preferredIngredients).toContain('럼')
+  })
+
+  it('does not ask taste or base again when those slots came from free input', () => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      extractRecommendationSignals('달콤한 럼 베이스로 추천해줘'),
+    )
+    const pool = filterCocktailsByRecommendationState(getAllCocktailData(), state)
+    const next = selectNextQuestion(pool, state)
+
+    expect(next).not.toBeNull()
+    expect(['alcohol', 'fizz']).toContain(next!.topic)
+  })
+
+  it('keeps extra slots mentioned while answering the active question', () => {
+    const question = getQuestionById('base-spirit')!
+    const result = applyQuestionAnswer(
+      createRecommendationState(),
+      question,
+      '럼으로 할게요. 달콤하고 탄산 없이 약하게요.',
+    )
+
+    expect(result.state.preferredIngredients).toContain('럼')
+    expect(result.state.taste.sweetness).toBe(0.8)
+    expect(result.state.taste.fizz).toBe(0.1)
+    expect(result.state.alcoholPreference).toBe('low')
+  })
+
+  it('asks no further slot question when all four slots are already known', () => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      extractRecommendationSignals('럼 베이스로 달콤하고 탄산 없이 약하게 추천해줘'),
+    )
+    const pool = filterCocktailsByRecommendationState(getAllCocktailData(), state)
+
+    expect(selectNextQuestion(pool, state)).toBeNull()
+  })
+
   it('uses JSON dialogue flow hints to connect questions conversationally', () => {
     const firstQuestion = getQuestionById('flavor-profile')
     const nextQuestion = getQuestionById('alcohol-strength')

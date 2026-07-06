@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Message } from '../../types.js'
+import dialoguesData from '../../data/dialogues.json'
+import type { DialoguesData, Message } from '../../types.js'
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
 import { detectSafetyConcern, getCocktailResponse, getCocktailResponseFromClassified } from './engine.js'
 import { IntentClassifier, type DialogueContext } from './intent-classifier.js'
@@ -12,6 +13,15 @@ const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /내려놓는 게 답/,
   /괜찮아질 거예요/,
 ]
+
+const MOOD_TIRED_TEXTS = (dialoguesData as DialoguesData).categories['mood-tired'].lines
+  .map((line) => line.text)
+const BAR_INTRO_TEXTS = (dialoguesData as DialoguesData).categories['bar-intro'].lines
+  .map((line) => line.text)
+const CHARACTER_QUERY_TEXTS = (dialoguesData as DialoguesData).categories['character-query'].lines
+  .map((line) => line.text)
+const SIESTA_MENTION_TEXTS = (dialoguesData as DialoguesData).categories['siesta-mention'].lines
+  .map((line) => line.text)
 
 function expectKahluaBoundary(response: string) {
   for (const forbidden of DIRECT_COMFORT_OR_ALCOHOL_SOLUTION) {
@@ -47,7 +57,44 @@ describe('neutral runtime dialogue contract', () => {
   it('explains the virtual bar setting without pretending to be a real venue', () => {
     const response = getCocktailResponse('여기 뭐하는 곳이야?', []).response
 
-    expect(response).toMatch(/Re:Station|가상의 바|취향|한 잔|카루아|기분|칵테일/)
+    expect(BAR_INTRO_TEXTS).toContain(response)
+  })
+
+  it.each([
+    '여긴 뭐죠',
+    '여긴 뭐하는 곳인가요',
+    '여긴 뭐하는 바인가요',
+    'Re:Station이 뭐예요',
+  ])('routes bar-setting variant "%s" to bar-intro', (input) => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('bar-setting')
+    expect(BAR_INTRO_TEXTS).toContain(response)
+  })
+
+  it.each([
+    '당신은 누구예요',
+    '카루아는 뭐하는 사람이에요',
+    '여기 직원은 누구예요',
+  ])('routes character variant "%s" to character-query', (input) => {
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('character-query')
+    expect(CHARACTER_QUERY_TEXTS).toContain(response)
+  })
+
+  it('keeps Siesta identity questions on the dedicated character path', () => {
+    const input = '시에스타는 누구예요'
+    const context: DialogueContext = { mentionedCocktails: [], sessionPhase: 'conversation' }
+    const classified = new IntentClassifier(cocktails).classify(input, context)
+    const response = getCocktailResponseFromClassified(input, [], classified).response
+
+    expect(classified.intent).toBe('siesta-setting')
+    expect(SIESTA_MENTION_TEXTS).toContain(response)
   })
 
   it('handles real venue questions as virtual bar limitations', () => {
@@ -105,7 +152,7 @@ describe('neutral runtime dialogue contract', () => {
   it('routes tired mood to tired-specific dialogue variants', () => {
     const result = getCocktailResponse('오늘 너무 피곤하고 지쳤어', [])
 
-    expect(result.response).toMatch(/피곤|지친|천천히|부담|쉬|가볍게|무리|편한|에너지|자리부터/)
+    expect(MOOD_TIRED_TEXTS).toContain(result.response)
     expect(result.expression).toBe('sympathy')
     expectKahluaBoundary(result.response)
   })
@@ -302,7 +349,7 @@ describe('story/lore query integration — intent preserved through engine', () 
       expect(result.expression).toBe('smirk')
     })
 
-    it('no prior cocktail + lore-followup → generic story fallback', () => {
+    it('no prior cocktail + lore-followup → asks for a cocktail target', () => {
       const classified = new IntentClassifier(cocktails).classify('흔들어서 만들었겠죠?', context)
       expect(classified.intent).toBe('lore-followup')
 
@@ -311,6 +358,8 @@ describe('story/lore query integration — intent preserved through engine', () 
       expect(result.response).toBeTruthy()
       expect(result.response).not.toContain('007')
       expect(result.response).not.toContain('본드')
+      expect(result.response).toMatch(/잔|칵테일|이름|실마리/)
+      expect(result.response).not.toMatch(/듣고 있어요|계속 하셔도/)
     })
   })
 })

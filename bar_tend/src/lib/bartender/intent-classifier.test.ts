@@ -102,6 +102,52 @@ describe('IntentClassifier', () => {
     })
   })
 
+  describe('Unknown cocktail request boundaries', () => {
+    it('routes an unavailable cocktail to unknown-cocktail-request only', () => {
+      const result = classifier.classify('블루 라군 주문', baseContext)
+
+      expect(result.route.route).toBe('unknown-cocktail-query')
+      expect(result.intent).toBe('unknown-cocktail-request')
+      expect(result.intent).not.toBe('lore-query')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('random-request')
+    })
+
+    it('keeps known cocktail order, story, and info routes unchanged', () => {
+      expect(classifier.classify('모히토 한 잔 주세요', baseContext).route.route).toBe('explicit-cocktail')
+      expect(classifier.classify('모히토 유래 알려줘', baseContext).route.route).toBe('story-query')
+      expect(classifier.classify('모히토 설명', baseContext).route.route).toBe('cocktail-info-query')
+    })
+
+    it('keeps recommendation and random requests out of the unknown route', () => {
+      expect(classifier.classify('추천해줘', baseContext).route.route).toBe('recommendation')
+      expect(classifier.classify('아무거나 골라줘', baseContext).intent).toBe('random-request')
+    })
+  })
+
+  describe('Recipe request boundaries', () => {
+    it.each([
+      '레시피 알려줘',
+      '재료가 뭐예요',
+      '어떻게 만들어요',
+    ])('keeps "%s" on the existing recipe-query intent', (input) => {
+      const result = classifier.classify(input, baseContext)
+
+      expect(result.intent).toBe('recipe-query')
+      expect(result.intent).not.toBe('story-query')
+      expect(result.intent).not.toBe('lore-query')
+      expect(result.intent).not.toBe('order-cocktail')
+      expect(result.intent).not.toBe('recommendation-query')
+      expect(result.intent).not.toBe('unknown-cocktail-request')
+    })
+
+    it('preserves the existing story-query classification for the ambiguous phrase "만드는 법 알려줘"', () => {
+      const result = classifier.classify('만드는 법 알려줘', baseContext)
+
+      expect(result.intent).toBe('story-query')
+    })
+  })
+
   describe('Pronoun references', () => {
     it('resolves pronouns to recently served cocktails', () => {
       const context: DialogueContext = {
@@ -301,6 +347,17 @@ describe('IntentClassifier', () => {
       expect(r.intent).toBe('bar-atmosphere')
       expect(r.intent).not.toBe('recommendation-query')
       expect(r.intent).not.toBe('mood-talk')
+    })
+
+    it.each([
+      ['음악이 좋네요', 'bar-atmosphere'],
+      ['밖에 비가 오네요', 'weather-talk'],
+      ['오늘 날씨가 추워요', 'weather-talk'],
+    ] as const)('%s → %s 경계를 유지한다', (input, intent) => {
+      const r = ctx.classify(input, base)
+      expect(r.intent).toBe(intent)
+      expect(r.intent).not.toBe('recommendation-query')
+      expect(r.intent).not.toBe('story-query')
     })
 
     it('뭐가 좋아요? → cocktail-query', () => {

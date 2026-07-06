@@ -51,4 +51,42 @@ describe('story and lore query replies', () => {
     expect(reply.facts).toEqual([reply.text])
     expect(reply.factKeys).toEqual([])
   })
+
+  it('orders facts by content kind without changing disclosure keys', () => {
+    const cocktail = getCocktailById('cocktail_classic_002')!
+    const story = formatStoryQueryReply(cocktail, [], 'story')
+    const lore = formatStoryQueryReply(cocktail, [], 'lore')
+    const info = formatStoryQueryReply(cocktail, [], 'info')
+
+    expect(story.factKeys[0]).toMatch(/^story:/)
+    expect(lore.factKeys[0]).toMatch(/^trivia:/)
+    expect(info.factKeys[0]).toBe('recipe')
+    expect(info.text).toContain(cocktail.recipeText)
+  })
+
+  it('keeps progressive story disclosure ordered before lore and description', () => {
+    const cocktail = getCocktailById('cocktail_classic_002')!
+    const disclosed: string[] = []
+
+    for (let turn = 0; turn < 20; turn += 1) {
+      const reply = formatStoryQueryReply(cocktail, disclosed, 'story')
+      if (reply.factKeys.length === 0) break
+      disclosed.push(...reply.factKeys)
+    }
+
+    const storyEnd = disclosed.reduce(
+      (lastIndex, key, index) => key.startsWith('story:') ? index : lastIndex,
+      -1,
+    )
+    const loreStart = disclosed.findIndex((key) => key.startsWith('trivia:'))
+    const loreEnd = disclosed.reduce(
+      (lastIndex, key, index) => key.startsWith('trivia:') ? index : lastIndex,
+      -1,
+    )
+    const descriptionIndex = disclosed.indexOf('description')
+
+    expect(storyEnd).toBeGreaterThanOrEqual(0)
+    expect(loreStart).toBeGreaterThan(storyEnd)
+    expect(descriptionIndex).toBeGreaterThan(loreEnd)
+  })
 })

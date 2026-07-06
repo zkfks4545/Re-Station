@@ -1,0 +1,91 @@
+{
+  "version": "3.0.0",
+  "description": "Re:Station Hidden RapportState configuration — hidden integer relationship temperature",
+  "initial": 4,
+  "min": 0,
+  "max": 10,
+  "ranges": {
+    "distant": { "min": 0, "max": 2 },
+    "normal":  { "min": 3, "max": 5 },
+    "warm":    { "min": 6, "max": 8 },
+    "close":   { "min": 9, "max": 10 }
+  },
+  "weightScaleFactor": 0,
+  "decay": {
+    "perTurn": 0
+  },
+  "personality": {
+    "id": "karua-default",
+    "label": "Karua (default)",
+    "description": "Karua's hidden relationship profile. Personality weights are retained as metadata but do not alter exact integer deltas.",
+    "likes": [
+      "cocktail-order",
+      "recommend-request",
+      "taste-statement",
+      "mood-expression",
+      "general-chat",
+      "story-query",
+      "recipe-query"
+    ],
+    "dislikes": [
+      "rude-talk",
+      "harassment",
+      "sexual-remark",
+      "hate-speech"
+    ],
+    "neutral": [
+      "weather-talk",
+      "daily-life",
+      "food-talk",
+      "hobby-talk",
+      "music-talk"
+    ],
+    "weights": {
+      "cocktail-order": 1.5,
+      "recommend-request": 1.2,
+      "taste-statement": 0.8,
+      "mood-expression": 1.5,
+      "general-chat": 0.5,
+      "story-query": 1.0,
+      "recipe-query": 0.5,
+      "rude-talk": -2.0,
+      "harassment": -3.0,
+      "sexual-remark": -2.5,
+      "hate-speech": -4.0,
+      "weather-talk": 0.3,
+      "daily-life": 0.3,
+      "food-talk": 0.4,
+      "hobby-talk": 0.5,
+      "music-talk": 0.4
+    }
+  },
+  "updateRules": [
+    {
+      "id": "positive-standard",
+      "context": ["general-chat", "taste-statement", "mood-expression", "cocktail-order", "story-query", "recipe-query", "positive-feedback"],
+      "delta": 1,
+      "maxPerSession": 6
+    },
+    {
+      "id": "positive-special",
+      "context": ["welcome-positive", "secret-event-success"],
+      "delta": 2,
+      "cooldown": 1,
+      "maxPerSession": 2
+    },
+    {
+      "id": "negative-standard",
+      "context": ["recommendation-cancel", "negative-feedback", "confused", "minor-rude", "rude-talk"],
+      "delta": -1,
+      "cooldown": 2,
+      "maxPerSession": 4
+    },
+    {
+      "id": "negative-severe",
+      "context": ["severe-rude", "troll-disruptive", "harassment", "sexual-remark", "hate-speech"],
+      "delta": -2,
+      "cooldown": 3,
+      "maxPerSession": 2
+    }
+  ]
+}

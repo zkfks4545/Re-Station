@@ -1,4 +1,4 @@
-import type { CocktailData } from '../../types.js'
+import type { CocktailData, Expression } from '../../types.js'
 import type {
   AffectState,
   DialogueState,
@@ -7,6 +7,12 @@ import type {
   RecommendationRouteTag,
 } from '../../types/recommendation.js'
 import { renderParagraphPreset } from '../dialogue/text-presets.js'
+import { expressionForTone } from '../dialogue/response-pipeline.js'
+import {
+  renderExactRecommendationResponsePlan,
+  renderRandomPickResponsePlan,
+} from '../dialogue/response-plan-renderer.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
 
 interface RecommendationOpeningLine {
   id: string
@@ -22,7 +28,7 @@ export interface SelectedRecommendationOpening {
   text: string
 }
 
-const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
+export const RECOMMENDATION_OPENING_LINES: RecommendationOpeningLine[] = [
   {
     id: 'mood-context',
     route: 'moodOrder',
@@ -209,7 +215,25 @@ export function formatRandomRecommendationReply(
   cocktail: CocktailData,
   opening = '그럼 제가 하나 골라볼게요.',
 ): string {
-  return `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`
+  return formatRandomRecommendationResponse(cocktail, opening).text
+}
+
+export function formatRandomRecommendationResponse(
+  cocktail: CocktailData,
+  opening = '그럼 제가 하나 골라볼게요.',
+  options: { plans?: readonly ResponsePlan[] } = {},
+): { text: string; expression: Expression } {
+  const talkingPoint = selectCocktailTalkingPoint(cocktail)
+  const fallback = {
+    text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${talkingPoint}`,
+    expression: 'smirk' as const,
+  }
+  return renderRandomPickResponsePlan(
+    opening,
+    cocktail.name,
+    talkingPoint,
+    options.plans,
+  ) ?? fallback
 }
 
 export function formatRecommendationReply(
@@ -226,6 +250,47 @@ export function formatRecommendationReply(
     ? reason.detail
     : '말씀해 주신 취향을 기준으로 골랐어요.'
 
+  const talkingPoint = selectCocktailTalkingPoint(decision.cocktail)
+  if (!acknowledgement) {
+    return formatExactRecommendationResponse(decision).text
+  }
+
+  const reply = renderLegacyExactRecommendationReply(decision, reasonLine, talkingPoint)
+  return `${acknowledgement}\n${reply}`
+}
+
+export function formatExactRecommendationResponse(
+  decision: RecommendationDecision,
+  options: { plans?: readonly ResponsePlan[] } = {},
+): { text: string; expression: Expression } {
+  const reason = decision.reasons.find((item) => item.code !== 'context')
+  const reasonLine = reason
+    ? reason.detail
+    : '말씀해 주신 취향을 기준으로 골랐어요.'
+  const talkingPoint = selectCocktailTalkingPoint(decision.cocktail)
+  const fallback = {
+    text: renderLegacyExactRecommendationReply(decision, reasonLine, talkingPoint),
+    expression: expressionForTone(decision.dialogue.affectState),
+  }
+
+  return renderExactRecommendationResponsePlan(
+    decision.dialogue.affectState,
+    `${decision.dialogue.route}:${decision.dialogue.affectState}:${decision.cocktail.id}`,
+    {
+      cocktail_name: decision.cocktail.name,
+      cocktail_name_subject: withSubjectParticle(decision.cocktail.name),
+      reason: reasonLine,
+      talking_point: talkingPoint,
+    },
+    options.plans,
+  ) ?? fallback
+}
+
+function renderLegacyExactRecommendationReply(
+  decision: RecommendationDecision,
+  reasonLine: string,
+  talkingPoint: string,
+): string {
   const paragraph = renderParagraphPreset({
     speaker: 'karua',
     intent: 'recommend',
@@ -242,9 +307,7 @@ export function formatRecommendationReply(
     },
   })
 
-  const reply = `${paragraph}\n${selectCocktailTalkingPoint(decision.cocktail)}`
-
-  return acknowledgement ? `${acknowledgement}\n${reply}` : reply
+  return `${paragraph}\n${talkingPoint}`
 }
 
 export function selectCocktailTalkingPoint(cocktail: CocktailData): string {

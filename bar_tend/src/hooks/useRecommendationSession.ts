@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   applyQuestionAnswer,
   createRecommendationSourcePool,
@@ -14,8 +14,9 @@ import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.
 import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
 import {
   formatExplicitCocktailReply,
+  formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
-  formatRandomRecommendationReply,
+  formatRandomRecommendationResponse,
   formatRecommendationReply,
   formatSecretMenuOrderReply,
   selectRecommendationOpening,
@@ -34,6 +35,7 @@ import {
 import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
 import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
+import { addExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 
 export interface RecommendationResult {
   reply: string
@@ -49,6 +51,7 @@ export function useRecommendationSession() {
     createRecommendationState,
   )
   const [excludedCocktailIds, setExcludedCocktailIds] = useState<string[]>([])
+  const excludedCocktailIdsRef = useRef<string[]>([])
   const [recentDialogueLineIds, setRecentDialogueLineIds] = useState<string[]>([])
 
   const resetRecommendation = useCallback(() => {
@@ -58,7 +61,14 @@ export function useRecommendationSession() {
   }, [])
 
   const clearExcludedCocktailIds = useCallback(() => {
+    excludedCocktailIdsRef.current = []
     setExcludedCocktailIds([])
+  }, [])
+
+  const excludeCocktailFromRecommendations = useCallback((cocktailId: string) => {
+    const next = addExcludedCocktailId(excludedCocktailIdsRef.current, cocktailId)
+    excludedCocktailIdsRef.current = next
+    setExcludedCocktailIds(next)
   }, [])
 
   const resolveRandomRecommendation = useCallback((): RecommendationResult => {
@@ -77,11 +87,13 @@ export function useRecommendationSession() {
     const selectedOpening = selectRecommendationOpening(decision, recentDialogueLineIds)
     setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
     resetRecommendation()
+    const formatted = formatRandomRecommendationResponse(cocktail, selectedOpening.text)
     return assembleRecommendationResult(
-      formatRandomRecommendationReply(cocktail, selectedOpening.text),
+      formatted.text,
       'playful',
       cocktail,
       decision,
+      formatted.expression,
     )
   }, [recentDialogueLineIds, resetRecommendation])
 
@@ -146,9 +158,10 @@ export function useRecommendationSession() {
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
-      const sourcePool = createRecommendationSourcePool(excludedCocktailIds)
+      const sourcePool = createRecommendationSourcePool(excludedCocktailIdsRef.current)
 
       if (sourcePool.exhausted) {
+        excludedCocktailIdsRef.current = []
         setExcludedCocktailIds([])
         resetRecommendation()
         return assembleRecommendationResult(
@@ -205,21 +218,29 @@ export function useRecommendationSession() {
       const selectedOpening = acknowledgement
         ? null
         : selectRecommendationOpening(decision, recentDialogueLineIds)
-      setExcludedCocktailIds((prev) => [...prev, cocktail.id])
+      excludeCocktailFromRecommendations(cocktail.id)
       if (selectedOpening) {
         setRecentDialogueLineIds((prev) => [selectedOpening.id, ...prev].slice(0, 4))
       }
       resetRecommendation()
 
+      const exactFormatted = resolved.exactMatch && !acknowledgement
+        ? formatExactRecommendationResponse(decision)
+        : null
+      const reply = exactFormatted
+        ? [selectedOpening?.text, exactFormatted.text].filter(Boolean).join('\n')
+        : formatRecommendationReply(
+            decision,
+            acknowledgement ?? selectedOpening?.text,
+            resolved.exactMatch ? 'exact' : 'nearest',
+          )
+
       return assembleRecommendationResult(
-        formatRecommendationReply(
-          decision,
-          acknowledgement ?? selectedOpening?.text,
-          resolved.exactMatch ? 'exact' : 'nearest',
-        ),
+        reply,
         decision.dialogue.affectState,
         cocktail,
         decision,
+        exactFormatted?.expression,
       )
     },
     [
@@ -227,7 +248,7 @@ export function useRecommendationSession() {
       candidatePool,
       recommendationState,
       resetRecommendation,
-      excludedCocktailIds,
+      excludeCocktailFromRecommendations,
       recentDialogueLineIds,
       resolveExplicitCocktail,
     ],
@@ -236,6 +257,7 @@ export function useRecommendationSession() {
   return {
     activeQuestion: getQuestionById(activeQuestionId),
     clearExcludedCocktailIds,
+    excludeCocktailFromRecommendations,
     excludedCocktailIds,
     resetRecommendation,
     resolveRandomRecommendation,
@@ -250,8 +272,17 @@ function assembleRecommendationResult(
   tone: ResponseTone,
   cocktail: CocktailData | null,
   decision: RecommendationDecision | null,
+  preferredExpression?: Expression,
 ): RecommendationResult {
-  const assembled = assembleResponse({ text, tone })
+  const assembled = assembleResponse({
+    text,
+    tone,
+    preferredExpression,
+    character: {
+      intent: decision?.dialogue.route ?? 'recommendation-query',
+      recommendationExpected: true,
+    },
+  })
   return {
     reply: assembled.response,
     expression: assembled.expression,

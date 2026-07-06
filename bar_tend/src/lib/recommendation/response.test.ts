@@ -3,8 +3,10 @@ import { findCocktailByName, getCocktailById } from '../cocktails/database.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
 import {
   formatExplicitCocktailReply,
+  formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
   formatRandomRecommendationReply,
+  formatRandomRecommendationResponse,
   formatRecommendationReply,
   formatSecretMenuOrderReply,
   selectShortCocktailStory,
@@ -75,6 +77,131 @@ describe('neutral recommendation dialogue copy', () => {
     expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
     expect(reply).not.toMatch(/선택권|농담/)
     expect(reply).not.toContain(cocktail.description)
+  })
+
+  it('keeps randomPick ResponsePlan text and playful expression equal to the legacy formatter', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const opening = '이번에는 제가 하나 골라봤어요.'
+    const talkingPoint = selectCocktailTalkingPoint(cocktail)
+    const formatted = formatRandomRecommendationResponse(cocktail, opening)
+
+    expect(formatted).toEqual({
+      text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${talkingPoint}`,
+      expression: 'smirk',
+    })
+  })
+
+  it('falls back to the legacy random formatter when no ResponsePlan is available', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const opening = '이번에는 제가 하나 골라봤어요.'
+
+    expect(formatRandomRecommendationResponse(cocktail, opening, { plans: [] })).toEqual({
+      text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`,
+      expression: 'smirk',
+    })
+  })
+
+  it('falls back to the legacy random formatter when the plan uses a forbidden slot', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const opening = '이번에는 제가 하나 골라봤어요.'
+
+    expect(formatRandomRecommendationResponse(cocktail, opening, {
+      plans: [{
+        id: 'invalid.random-pick-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        request: 'random-pick-body',
+        blocks: { answer: [{ text: '{opening}\n{cocktail_name}', expression: 'smirk' }] },
+        fallbackText: '{cocktail_name}',
+      }],
+    })).toEqual({
+      text: `${opening}\n「${cocktail.name}」은 어떠세요?\n${selectCocktailTalkingPoint(cocktail)}`,
+      expression: 'smirk',
+    })
+  })
+
+  it.each([
+    ['neutral', 'smirk'],
+    ['warm', 'smirk'],
+    ['curious', 'thinking'],
+    ['confident', 'smirk'],
+    ['playful', 'smirk'],
+    ['concerned', 'sympathy'],
+    ['awkward', 'thinking'],
+    ['tired', 'sympathy'],
+  ] as const)('keeps %s exact recommendation text/expression equal to legacy', (affectState, expression) => {
+    const cocktail = getCocktailById('cocktail_classic_008')!
+    const decision = createRecommendationDecision(cocktail, {
+      ...createRecommendationState(),
+      taste: { fizz: 0.8 },
+    }, {
+      route: 'tastePreferenceOrder',
+      routeTags: ['taste'],
+      dialogueState: 'recommending',
+      affectState,
+    })
+
+    const legacy = formatExactRecommendationResponse(decision, { plans: [] })
+    const migrated = formatExactRecommendationResponse(decision)
+
+    expect(migrated).toEqual(legacy)
+    expect(migrated.expression).toBe(expression)
+    expect(migrated.text).toContain(cocktail.name)
+    expect(migrated.text).toContain('탄산감 취향과 잘 맞아요')
+    expect(migrated.text).toContain(selectCocktailTalkingPoint(cocktail))
+  })
+
+  it('prioritizes the exact recommendation ResponsePlan over the legacy formatter', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const formatted = formatExactRecommendationResponse(decision, {
+      plans: [{
+        id: 'test.exact-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'exact-recommendation-body',
+        blocks: {
+          reaction: [{ text: 'ResponsePlan reaction', expression: 'smirk' }],
+          recommend: [{ text: '{cocktail_name}', expression: 'smirk' }],
+          explanation: [{ text: '{reason}', expression: 'smirk' }],
+          answer: [{ text: '{talking_point}', expression: 'smirk' }],
+        },
+        fallbackText: 'fallback',
+      }],
+    })
+
+    expect(formatted.text).toBe([
+      'ResponsePlan reaction',
+      cocktail.name,
+      decision.reasons.find((reason) => reason.code !== 'context')?.detail
+        ?? '말씀해 주신 취향을 기준으로 골랐어요.',
+      selectCocktailTalkingPoint(cocktail),
+    ].join('\n'))
+    expect(formatted.expression).toBe('smirk')
+  })
+
+  it('falls back to the legacy exact formatter when slot rendering fails', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const legacy = formatExactRecommendationResponse(decision, { plans: [] })
+
+    expect(formatExactRecommendationResponse(decision, {
+      plans: [{
+        id: 'invalid.exact-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'exact-recommendation-body',
+        blocks: {
+          reaction: [{ text: '{opening}', expression: 'smirk' }],
+          recommend: [{ text: '{cocktail_name}', expression: 'smirk' }],
+          explanation: [{ text: '{reason}', expression: 'smirk' }],
+          answer: [{ text: '{talking_point}', expression: 'smirk' }],
+        },
+        fallbackText: 'fallback',
+      }],
+    })).toEqual(legacy)
   })
 
   it('uses distinct copy for a nearest fallback recommendation', () => {
@@ -232,6 +359,21 @@ describe('neutral recommendation dialogue copy', () => {
 
     expect(first.id).not.toBe(second.id)
     expect(second.text).toContain('맛의 균형')
+  })
+
+  it('keeps randomPick opening ranking and recent ID avoidance outside the formatter', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'randomPick',
+      routeTags: ['random'],
+      dialogueState: 'serving',
+      affectState: 'playful',
+    })
+    const first = selectRecommendationOpening(decision)
+    const second = selectRecommendationOpening(decision, [first.id])
+
+    expect(first.id).toBe('random-pick')
+    expect(second.id).toBe('random-counter')
   })
 
   it('falls back to the first line when all route lines are recent', () => {

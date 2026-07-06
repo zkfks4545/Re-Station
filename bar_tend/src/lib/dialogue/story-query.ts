@@ -8,6 +8,8 @@ export interface StoryQueryReply {
   factKeys: string[]
 }
 
+export type CocktailContentKind = 'story' | 'lore' | 'info'
+
 const GENERAL_LORE_REPLIES = [
   'Re:Station은 잠깐 멈춰 서는 사람들을 위한 가상의 바예요.\n메뉴보다 먼저 오늘의 흐름을 보고, 그 다음에 잔을 고릅니다.',
   '여기는 실제 주소가 있는 매장이라기보다, 하루를 정리하는 쪽에 가까운 바예요.\n그래서 이야기도 레시피보다 손님의 상태에서 먼저 시작됩니다.',
@@ -17,9 +19,10 @@ const GENERAL_LORE_REPLIES = [
 export function formatStoryQueryReply(
   cocktail: CocktailData | null,
   disclosedFactKeys: string[] = [],
+  contentKind: CocktailContentKind = 'story',
 ): StoryQueryReply {
   if (cocktail) {
-    const nextFact = buildCocktailFacts(cocktail)
+    const nextFact = buildCocktailFacts(cocktail, contentKind)
       .find((fact) => !disclosedFactKeys.includes(fact.key))
     if (!nextFact) {
       const text = '이 정도가 이 잔에 얽힌 이야기의 대부분이에요.'
@@ -54,26 +57,45 @@ interface CocktailFact {
   text: string
 }
 
-function buildCocktailFacts(cocktail: CocktailData): CocktailFact[] {
-  const facts: CocktailFact[] = []
+function buildCocktailFacts(
+  cocktail: CocktailData,
+  contentKind: CocktailContentKind,
+): CocktailFact[] {
+  const groups: Record<'story' | 'lore' | 'recipe' | 'ingredients' | 'tasting' | 'description', CocktailFact[]> = {
+    story: [],
+    lore: [],
+    recipe: [],
+    ingredients: [],
+    tasting: [],
+    description: [],
+  }
   const seen = new Set<string>()
-  const add = (key: string, text: string | undefined) => {
+  const add = (group: keyof typeof groups, key: string, text: string | undefined) => {
     const shortened = shortenToTwoSentences(text)
     const normalized = shortened.toLowerCase().replace(/\s+/g, '')
     if (!shortened || seen.has(normalized)) return
     seen.add(normalized)
-    facts.push({ key, text: shortened })
+    groups[group].push({ key, text: shortened })
   }
 
-  cocktail.talkingPoints?.forEach((point, index) => add(`story:${index}`, point))
-  add('description', cocktail.description)
-  add('recipe', cocktail.recipeText ? `${cocktail.name}의 레시피는 ${cocktail.recipeText}입니다.` : undefined)
-  add('tasting', formatTastingFact(cocktail))
+  cocktail.talkingPoints?.forEach((point, index) => add('story', `story:${index}`, point))
   cocktail.lore?.references.forEach((reference, index) => {
-    add(`trivia:${index}`, reference.details)
+    add('lore', `trivia:${index}`, reference.details)
   })
+  add('recipe', 'recipe', cocktail.recipeText ? `${cocktail.name}의 레시피는 ${cocktail.recipeText}입니다.` : undefined)
+  add('ingredients', 'ingredients', cocktail.ingredients?.length > 0
+    ? `${cocktail.name}에는 ${cocktail.ingredients.join(', ')}이 들어갑니다.`
+    : undefined)
+  add('tasting', 'tasting', formatTastingFact(cocktail))
+  add('description', 'description', cocktail.description)
 
-  return facts
+  if (contentKind === 'lore') {
+    return [...groups.lore, ...groups.story, ...groups.description, ...groups.tasting, ...groups.recipe, ...groups.ingredients]
+  }
+  if (contentKind === 'info') {
+    return [...groups.recipe, ...groups.ingredients, ...groups.tasting, ...groups.description, ...groups.story, ...groups.lore]
+  }
+  return [...groups.story, ...groups.lore, ...groups.description, ...groups.tasting, ...groups.recipe, ...groups.ingredients]
 }
 
 function formatTastingFact(cocktail: CocktailData): string {
