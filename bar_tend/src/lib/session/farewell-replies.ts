@@ -1,11 +1,27 @@
 import type { Expression } from '../../types.js'
 import type { CocktailData } from '../../types.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
+import {
+  renderStandardFarewellEntryResponsePlan,
+  renderWelcomeXyzClarificationResponsePlan,
+} from '../dialogue/response-plan-renderer.js'
 
 export function isEjectionConcern(input: string): boolean {
   return /나가라는|나가란|쫓|퇴장|가라는|가란/.test(input)
 }
 
 export function formatWelcomeXyzClarificationReply(): { text: string; expression: Expression } {
+  return formatWelcomeXyzClarificationResponse()
+}
+
+export function formatWelcomeXyzClarificationResponse(options: {
+  plans?: readonly ResponsePlan[]
+} = {}): { text: string; expression: Expression } {
+  const rendered = renderWelcomeXyzClarificationResponsePlan(options.plans)
+  return rendered ?? formatWelcomeXyzClarificationLegacy()
+}
+
+function formatWelcomeXyzClarificationLegacy(): { text: string; expression: Expression } {
   return {
     text: '그런 뜻은 아니에요.',
     expression: 'smirk',
@@ -60,6 +76,17 @@ export function formatWelcomeFarewellXyzReply(cocktail: CocktailData): string {
 }
 
 export function formatStandardFarewellEntryReply(): string {
+  return formatStandardFarewellEntryResponse().text
+}
+
+export function formatStandardFarewellEntryResponse(options: {
+  plans?: readonly ResponsePlan[]
+} = {}): { text: string; expression: Expression } {
+  const rendered = renderStandardFarewellEntryResponsePlan(options.plans)
+  return rendered ?? { text: formatStandardFarewellEntryLegacy(), expression: 'sympathy' }
+}
+
+function formatStandardFarewellEntryLegacy(): string {
   return '오늘은 잔을 더 놓지 않고 여기서 마무리할게요.\n잠깐 숨을 고른 뒤 조심히 돌아가실 수 있게 배웅하겠습니다.'
 }
 
