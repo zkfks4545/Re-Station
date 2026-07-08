@@ -2,6 +2,11 @@ import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
 import { getPublicCocktailData } from '../cocktails/database.js'
 import type { InputRoute } from '../dialogue/input-router.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
+import {
+  renderWelcomeDrinkFeedbackResponsePlan,
+  renderWelcomeDrinkResponsePlan,
+} from '../dialogue/response-plan-renderer.js'
 import { selectCocktailTalkingPoint } from './response.js'
 
 export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
@@ -59,6 +64,35 @@ function getWelcomeDrinkTalkingPoint(cocktail: CocktailData): string {
 export function formatWelcomeDrinkReply(cocktail: CocktailData, options: {
   alcoholStarTotal?: number
 } = {}): string {
+  return formatWelcomeDrinkResponse(cocktail, options).text
+}
+
+export function formatWelcomeDrinkResponse(cocktail: CocktailData, options: {
+  alcoholStarTotal?: number
+  plans?: readonly ResponsePlan[]
+} = {}): { text: string; expression: Expression } {
+  const name = cocktail.name_ko ?? cocktail.name
+  const alcoholStarTotal = options.alcoholStarTotal ?? 0
+  const talkingPoint = getWelcomeDrinkTalkingPoint(cocktail)
+  const rendered = renderWelcomeDrinkResponsePlan(
+    getWelcomeDrinkResponseState(alcoholStarTotal),
+    name,
+    talkingPoint,
+    options.plans,
+  )
+
+  return rendered ?? { text: formatWelcomeDrinkLegacy(cocktail, options), expression: 'smirk' }
+}
+
+function getWelcomeDrinkResponseState(alcoholStarTotal: number): string {
+  if (alcoholStarTotal > 10) return 'late'
+  if (alcoholStarTotal > 0) return 'after-order'
+  return 'first'
+}
+
+function formatWelcomeDrinkLegacy(cocktail: CocktailData, options: {
+  alcoholStarTotal?: number
+} = {}): string {
   const name = cocktail.name_ko ?? cocktail.name
   const alcoholStarTotal = options.alcoholStarTotal ?? 0
   const context =
@@ -73,6 +107,22 @@ export function formatWelcomeDrinkReply(cocktail: CocktailData, options: {
 }
 
 export function formatWelcomeDrinkFeedbackReply(answer: string): { text: string; expression: Expression } {
+  return formatWelcomeDrinkFeedbackResponse(answer)
+}
+
+export function formatWelcomeDrinkFeedbackResponse(
+  answer: string,
+  options: { plans?: readonly ResponsePlan[] } = {},
+): { text: string; expression: Expression } {
+  const rendered = renderWelcomeDrinkFeedbackResponsePlan(
+    getWelcomeDrinkFeedbackResponseState(answer),
+    options.plans,
+  )
+
+  return rendered ?? formatWelcomeDrinkFeedbackLegacy(answer)
+}
+
+function formatWelcomeDrinkFeedbackLegacy(answer: string): { text: string; expression: Expression } {
   const normalized = answer.replace(/\s+/g, '')
   const matched = WELCOME_DRINK_FEEDBACK_QUESTION.choices.find((choice) =>
     normalized.includes(choice.label.replace(/\s+/g, '')),
@@ -92,6 +142,22 @@ export function formatWelcomeDrinkFeedbackReply(answer: string): { text: string;
     return { text: '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.', expression: 'smirk' }
   }
   return { text: '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.', expression: 'embarrassed' }
+}
+
+function getWelcomeDrinkFeedbackResponseState(answer: string): string {
+  const normalized = answer.replace(/\s+/g, '')
+  const matched = WELCOME_DRINK_FEEDBACK_QUESTION.choices.find((choice) =>
+    normalized.includes(choice.label.replace(/\s+/g, '')),
+  )
+
+  if (matched?.label === '좋았어요') return 'positive'
+  if (matched?.label === '조금 더 가볍게') return 'lighter'
+  if (matched?.label === '조금 더 달게') return 'sweeter'
+  if (matched?.label === '다른 느낌이 좋아요') return 'alternate'
+  if (/가볍|약하|낮/.test(answer)) return 'lighter'
+  if (/달|스윗|sweet/i.test(answer)) return 'sweeter'
+  if (/좋|괜찮|마음|맛있/.test(answer)) return 'positive'
+  return 'neutral'
 }
 
 export function isWelcomeDrinkFeedbackAnswer(answer: string): boolean {
