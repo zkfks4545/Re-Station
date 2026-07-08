@@ -13,7 +13,7 @@ import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogu
 import { createServingPlan } from '@/lib/dialogue/serving-plan.js'
 import {
   formatWelcomeDrinkFeedbackReply,
-  formatWelcomeDrinkReply,
+  formatWelcomeDrinkResponse,
   selectWelcomeDrink,
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
@@ -35,7 +35,7 @@ import {
   formatFarewellBlockReply,
   formatFarewellConversationReply,
   formatReturnHomeReply,
-  formatStandardFarewellEntryReply,
+  formatStandardFarewellEntryResponse,
   formatWelcomeFarewellXyzReply,
   formatWelcomeXyzClarificationReply,
   formatXyzReply,
@@ -299,7 +299,8 @@ export function useRestationController() {
     dispatchDialogueSession({ type: 'enter-farewell', entryKind: 'standard' })
     resetRecommendation()
     setServedCocktail(null)
-    bartenderReply(formatStandardFarewellEntryReply(), 'sympathy')
+    const reply = formatStandardFarewellEntryResponse()
+    bartenderReply(reply.text, reply.expression)
   }, [bartenderReply, resetRecommendation])
 
   const beginFarewell = useCallback((
@@ -477,11 +478,12 @@ export function useRestationController() {
     timerRegistry.current.schedule(() => setScreenShake(false), 500)
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
-    const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal })
+    const welcomeReply = formatWelcomeDrinkResponse(cocktail, { alcoholStarTotal })
+    const reply = welcomeReply.text
     const servingEvents = dialogueService.buildServingContextEvents(cocktail, { reply })
     bartenderReply(
       reply,
-      'smirk',
+      welcomeReply.expression,
       cocktail,
       'idle',
       [],
