@@ -1,5 +1,57 @@
 # 작업 이력 (축약)
 
+## 2026-07-08 / Codex / Phase 10 welcome XYZ clarification Farewell Formatter
+
+- `formatWelcomeXyzClarificationReply()` welcome-drink XYZ clarification body만 ResponsePlan으로 이관했다.
+- semantic slot 없이 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- XYZ selection, welcome detection, session state, phase transition, DialogueService, Router, IntentClassifier, safety, CocktailCard, unlock timing, serving animation은 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·금지 slot·invalid expression은 기존 farewell formatter로 안전하게 fallback한다.
+- 남은 Farewell slices는 XYZ / welcome-missed main replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·666개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 532.48 kB, gzip 158.46 kB.
+
+## 2026-07-08 / Codex / 외부 구조 보고서 프로젝트 구조 최신화
+
+- `rg --files` 기준으로 루트 운영 문서와 실제 앱 경로 `bar_tend/`의 현재 구조를 다시 확인했다.
+- `EXTERNAL_STRUCTURE_REPORT.md`의 상단 기준, 주요 파일 지도, CocktailCard 버튼 계약, Recommendation/Welcome Formatter 책임, 검증 상태와 빌드 산출물 수치를 갱신했다.
+- 검증: `npm.cmd test` 46개 파일·654개 테스트 통과, `npm.cmd run build` 통과, `npm.cmd run lint` 통과. 메인 JS 531.18 kB, gzip 158.22 kB.
+
+## 2026-07-08 / Codex / Phase 10 standard farewell entry Formatter
+
+- `formatStandardFarewellEntryReply()` standard farewell entry body만 ResponsePlan으로 이관했다.
+- semantic slot 없이 ResponsePlanLine이 final text와 `sympathy` expression을 직접 소유한다.
+- `decideFarewellEntry()`, `beginFarewell()`, `enter-farewell`, phase transition, XYZ/welcome-missed replies, farewell block/conversation/returnHome replies, safety, unlock timing, serving animation, CocktailCard는 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락 line·invalid expression·금지 slot은 기존 farewell formatter로 안전하게 fallback한다.
+- 남은 Farewell slices는 XYZ / welcome-missed replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·660개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 531.93 kB, gzip 158.38 kB.
+
+## 2026-07-08 / Codex / Phase 10 welcome feedback + Farewell boundary
+
+- welcome feedback final presentation만 ResponsePlan으로 이관했다.
+- feedback ResponsePlan은 semantic slot 없이 positive/lighter/sweeter/alternate/neutral state별 text/expression을 직접 소유한다.
+- `welcomeDrink.served/resolved`, welcome selection, feedback answer detection, SessionState, Action, Router, DialogueService, safety, XYZ/farewell, CocktailCard는 변경하지 않았다.
+- Welcome Formatter body+feedback 전체 검증을 통과해 Welcome Formatter를 완료 상태로 기록한다.
+- Farewell Formatter는 조사만 수행했다. trigger와 transition은 `useRestationController.ts`, `dialogue-session.ts`, `session-flow.ts`, `serving-plan.ts`가 소유하고, presentation 후보는 `farewell-replies.ts`에 있다.
+- 추천 첫 Farewell slice는 `formatStandardFarewellEntryReply()` 단일 body다. session transition, XYZ selection, unlock, safety, CocktailCard는 이관하지 않는다.
+- 검증: Vitest 46개 파일·654개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 531.18 kB, gzip 158.22 kB.
+
+## 2026-07-08 / Codex / Phase 10 welcome-drink body Welcome Formatter
+
+- welcome-drink 최종 응답 본문만 ResponsePlan으로 이관했다.
+- `{cocktail_name}`, `{talking_point}`만 허용 slot으로 사용하고, 각 ResponsePlanLine이 `smirk` expression을 직접 소유한다.
+- welcome drink selection, `welcomeDrink.served/resolved`, feedback, unlock/serving flow, alcohol accumulation, XYZ/farewell, CocktailCard는 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락/금지 slot은 기존 welcome formatter로 안전하게 fallback한다.
+- Welcome Formatter slice 1은 완료했다. Phase 10 전체 완료와는 구분하며 welcome feedback/farewell이 남은 Phase 10 대상이다.
+- 검증: Vitest 46개 파일·644개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 528.78 kB, gzip 157.70 kB.
+
+## 2026-07-08 / Codex / Phase 10 acknowledgement-lead-in Recommendation Formatter
+
+- 추천 질문 acknowledgement/lead-in/continuation/prompt 조립만 ResponsePlan으로 이관했다.
+- `{question_label}`, `{acknowledgement}`, `{lead_in}`, `{continuation}`만 허용 slot으로 사용하고, 각 ResponsePlanLine이 expression을 직접 소유한다.
+- 질문 선택·질문 순서·slot filling·signal extraction·`잘 모르겠어요`·`카루아에게 맡기기`·추천 완료 로직·exact/randomPick/nearest 본문은 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락/금지 slot은 기존 question formatter로 안전하게 fallback한다.
+- Recommendation Formatter는 4/4 완료했다. Phase 10 전체 완료와는 구분하며 welcome/farewell이 남은 Phase 10 대상이다.
+- 검증: Vitest 46개 파일·634개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 526.93 kB, gzip 157.36 kB.
+
 ## 2026-07-08 / Codex / Phase 10 nearest fallback Recommendation Formatter
 
 - exact match 실패 뒤 이미 선택된 nearest cocktail의 최종 본문만 ResponsePlan으로 이관했다.

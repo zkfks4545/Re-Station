@@ -1,11 +1,11 @@
 # Re:Station 외부 기획용 구조 보고서
 
 > 작성일: 2026-06-22  
-> 최종 갱신일: 2026-07-08 (Phase 10 nearest fallback Recommendation Formatter·진행률 대시보드 반영)
+> 최종 갱신일: 2026-07-08 (Phase 10 Farewell Formatter slice 2A 반영)
 > 목적: 외부 AI 또는 기획 협업자에게 현재 프로젝트 구조, 대화 시스템, 추천 시스템, 남은 기획 쟁점을 설명하기 위한 독립 보고서  
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
-> 현재 구현 기준: `f02b950` (Phase 10 ResponsePlan), `97ae56d` (Rapport 0~10), `f5a0148` (mission_control 통합)
+> 현재 구현 기준: `abddb95` + 현재 작업 트리의 Phase 10 Welcome/Farewell/Farewell slice 2A 문서화 변경
 
 ## 0. 문서 사용법
 
@@ -55,12 +55,27 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 9. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이며 `safetyLocked`로 세션을 종료한다.
 10. WebLLM은 topic·stance·block·세션 태그 의미 보조만 담당하며 최종 대사를 생성하지 않는다.
 11. 입력 의도와 응답 출처를 먼저 안정화하고, 카루아 말투 개선은 그 다음 단계로 둔다.
-12. Phase 1~9와 DLG-807 전체 대사 감사는 완료되었다. Phase 10은 전체 69%이며 다음 우선순위는 acknowledgement / lead-in의 formatter 경계 조사다.
+12. Phase 1~9와 DLG-807 전체 대사 감사는 완료되었다. Phase 10은 전체 92%이며 Recommendation Formatter 4/4와 Welcome Formatter, Farewell Formatter slice 2A는 완료했다. 단, Phase 10 전체 완료와는 구분하며 Farewell Formatter 잔여 slice가 남아 있다.
 13. Character Layer는 표현과 검증만 담당하며 추천·상태·행동·intent를 변경하지 않는다.
 14. 기준 문서는 `mission_control/CONVERGENCE_PRINCIPLES.md`다.
 15. Hidden RapportState는 단일 축 내부값이며 사용자에게 노출하지 않고 추천·게임플레이에 영향을 주지 않는다.
 
 ## 4. 주요 파일 지도
+
+현재 레포는 루트의 운영 문서와 실제 앱 경로가 분리되어 있다.
+
+| 경로 | 역할 |
+|---|---|
+| `mission_control/` | 작업 보드, 현재 상태, 인수인계, 구조 보고서, 캐릭터/세션/의사결정 문서 |
+| `bar_tend/` | 실제 React/Vite 애플리케이션 |
+| `bar_tend/src/` | 앱 소스, 컴포넌트, 훅, 도메인 로직, 정적 JSON 데이터 |
+| `bar_tend/src/components/` | 화면 컴포넌트. `bar`, `entrance`, `sidebar`로 분리 |
+| `bar_tend/src/hooks/` | 앱 컨트롤러, 추천 세션, 게스트 취향 세션, WebLLM 준비 훅 |
+| `bar_tend/src/lib/` | 추천, 대화, 세션, 캐릭터, 관계성, 칵테일, 저장소, WebLLM 도메인 로직 |
+| `bar_tend/src/data/` | 칵테일 DB, 대사 JSON, 키워드 규칙, 추천 질문, 관계성 설정 |
+| `bar_tend/src/assets/characters/` | 카루아 정적 스프라이트와 제조 애니메이션 프레임 |
+| `bar_tend/public/` | 파비콘, 아이콘, 공개 칵테일 이미지 |
+| `bar_tend/scripts/` | 칵테일 데이터 생성·보강·이미지 정렬용 보조 스크립트 |
 
 ### 4.1 화면과 앱 흐름
 
@@ -74,7 +89,7 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 | `bar_tend/src/components/bar/ChatInput.tsx` | 사용자 입력, 추천 선택지 버튼, 취소 버튼 |
 | `bar_tend/src/components/bar/DialogueBox.tsx` | 대화 표시 (말풍선) |
 | `bar_tend/src/components/bar/DialogueRenderer.tsx` | 대화 렌더러 (타입별 메시지 분기) |
-| `bar_tend/src/components/bar/CocktailCard.tsx` | 추천 결과 카드 |
+| `bar_tend/src/components/bar/CocktailCard.tsx` | 추천 결과 카드. 현재 `주문하기`와 `이야기하기` 버튼은 모두 `type="button"` 계약을 가진다 |
 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 정적 스프라이트와 셰이킹 애니메이션 표시 |
 | `bar_tend/src/components/bar/WelcomeDrinkButton.tsx` | 웰컴드링크 버튼 (입장 직후 표시) |
 | `bar_tend/src/components/sidebar/Sidebar.tsx` | 사이드바 컨테이너 (레시피/도감/BGM 전환) |
@@ -124,8 +139,8 @@ RapportState는 `useRestationController.ts`에서 실제 사용자 입력의 분
 | `bar_tend/src/lib/dialogue/response-templates.ts` | intent별 fallback/tone 템플릿과 칵테일 데이터 삽입용 `ResponseDraft` 포매터 |
 | `bar_tend/src/lib/dialogue/response-pipeline.ts` | `ResponseDraft`의 텍스트와 tone/affect를 최종 응답 문자열·표정으로 조립하는 공통 파이프라인 |
 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문 문장 프리셋과 추천 응답 문단 프리셋 |
-| `bar_tend/src/lib/dialogue/response-plan-data.ts` | Phase 10 ResponsePlan 데이터. 대화 14개 카테고리·108개 문장과 formatter plan 17개·template line 99개 포함 |
-| `bar_tend/src/lib/dialogue/response-plan-renderer.ts` | Recommendation Formatter 전용 제한 slot renderer와 randomPick/exact/nearest fallback 본문 렌더링 |
+| `bar_tend/src/lib/dialogue/response-plan-data.ts` | Phase 10 ResponsePlan 데이터. 대화 14개 카테고리·108개 문장과 formatter plan 29개·template line 111개 포함 |
+| `bar_tend/src/lib/dialogue/response-plan-renderer.ts` | Recommendation/Welcome/Farewell Formatter 전용 제한 slot renderer와 randomPick/exact/nearest fallback 본문, 추천 질문 acknowledgement/lead-in, welcome-drink 본문·feedback, standard farewell entry, welcome XYZ clarification 렌더링 |
 | `bar_tend/src/lib/dialogue/response-plan-adapter.ts` | ResponsePlan 우선 선택과 미이관 category의 legacy JSON fallback을 담당하는 이중 읽기 어댑터 |
 | `bar_tend/src/types/dialogue-turn.ts` | 구조화된 대화 턴 계약 |
 | `bar_tend/src/lib/dialogue/turn-builder.ts` | DialogueTurn 구성과 복구 템플릿 |
@@ -150,8 +165,8 @@ Phase 10 시작 시점의 이관 출처 인벤토리는 다음과 같다. 이 �
 | `bar_tend/src/data/recommendation-questions.json` | 추천 질문, 선택지, 상태 갱신 신호, 프리셋 참조 |
 | `bar_tend/src/lib/recommendation/question-engine.ts` | 다음 질문 선택, 답변 반영, 후보 분별력 계산 |
 | `bar_tend/src/lib/recommendation/state.ts` | 자유 입력 신호 추출, 추천 상태, 후보 필터, 추천 근거 |
-| `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷. randomPick/exact 본문은 ResponsePlan 우선, 실패 시 기존 formatter fallback |
-| `bar_tend/src/lib/recommendation/welcome-drink.ts` | 웰컴드링크 선정, 피드백 질문, 포맷 |
+| `bar_tend/src/lib/recommendation/response.ts` | 최종 추천 대화문 포맷. randomPick/exact/nearest fallback/질문 acknowledgement·lead-in은 ResponsePlan 우선, 실패 시 기존 formatter fallback |
+| `bar_tend/src/lib/recommendation/welcome-drink.ts` | 웰컴드링크 선정, 피드백 질문, 포맷. body와 feedback 표현은 ResponsePlan 우선 |
 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 FSM과 opening 최근 ID를 소유하고, 결정된 randomPick/exact 입력을 formatter에 전달한 뒤 최종 추천 결과를 공통 응답 조립기로 연결 |
 | `bar_tend/src/hooks/useGuestPreferenceSession.ts` | 게스트 취향 세션 훅 (localStorage 저장/복원 + idol memory 통합) |
 | `bar_tend/src/types/recommendation.ts` | 추천 상태, 질문, 선택지, 결정 타입 |
@@ -298,9 +313,19 @@ App / ChatInput
 
 ResponsePlan 시작점은 `RecommendationDecision`과 선택된 cocktail, opening, talking point가 확정된 뒤의 **최종 문장 조립 단계**다. 칵테일명은 `recommendation/response.ts`가 `decision.cocktail.name`에서 삽입하고, 추천 이유는 `decision.reasons`에서 가져오며, talking point는 `selectCocktailTalkingPoint()`가 칵테일 DB에서 안정적으로 선택한다. Expression은 `useRecommendationSession.assembleRecommendationResult()`가 전달한 affect/tone을 `response-pipeline.ts`가 변환한다. 이 네 결정은 첫 formatter 이관에서 유지해야 한다.
 
-**randomPick**, **exact recommendation**, **nearest fallback** 최종 본문 조립은 이관 완료했다. nearest ResponsePlan은 이미 결정된 cocktail name·고정 fallback reason·talking point만 제한 slot으로 배치하며 affect별 expression을 직접 소유한다. `selectRecommendationOpening()`의 route/tag ranking과 최근 ID 회피, nearest 후보·거리·사유·talking point 선택은 그대로 두고, opening과 acknowledgement도 ResponsePlan 밖에 유지한다. plan 선택·검증·slot 치환 실패 시 기존 formatter로 돌아간다.
+**randomPick**, **exact recommendation**, **nearest fallback**, **질문 acknowledgement/lead-in** 조립은 이관 완료했다. 질문 ResponsePlan은 이미 선택된 acknowledgement·lead-in·continuation·prompt만 제한 slot으로 배치하며 expression을 line 단위로 직접 소유한다. 질문 선택·순서·slot filling·`잘 모르겠어요`·`카루아에게 맡기기`·추천 완료 로직은 그대로 두고, plan 선택·검증·slot 치환 실패 시 기존 formatter로 돌아간다.
 
-남은 formatter 슬라이스는 `질문 acknowledgement/lead-in`이다. 직접 주문·시크릿 주문·웰컴·farewell은 주문/세션 경계가 더 강하므로 뒤로 둔다.
+Recommendation Formatter는 4/4 완료했다. 다만 Phase 10 전체 완료와는 구분하며, 직접 주문·시크릿 주문과 별도로 welcome/farewell은 아직 남은 ResponsePlan 경계 조사 대상이다.
+
+Welcome Formatter는 welcome-drink body와 welcome feedback 이관을 완료했다. Body ResponsePlan은 이미 선택된 cocktail name과 talking point만 `{cocktail_name}`, `{talking_point}` slot으로 렌더링한다. Feedback ResponsePlan은 semantic slot 없이 positive/lighter/sweeter/alternate/neutral state별 text/expression만 소유한다. welcome drink selection, `welcomeDrink.served/resolved`, feedback answer detection, unlock/serving flow, alcohol accumulation, XYZ/farewell은 그대로 둔다. plan 선택·검증·slot 치환 실패 시 기존 formatter로 돌아간다.
+
+Farewell Formatter boundary investigation: user exit or alcohol-limit triggers `beginFarewell()` in `useRestationController.ts`. Entry selection is decided by `decideFarewellEntry()` in `dialogue-session.ts`: no welcome drink routes to `welcome-farewell-xyz`, alcohol limit after welcome routes to `alcohol-xyz`, and normal exit after welcome routes to `standard`. XYZ serving uses `XYZ_COCKTAIL_ID` from `session-flow.ts`, `getCocktailById()`, `unlockCocktailId()`, `dialogueService.buildServingContextEvents()`, and then `bartenderReply()` before setting phase to `farewell`. Farewell phase turns are handled in `useRestationController.ts` with `formatFarewellConversationReply()`, `formatReturnHomeReply()`, and `formatFarewellBlockReply()`. The presentation-only module is `session/farewell-replies.ts`; session transition, safety lock, unlock timing, alcohol accumulation, and CocktailCard display are not migration targets.
+
+Farewell classification: SAFE TO MIGRATE are the final text/expression bodies in `formatStandardFarewellEntryReply()`, `formatFarewellBlockReply()`, `formatWelcomeXyzClarificationReply()`, and later the already-decided text bodies of `formatXyzReply()`/`formatWelcomeFarewellXyzReply()` after cocktail selection is fixed. DO NOT MIGRATE are farewell entry selection, XYZ cocktail selection, `enter-farewell`, `set-phase`, `increment-farewell-turn`, safety lock, unlock, serving animation, CocktailCard, alcohol accumulation, and DialogueService behavior. The recommended first Farewell slice is `formatStandardFarewellEntryReply()` only: affected files would likely be `response-plan-data.ts`, `response-plan-renderer.ts`, `farewell-replies.ts`, tests, and mission_control; difficulty low; expected tests about text/expression equality, ResponsePlan priority, legacy fallback, invalid plan fallback, and unchanged `decideFarewellEntry()`/session phase. Main risks are session coupling and fallback ambiguity; avoid them by keeping entryKind selection outside ResponsePlan and rendering only the already-selected standard entry body.
+
+Farewell Formatter slice 1 is complete: only `formatStandardFarewellEntryReply()` standard entry body moved into ResponsePlan. The plan owns the final text and `sympathy` expression with no semantic slots. Legacy formatter fallback remains, and `decideFarewellEntry()`, `beginFarewell()`, `enter-farewell`, phase transition, XYZ/welcome-missed replies, farewell block/conversation/returnHome replies, safety, unlock timing, serving animation, and CocktailCard behavior remain unchanged.
+
+Farewell Formatter slice 2A is complete: only `formatWelcomeXyzClarificationReply()` welcome-drink XYZ clarification body moved into ResponsePlan. The plan owns the final text and `smirk` expression with no semantic slots. Legacy formatter fallback remains, and XYZ selection, welcome detection, session state, phase transition, DialogueService, Router, IntentClassifier, safety, CocktailCard, unlock timing, and serving animation remain unchanged.
 
 `safety-alert`는 이 흐름의 최상위 예외다. `handleSend`의 빠른 안전 검사로 진행 중 큐보다 우선하고, 서비스에서도 safety route로 확정한다. 감지 즉시 추천 FSM, 주문/제조, 웰컴, XYZ/farewell 예약을 중단하고 직접적인 안전 안내만 출력한 뒤 `DialogueSessionState.safetyLocked`로 세션을 종료한다. `safetyLocked`는 명시적인 새 세션 `reset` 외의 reducer 액션을 무시하는 흡수 상태다.
 
@@ -449,7 +474,7 @@ BartenderResponse { response, expression, character? }
 - 추천 결과의 칵테일 선택과 근거 결정은 여전히 추천 엔진 책임이며, Response Pipeline은 결정된 내용을 표현하는 역할만 맡는다.
 - Character Layer는 문구와 표정을 보존하면서 금지/권장 스타일을 검사하고 `styled`, `validationPassed`, `warnings`, `blockedPatterns`, `preferredPatterns` 메타데이터를 생성한다.
 - WebLLM은 capability 검사·Worker 준비·4초 timeout·구조 검증을 거쳐 의미 태그만 제안한다. 현재 응답은 기다리지 않으며 ResponsePlan 선택 연결은 Phase 10~11 정규화 완료 후 검토한다.
-- `response-plan.ts`의 필수 expression 계약과 이중 읽기 어댑터가 연결되어 있으며 현재 대화 14개 카테고리·108개 문장이 ResponsePlan 우선으로 동작한다. Recommendation Formatter는 randomPick, exact, nearest fallback 본문 3/4를 이관했다.
+- `response-plan.ts`의 필수 expression 계약과 이중 읽기 어댑터가 연결되어 있으며 현재 대화 14개 카테고리·108개 문장이 ResponsePlan 우선으로 동작한다. Recommendation Formatter는 randomPick, exact, nearest fallback 본문, acknowledgement/lead-in 4/4를 이관했고 Welcome Formatter는 body+feedback을 완료했으며 Farewell Formatter는 slice 2A까지 완료했다.
 
 ## 7. 카루아 말투 계약
 
@@ -604,7 +629,7 @@ BartenderResponse { response, expression, character? }
 | 키워드 규칙 | `keyword-rules.json` | JSON 분리 완료 |
 | intent fallback/tone과 데이터 삽입 Draft | `response-templates.ts` | Phase 2 분리 완료 |
 | 프리셋/문단 블록 | `text-presets.ts` | 초기 도입 완료 |
-| ResponsePlan 계약 | `response-plan.ts` | 필수 expression·문자열 line 금지·validator 강제. 대화 14개 category와 Recommendation Formatter 3/4 이관 완료 |
+| ResponsePlan 계약 | `response-plan.ts` | 필수 expression·문자열 line 금지·validator 강제. 대화 14개 category, Recommendation Formatter 4/4, Welcome Formatter 완료, Farewell Formatter slice 2A 완료 |
 | 관계성 설정 | `relationship-config.json` | v3.0.0 (0~10 정수 축, 초기값 4, 4단계 구간, 갱신 규칙) |
 
 조립 책임은 `response-pipeline.ts`로 모였지만, 다음 기획의 핵심은 각 대사 데이터 출처의 편집 기준과 적용 범위를 명확히 나누는 것이다.
@@ -797,7 +822,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 9. `Phase 7` Dialogue Quality: 완료. 전용 character/story 풀 분리, 누락 fallback 5종(`random-request`, `unknown-cocktail-request`, `recommendation-cancel`, `story-unresolved`, `character-query`) 보강, 27개 출처 계약 고정
 10. `Phase 8` Talking Points 확장: 완료. 대표 클래식 20종 talking point 20개 + lore reference 40개 누적 확장, 공개 칵테일 structured lore 30/49 coverage
 11. `Phase 9` Character Layer + 전체 대사 감사 + Hidden RapportState: **완료**. 여러 대사 출처 총 525개 문자열(`dialogues.json` 436개 포함) 감사 + 금지 패턴 3건 수정. 숨은 관계성은 0~10 정수 축(초기값 4, distant/normal/warm/close)이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 미연결이다.
-12. `Phase 10` ResponsePlan DB 리팩토링: **진행 중**. 대화 14개 카테고리·108개 문장과 Recommendation Formatter 3/4(randomPick, exact, nearest fallback), formatter plan 17개·template line 99개를 이관했다. 필수 expression, 제한 slot renderer, 기존 formatter fallback을 고정했다.
+12. `Phase 10` ResponsePlan DB 리팩토링: **진행 중**. 대화 14개 카테고리·108개 문장, Recommendation Formatter 4/4(randomPick, exact, nearest fallback, acknowledgement/lead-in), Welcome Formatter 완료(body+feedback), Farewell Formatter slice 2A(standard entry + welcome XYZ clarification), formatter plan 29개·template line 111개를 이관했다. 필수 expression, 제한 slot renderer, 기존 formatter fallback을 고정했다. Farewell Formatter 잔여 slice는 아직 이관하지 않았다.
 13. `Phase 11` 대사 출처 정상화: 계획. 키워드·템플릿·이야기·웰컴·배웅 출처의 결정/표현 책임 분리, 중복 제거, 카루아 말투 재검수
 14. `Phase 12` WebLLM 의미 보조: 진행 중. topic·stance·block 후보·세션 태그 구조화 분석과 검증, 비차단 실행
 15. `Phase 13` 의미 태그 기반 ResponsePlan 선택 보조: 계획. 힌트가 없거나 충돌하면 기존 JSON 규칙 유지
@@ -812,7 +837,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 
 ## 15. 현재 검증 상태
 
-마지막 확인 기준:
+마지막 확인 기준: 2026-07-08, 현재 작업 트리에서 직접 실행
 
 | 검증 | 상태 |
 |---|---|---|
@@ -821,8 +846,8 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 | 빌드 | 통과: `npm.cmd run build` |
 | Phase 3 책임 경계 회귀 | 통과: DialogueService·DialogueSessionState·Session Flow 3개 파일, 20개 테스트 |
 | Phase 9 회귀 | 통과: Character Layer·카루아 말투 계약·RapportState 관련 회귀 포함 |
-| 전체 테스트 | 통과: `npm.cmd test` 기준 46개 파일, **623개 테스트** |
-| 빌드 산출물 | 메인 JS 523.89 kB (gzip 155.58 kB). WebLLM Worker 6,029.71 kB와 라이브러리 청크 5,895.39 kB (gzip 2,141.00 kB)는 별도 지연 자산. 500 kB 초과 청크 경고 존재 |
+| 전체 테스트 | 통과: `npm.cmd test` 기준 46개 파일, **666개 테스트** |
+| 빌드 산출물 | 메인 JS 532.48 kB (gzip 158.46 kB). CSS 34.00 kB (gzip 7.92 kB). WebLLM Worker 6,029.71 kB와 라이브러리 청크 5,895.39 kB (gzip 2,141.00 kB)는 별도 지연 자산. 500 kB 초과 청크 경고 존재 |
 
 알려진 Vitest 실패는 없다. safety 응답은 즉시 위험 확인과 119/112/1393 안내를 공통 상수에서 다시 보장한다. 코드 리뷰와 검수 시에는 DialogueService와 컨트롤러의 책임 경계, 정보 요청 우선순위, 칵테일 대상 컨텍스트, 공개 팩트 중복 방지, Final Drink의 주문 차단과 정보 대화 허용을 중점 확인한다.
 
@@ -850,7 +875,7 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 - **목표**: `dialogues.json`과 `text-presets.ts` 대사 출처를 ResponsePlan DB로 전환
 - **순서**: `general-chat`·`mood-*`·`bar-intro`·`character-query`부터 첫 배치 이관 → 동등성 검증 → 나머지 배치 순차 이관
 - **제약**: JSON 대사는 이관 중에도 항상 동작, 한 번에 전체 교체 금지
-- **현재 상태**: 대화 14개 카테고리·108개 문장과 Recommendation Formatter 3/4(randomPick, exact, nearest fallback), formatter plan 17개·template line 99개 이관 완료. 제한 slot·text/expression 동등성·기존 formatter fallback 검증 완료
+- **현재 상태**: 대화 14개 카테고리·108개 문장, Recommendation Formatter 4/4(randomPick, exact, nearest fallback, acknowledgement/lead-in), Welcome Formatter 완료(body+feedback), Farewell Formatter slice 2A(standard entry + welcome XYZ clarification), formatter plan 29개·template line 111개 이관 완료. 제한 slot·text/expression 동등성·기존 formatter fallback 검증 완료. Phase 10 전체 완료 전 Farewell Formatter 잔여 slice가 남아 있음
 - **후속 배치**: 추천·웰컴·배웅·이야기 포매터와 주문·안전·farewell은 첫 배치 안정화 뒤 이관
 
 #### Phase 10 Progress Dashboard
@@ -858,18 +883,18 @@ Re:Station이라는 가상의 바 프로젝트가 있다.
 ```text
 ■ Dialogue Categories       ██████████ 100%  (12/12)
 ■ Small Fallbacks           ██████████ 100%  (2/2)
-◐ Recommendation Formatter  ███████▌░░  75%  (3/4)
-□ Welcome/Farewell          ░░░░░░░░░░   0%  (0/2)
+● Recommendation Formatter  ██████████  100%  (4/4)
+◕ Welcome/Farewell          ███████░░░  67%  (4/6)
 
-Overall: 69% (four-track simple average, rounded from 68.75%)
+Overall: 92% (four-track simple average; Recommendation and Welcome complete, Farewell still pending)
 ```
 
 산정 기준:
 
 - `Dialogue Categories`는 small fallback과 중복되지 않는 기존 12개 이관 카테고리다.
 - `Small Fallbacks`는 `bar-atmosphere`, `small-talk-weather` 2개다.
-- `Recommendation Formatter`의 현재 분모는 `randomPick`, exact 기본 문단, nearest fallback, 질문 acknowledgement/lead-in 4개 슬라이스다.
-- `Welcome/Farewell`은 welcome과 farewell 2개 영역이다.
+- `Recommendation Formatter`의 현재 분모는 `randomPick`, exact 기본 문단, nearest fallback, 질문 acknowledgement/lead-in 4개 슬라이스이며 모두 완료했다.
+- `Welcome/Farewell`은 welcome-drink body, welcome feedback, standard farewell entry, welcome XYZ clarification, XYZ/welcome-missed main replies, farewell phase/block replies 6개 slice로 나눈다. 현재 welcome 2개 slice와 standard farewell entry, welcome XYZ clarification은 완료했고 farewell 잔여 2개 slice는 미이관이다.
 - Overall은 작업량 추정치가 아니라 위 4개 트랙의 단순 평균이다. 범위가 바뀌면 분모와 퍼센트를 함께 갱신한다.
 
 ### 트랙 B: WebLLM 의미 보조
@@ -887,8 +912,8 @@ Overall: 69% (four-track simple average, rounded from 68.75%)
 - **선행 조건**: Phase 10~11의 정규화 완료
 
 ### 당장 시작 가능한 작업
-1. Phase 10 Recommendation Formatter 마지막 사전 조사 — 질문 acknowledgement/lead-in의 선택/표현 경계
-2. acknowledgement/lead-in 안정화 뒤 welcome/farewell 후속 배치를 검토
-3. acknowledgement/lead-in은 추천 FSM과 분리 가능한지 확인한 뒤에만 이관
+1. Farewell Formatter next slice: XYZ / welcome-missed main replies
+2. farewell entry/XYZ replies와 farewell phase/block replies 세부 분리
+3. Recommendation Formatter 4/4와 Welcome Formatter 완료 상태 유지와 legacy fallback 회귀 감시
 4. Phase 10 완료 후 대사 출처 정상화와 카루아 말투 전수 재검수
 5. Rapport 기반 선택과 시에스타 재활성화는 각각 Phase 10 이후·Phase 15에서 별도 평가
