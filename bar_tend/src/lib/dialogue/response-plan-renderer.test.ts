@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest'
 import {
   renderExactRecommendationResponsePlan,
   renderNearestRecommendationResponsePlan,
+  renderRecommendationQuestionResponsePlan,
   renderRandomPickResponsePlan,
   renderRecommendationFormatterLine,
+  renderStandardFarewellEntryResponsePlan,
+  renderWelcomeDrinkFeedbackResponsePlan,
+  renderWelcomeDrinkResponsePlan,
+  renderWelcomeXyzClarificationResponsePlan,
 } from './response-plan-renderer.js'
 
 describe('recommendation formatter slot renderer', () => {
@@ -67,6 +72,57 @@ describe('recommendation formatter slot renderer', () => {
     })).toEqual({
       text: '완전히 맞는 칵테일은 없어서 가장 가까운 「마티니」을 골랐어요.\n짧고 또렷한 잔이에요.\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.',
       expression: 'sympathy',
+    })
+  })
+
+  it('renders recommendation question lead-in with already-selected slots', () => {
+    expect(renderRecommendationQuestionResponsePlan(false, {
+      lead_in: 'lead',
+      question_label: 'question',
+    })).toEqual({
+      text: 'lead\nquestion',
+      expression: 'thinking',
+    })
+  })
+
+  it('renders recommendation question continuation with already-selected slots', () => {
+    expect(renderRecommendationQuestionResponsePlan(true, {
+      acknowledgement: 'ack',
+      continuation: 'continue',
+      question_label: 'question',
+    })).toEqual({
+      text: 'ack\ncontinue\nquestion',
+      expression: 'thinking',
+    })
+  })
+
+  it('renders welcome drink body with already-selected slots', () => {
+    const rendered = renderWelcomeDrinkResponsePlan('first', 'cocktail', 'point')
+
+    expect(rendered).toEqual({
+      text: '웰컴드링크로는 cocktail로 드릴게요.\n첫 잔이라 짧게 이야기 하나 얹어드릴게요.\npoint',
+      expression: 'smirk',
+    })
+  })
+
+  it('renders welcome feedback without semantic slots', () => {
+    expect(renderWelcomeDrinkFeedbackResponsePlan('positive')).toEqual({
+      text: '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.',
+      expression: 'smirk',
+    })
+  })
+
+  it('renders standard farewell entry without semantic slots', () => {
+    expect(renderStandardFarewellEntryResponsePlan()).toEqual({
+      text: '오늘은 잔을 더 놓지 않고 여기서 마무리할게요.\n잠깐 숨을 고른 뒤 조심히 돌아가실 수 있게 배웅하겠습니다.',
+      expression: 'sympathy',
+    })
+  })
+
+  it('renders welcome XYZ clarification without semantic slots', () => {
+    expect(renderWelcomeXyzClarificationResponsePlan()).toEqual({
+      text: '그런 뜻은 아니에요.',
+      expression: 'smirk',
     })
   })
 })

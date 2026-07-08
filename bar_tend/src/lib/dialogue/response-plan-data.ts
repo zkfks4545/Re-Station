@@ -98,6 +98,153 @@ const NEAREST_RECOMMENDATION_PLANS: readonly ResponsePlan[] = [
   nearestRecommendationPlan('tired', 'sympathy'),
 ]
 
+const RECOMMENDATION_QUESTION_PLANS: readonly ResponsePlan[] = [
+  {
+    id: 'karua.ask-preference.recommendation-question-lead-in',
+    speaker: 'karua',
+    intent: 'ask_preference',
+    state: 'lead-in',
+    request: 'recommendation-question',
+    blocks: {
+      answer: [line('{lead_in}\n{question_label}', 'thinking')],
+    },
+    fallbackText: '{lead_in}\n{question_label}',
+  },
+  {
+    id: 'karua.ask-preference.recommendation-question-continuation',
+    speaker: 'karua',
+    intent: 'ask_preference',
+    state: 'continuation',
+    request: 'recommendation-question',
+    blocks: {
+      answer: [line('{acknowledgement}\n{continuation}\n{question_label}', 'thinking')],
+    },
+    fallbackText: '{acknowledgement}\n{continuation}\n{question_label}',
+  },
+]
+
+const WELCOME_DRINK_PLANS: readonly ResponsePlan[] = [
+  {
+    id: 'karua.welcome-drink.first',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'first',
+    request: 'welcome-drink-body',
+    blocks: {
+      answer: [line('웰컴드링크로는 {cocktail_name}로 드릴게요.\n첫 잔이라 짧게 이야기 하나 얹어드릴게요.\n{talking_point}', 'smirk')],
+    },
+    fallbackText: '웰컴드링크로는 {cocktail_name}로 드릴게요.\n첫 잔이라 짧게 이야기 하나 얹어드릴게요.\n{talking_point}',
+  },
+  {
+    id: 'karua.welcome-drink.after-order',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'after-order',
+    request: 'welcome-drink-body',
+    blocks: {
+      answer: [line('웰컴드링크로는 {cocktail_name}로 드릴게요.\n첫 순서에 드렸어야 했는데, 조금 앞질러 가버렸네요.\n{talking_point}', 'smirk')],
+    },
+    fallbackText: '웰컴드링크로는 {cocktail_name}로 드릴게요.\n첫 순서에 드렸어야 했는데, 조금 앞질러 가버렸네요.\n{talking_point}',
+  },
+  {
+    id: 'karua.welcome-drink.late',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'late',
+    request: 'welcome-drink-body',
+    blocks: {
+      answer: [line('웰컴드링크로는 {cocktail_name}로 드릴게요.\n웰컴이라고 부르기엔 꽤 늦었네요. 그래도 아직 안 드린 잔은 안 드린 잔이라서요.\n{talking_point}', 'smirk')],
+    },
+    fallbackText: '웰컴드링크로는 {cocktail_name}로 드릴게요.\n웰컴이라고 부르기엔 꽤 늦었네요. 그래도 아직 안 드린 잔은 안 드린 잔이라서요.\n{talking_point}',
+  },
+]
+
+const WELCOME_FEEDBACK_PLANS: readonly ResponsePlan[] = [
+  {
+    id: 'karua.welcome-feedback.positive',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'positive',
+    request: 'welcome-feedback',
+    blocks: {
+      answer: [line('좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.', 'smirk')],
+    },
+    fallbackText: '좋았어요. 그럼 이쪽 밸런스는 기억해둘게요.',
+  },
+  {
+    id: 'karua.welcome-feedback.lighter',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'lighter',
+    request: 'welcome-feedback',
+    blocks: {
+      answer: [line('좋아요. 다음 잔은 더 가볍고 편한 쪽으로 잡을게요.', 'embarrassed')],
+    },
+    fallbackText: '좋아요. 다음 잔은 더 가볍고 편한 쪽으로 잡을게요.',
+  },
+  {
+    id: 'karua.welcome-feedback.sweeter',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'sweeter',
+    request: 'welcome-feedback',
+    blocks: {
+      answer: [line('알겠습니다. 다음 잔은 단맛을 조금 더 올려볼게요.', 'embarrassed')],
+    },
+    fallbackText: '알겠습니다. 다음 잔은 단맛을 조금 더 올려볼게요.',
+  },
+  {
+    id: 'karua.welcome-feedback.alternate',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'alternate',
+    request: 'welcome-feedback',
+    blocks: {
+      answer: [line('괜찮아요. 첫 잔은 기준점이니까요. 다음에는 다른 결로 맞춰볼게요.', 'embarrassed')],
+    },
+    fallbackText: '괜찮아요. 첫 잔은 기준점이니까요. 다음에는 다른 결로 맞춰볼게요.',
+  },
+  {
+    id: 'karua.welcome-feedback.neutral',
+    speaker: 'karua',
+    intent: 'welcome_drink',
+    state: 'neutral',
+    request: 'welcome-feedback',
+    blocks: {
+      answer: [line('좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.', 'embarrassed')],
+    },
+    fallbackText: '좋아요. 첫 잔 반응은 기준점으로만 남겨둘게요. 다음 잔은 말씀 주신 느낌을 보고 다시 맞춰볼게요.',
+  },
+]
+
+const FAREWELL_ENTRY_PLANS: readonly ResponsePlan[] = [
+  {
+    id: 'karua.farewell-entry.standard',
+    speaker: 'karua',
+    intent: 'goodbye',
+    state: 'standard',
+    request: 'farewell-entry',
+    blocks: {
+      answer: [line('오늘은 잔을 더 놓지 않고 여기서 마무리할게요.\n잠깐 숨을 고른 뒤 조심히 돌아가실 수 있게 배웅하겠습니다.', 'sympathy')],
+    },
+    fallbackText: '오늘은 잔을 더 놓지 않고 여기서 마무리할게요.\n잠깐 숨을 고른 뒤 조심히 돌아가실 수 있게 배웅하겠습니다.',
+  },
+]
+
+const FAREWELL_XYZ_CLARIFICATION_PLANS: readonly ResponsePlan[] = [
+  {
+    id: 'karua.farewell-xyz-clarification.welcome',
+    speaker: 'karua',
+    intent: 'goodbye',
+    state: 'welcome-xyz-clarification',
+    request: 'farewell-xyz-clarification',
+    blocks: {
+      answer: [line('그런 뜻은 아니에요.', 'smirk')],
+    },
+    fallbackText: '그런 뜻은 아니에요.',
+  },
+]
+
 export const RESPONSE_PLANS: readonly ResponsePlan[] = [
   {
     id: 'karua.small-talk.general-chat',
@@ -381,4 +528,9 @@ export const RESPONSE_PLANS: readonly ResponsePlan[] = [
   },
   ...EXACT_RECOMMENDATION_PLANS,
   ...NEAREST_RECOMMENDATION_PLANS,
+  ...RECOMMENDATION_QUESTION_PLANS,
+  ...WELCOME_DRINK_PLANS,
+  ...WELCOME_FEEDBACK_PLANS,
+  ...FAREWELL_ENTRY_PLANS,
+  ...FAREWELL_XYZ_CLARIFICATION_PLANS,
 ]

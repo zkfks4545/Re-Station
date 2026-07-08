@@ -60,7 +60,12 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
     const formatterPlans = RESPONSE_PLANS.filter((plan) =>
       plan.request === 'random-pick-body'
       || plan.request === 'exact-recommendation-body'
-      || plan.request === 'nearest-recommendation-body')
+      || plan.request === 'nearest-recommendation-body'
+      || plan.request === 'recommendation-question'
+      || plan.request === 'welcome-drink-body'
+      || plan.request === 'welcome-feedback'
+      || plan.request === 'farewell-entry'
+      || plan.request === 'farewell-xyz-clarification')
     const dialoguePlans = RESPONSE_PLANS.filter((plan) => !formatterPlans.includes(plan))
     const answerLines = dialoguePlans.flatMap((plan) => plan.blocks.answer ?? [])
 
@@ -71,6 +76,11 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
     expect(formatterPlans.filter((plan) => plan.request === 'random-pick-body')).toHaveLength(1)
     expect(formatterPlans.filter((plan) => plan.request === 'exact-recommendation-body')).toHaveLength(8)
     expect(formatterPlans.filter((plan) => plan.request === 'nearest-recommendation-body')).toHaveLength(8)
+    expect(formatterPlans.filter((plan) => plan.request === 'recommendation-question')).toHaveLength(2)
+    expect(formatterPlans.filter((plan) => plan.request === 'welcome-drink-body')).toHaveLength(3)
+    expect(formatterPlans.filter((plan) => plan.request === 'welcome-feedback')).toHaveLength(5)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-entry')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-xyz-clarification')).toHaveLength(1)
   })
 
   it('general-chat ResponsePlan은 기존 JSON 문장과 동등하다', () => {
