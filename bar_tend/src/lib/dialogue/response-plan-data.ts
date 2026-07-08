@@ -71,6 +71,33 @@ const EXACT_RECOMMENDATION_PLANS: readonly ResponsePlan[] = [
   exactRecommendationPlan('tired', 'sympathy'),
 ]
 
+function nearestRecommendationPlan(
+  affectState: string,
+  expression: Expression,
+): ResponsePlan {
+  const text = '완전히 맞는 칵테일은 없어서 가장 가까운 「{cocktail_name}」을 골랐어요.\n{talking_point}\n{fallback_reason}'
+  return {
+    id: `karua.recommend.nearest-${affectState}`,
+    speaker: 'karua',
+    intent: 'recommend',
+    state: affectState,
+    request: 'nearest-recommendation-body',
+    blocks: { answer: [line(text, expression)] },
+    fallbackText: text,
+  }
+}
+
+const NEAREST_RECOMMENDATION_PLANS: readonly ResponsePlan[] = [
+  nearestRecommendationPlan('neutral', 'smirk'),
+  nearestRecommendationPlan('warm', 'smirk'),
+  nearestRecommendationPlan('curious', 'thinking'),
+  nearestRecommendationPlan('confident', 'smirk'),
+  nearestRecommendationPlan('playful', 'smirk'),
+  nearestRecommendationPlan('concerned', 'sympathy'),
+  nearestRecommendationPlan('awkward', 'thinking'),
+  nearestRecommendationPlan('tired', 'sympathy'),
+]
+
 export const RESPONSE_PLANS: readonly ResponsePlan[] = [
   {
     id: 'karua.small-talk.general-chat',
@@ -353,4 +380,5 @@ export const RESPONSE_PLANS: readonly ResponsePlan[] = [
     fallbackText: '「{cocktail_name}」은 어떠세요?\n{talking_point}',
   },
   ...EXACT_RECOMMENDATION_PLANS,
+  ...NEAREST_RECOMMENDATION_PLANS,
 ]

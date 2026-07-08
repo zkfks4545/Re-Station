@@ -1,6 +1,6 @@
 # 인수인계 (축약)
 
-> 최종 갱신일: 2026-07-06 (UI 개선 작업 중, 검수 후 커밋 예정)
+> 최종 갱신일: 2026-07-08 (UI 개선 작업 중, 검수 후 커밋 예정)
 > 각 작업의 상세 커밋 해시는 `WORK_LOG.md` 참조.
 
 ## 현재 목표
@@ -39,6 +39,7 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 10 중간검수 보완: ResponsePlanLine expression 필수 계약 보강 완료. block은 객체 line만 허용하고 validator가 문자열 line·expression 누락을 거부하며 adapter의 plan-level/`talk` 자동 대체를 제거했다.
 - Phase 10 Recommendation Formatter 첫 슬라이스: randomPick 최종 본문 `opening + cocktail_name + talking_point`만 ResponsePlan으로 이관했다. opening은 외부에서 그대로 전달하며 허용 slot은 `{cocktail_name}`, `{talking_point}` 두 개뿐이다. plan 실패·미허용 slot은 기존 formatter로 fallback하고 expression은 기존 `playful → smirk`와 동일하다.
 - Phase 10 Recommendation Formatter 두 번째 슬라이스: exact recommendation의 이미 결정된 cocktail·reason·talking point를 조립하는 최종 본문만 ResponsePlan으로 이관했다. affect별 8개 plan이 문장별 expression을 직접 소유하며 `{cocktail_name}`, `{cocktail_name_subject}`, `{reason}`, `{talking_point}`만 허용한다. opening·acknowledgement는 외부에 남고 plan 부재·slot 실패 시 기존 formatter로 복귀한다. 추천 결정·사유·talking point·FSM·세션은 변경하지 않았다.
+- Phase 10 Recommendation Formatter 세 번째 슬라이스: nearest fallback의 이미 결정된 cocktail·고정 fallback reason·talking point를 조립하는 최종 본문만 ResponsePlan으로 이관했다. affect별 8개 plan이 expression을 소유하며 `{cocktail_name}`, `{fallback_reason}`, `{talking_point}`만 사용한다. opening·acknowledgement와 nearest 후보·거리·사유·talking point 선택은 유지하고 plan 부재·누락/금지 slot은 기존 formatter로 복귀한다.
 - 미성년자/무알코올 전용 intent·추천 제약·응답·대체 farewell은 Phase 3 범위에서 제거
 - 공통 `kf`, `SHAKE_REFERENCE`, mood/switch 응답 헬퍼 정리 완료 [`a73342f`][`c82cbc6`][`4f6c90d`]
 - `모히토`→`그걸로 주세요` 같은 생략 입력이 직전 대상 주문/이야기로 연결 [`0404c58`]
@@ -60,14 +61,14 @@ BarBot → **Re:Station 카루아 중심 대화형 칵테일 추천 MVP**. 신�
 - Phase 1.5 Context + Action Layer (생략주문·lore 주문 연결) [`0404c58`]
 
 ## 검증 기준
-- ✅ `npm.cmd test` (Vitest **609개 통과**), typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.23 kB, gzip 155.65 kB
+- ✅ `npm.cmd test` (Vitest **623개 통과**), typecheck, lint, build, `git diff --check` 통과. 메인 JS 525.67 kB, gzip 156.01 kB
 - ✅ 브라우저 수동 검증: 선택지 클릭·모바일·무알코올·제외재료·소진리셋
 - ✅ MVP 8개 성공 기준 전항목 통과
 
 ## 다음 우선순위
-1. CocktailCard 버튼 기능 안정화 및 수동 검증
+1. CocktailCard 버튼 브라우저 수동 검증 (명시적 `type="button"` 및 자동 계약 안정화 완료)
 2. 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-3. nearest recommendation fallback의 formatter 경계를 다음 작은 슬라이스로 사전 조사
+3. Recommendation Formatter 마지막 acknowledgement / lead-in 경계를 다음 작은 슬라이스로 사전 조사
 4. 추천·웰컴·배웅·이야기 포매터 등 후속 배치 이관 뒤 Phase 11 대사 출처 정상화와 카루아 말투 전수 재검수
 5. Phase 12 의미 보조 → Phase 13 ResponsePlan 선택 힌트 → Phase 14 이야기 topic 분류 순으로 검토
 6. Phase 15 최종 캐릭터 QA와 시에스타 이벤트 재활성화 여부 평가

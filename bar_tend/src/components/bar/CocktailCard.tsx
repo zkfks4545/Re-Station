@@ -26,6 +26,7 @@ export default function CocktailCard({
         }}
       >
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-3 right-3 text-white/40 hover:text-white/80 text-lg"
           aria-label="닫기"
@@ -70,6 +71,7 @@ export default function CocktailCard({
           <div className="flex gap-2">
             {onOrder && (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onOrder() }}
                 className="flex-1 py-2 rounded text-sm transition-all duration-200 cursor-pointer"
                 style={{
@@ -84,6 +86,7 @@ export default function CocktailCard({
             )}
             {onStory && (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onStory() }}
                 className="flex-1 py-2 rounded text-sm transition-all duration-200 cursor-pointer"
                 style={{

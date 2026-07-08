@@ -28,6 +28,7 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('레시피')
     expect(markup).toContain('주문하기')
     expect(markup).toContain('이야기하기')
+    expect(markup.match(/type="button"/g)).toHaveLength(3)
   })
 
   it('renders recommendation choices inside dialogue box', () => {

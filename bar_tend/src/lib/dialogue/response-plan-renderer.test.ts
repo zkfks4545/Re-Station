@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   renderExactRecommendationResponsePlan,
+  renderNearestRecommendationResponsePlan,
   renderRandomPickResponsePlan,
   renderRecommendationFormatterLine,
 } from './response-plan-renderer.js'
@@ -56,5 +57,16 @@ describe('recommendation formatter slot renderer', () => {
     expect(rendered?.text).toContain('드라이한 취향과 잘 맞아요.')
     expect(rendered?.text).toContain('짧고 또렷한 잔이에요.')
     expect(rendered?.expression).toBe('smirk')
+  })
+
+  it('이미 결정된 nearest fallback 값만 최종 본문에 치환한다', () => {
+    expect(renderNearestRecommendationResponsePlan('concerned', {
+      cocktail_name: '마티니',
+      fallback_reason: '말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.',
+      talking_point: '짧고 또렷한 잔이에요.',
+    })).toEqual({
+      text: '완전히 맞는 칵테일은 없어서 가장 가까운 「마티니」을 골랐어요.\n짧고 또렷한 잔이에요.\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.',
+      expression: 'sympathy',
+    })
   })
 })

@@ -12,12 +12,14 @@ export type RecommendationFormatterSlot =
   | 'cocktail_name'
   | 'cocktail_name_subject'
   | 'reason'
+  | 'fallback_reason'
   | 'talking_point'
 
 const ALLOWED_SLOTS: readonly RecommendationFormatterSlot[] = [
   'cocktail_name',
   'cocktail_name_subject',
   'reason',
+  'fallback_reason',
   'talking_point',
 ]
 const SLOT_PATTERN = /\{([^{}]+)\}/g
@@ -70,7 +72,7 @@ export function renderRandomPickResponsePlan(
 export function renderExactRecommendationResponsePlan(
   affectState: string,
   seed: string,
-  slots: Record<RecommendationFormatterSlot, string>,
+  slots: Partial<Record<RecommendationFormatterSlot, string>>,
   plans: readonly ResponsePlan[] = RESPONSE_PLANS,
 ): DialogueLine | null {
   const plan = selectResponsePlan(plans, {
@@ -99,10 +101,27 @@ export function renderExactRecommendationResponsePlan(
   }
 }
 
+export function renderNearestRecommendationResponsePlan(
+  affectState: string,
+  slots: Partial<Record<RecommendationFormatterSlot, string>>,
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  const plan = selectResponsePlan(plans, {
+    speaker: 'karua',
+    intent: 'recommend',
+    state: affectState,
+    request: 'nearest-recommendation-body',
+  })
+  if (!plan || !validateResponsePlan(plan).valid) return null
+
+  const line = plan.blocks.answer?.[0]
+  return line ? renderRecommendationFormatterLine(line, slots) : null
+}
+
 function renderPlanBlock(
   plan: ResponsePlan,
   kind: ResponsePlanBlockKind,
-  slots: Record<RecommendationFormatterSlot, string>,
+  slots: Partial<Record<RecommendationFormatterSlot, string>>,
   seed: string,
 ): DialogueLine | null {
   const lines = plan.blocks[kind] ?? []

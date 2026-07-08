@@ -5,6 +5,7 @@ import {
   formatExplicitCocktailReply,
   formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
+  formatNearestRecommendationResponse,
   formatRandomRecommendationReply,
   formatRandomRecommendationResponse,
   formatRecommendationReply,
@@ -216,6 +217,92 @@ describe('neutral recommendation dialogue copy', () => {
     expect(reply).toContain(selectCocktailTalkingPoint(cocktail))
     expect(reply).toContain('조금 다른 부분이 있을 수 있습니다')
     expect(reply).not.toMatch(/눈치|농담/)
+  })
+
+  it.each([
+    ['neutral', 'smirk'],
+    ['warm', 'smirk'],
+    ['curious', 'thinking'],
+    ['confident', 'smirk'],
+    ['playful', 'smirk'],
+    ['concerned', 'sympathy'],
+    ['awkward', 'thinking'],
+    ['tired', 'sympathy'],
+  ] as const)('keeps %s nearest fallback text/expression equal to legacy', (affectState, expression) => {
+    const cocktail = getCocktailById('cocktail_classic_028')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState(), {
+      route: 'recommendationInference',
+      routeTags: [],
+      dialogueState: 'recommending',
+      affectState,
+    })
+    const legacy = formatNearestRecommendationResponse(decision, { plans: [] })
+    const migrated = formatNearestRecommendationResponse(decision)
+
+    expect(migrated).toEqual(legacy)
+    expect(migrated.expression).toBe(expression)
+    expect(migrated.text).toContain(cocktail.name)
+    expect(migrated.text).toContain(selectCocktailTalkingPoint(cocktail))
+  })
+
+  it('prioritizes the nearest fallback ResponsePlan over the legacy formatter', () => {
+    const cocktail = getCocktailById('cocktail_classic_028')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+
+    expect(formatNearestRecommendationResponse(decision, {
+      plans: [{
+        id: 'test.nearest-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'nearest-recommendation-body',
+        blocks: {
+          answer: [{
+            text: 'ResponsePlan: {cocktail_name}\n{talking_point}\n{fallback_reason}',
+            expression: 'thinking',
+          }],
+        },
+        fallbackText: 'fallback',
+      }],
+    })).toEqual({
+      text: `ResponsePlan: ${cocktail.name}\n${selectCocktailTalkingPoint(cocktail)}\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.`,
+      expression: 'thinking',
+    })
+  })
+
+  it.each([
+    ['missing', '{reason}'],
+    ['invalid', '{missing_slot}'],
+  ])('falls back to the legacy nearest formatter when a %s slot fails', (_case, text) => {
+    const cocktail = getCocktailById('cocktail_classic_028')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const legacy = formatNearestRecommendationResponse(decision, { plans: [] })
+
+    expect(formatNearestRecommendationResponse(decision, {
+      plans: [{
+        id: 'invalid.nearest-recommendation-body',
+        speaker: 'karua',
+        intent: 'recommend',
+        state: decision.dialogue.affectState,
+        request: 'nearest-recommendation-body',
+        blocks: { answer: [{ text, expression: 'smirk' }] },
+        fallbackText: 'fallback',
+      }],
+    })).toEqual(legacy)
+  })
+
+  it('keeps nearest decision reasons and talking point selection unchanged', () => {
+    const cocktail = getCocktailById('cocktail_classic_028')!
+    const decision = createRecommendationDecision(cocktail, createRecommendationState())
+    const reasons = structuredClone(decision.reasons)
+    const talkingPoint = selectCocktailTalkingPoint(cocktail)
+
+    const formatted = formatNearestRecommendationResponse(decision)
+
+    expect(decision.cocktail.id).toBe(cocktail.id)
+    expect(decision.reasons).toEqual(reasons)
+    expect(formatted.text).toContain(talkingPoint)
+    expect(selectCocktailTalkingPoint(cocktail)).toBe(talkingPoint)
   })
 
   it('uses route-specific neutral openings for recommendation replies', () => {

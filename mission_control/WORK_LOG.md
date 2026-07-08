@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-08 / Codex / Phase 10 nearest fallback Recommendation Formatter
+
+- exact match 실패 뒤 이미 선택된 nearest cocktail의 최종 본문만 ResponsePlan으로 이관했다.
+- affect별 8개 plan이 `{cocktail_name}`, `{fallback_reason}`, `{talking_point}`를 배치하고 기존 expression을 직접 소유한다.
+- opening·acknowledgement, 후보 필터·거리 계산·nearest 선택·추천 사유·talking point 선택은 변경하지 않았다.
+- plan 부재·검증 실패·누락/금지 slot은 기존 formatter로 안전하게 복귀한다.
+- 검증: Vitest 46개 파일·623개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 525.67 kB, gzip 156.01 kB.
+
 ## 2026-07-06 / UI 개선 — 레이아웃·스크롤·추천 선택지 위치 변경
 
 - **레이아웃 보호**: 캐릭터 영역(stage)이 창 크기에 따라 먼저 찌그러지던 문제 수정. stage에 `flex-shrink: 0`, `min-height: calc(60vh - 60px)` 적용, chat-dock을 `flex: 1`로 변경
@@ -18,7 +26,9 @@
 - "주문하기"는 현 칵테일을 즉시 주문/서빙한다. `handleOrderCocktail(cocktail)`을 호출하며 주문→제조→서빙 전 과정을 실행한다.
 - "이야기하기"는 카드를 닫고 칵테일명을 포함한 story-query를 전송해 카루아가 이야기를 들려주는 흐름으로 전환한다. 새 `handleCardStory`/`performCardStory`를 추가했으며 queue 지원(`story-from-card` 타입)도 포함했다.
 - `handleReRecommend`/`performReRecommend` 및 `canReRecommend`는 제거하고 `canCardActions`로 대체했다.
-- 검증: Vitest 609개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.23 kB, gzip 155.65 kB.
+- 2026-07-08 안정화: 닫기·주문하기·이야기하기 버튼에 `type="button"`을 명시하고 UI 렌더링 계약에 3개 버튼 타입 검증을 추가했다.
+- 검증: Vitest 46개 파일·610개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.64 kB, gzip 155.80 kB.
+- 브라우저 수동 검증은 인앱 브라우저 연결 후 수행할 항목으로 남아 있다.
 
 ## 2026-07-03 / Codex / Phase 10 exact Recommendation Formatter
 

@@ -16,6 +16,7 @@ import {
   formatExplicitCocktailReply,
   formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
+  formatNearestRecommendationResponse,
   formatRandomRecommendationResponse,
   formatRecommendationReply,
   formatSecretMenuOrderReply,
@@ -227,8 +228,12 @@ export function useRecommendationSession() {
       const exactFormatted = resolved.exactMatch && !acknowledgement
         ? formatExactRecommendationResponse(decision)
         : null
-      const reply = exactFormatted
-        ? [selectedOpening?.text, exactFormatted.text].filter(Boolean).join('\n')
+      const nearestFormatted = !resolved.exactMatch
+        ? formatNearestRecommendationResponse(decision)
+        : null
+      const formattedBody = exactFormatted ?? nearestFormatted
+      const reply = formattedBody
+        ? [acknowledgement ?? selectedOpening?.text, formattedBody.text].filter(Boolean).join('\n')
         : formatRecommendationReply(
             decision,
             acknowledgement ?? selectedOpening?.text,
@@ -240,7 +245,7 @@ export function useRecommendationSession() {
         decision.dialogue.affectState,
         cocktail,
         decision,
-        exactFormatted?.expression,
+        formattedBody?.expression,
       )
     },
     [
