@@ -725,7 +725,8 @@ html::before {
 }
 /* Bartender stage: stay anchored above chat when layout is tight */
 .restation-stage {
-  min-height: calc(60vh - 60px);
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -740,7 +741,10 @@ html::before {
   margin-top: -0.75rem;
 }
 .restation-chat-dock {
-  flex: 1 1 auto;
+  --chat-dock-height: clamp(260px, 40vh, 420px);
+  flex: 0 0 var(--chat-dock-height);
+  height: var(--chat-dock-height);
+  max-height: var(--chat-dock-height);
   min-height: 0;
 }
 @media (max-height: 600px) {
@@ -849,7 +853,7 @@ html::before {
 
   /* Tighter dialogue padding on mobile */
   .restation-chat-dock {
-    min-height: 160px;
+    --chat-dock-height: clamp(210px, 44vh, 320px);
   }
   .restation-chat-dock > div:first-child {
     padding: 12px 12px 8px !important;
@@ -913,7 +917,7 @@ html::before {
     max-height: 180px;
   }
   .restation-chat-dock {
-    min-height: 140px;
+    --chat-dock-height: clamp(190px, 46vh, 300px);
   }
 }
 
@@ -924,7 +928,7 @@ html::before {
     max-height: 180px;
   }
   .restation-chat-dock {
-    min-height: 140px;
+    --chat-dock-height: clamp(190px, 46vh, 300px);
   }
 }
 

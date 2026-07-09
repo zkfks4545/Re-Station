@@ -20,7 +20,6 @@ export default function App() {
     isBartenderTyping,
     isProcessing,
     isPreparingCocktail,
-    isServingCocktail,
     activeQuestion,
     actionSessionMode,
     errorMessage,
@@ -94,7 +93,6 @@ export default function App() {
             <BartenderSprite
               expression={expression}
               isPreparingCocktail={isPreparingCocktail}
-              isServingCocktail={isServingCocktail}
               isBartenderTyping={isBartenderTyping}
             />
             {/*{RapportDebugDisplay && (
@@ -107,8 +105,6 @@ export default function App() {
           <div
             className="restation-chat-dock flex flex-col"
             style={{
-              maxHeight: '40vh',
-              minHeight: '120px',
               background:
                 'linear-gradient(to top, rgba(13,10,7,0.9), rgba(13,10,7,0.3))',
               boxShadow: '0 -10px 30px rgba(80,40,120,0.03), inset 0 1px 0 rgba(196,163,90,0.04)',

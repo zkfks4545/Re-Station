@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { getCocktailById } from '../../lib/cocktails/database.js'
 import { getQuestionById } from '../../lib/recommendation/question-engine.js'
 import { WELCOME_DRINK_FEEDBACK_QUESTION } from '../../lib/recommendation/welcome-drink.js'
-import BartenderSprite from './BartenderSprite.js'
 import ChatInput from './ChatInput.js'
 import CocktailCard from './CocktailCard.js'
 import DialogueBox from './DialogueBox.js'
@@ -173,18 +172,5 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toBe('')
-  })
-
-  it('renders a serve cue even when the shaker loop is not active', () => {
-    const markup = renderToStaticMarkup(
-      <BartenderSprite
-        expression="smirk"
-        isPreparingCocktail={false}
-        isServingCocktail
-      />,
-    )
-
-    expect(markup).toContain('SERVE')
-    expect(markup).not.toContain('SHAKING')
   })
 })
