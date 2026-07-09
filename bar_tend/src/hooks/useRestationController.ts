@@ -65,6 +65,7 @@ type QueuedInteraction =
 
 const COCKTAIL_PREPARATION_DELAY_MS = 600
 const COCKTAIL_PREPARATION_DURATION_MS = 1800
+const COCKTAIL_SERVING_DURATION_MS = 700
 const TYPING_FALLBACK_BUFFER_MS = 1200
 const TYPING_FALLBACK_MAX_TOKEN_MS = 180
 const CONVERSATION_RECOMMENDATION_PROMPT_TURN = 12
@@ -73,6 +74,10 @@ const dialogueService = new DialogueService(cocktails)
 
 function estimateTypingFallbackDelay(text: string): number {
   return Array.from(text).length * TYPING_FALLBACK_MAX_TOKEN_MS + TYPING_FALLBACK_BUFFER_MS
+}
+
+function usesShaker(cocktail: CocktailData): boolean {
+  return /shake|shaker|shaken|셰이|쉐이|흔들/i.test(cocktail.recipeText ?? '')
 }
 
 export function useRestationController() {
@@ -84,6 +89,7 @@ export function useRestationController() {
   const [servedCocktail, setServedCocktail] = useState<CocktailData | null>(null)
   const [servedCocktailMode, setServedCocktailMode] = useState<ServedCocktailMode>('recommendation')
   const [isPreparingCocktail, setIsPreparingCocktail] = useState(false)
+  const [isServingCocktail, setIsServingCocktail] = useState(false)
   const [dialogueSession, dispatchDialogueSession] = useReducer(
     dialogueSessionReducer,
     undefined,
@@ -181,10 +187,21 @@ export function useRestationController() {
 
   useEffect(() => () => timerRegistry.current.clearAll(), [])
 
-  const runCocktailPreparation = useCallback((onPrepared: () => void) => {
+  const runCocktailPreparation = useCallback((cocktail: CocktailData, onPrepared: () => void) => {
     timerRegistry.current.schedule(() => {
       setInteractionStatus('preparing')
       setExpression('smirk')
+      setIsPreparingCocktail(false)
+      setIsServingCocktail(false)
+      if (!usesShaker(cocktail)) {
+        setIsServingCocktail(true)
+        timerRegistry.current.schedule(() => {
+          setIsServingCocktail(false)
+          onPrepared()
+        }, COCKTAIL_SERVING_DURATION_MS)
+        return
+      }
+
       setIsPreparingCocktail(true)
       timerRegistry.current.schedule(() => {
         setIsPreparingCocktail(false)
@@ -257,7 +274,7 @@ export function useRestationController() {
       }
 
       if (cocktail) {
-        runCocktailPreparation(showReply)
+        runCocktailPreparation(cocktail, showReply)
         return
       }
 
@@ -1101,6 +1118,7 @@ export function useRestationController() {
     isBartenderTyping: interactionStatus === 'typing',
     isProcessing: interactionStatus !== 'idle',
     isPreparingCocktail,
+    isServingCocktail,
     activeQuestion: dialogueSession.safetyLocked
       ? null
       : welcomeDrinkFeedbackPending

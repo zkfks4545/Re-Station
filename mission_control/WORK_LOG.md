@@ -1,5 +1,40 @@
 # 작업 이력 (축약)
 
+## 2026-07-09 / Codex / Phase 11 story/welcome/farewell fallback 출처 점검
+
+- `story-query.ts`에서 칵테일 fact 선택 책임을 `selectCocktailContentFact()`로 분리하고, 선택된 fact를 최종 응답 형태로 감싸는 `formatStoryQueryFactReply()`를 추가했다. 기존 `formatStoryQueryReply()` API와 반환 형태는 유지했다.
+- `welcome-drink.ts`와 `farewell-replies.ts`는 Phase 10 이관 후에도 `plans: []` 또는 invalid ResponsePlan에서 legacy formatter로 내려가는 테스트가 남아 있어, 현재 legacy fallback은 아직 실제 안전망으로 필요하다고 판단했다.
+- `dialogue-source-inventory.test.ts`에 전체 `dialogues.json` category 중 ResponsePlan이 이미 소유하고 JSON은 fallback-only로 남은 삭제 후보 목록을 고정했다. 삭제는 수행하지 않았다.
+- 검증: `npm.cmd test -- story-query welcome-drink farewell-replies dialogue-source-inventory`, `npm.cmd run check` 통과.
+
+## 2026-07-09 / Codex / response-templates 출처 계약 정리
+
+- `response-templates.ts`에 fallback 출처 판별 함수와 inline draft 출처 목록을 추가했다. `dialogueCategory`가 있는 template의 fallback은 ResponsePlan/JSON 실패 시 안전문구이고, `exit-intent`, `mood:default`, `taste:default`만 이 파일이 직접 소유하는 기본 fallback으로 고정했다.
+- `dialogue-service.ts`의 셰이킹 주문 응답 하드코딩을 `formatShakeOrderDraft()` 호출로 통합해 같은 문구의 소유 출처를 `response-templates.ts` 한 곳으로 줄였다.
+- `response-templates.test.ts`가 fallback 소유권과 남은 inline draft 출처를 문서화하도록 갱신했다.
+- 검증: `npm.cmd test -- response-templates dialogue-source-inventory`, `npm.cmd run check` 통과.
+
+## 2026-07-09 / Codex / 셰이킹 없는 서빙 컷 표시
+
+- `BartenderSprite`가 `isServingCocktail` 플래그를 받아 셰이킹 루프 없이도 `SERVE` 컷을 표시할 수 있게 했다.
+- `useRestationController`는 recipe text에 흔들기 계열 표현이 없는 칵테일을 서빙할 때 셰이킹 루프를 생략하고 서빙 컷만 보여준다. 흔들기 계열 칵테일은 기존 셰이킹 흐름을 유지한다.
+- `App.tsx`가 새 서빙 플래그를 스프라이트로 전달하고, UI 렌더 테스트에 셰이킹 없이 `SERVE` cue가 표시되는 계약을 추가했다.
+- 검증: `npm.cmd test -- recommendation-ui`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 703개 통과.
+
+## 2026-07-09 / Codex / Phase 11 대사 출처 인벤토리 착수
+
+- `response-plan-adapter.ts`가 현재 ResponsePlan으로 이관된 대사 카테고리 목록과 판별 함수를 명시적으로 내보내도록 했다.
+- `dialogue-source-inventory.test.ts`를 추가해 `keyword-rules.json`의 `dialogueCategory`가 알려진 출처로 해석되는지, 이관 카테고리가 아직 legacy fallback 라인을 유지하는지, ResponsePlan 단독 렌더링이 가능한지 고정했다.
+- `keyword-rules.json` 기준 legacy-only 카테고리 목록을 테스트로 고정하고, 첫 안전 이관 대상으로 `guest-uncertain` 8개 라인을 ResponsePlan에 복사 연결했다. 기존 `dialogues.json` 라인은 삭제하지 않았다.
+- 같은 방식으로 `quiet-moment` 8개 라인을 ResponsePlan에 복사 연결했다. 기존 `dialogues.json` 라인은 삭제하지 않았다.
+- `greeting` 10개 라인을 ResponsePlan에 복사 연결했다. 앱 첫 입장/웰컴드링크 흐름은 변경하지 않고 keyword-rule category 응답 경로만 이관했다.
+- `siesta-mention` 10개 라인을 ResponsePlan에 복사 연결했다. 시에스타 이벤트/관계성 로직은 변경하지 않고 keyword-rule category 응답 경로만 이관했다.
+- `water-request` 8개 라인과 `overdrunk` 10개 라인을 ResponsePlan에 복사 연결했다. 물 요청/과음 케어 응답의 문구만 이관하고 safety/session/action 로직은 변경하지 않았다.
+- 남은 keyword-rule legacy category인 `ingredient-constraint`, `real-world-info`, `rude-annoyed`, `rude-boundary`, `cocktail-request`, `taste-sweet`, `taste-strong`도 ResponsePlan에 복사 연결했다. 추천·제외 재료·실매장 안내·무례 대응의 판단 로직은 변경하지 않았다.
+- keyword-rule이 참조하는 모든 `dialogueCategory`가 ResponsePlan으로 렌더링되며, 기존 `dialogues.json` 라인은 삭제하지 않고 fallback으로 유지한다.
+- keyword-rule 경로의 ResponsePlan-only 렌더링 테스트, invalid ResponsePlan 주입 시 legacy fallback으로 내려가는 테스트, category-by-category 삭제 후보 목록 테스트를 추가했다. `response-templates` 계약은 JSON pool 고정이 아니라 JSON fallback 또는 ResponsePlan source 중 하나를 허용하도록 갱신했다.
+- 검증: `npm.cmd test -- dialogue-source-inventory response-plan-adapter response-templates`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 706개 통과.
+
 ## 2026-07-09 / Codex / mission_control 문서 포털 1차 압축
 
 - `HANDOVER.md`의 중복 상태 요약을 제거하고, 다음 작업자가 바로 이어받을 행동 맥락·주의사항·검증 기준만 남겼다. 현재 상태는 `CURRENT_STATE.md`, 작업 계획은 `TASK_BOARD.md`, 상세 이력은 `WORK_LOG.md`가 소유한다.

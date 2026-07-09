@@ -7,6 +7,21 @@ export interface IntentResponseTemplate {
   tone: ResponseTone
 }
 
+export type TemplateFallbackSource = 'dialogue-source-fallback' | 'response-template'
+export type TemplateDraftSource = 'response-template' | 'cocktail-data-and-template'
+
+export const RESPONSE_TEMPLATE_DRAFT_SOURCES = Object.freeze({
+  storyPersonMissing: 'response-template',
+  cocktailMention: 'cocktail-data-and-template',
+  cocktailInfo: 'cocktail-data-and-template',
+  shakeOrder: 'cocktail-data-and-template',
+  martiniLoreFollowup: 'response-template',
+} satisfies Record<string, TemplateDraftSource>)
+
+export function getTemplateFallbackSource(template: IntentResponseTemplate): TemplateFallbackSource {
+  return template.dialogueCategory ? 'dialogue-source-fallback' : 'response-template'
+}
+
 export const INTENT_RESPONSE_TEMPLATES: Record<string, IntentResponseTemplate> = {
   'exit-intent': {
     fallback: '들러주셔서 감사합니다. 조심히 가세요.',

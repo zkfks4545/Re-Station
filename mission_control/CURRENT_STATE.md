@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~10 완료, **Phase 11 대사 출처 정상화 진입 전** |
+| 단계 | RST-000 MVP + Phase 1~10 완료, **Phase 11 대사 출처 정상화 착수** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/린트 | 통과 (메인 JS 538.46 kB, gzip 159.63 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 697개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 555.81 kB, gzip 164.27 kB, WebLLM 지연 청크 분리) |
+| 테스트 | **Vitest 706개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -62,7 +62,7 @@
 ## 현재 우선순위
 1. CocktailCard 주문하기·이야기하기 버튼 브라우저 수동 검증 (자동 계약 안정화 완료)
 2. Phase 10 완료 상태의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-3. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
+3. Phase 11 대사 출처 정상화: keyword-rule legacy category ResponsePlan 이관 완료, 다음 출처 정규화 검토
 4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 11 정규화 이후 검토
 5. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
 6. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
@@ -112,6 +112,6 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 - `assets/characters/karua/static/` (정적PNG)
 - `assets/characters/karua/animations/shaker/` (셰이킹)
 - `sprites.ts` = 코드 진입점
-- 칵테일 확정→`preparing`→셰이킹→추천대사+카드
+- 칵테일 확정→`preparing`→셰이킹 또는 서빙 컷→추천대사+카드
 - 새 에셋: `{character}/static/`(PNG), `animations/{action}/`(프레임), `sprites.ts`(import)
 - 표정=`Expression` 1:1 매핑, 누락=`idle` fallback

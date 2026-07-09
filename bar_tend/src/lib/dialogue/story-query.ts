@@ -22,18 +22,12 @@ export function formatStoryQueryReply(
   contentKind: CocktailContentKind = 'story',
 ): StoryQueryReply {
   if (cocktail) {
-    const nextFact = buildCocktailFacts(cocktail, contentKind)
-      .find((fact) => !disclosedFactKeys.includes(fact.key))
+    const nextFact = selectCocktailContentFact(cocktail, disclosedFactKeys, contentKind)
     if (!nextFact) {
       const text = '이 정도가 이 잔에 얽힌 이야기의 대부분이에요.'
       return { text, expression: 'smirk', facts: [text], factKeys: [] }
     }
-    return {
-      text: nextFact.text,
-      expression: 'talk',
-      facts: [nextFact.text],
-      factKeys: [nextFact.key],
-    }
+    return formatStoryQueryFactReply(nextFact)
   }
 
   const text = GENERAL_LORE_REPLIES[0]
@@ -52,9 +46,28 @@ export function getSelectedCocktailStoryFactKey(cocktail: CocktailData): string 
   return index >= 0 ? `story:${index}` : null
 }
 
-interface CocktailFact {
+export interface CocktailFact {
   key: string
   text: string
+}
+
+export function selectCocktailContentFact(
+  cocktail: CocktailData,
+  disclosedFactKeys: readonly string[] = [],
+  contentKind: CocktailContentKind = 'story',
+): CocktailFact | null {
+  return buildCocktailFacts(cocktail, contentKind)
+    .find((fact) => !disclosedFactKeys.includes(fact.key))
+    ?? null
+}
+
+export function formatStoryQueryFactReply(fact: CocktailFact): StoryQueryReply {
+  return {
+    text: fact.text,
+    expression: 'talk',
+    facts: [fact.text],
+    factKeys: [fact.key],
+  }
 }
 
 function buildCocktailFacts(

@@ -74,8 +74,8 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
     const dialoguePlans = RESPONSE_PLANS.filter((plan) => !formatterPlans.includes(plan))
     const answerLines = dialoguePlans.flatMap((plan) => plan.blocks.answer ?? [])
 
-    expect(dialoguePlans).toHaveLength(14)
-    expect(answerLines).toHaveLength(108)
+    expect(dialoguePlans).toHaveLength(27)
+    expect(answerLines).toHaveLength(226)
     expect(RESPONSE_PLANS.every((plan) => validateResponsePlan(plan).valid)).toBe(true)
     expect(answerLines.every((line) => line.text.trim() && line.expression)).toBe(true)
     expect(formatterPlans.filter((plan) => plan.request === 'random-pick-body')).toHaveLength(1)

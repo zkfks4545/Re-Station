@@ -27,6 +27,7 @@ import { getContentLeadReaction } from './conversation-flow.js'
 import { SHAKE_REFERENCE } from './pattern-utils.js'
 import { detectUserReaction, type UserReaction } from './reaction-layer.js'
 import { assembleResponse } from './response-pipeline.js'
+import { formatShakeOrderDraft } from './response-templates.js'
 import {
   formatStoryQueryReply,
   getSelectedCocktailStoryFactKey,
@@ -374,12 +375,9 @@ export class DialogueService {
     if (!outcome || resolution.classifiedIntent.intent !== 'order-cocktail' || !SHAKE_REFERENCE.test(text)) {
       return outcome
     }
-    const cocktailName = outcome.decision?.cocktail?.name
-    if (!cocktailName) return outcome
-    const response = assembleResponse({
-      text: `${cocktailName} 한 잔, 본드식으로요. 젓지 말고 흔들어서 준비할게요.`,
-      tone: 'smirk',
-    })
+    const cocktail = outcome.decision?.cocktail
+    if (!cocktail) return outcome
+    const response = assembleResponse(formatShakeOrderDraft(cocktail))
     return {
       ...outcome,
       reply: response.response,

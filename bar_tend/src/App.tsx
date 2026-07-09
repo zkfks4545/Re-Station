@@ -20,6 +20,7 @@ export default function App() {
     isBartenderTyping,
     isProcessing,
     isPreparingCocktail,
+    isServingCocktail,
     activeQuestion,
     actionSessionMode,
     errorMessage,
@@ -93,6 +94,7 @@ export default function App() {
             <BartenderSprite
               expression={expression}
               isPreparingCocktail={isPreparingCocktail}
+              isServingCocktail={isServingCocktail}
               isBartenderTyping={isBartenderTyping}
             />
             {/*{RapportDebugDisplay && (

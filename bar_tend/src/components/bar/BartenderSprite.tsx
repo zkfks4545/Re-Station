@@ -24,10 +24,12 @@ const EXPRESSION_LABEL: Record<Expression, string> = {
 export default function BartenderSprite({
   expression,
   isPreparingCocktail = false,
+  isServingCocktail = false,
   isBartenderTyping = false,
 }: {
   expression: Expression
   isPreparingCocktail?: boolean
+  isServingCocktail?: boolean
   isBartenderTyping?: boolean
 }) {
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function BartenderSprite({
     }
   }, [isBartenderTyping, isPreparingCocktail, isShowingFinishFrame])
 
-  const isAnimatingCocktail = isPreparingCocktail || isShowingFinishFrame
+  const isAnimatingCocktail = isPreparingCocktail || isServingCocktail || isShowingFinishFrame
   let activeImage = KARUA_STATIC_SPRITES[expression]
   let activeLabel = isBartenderTyping ? 'TALK' : EXPRESSION_LABEL[expression]
 
@@ -92,7 +94,7 @@ export default function BartenderSprite({
     activeLabel = 'SHAKING'
   }
 
-  if (isShowingFinishFrame) {
+  if (isServingCocktail || isShowingFinishFrame) {
     activeImage = KARUA_SHAKER_FINISH_FRAME
     activeLabel = 'SERVE'
   }
