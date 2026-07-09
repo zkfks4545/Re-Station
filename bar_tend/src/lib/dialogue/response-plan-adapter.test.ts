@@ -65,7 +65,12 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
       || plan.request === 'welcome-drink-body'
       || plan.request === 'welcome-feedback'
       || plan.request === 'farewell-entry'
-      || plan.request === 'farewell-xyz-clarification')
+      || plan.request === 'farewell-xyz-clarification'
+      || plan.request === 'farewell-xyz-body'
+      || plan.request === 'farewell-welcome-xyz-body'
+      || plan.request === 'farewell-conversation'
+      || plan.request === 'farewell-block'
+      || plan.request === 'farewell-return-home')
     const dialoguePlans = RESPONSE_PLANS.filter((plan) => !formatterPlans.includes(plan))
     const answerLines = dialoguePlans.flatMap((plan) => plan.blocks.answer ?? [])
 
@@ -81,6 +86,11 @@ describe('ResponsePlan 이중 읽기 어댑터', () => {
     expect(formatterPlans.filter((plan) => plan.request === 'welcome-feedback')).toHaveLength(5)
     expect(formatterPlans.filter((plan) => plan.request === 'farewell-entry')).toHaveLength(1)
     expect(formatterPlans.filter((plan) => plan.request === 'farewell-xyz-clarification')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-xyz-body')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-welcome-xyz-body')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-conversation')).toHaveLength(5)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-block')).toHaveLength(1)
+    expect(formatterPlans.filter((plan) => plan.request === 'farewell-return-home')).toHaveLength(1)
   })
 
   it('general-chat ResponsePlan은 기존 JSON 문장과 동등하다', () => {

@@ -32,13 +32,13 @@ import {
   XYZ_COCKTAIL_ID,
 } from '@/lib/session/session-flow.js'
 import {
-  formatFarewellBlockReply,
+  formatFarewellBlockResponse,
   formatFarewellConversationReply,
-  formatReturnHomeReply,
+  formatReturnHomeResponse,
   formatStandardFarewellEntryResponse,
-  formatWelcomeFarewellXyzReply,
+  formatWelcomeFarewellXyzResponse,
   formatWelcomeXyzClarificationReply,
-  formatXyzReply,
+  formatXyzResponse,
   isEjectionConcern,
 } from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
@@ -280,11 +280,12 @@ export function useRestationController() {
     const ids = unlockCocktailId(xyzCocktail.id)
     setUnlockedIds(ids)
     const servingEvents = dialogueService.buildServingContextEvents(xyzCocktail)
+    const reply = entryKind === 'welcome-farewell-xyz'
+      ? formatWelcomeFarewellXyzResponse(xyzCocktail)
+      : formatXyzResponse(xyzCocktail)
     bartenderReply(
-      entryKind === 'welcome-farewell-xyz'
-        ? formatWelcomeFarewellXyzReply(xyzCocktail)
-        : formatXyzReply(xyzCocktail),
-      'smirk',
+      reply.text,
+      reply.expression,
       xyzCocktail,
       'idle',
       [],
@@ -379,7 +380,8 @@ export function useRestationController() {
     ) {
       setInteractionStatus('exiting')
       dispatchDialogueSession({ type: 'set-phase', phase: 'returnHome' })
-      bartenderReply(formatReturnHomeReply(), 'idle', null, 'exiting')
+      const reply = formatReturnHomeResponse()
+      bartenderReply(reply.text, reply.expression, null, 'exiting')
       moveOutsideAfterDelay(2000)
       return
     }
@@ -667,7 +669,8 @@ export function useRestationController() {
           resetRecommendation()
           dispatchDialogueSession({ type: 'set-phase', phase: 'returnHome' })
           setServedCocktail(null)
-          bartenderReply(formatReturnHomeReply(), 'idle', null, 'exiting')
+          const reply = formatReturnHomeResponse()
+          bartenderReply(reply.text, reply.expression, null, 'exiting')
           moveOutsideAfterDelay(1800)
           return
         }
@@ -709,7 +712,8 @@ export function useRestationController() {
       if (dialogueResolution.blockedBySession) {
         resetRecommendation()
         dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
-        bartenderReply(formatFarewellBlockReply(), 'smirk')
+        const reply = formatFarewellBlockResponse()
+        bartenderReply(reply.text, reply.expression)
         return
       }
 
@@ -890,7 +894,8 @@ export function useRestationController() {
   const performStartRecommendation = useCallback(() => {
     if (actionSessionMode === 'recommendation' && activeQuestion) return true
     if (isOrderingClosedPhase(sessionPhase)) {
-      bartenderReply(formatFarewellBlockReply(), 'smirk')
+      const reply = formatFarewellBlockResponse()
+      bartenderReply(reply.text, reply.expression)
       return true
     }
     setServedCocktail(null)
@@ -916,7 +921,8 @@ export function useRestationController() {
     const dialogueResolution = resolveDialogueInput(text, nextMessages, 'conversation')
     if (dialogueResolution.blockedBySession) {
       setServedCocktail(null)
-      bartenderReply(formatFarewellBlockReply(), 'smirk')
+      const reply = formatFarewellBlockResponse()
+      bartenderReply(reply.text, reply.expression)
       return true
     }
     const execution = executeAction(

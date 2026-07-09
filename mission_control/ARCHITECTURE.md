@@ -264,6 +264,7 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 - 모델 초기화와 KV 캐시는 세션 동안 유지한다.
 - 프롬프트와 출력 토큰을 제한하고, 요청별 시간 예산과 취소를 지원한다.
 - 초기 렌더 뒤 capability 검사를 통과하면 WebLLM 패키지를 동적으로 불러와 Worker 준비를 시작한다. 준비 작업은 렌더링과 JSON 대화를 차단하지 않는다.
+- WebLLM 출력은 허용 목록으로 검증된 topic, stance, response block, session tag, rapport hint, confidence만 사용할 수 있다. 자유문장, 잘못된 JSON, 알 수 없는 태그는 폐기한다.
 
 ### 캐릭터 대화 구조 목표
 

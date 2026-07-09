@@ -427,7 +427,7 @@
 - 추천·FSM·Action·SessionState에도 영향을 주지 않음
 - WebLLM은 RapportState를 직접 소유하거나 수정할 수 없음
 
-## 테스트 항목 (현재 Vitest 46개 파일·666개 전체 통과)
+## 테스트 항목 (현재 Vitest 46개 파일·679개 전체 통과)
 
 - 점진적 Rapport 갱신
 - 반복 행동 누적

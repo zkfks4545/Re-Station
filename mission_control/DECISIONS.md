@@ -36,7 +36,7 @@
 
 ## DEC-027: WebLLM 의미 보조 전용
 
-WebLLM의 자유문장 생성 역할을 폐기한다. WebLLM은 topic, stance, ResponsePlan block 후보, 세션 태그, rapport 힌트와 confidence만 JSON으로 제안한다. JSON/FSM/Rule Engine이 최종 대사와 행동을 결정하며 현재 응답은 WebLLM을 기다리지 않는다. 세션 태그는 영구 저장하지 않고 입장 초기화·퇴장·밤 초기화 때 삭제한다. 모델 준비는 접속 직후가 아니라 브라우저 유휴 시간에만 예약한다.
+WebLLM의 자유문장 생성 역할을 폐기한다. WebLLM은 topic, stance, ResponsePlan block 후보, 세션 태그, rapport 힌트와 confidence만 JSON으로 제안한다. JSON/FSM/Rule Engine이 최종 대사와 행동을 결정하며 현재 응답은 WebLLM을 기다리지 않는다. 세션 태그는 영구 저장하지 않고 입장 초기화·퇴장·밤 초기화 때 삭제한다. 모델 준비는 접속 직후가 아니라 브라우저 유휴 시간에만 예약한다. 허용 목록 검증에 실패한 자유문장, 알 수 없는 태그, 잘못된 JSON은 폐기하고 기존 규칙 기반 흐름을 유지한다.
 
 ---
 

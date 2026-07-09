@@ -1,5 +1,42 @@
 # 작업 이력 (축약)
 
+## 2026-07-09 / Codex / mission_control 문서 포털 1차 압축
+
+- `HANDOVER.md`의 중복 상태 요약을 제거하고, 다음 작업자가 바로 이어받을 행동 맥락·주의사항·검증 기준만 남겼다. 현재 상태는 `CURRENT_STATE.md`, 작업 계획은 `TASK_BOARD.md`, 상세 이력은 `WORK_LOG.md`가 소유한다.
+- `CURRENT_LOGIC_FOCUS.md`의 현재 로직 메모를 검토했다. 제품 루프는 `PROJECT_VISION.md`, 세션 종료 기준은 `SESSION_FLOW_SPEC.md`, 구조 경계는 `EXTERNAL_STRUCTURE_REPORT.md`가 이미 소유하므로 별도 문서 책임이 남지 않았다.
+- `REFACTORING_LOG.md`의 REF-SESSION-001/002 기록은 기존 `WORK_LOG.md`의 `2026-06-25 / REF-SESSION-001~002 / 세션 컨트롤러 책임 축소` 1줄 요약이 소유하도록 정리했다.
+- `WEBLLM_EXPERIMENT.md`의 장기 원칙은 `DECISIONS.md`, `ARCHITECTURE.md`, `EXTERNAL_STRUCTURE_REPORT.md`로 흡수하고, 실험 이력은 기존 WebLLM 작업 로그가 소유하도록 정리했다.
+- `HANDOVER.md`와 `CURRENT_STATE.md`는 병합하지 않기로 판단했다. `CURRENT_STATE.md`는 현재 상태 스냅샷, `HANDOVER.md`는 다음 작업자가 바로 이어받을 행동 맥락을 소유하되, 이후 `HANDOVER.md`의 중복 상태 요약은 축소 대상이다.
+- 세 문서를 삭제하고 `README.md`의 읽기 경로와 정보 소유권을 갱신했다.
+- 검증: 문서 작업. 코드 변경 없음.
+
+## 2026-07-09 / Codex / Phase 10 farewell phase/block replies Farewell Formatter
+
+- `formatFarewellConversationReply()`의 farewell phase conversation 5종을 ResponsePlan으로 이관했다: `no-xyz-ejection`, `no-xyz-generic`, `xyz-ejection`, `xyz-why`, `xyz-generic`.
+- `formatFarewellBlockReply()`와 `formatReturnHomeReply()`는 문자열 API를 유지하고, `formatFarewellBlockResponse()` / `formatReturnHomeResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- semantic slot은 만들지 않았고 각 ResponsePlanLine이 final text와 expression을 직접 소유한다. ejection concern 감지, hasXyz 판단, farewell turn count, returnHome 전이, ordering block, safety, DialogueService, Action, Router, CocktailCard는 변경하지 않았다.
+- 컨트롤러의 farewell block / return-home 경로는 ResponsePlan expression을 사용하도록 연결했다.
+- Phase 10 Farewell Formatter와 Phase 10 ResponsePlan DB 리팩토링은 완료 상태로 본다. 다음은 Phase 11 대사 출처 정상화다.
+- 검증: targeted Vitest 3개 파일·85개 테스트, 전체 Vitest 46개 파일·697개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 538.46 kB, gzip 159.63 kB.
+
+## 2026-07-09 / Codex / Phase 10 welcome-farewell XYZ Farewell Formatter
+
+- `formatWelcomeFarewellXyzReply()` welcome-farewell XYZ final body만 ResponsePlan으로 이관했다.
+- 허용 slot은 이미 선택된 `{cocktail_name}` 하나뿐이며 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- 기존 문자열 API `formatWelcomeFarewellXyzReply()`는 유지하고, `formatWelcomeFarewellXyzResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- welcome-farewell 컨트롤러 경로는 ResponsePlan expression을 사용하되, welcome-farewell entry decision, XYZ selection, session-flow, phase transition, safety, DialogueService, Action, Router, CocktailCard는 변경하지 않았다.
+- 남은 Farewell slice는 farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·679개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 534.20 kB, gzip 158.80 kB.
+
+## 2026-07-09 / Codex / Phase 10 regular XYZ Farewell Formatter
+
+- `formatXyzReply()` regular XYZ final body만 ResponsePlan으로 이관했다.
+- 허용 slot은 이미 선택된 `{cocktail_name}` 하나뿐이며 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- 기존 문자열 API `formatXyzReply()`는 유지하고, `formatXyzResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- 표준 XYZ 컨트롤러 경로는 ResponsePlan expression을 사용하되, XYZ cocktail selection, serving-plan, alcohol accumulation, session-flow, DialogueService, FSM, SessionState, CocktailCard, unlock, safety는 변경하지 않았다.
+- 남은 Farewell slices는 welcome-farewell XYZ / welcome-missed replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·673개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 533.35 kB, gzip 158.62 kB.
+
 ## 2026-07-08 / Codex / Phase 10 welcome XYZ clarification Farewell Formatter
 
 - `formatWelcomeXyzClarificationReply()` welcome-drink XYZ clarification body만 ResponsePlan으로 이관했다.
@@ -879,6 +916,7 @@
 
 ## 작성 규칙
 - 작업 종료 시 최신 로그를 위에 추가한다.
+- 동작 보존 리팩토링 기록도 이 문서가 소유한다. 별도 리팩토링 로그를 만들지 않는다.
 - 수정 또는 생성 파일은 경로를 명시한다.
 - 각 작업 항목에 해당 커밋 해시를 `[hash]` 형태로 기록한다.
 - **커밋 발생 시** 해당 커밋 해시(`git rev-parse --short HEAD`)와 커밋 메시지(`git log -1 --format=%s`)를 작업 항목에 즉시 기록한다.

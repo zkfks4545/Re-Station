@@ -1,15 +1,15 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-08 (UI 개선 작업 중)
+> 최종 갱신일: 2026-07-09 (Phase 10 ResponsePlan DB 리팩토링 완료 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~8 완료, **Phase 9 Character Layer 완료** |
+| 단계 | RST-000 MVP + Phase 1~10 완료, **Phase 11 대사 출처 정상화 진입 전** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/린트 | 통과 (메인 JS 532.48 kB, gzip 158.46 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 666개 전체 통과** |
+| 빌드/린트 | 통과 (메인 JS 538.46 kB, gzip 159.63 kB, WebLLM 지연 청크 분리) |
+| 테스트 | **Vitest 697개 전체 통과** |
 | 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -36,10 +36,10 @@
 | CocktailCard 버튼 "다시 추천받기" → "주문하기"·"이야기하기" 교체 | 현재 작업 |
 | Phase 10 ResponsePlan 타입·선택·검증·fallback 계약 | [`완료`] |
 | Phase 10 ResponsePlanLine expression 필수 계약 보강 | [`완료`] |
-| Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 진행 중 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
+| Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 완료 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
 | Phase 10 Recommendation Formatter | 4/4 완료: randomPick + exact + nearest fallback 본문 + acknowledgement/lead-in (plan 19개·template line 101개) |
 | Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
-| Phase 10 Farewell Formatter | slice 2A 완료: standard farewell entry + welcome XYZ clarification (formatter plan 29개·template line 111개) |
+| Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
 | WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
@@ -57,16 +57,15 @@
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 532.48 kB, gzip 158.46 kB, WebLLM 지연 청크 분리 | 유지 |
+| 번들 | 메인 JS 538.46 kB, gzip 159.63 kB, WebLLM 지연 청크 분리 | 유지 |
 
 ## 현재 우선순위
 1. CocktailCard 주문하기·이야기하기 버튼 브라우저 수동 검증 (자동 계약 안정화 완료)
-2. Phase 10 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-3. Farewell Formatter slice 2A 완료 상태 유지와 남은 XYZ/welcome-missed main replies, farewell phase/block 경계 조사
-4. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
-5. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 10 이후 검토
-6. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
-7. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
+2. Phase 10 완료 상태의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
+3. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
+4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 11 정규화 이후 검토
+5. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
+6. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
 
 ---
 
@@ -80,7 +79,7 @@
 | 허용 목록·confidence 검증 | Semantic Validator |
 | 최종 대사 조립 | Rule Engine |
 
-WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 10 전에는 태그를 실제 대사 선택에 반영하지 않는다.
+WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 11 정규화 전에는 태그를 실제 대사 선택에 반영하지 않는다.
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -103,7 +102,7 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 
 ## 향후 방침
 - RapportState는 숨은 상태이며 추천 결과·FSM·Action·SessionState·ResponsePlan 선택에 연결하지 않음
-- WebLLM 자유대사 생성 금지, Phase 10 전 의미 태그의 ResponsePlan 선택 반영 금지
+- WebLLM 자유대사 생성 금지, Phase 11 정규화 전 의미 태그의 ResponsePlan 선택 반영 금지
 - 칵테일 확장 = IBA 우선, 관리자 검증 큐 (DEC-020)
 - 대사 풀 = 입력 경로 선택, FSM=말투·리듬, affectState=표정
 - 스프라이트 작업은 WebLLM보다 우선

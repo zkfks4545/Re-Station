@@ -212,6 +212,74 @@ export function renderWelcomeXyzClarificationResponsePlan(
   return line ? renderRecommendationFormatterLine(line, {}) : null
 }
 
+export function renderXyzFarewellResponsePlan(
+  cocktailName: string,
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  const plan = selectResponsePlan(plans, {
+    speaker: 'karua',
+    intent: 'goodbye',
+    state: 'alcohol-xyz',
+    request: 'farewell-xyz-body',
+  })
+  if (!plan || !validateResponsePlan(plan).valid) return null
+
+  const line = plan.blocks.answer?.[0]
+  return line ? renderRecommendationFormatterLine(line, { cocktail_name: cocktailName }) : null
+}
+
+export function renderWelcomeFarewellXyzResponsePlan(
+  cocktailName: string,
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  const plan = selectResponsePlan(plans, {
+    speaker: 'karua',
+    intent: 'goodbye',
+    state: 'welcome-farewell-xyz',
+    request: 'farewell-welcome-xyz-body',
+  })
+  if (!plan || !validateResponsePlan(plan).valid) return null
+
+  const line = plan.blocks.answer?.[0]
+  return line ? renderRecommendationFormatterLine(line, { cocktail_name: cocktailName }) : null
+}
+
+export function renderFarewellConversationResponsePlan(
+  state: string,
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  return renderGoodbyeResponsePlan(state, 'farewell-conversation', plans)
+}
+
+export function renderFarewellBlockResponsePlan(
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  return renderGoodbyeResponsePlan('ordering-blocked', 'farewell-block', plans)
+}
+
+export function renderReturnHomeResponsePlan(
+  plans: readonly ResponsePlan[] = RESPONSE_PLANS,
+): DialogueLine | null {
+  return renderGoodbyeResponsePlan('return-home', 'farewell-return-home', plans)
+}
+
+function renderGoodbyeResponsePlan(
+  state: string,
+  request: string,
+  plans: readonly ResponsePlan[],
+): DialogueLine | null {
+  const plan = selectResponsePlan(plans, {
+    speaker: 'karua',
+    intent: 'goodbye',
+    state,
+    request,
+  })
+  if (!plan || !validateResponsePlan(plan).valid) return null
+
+  const line = plan.blocks.answer?.[0]
+  return line ? renderRecommendationFormatterLine(line, {}) : null
+}
+
 function renderPlanBlock(
   plan: ResponsePlan,
   kind: ResponsePlanBlockKind,
