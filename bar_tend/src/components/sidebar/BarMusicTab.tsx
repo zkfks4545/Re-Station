@@ -22,12 +22,18 @@ export default function BarMusicTab({ bgm }: BarMusicTabProps) {
           {bgm.selectedPreset?.title ?? '선택된 BGM 없음'}
         </strong>
         <span className="music-now__state">
-          {bgm.isPlaying ? '재생 중' : bgm.isReady ? '일시정지' : '대기 중'}
+          {bgm.autoplayBlocked ? '자동재생 차단' : bgm.isPlaying ? '재생 중' : bgm.isReady ? '일시정지' : '대기 중'}
         </span>
         {showTime && (
-          <span className="music-now__time">
-            {formatTime(bgm.currentTime)} / {formatTime(bgm.duration)}
-          </span>
+          <div className="music-progress">
+            <div
+              className="music-progress__fill"
+              style={{ width: `${bgm.duration > 0 ? (bgm.currentTime / bgm.duration) * 100 : 0}%` }}
+            />
+            <span className="music-progress__label">
+              {formatTime(bgm.currentTime)} / {formatTime(bgm.duration)}
+            </span>
+          </div>
         )}
       </div>
 

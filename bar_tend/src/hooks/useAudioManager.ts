@@ -14,6 +14,7 @@ declare global {
           events?: {
             onReady?: (e: { target: YtPlayer }) => void
             onStateChange?: (e: { data: number }) => void
+            onError?: (e: { data: number }) => void
           }
         },
       ) => YtPlayer
@@ -33,6 +34,8 @@ interface YtPlayer {
   setVolume: (volume: number) => void
   mute: () => void
   unMute: () => void
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void
+  destroy: () => void
 }
 
 interface StoredAudioSettings {
@@ -48,6 +51,7 @@ export interface BgmAudioChannel {
   selectedPreset: BgmPreset | null
   isReady: boolean
   isPlaying: boolean
+  autoplayBlocked: boolean
   volume: number
   muted: boolean
   error: string | null
@@ -141,6 +145,10 @@ export function useAudioManager(): AudioManager {
   const [error, setError] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false)
+  const retryCountRef = useRef(0)
+  const playingEventRef = useRef(false)
+  const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const selectedPreset = useMemo(
     () => BGM_PRESETS.find((preset) => preset.id === selectedPresetId) ?? null,
@@ -174,6 +182,25 @@ export function useAudioManager(): AudioManager {
     setIsPlaying(false)
   }, [])
 
+  const clearAutoplayTimer = useCallback(() => {
+    if (autoplayTimerRef.current !== null) {
+      clearTimeout(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+  }, [])
+
+  const playYtVideo = useCallback((player: YtPlayer) => {
+    playingEventRef.current = false
+    setAutoplayBlocked(false)
+    player.playVideo()
+    clearAutoplayTimer()
+    autoplayTimerRef.current = setTimeout(() => {
+      if (!playingEventRef.current) {
+        setAutoplayBlocked(true)
+      }
+    }, 800)
+  }, [clearAutoplayTimer])
+
   const ensurePlayer = useCallback(async (preset: BgmPreset, shouldPlay: boolean) => {
     setError(null)
     pendingPlayRef.current = shouldPlay
@@ -183,6 +210,51 @@ export function useAudioManager(): AudioManager {
       if (!playerHostRef.current || !window.YT) return
 
       if (!playerRef.current) {
+        const onPlayerReady = (event: { target: YtPlayer }) => {
+          const player = event.target
+          playerRef.current = player
+          setIsReady(true)
+          applyBgmOutputSettings(player)
+          if (pendingPlayRef.current) {
+            playYtVideo(player)
+          }
+        }
+        const onPlayerStateChange = (event: { data: number }) => {
+          if (!window.YT) return
+          if (event.data === window.YT.PlayerState.PLAYING) {
+            playingEventRef.current = true
+            clearAutoplayTimer()
+            setAutoplayBlocked(false)
+            setIsPlaying(true)
+            return
+          }
+          if (event.data === window.YT.PlayerState.PAUSED) {
+            setIsPlaying(false)
+            return
+          }
+          if (event.data === window.YT.PlayerState.ENDED) {
+            setIsPlaying(false)
+            playerRef.current?.playVideo()
+          }
+        }
+        const onPlayerError = (event: { data: number }) => {
+          const code = event.data
+          if (code === 2 || code === 100 || code === 101 || code === 150) {
+            setError('이 트랙을 재생할 수 없습니다.')
+            setIsPlaying(false)
+            return
+          }
+          retryCountRef.current++
+          if (retryCountRef.current <= 1 && playerRef.current) {
+            playerRef.current.loadVideoById(preset.youtubeId)
+            if (pendingPlayRef.current) {
+              playerRef.current.playVideo()
+            }
+            return
+          }
+          setError('이 트랙을 재생할 수 없습니다.')
+          setIsPlaying(false)
+        }
         playerRef.current = new window.YT.Player(playerHostRef.current, {
           height: '0',
           width: '0',
@@ -194,44 +266,26 @@ export function useAudioManager(): AudioManager {
             rel: 0,
           },
           events: {
-            onReady: (event) => {
-              playerRef.current = event.target
-              setIsReady(true)
-              applyBgmOutputSettings(event.target)
-              if (pendingPlayRef.current) {
-                event.target.playVideo()
-                setIsPlaying(true)
-              }
-            },
-            onStateChange: (event) => {
-              if (!window.YT) return
-              if (event.data === window.YT.PlayerState.PLAYING) {
-                setIsPlaying(true)
-                return
-              }
-              if (
-                event.data === window.YT.PlayerState.PAUSED ||
-                event.data === window.YT.PlayerState.ENDED
-              ) {
-                setIsPlaying(false)
-              }
-            },
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange,
+            onError: onPlayerError,
           },
         })
+        retryCountRef.current = 0
         return
       }
 
+      retryCountRef.current = 0
       playerRef.current.loadVideoById(preset.youtubeId)
       applyBgmOutputSettings()
       if (shouldPlay) {
-        playerRef.current.playVideo()
-        setIsPlaying(true)
+        playYtVideo(playerRef.current)
       }
     } catch {
       setError('유튜브 플레이어를 불러오지 못했습니다.')
       setIsPlaying(false)
     }
-  }, [applyBgmOutputSettings])
+  }, [applyBgmOutputSettings, clearAutoplayTimer, playYtVideo, selectedPreset])
 
   const playPreset = useCallback((presetId: string) => {
     const preset = BGM_PRESETS.find((item) => item.id === presetId)
@@ -251,20 +305,26 @@ export function useAudioManager(): AudioManager {
       if (isPlaying) {
         pauseBgm()
       } else {
-        playSelectedPreset()
+        playerRef.current.playVideo()
+        setIsPlaying(true)
       }
       return
     }
     playPreset(presetId)
-  }, [isPlaying, pauseBgm, playPreset, playSelectedPreset, selectedPresetId])
+  }, [isPlaying, pauseBgm, playPreset, selectedPresetId])
 
   const togglePlayPause = useCallback(() => {
     if (isPlaying) {
       pauseBgm()
       return
     }
+    if (playerRef.current && selectedPresetId) {
+      playerRef.current.playVideo()
+      setIsPlaying(true)
+      return
+    }
     playSelectedPreset()
-  }, [isPlaying, pauseBgm, playSelectedPreset])
+  }, [isPlaying, pauseBgm, playSelectedPreset, selectedPresetId])
 
   const setVolume = useCallback((nextVolume: number) => {
     setVolumeState(clampVolume(nextVolume))
@@ -287,9 +347,10 @@ export function useAudioManager(): AudioManager {
   }, [isPlaying])
 
   useEffect(() => () => {
-    playerRef.current?.pauseVideo()
+    clearAutoplayTimer()
+    playerRef.current?.destroy()
     playerRef.current = null
-  }, [])
+  }, [clearAutoplayTimer])
 
   return {
     bgm: {
@@ -299,6 +360,7 @@ export function useAudioManager(): AudioManager {
       selectedPreset,
       isReady,
       isPlaying,
+      autoplayBlocked,
       currentTime,
       duration,
       volume,

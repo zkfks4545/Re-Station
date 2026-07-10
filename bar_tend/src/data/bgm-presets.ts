@@ -8,6 +8,12 @@ export interface BgmPreset {
 
 export const BGM_PRESETS: BgmPreset[] = [
   {
+    id: 'pukey-goddess-shot-trick',
+    title: 'Pukey Goddess Shot Trick',
+    subtitle: 'Twisted & noisy',
+    youtubeId: 'JcxAXHykWUs',
+  },
+  {
     id: 'cyberpunk-lofi',
     title: 'Cyberpunk Lo-Fi',
     subtitle: 'Neon rain & synth pads',
