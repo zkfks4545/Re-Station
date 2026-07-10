@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import type { SfxChannel } from './useSfxManager.js'
 import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
 import { cocktails, getCocktailById } from '@/lib/cocktails/database.js'
@@ -75,7 +76,7 @@ function estimateTypingFallbackDelay(text: string): number {
   return Array.from(text).length * TYPING_FALLBACK_MAX_TOKEN_MS + TYPING_FALLBACK_BUFFER_MS
 }
 
-export function useRestationController() {
+export function useRestationController(sfx?: SfxChannel) {
   const [scene, setScene] = useState<'outside' | 'inside'>('outside')
   const [messages, setMessages] = useState<Message[]>([])
   const [expression, setExpression] = useState<Expression>('idle')
@@ -103,11 +104,16 @@ export function useRestationController() {
   const queuedInteractionsRef = useRef<QueuedInteraction[]>([])
   const queuedInteractionScheduledRef = useRef(false)
   const typingSequenceRef = useRef(0)
+  const sfxRef = useRef<SfxChannel | undefined>(sfx)
   const [conversationContext, dispatchConversationContext] = useReducer(
     updateConversationContext,
     undefined,
     createConversationContext,
   )
+
+  useEffect(() => {
+    sfxRef.current = sfx
+  }, [sfx])
 
   const actionSessionMode = dialogueSession.mode
   const sessionPhase = dialogueSession.phase
@@ -154,6 +160,7 @@ export function useRestationController() {
     setInteractionStatus('idle')
     setScreenShake(false)
     setIsPreparingCocktail(false)
+    sfxRef.current?.stopAll()
   }, [])
 
   const playScreenShakeCue = useCallback(() => {
@@ -184,19 +191,25 @@ export function useRestationController() {
     recordConversationContext({ type: 'reset' })
   }, [recordConversationContext])
 
-  useEffect(() => () => timerRegistry.current.clearAll(), [])
+  useEffect(() => () => {
+    timerRegistry.current.clearAll()
+    sfxRef.current?.stopAll()
+  }, [])
 
   const runCocktailPreparation = useCallback((onPrepared: () => void) => {
+    sfx?.stopAll()
     timerRegistry.current.schedule(() => {
       setInteractionStatus('preparing')
       setExpression('smirk')
       setIsPreparingCocktail(true)
+      sfx?.play('shake')
       timerRegistry.current.schedule(() => {
         setIsPreparingCocktail(false)
+        sfx?.stop('shake')
         onPrepared()
       }, COCKTAIL_PREPARATION_DURATION_MS)
     }, COCKTAIL_PREPARATION_DELAY_MS)
-  }, [])
+  }, [sfx])
 
   const typingCompleteFnRef = useRef<() => void>(() => {})
   const typingCompletedRef = useRef(false)
@@ -443,6 +456,7 @@ export function useRestationController() {
       )
       return true
     }
+    sfx?.stop('shake')
     resetRecommendation()
     dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
     setMessages((prev) => [...prev, { role: 'user', text: '추천 질문 취소' }])
@@ -452,6 +466,7 @@ export function useRestationController() {
     activeQuestion,
     bartenderReply,
     resetRecommendation,
+    sfx,
     welcomeDrinkFeedbackPending,
   ])
 
@@ -806,6 +821,7 @@ export function useRestationController() {
               recommended: servingEffect?.recommended ?? false,
             })
             afterCocktailRevealed = () => recordConversationEvents(servingEvents)
+            sfx?.play('serve')
             playScreenShakeCue()
             const ids = unlockCocktailId(cocktail.id)
             setUnlockedIds(ids)
@@ -848,6 +864,7 @@ export function useRestationController() {
 
           bartenderReply(turn.reply, turn.expression, cocktail, 'idle', afterMessages, afterCocktailRevealed)
         } catch {
+          sfx?.stopAll()
           setExpression('idle')
           setInteractionStatus('idle')
           setErrorMessage('죄송합니다. 방금 말은 처리하지 못했어요. 다시 한 번 말씀해 주세요.')
@@ -877,6 +894,7 @@ export function useRestationController() {
       recordConversationEvents,
       sessionPhase,
       setUnlockedIds,
+      sfx,
       welcomeDrinkFeedbackPending,
     ],
   )
@@ -965,6 +983,7 @@ export function useRestationController() {
     recordConversationEvents(dialogueResolution.contextEvents)
     const servingEvents = dialogueService.buildServingContextEvents(orderedCocktail, { reply: turn.reply })
 
+    sfx?.play('serve')
     playScreenShakeCue()
     const ids = unlockCocktailId(orderedCocktail.id)
     setUnlockedIds(ids)
@@ -1012,6 +1031,7 @@ export function useRestationController() {
     resolveDialogueInput,
     sessionPhase,
     setUnlockedIds,
+    sfx,
   ])
 
   const handleOrderCocktail = useCallback((cocktail: CocktailData) => {

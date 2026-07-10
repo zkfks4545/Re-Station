@@ -110,7 +110,7 @@ export default function Sidebar({
             <>
               <h2 className="sidebar-title">유튜브 주크박스</h2>
               <Suspense fallback={<p className="sidebar-muted">주크박스를 불러오는 중입니다.</p>}>
-                <BarMusicTab bgm={audio.bgm} />
+                <BarMusicTab bgm={audio.bgm} sfx={audio.sfx} />
               </Suspense>
             </>
           )}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { BGM_PRESETS, type BgmPreset } from '@/data/bgm-presets.js'
+import type { SfxChannel } from './useSfxManager.js'
 
 declare global {
   interface Window {
@@ -45,7 +46,6 @@ interface StoredAudioSettings {
 }
 
 export interface BgmAudioChannel {
-  playerHostRef: RefObject<HTMLDivElement | null>
   presets: readonly BgmPreset[]
   selectedPresetId: string | null
   selectedPreset: BgmPreset | null
@@ -65,6 +65,7 @@ export interface BgmAudioChannel {
 
 export interface AudioManager {
   bgm: BgmAudioChannel
+  sfx: SfxChannel
 }
 
 const AUDIO_SETTINGS_KEY = 'restation.audio.settings.v1'
@@ -129,19 +130,21 @@ function loadYouTubeApi(): Promise<void> {
   return youtubeApiLoading
 }
 
-export function useAudioManager(): AudioManager {
-  const storedSettingsRef = useRef(readStoredAudioSettings())
-  const playerHostRef = useRef<HTMLDivElement | null>(null)
+export function useAudioManager(
+  sfx: SfxChannel,
+  playerHostRef: RefObject<HTMLDivElement | null>,
+): AudioManager {
+  const [initialSettings] = useState(readStoredAudioSettings)
   const playerRef = useRef<YtPlayer | null>(null)
   const pendingPlayRef = useRef(false)
-  const volumeRef = useRef(storedSettingsRef.current.bgmVolume)
-  const mutedRef = useRef(storedSettingsRef.current.bgmMuted)
+  const volumeRef = useRef(initialSettings.bgmVolume)
+  const mutedRef = useRef(initialSettings.bgmMuted)
 
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(storedSettingsRef.current.bgmPresetId)
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(initialSettings.bgmPresetId)
   const [isReady, setIsReady] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolumeState] = useState(storedSettingsRef.current.bgmVolume)
-  const [muted, setMuted] = useState(storedSettingsRef.current.bgmMuted)
+  const [volume, setVolumeState] = useState(initialSettings.bgmVolume)
+  const [muted, setMuted] = useState(initialSettings.bgmMuted)
   const [error, setError] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -285,7 +288,7 @@ export function useAudioManager(): AudioManager {
       setError('유튜브 플레이어를 불러오지 못했습니다.')
       setIsPlaying(false)
     }
-  }, [applyBgmOutputSettings, clearAutoplayTimer, playYtVideo, selectedPreset])
+  }, [applyBgmOutputSettings, clearAutoplayTimer, playerHostRef, playYtVideo])
 
   const playPreset = useCallback((presetId: string) => {
     const preset = BGM_PRESETS.find((item) => item.id === presetId)
@@ -354,7 +357,6 @@ export function useAudioManager(): AudioManager {
 
   return {
     bgm: {
-      playerHostRef,
       presets: BGM_PRESETS,
       selectedPresetId,
       selectedPreset,
@@ -371,5 +373,6 @@ export function useAudioManager(): AudioManager {
       setVolume,
       toggleMuted,
     },
+    sfx,
   }
 }

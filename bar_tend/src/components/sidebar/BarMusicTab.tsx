@@ -1,7 +1,9 @@
 import type { BgmAudioChannel } from '@/hooks/useAudioManager.js'
+import type { SfxChannel } from '@/hooks/useSfxManager.js'
 
 interface BarMusicTabProps {
   bgm: BgmAudioChannel
+  sfx: SfxChannel
 }
 
 function formatTime(seconds: number): string {
@@ -10,8 +12,9 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export default function BarMusicTab({ bgm }: BarMusicTabProps) {
+export default function BarMusicTab({ bgm, sfx }: BarMusicTabProps) {
   const volumePercent = Math.round(bgm.volume * 100)
+  const sfxVolumePercent = Math.round(sfx.volume * 100)
   const showTime = bgm.isReady && bgm.selectedPresetId
 
   return (
@@ -63,6 +66,28 @@ export default function BarMusicTab({ bgm }: BarMusicTabProps) {
         onClick={bgm.toggleMuted}
       >
         {bgm.muted ? '[ 음소거 해제 ]' : '[ 음소거 ]'}
+      </button>
+
+      <hr className="music-divider" />
+
+      <label className="music-slider">
+        <span>효과음 볼륨</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={sfxVolumePercent}
+          onChange={(event) => sfx.setVolume(Number(event.target.value) / 100)}
+        />
+        <span>{sfxVolumePercent}%</span>
+      </label>
+
+      <button
+        type="button"
+        className={`music-control-btn ${sfx.muted ? 'music-control-btn--active' : ''}`}
+        onClick={() => sfx.setMuted(!sfx.muted)}
+      >
+        {sfx.muted ? '[ 효과음 음소거 해제 ]' : '[ 효과음 음소거 ]'}
       </button>
 
       <ul className="music-track-list">

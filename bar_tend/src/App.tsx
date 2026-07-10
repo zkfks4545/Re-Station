@@ -1,4 +1,5 @@
-﻿import BarExterior from '@/components/entrance/BarExterior.jsx'
+﻿import { useRef } from 'react'
+import BarExterior from '@/components/entrance/BarExterior.jsx'
 import BarInterior from '@/components/bar/BarInterior.jsx'
 import BartenderSprite from '@/components/bar/BartenderSprite.jsx'
 import BarCounter from '@/components/bar/BarCounter.jsx'
@@ -8,13 +9,16 @@ import CocktailCard from '@/components/bar/CocktailCard.jsx'
 import WelcomeDrinkButton from '@/components/bar/WelcomeDrinkButton.jsx'
 import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useAudioManager } from '@/hooks/useAudioManager.js'
+import { useSfxManager } from '@/hooks/useSfxManager.js'
 import { useRestationController } from '@/hooks/useRestationController.js'
 import { useExperimentalWebLLMPreparation } from '@/hooks/useExperimentalWebLLMPreparation.js'
 
 
 export default function App() {
   useExperimentalWebLLMPreparation()
-  const audio = useAudioManager()
+  const playerHostRef = useRef<HTMLDivElement | null>(null)
+  const sfx = useSfxManager()
+  const audio = useAudioManager(sfx, playerHostRef)
   const {
     scene,
     messages,
@@ -45,11 +49,11 @@ export default function App() {
     welcomeDrinkAvailable,
     setServedCocktail,
     setSidebarOpen,
-  } = useRestationController()
+  } = useRestationController(sfx)
 
   return (
     <>
-      <div ref={audio.bgm.playerHostRef} className="music-player-host" aria-hidden />
+      <div ref={playerHostRef} className="music-player-host" aria-hidden />
       {scene === 'outside' ? (
         <BarExterior onEnter={handleEnter} />
       ) : (
