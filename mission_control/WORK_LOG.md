@@ -1,5 +1,12 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / Audio System 1차 도입
+
+- `useAudioManager`를 추가해 YouTube BGM player lifecycle, preset 선택, play/pause, volume/mute, localStorage 저장/복원을 앱 수준 책임으로 이동했다.
+- `BarMusicTab`은 Audio Manager 상태를 표시하고 조작하는 UI-only 컴포넌트로 전환하고, `Sidebar`/`App`이 오디오 상태를 주입하도록 연결했다.
+- SFX channel, shaker loop, serving one-shot, reset/exit/safety stopAllSfx는 2차 범위로 남겼다.
+- Verification: `npm.cmd run check`, `npm.cmd test -- recommendation-ui` passed.
+
 ## 2026-07-10 / Codex / Phase 11 DONE 문서 정리
 
 - `CURRENT_STATE.md`와 `TASK_BOARD.md`에서 Phase 11 Dialogue Source Normalization을 DONE으로 정리했다.

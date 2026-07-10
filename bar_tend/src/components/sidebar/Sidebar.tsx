@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react'
 import CocktailBookTab from './CocktailBookTab.jsx'
 import { publicCocktails } from '@/lib/cocktails/database.js'
 import type { CocktailData } from '@/types.js'
+import type { AudioManager } from '@/hooks/useAudioManager.js'
 
 export type SidebarTab = 'codex' | 'recipe' | 'music' | 'reset'
 
@@ -23,6 +24,7 @@ export default function Sidebar({
   lastServedCocktail,
   onViewCocktail,
   onOrderCocktail,
+  audio,
 }: {
   unlockedIds: Set<string>
   mobileOpen: boolean
@@ -31,6 +33,7 @@ export default function Sidebar({
   lastServedCocktail?: CocktailData | null
   onViewCocktail?: (cocktail: CocktailData) => void
   onOrderCocktail?: (cocktail: CocktailData) => void
+  audio: AudioManager
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
@@ -107,7 +110,7 @@ export default function Sidebar({
             <>
               <h2 className="sidebar-title">유튜브 주크박스</h2>
               <Suspense fallback={<p className="sidebar-muted">주크박스를 불러오는 중입니다.</p>}>
-                <BarMusicTab />
+                <BarMusicTab bgm={audio.bgm} />
               </Suspense>
             </>
           )}

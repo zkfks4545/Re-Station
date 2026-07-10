@@ -48,7 +48,7 @@ Expression Layer
   - Character QA: 카루아 말투와 금지 표현 검증
   ↓
 Presentation Layer
-  - typing, preparation, serving reveal, screen shake, queued interaction
+  - typing, preparation, serving reveal, screen shake, queued interaction, audio cue
   ↓
 UI
   - Dialogue, bartender sprite, cocktail card, sidebar, entrance/interior
@@ -189,13 +189,14 @@ App / ChatInput
 | `bar_tend/src/types.ts` | 공통 칵테일, 메시지, 표정 타입 |
 | `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 |
 
-### 5.7 Storage, Timing, Relationship, WebLLM
+### 5.7 Storage, Timing, Audio, Relationship, WebLLM
 
 | 경로 | 책임 |
 |---|---|
 | `bar_tend/src/lib/storage/guest-session-store.ts` | localStorage 기반 게스트 세션 저장/복원 |
 | `bar_tend/src/lib/storage/cocktail-unlocks.ts` | 칵테일 도감 해금 상태 저장 |
 | `bar_tend/src/lib/timing/timer-registry.ts` | 타이머 생명주기 관리 |
+| `bar_tend/src/hooks/useAudioManager.ts` | BGM 상태, YouTube player lifecycle, 볼륨·음소거·저장/복원 소유 |
 | `bar_tend/src/lib/relationship/*` | 숨은 RapportState 타입, config, 상태 갱신, 구간 매핑 |
 | `bar_tend/src/lib/relationship/dialogue-selector.ts` | rapport 구간별 variation 선택 헬퍼 |
 | `bar_tend/src/hooks/useExperimentalWebLLMPreparation.ts` | WebLLM 준비 예약 |
@@ -215,7 +216,7 @@ App / ChatInput
 
 ### 6.3 컨트롤러와 도메인 로직
 
-컨트롤러는 UI 효과, 타이머, 카드 표시, 도감 해금, 세션 reducer 반영을 담당한다. 입력 분류, Action 선택, 추천 판단, 공개할 이야기 선택은 도메인 모듈이 담당한다. 제조 준비, 카드 공개, 화면 흔들림, queue drain은 컨트롤러의 연출성 책임이지만 safety hard stop과 세션 전이 순서에 묶여 있으므로 도메인 판단과 분리해서 다룬다.
+컨트롤러는 UI 효과, 타이머, 카드 표시, 도감 해금, 세션 reducer 반영을 담당한다. 입력 분류, Action 선택, 추천 판단, 공개할 이야기 선택은 도메인 모듈이 담당한다. 제조 준비, 카드 공개, 화면 흔들림, queue drain은 컨트롤러의 연출성 책임이지만 safety hard stop과 세션 전이 순서에 묶여 있으므로 도메인 판단과 분리해서 다룬다. 오디오 재생 방식은 Audio Manager가 소유하며, 컨트롤러는 제조·서빙 같은 cue만 전달해야 한다.
 
 ### 6.4 안전 입력
 
@@ -332,6 +333,7 @@ ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 lin
 장기 확장 지점은 다음과 같다.
 
 - Interaction Timeline: typing, preparation, serving reveal, screen shake, queued interaction의 연출 계층 정리
+- Audio SFX: BGM과 독립된 shaker loop, serving one-shot, SFX volume/mute 채널 추가
 - Rapport 활용: 숨은 관계 상태를 표현 variation의 낮은 우선순위 힌트로 사용할지 검토
 - Character QA: ResponsePlan, fallbackText, legacy fallback을 포함한 카루아 말투 검수
 - 시에스타 스프라이트와 이벤트 큐: 허용 구간에서만 짧은 만담 표시
