@@ -372,8 +372,8 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | DLG-805 추천 질문과 추천 응답 문단 프리셋 전환 | DONE |
 | DLG-806 키워드 규칙 JSON 분리와 persona 보존 | DONE |
 | DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | DONE |
-| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | DOING (Phase 11 연계) |
-| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DOING (Phase 11 연계) |
+| DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | DONE (Phase 11 범위) |
+| DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DONE (Phase 11 범위) |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
 | SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
 | SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
@@ -435,23 +435,23 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DOING (Phase 11 연계) |
+| 상태 | DONE (Phase 11 범위) |
 | 목적 | 기존 카테고리형 대사 풀을 점검하고, 필요한 항목은 문장 단위가 아니라 문단 블록 또는 카테고리별 프리셋 구조로 정리 |
 | 범위 | `greeting`, `mood-tired`, `mood-sad`, `mood-happy`, `cocktail-request`, `taste-*`, `rude-*`, `real-world-info`, `water-request`, `overdrunk`, `ingredient-constraint` |
 | 완료 조건 | 각 카테고리가 최소한의 자연스러운 한국어 라인과 표정 계약을 갖고, 키워드 JSON의 `dialogueCategory`와 누락 없이 연결됨. 대사 출처와 사용 경로를 추적할 수 있어야 한다. |
 | 주의 | JSON에는 긴 완성 대사를 무작정 늘리지 않는다. 반복 가능한 반응/추천/설명 블록 또는 짧은 카테고리 응답 풀로 나눈다. 정리 우선순위는 `persona.ts` → `dialogues.json` → `keyword-rules.json` → `text-presets.ts` → `conversation.ts` → `response.ts`다. |
-| 현재 진행 | 첫 배치 61개, story 12개, unknown 3개, random 3개, recipe 10개 문장을 ResponsePlan `answer` 블록에 이관했다. 기존 JSON은 fallback 호환용으로 유지하며 삭제하지 않았다. |
+| 완료 결과 | keyword-rule 참조 카테고리는 ResponsePlan 단독 렌더링 가능 상태가 되었고, ResponsePlan-backed JSON fallback-only 카테고리는 삭제했다. `fallback-required` legacy JSON 카테고리는 안전망으로 의도적으로 유지한다. |
 
 #### DLG-809: 화자·상태·요청별 문단 프리셋 계약 확장
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DOING (Phase 11 연계) |
+| 상태 | DONE (Phase 11 범위) |
 | 목적 | 카루아와 시에스타가 같은 의미 상태를 받아도 서로 다른 말투와 문단 구성을 쓰도록 프리셋 계약을 확장 |
 | 범위 | `greeting`, `welcome_drink`, `ask_preference`, `recommend`, `explain`, `small_talk`, `joke`, `comfort`, `refusal`, `goodbye` 의도와 `state/request` 조합 |
 | 완료 조건 | `speaker + intent + state + request`로 프리셋을 선택하고, 각 프리셋이 `[reaction]`, `[recommend]`, `[explanation]` 또는 intent에 맞는 2~3블록 구조를 명시함. 추천 카드보다 캐릭터 반응이 먼저 보이는 출력 순서를 전제로 한다. |
 | 주의 | 칵테일 추천 결과는 여전히 추천 엔진이 결정한다. 프리셋은 말투와 문단 조합만 담당한다. 문장을 조립하지 않고 문단 블록을 조립한다. |
-| 현재 진행 | `karua + small_talk + general-chat`과 `karua + comfort + mood state/request` 계획을 추가하고 이중 읽기 어댑터에서 구체도 선택·검증 계약을 사용한다. |
+| 완료 결과 | keyword-rule, response-template, story-query 경로의 표현 소유권을 ResponsePlan 중심으로 정리하고, ResponsePlan dialogue와 `fallbackText`를 Character QA 범위에 포함했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위로 분리한다. |
 
 #### FLOW-001: 환상주점 세션 흐름 사양
 
@@ -676,7 +676,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 8.5 | Phase 9 진입 전 기능 경계 보완 | 완료 | Reaction·정보 응답·추천 차단 경계를 Character Layer 전에 안정화 | 최종 Action 기준 closed 차단, story/lore/info 사실 우선순위 분리, 정상 intent의 Reaction 덮어쓰기 방지, feedback 대상의 실제 추천 제외 상태 연결. Phase 9/말투 변경 없음. 457 tests pass |
 | Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정. RapportState v3.0.0은 숨은 정수 축 0~10(초기값 4)이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 미연결 |
 | Phase 10 | ResponsePlan DB 리팩토링 | 완료 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | 대화 14개 카테고리·108개 문장 + Recommendation Formatter 4/4 + Welcome Formatter 완료 + Farewell Formatter 완료(standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home). formatter plan 38개·template line 120개, 필수 expression·제한 slot·legacy formatter fallback 고정. 697 tests pass |
-| Phase 11 | 대사 출처 정상화 | DOING | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | 1차로 `keyword-rules.json` / `dialogues.json` / ResponsePlan 이관 목록의 출처 인벤토리 계약을 고정한다. 이후 `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`를 순차 정규화하고 카루아 말투 기준으로 재검수한다. |
+| Phase 11 | 대사 출처 정상화 | DONE | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | ResponsePlan-backed legacy dialogue category를 삭제하고 required legacy fallback은 의도적으로 유지한다. keyword-rule, response-template, story-query 표현 소유권과 Character QA 범위를 정리했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위다. |
 | Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 비차단 분석·허용 목록 검증·세션 태그 메모리 저장 완료. ResponsePlan 선택 연결은 Phase 10 이후 |
 | Phase 13 | 의미 태그 기반 ResponsePlan 선택 보조 | 계획 | 검증된 태그와 block 후보로 기존 JSON 블록 조합 다양화 | WebLLM 힌트가 없거나 충돌하면 기존 규칙 선택 유지. Action·Session 변경 금지 |
 | Phase 14 | 이야기 주제 의미 분류 | 계획 | 내부 DB 사실을 바꾸지 않고 story topic과 공개할 block 종류만 제안 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. 자유문장·사실·재료·효과 생성 금지 |

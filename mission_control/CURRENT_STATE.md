@@ -1,12 +1,12 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-10 (Phase 11 대사 출처 정상화 1차 정리 반영)
+> 최종 갱신일: 2026-07-10 (Phase 11 Dialogue Source Normalization 완료 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~10 완료, **Phase 11 대사 출처 정상화 진행 중** |
+| 단계 | RST-000 MVP + Phase 1~11 완료, **Interaction Timeline/Rapport/WebLLM 런타임 통합은 후속 범위** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/check | 통과 (메인 JS 526.59 kB, gzip 157.20 kB, WebLLM/lib 지연 청크 분리) |
 | 테스트 | **Vitest 761개 전체 통과** |
@@ -40,7 +40,7 @@
 | Phase 10 Recommendation Formatter | 4/4 완료: randomPick + exact + nearest fallback 본문 + acknowledgement/lead-in (plan 19개·template line 101개) |
 | Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
 | Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
-| Phase 11 keyword-rule/dialogues.json 출처 정리 | 1차 완료: keyword-rule 참조 카테고리 ResponsePlan 단독 렌더링, ResponsePlan-backed JSON fallback-only 카테고리 삭제, fallback-required JSON 카테고리 유지 |
+| Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
 | WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
@@ -61,11 +61,11 @@
 | 번들 | 메인 JS 526.59 kB, gzip 157.20 kB, WebLLM/lib 지연 청크 분리 | 유지 |
 
 ## 현재 우선순위
-1. Phase 11 대사 출처 정상화 잔여 범위 검토: `response-templates.ts`, `story-query.ts`, `welcome-drink.ts`, `farewell-replies.ts`
-2. Phase 10/11 완료 상태의 필수 expression·JSON 제거 독립성·fallback-required JSON 계약 유지
-3. InteractionTimeline 후보 검토: 현재는 `screenShake` cue만 `playScreenShakeCue()`로 최소 추출 완료
-4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 11 정규화 이후 검토
-5. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
+1. Phase 11 완료 상태의 필수 expression·JSON 제거 독립성·fallback-required JSON 계약 유지
+2. InteractionTimeline 후속 범위 검토: 현재는 `screenShake` cue만 `playScreenShakeCue()`로 최소 추출 완료
+3. Rapport 활용 여부는 ResponsePlan 선택에 직접 연결하기 전 별도 검토
+4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 별도 런타임 통합 범위에서 검토
+5. Phase 13~14 의미 태그·이야기 topic 연결은 Phase 12 경계 확정 후 순차 검토
 6. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
 
 ---
@@ -80,7 +80,7 @@
 | 허용 목록·confidence 검증 | Semantic Validator |
 | 최종 대사 조립 | Rule Engine |
 
-WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 11 정규화 전에는 태그를 실제 대사 선택에 반영하지 않는다.
+WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12/13 런타임 통합 전에는 태그를 실제 대사 선택에 반영하지 않는다.
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -103,7 +103,7 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 
 ## 향후 방침
 - RapportState는 숨은 상태이며 추천 결과·FSM·Action·SessionState·ResponsePlan 선택에 연결하지 않음
-- WebLLM 자유대사 생성 금지, Phase 11 정규화 전 의미 태그의 ResponsePlan 선택 반영 금지
+- WebLLM 자유대사 생성 금지, Phase 12/13 런타임 통합 전 의미 태그의 ResponsePlan 선택 반영 금지
 - 칵테일 확장 = IBA 우선, 관리자 검증 큐 (DEC-020)
 - 대사 풀 = 입력 경로 선택, FSM=말투·리듬, affectState=표정
 - 스프라이트 작업은 WebLLM보다 우선

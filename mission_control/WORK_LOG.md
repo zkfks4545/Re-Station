@@ -1,9 +1,10 @@
 # 작업 이력 (축약)
 
-## 2026-07-10 / Codex / CURRENT_STATE Phase 11 불일치 해소
+## 2026-07-10 / Codex / Phase 11 DONE 문서 정리
 
-- `CURRENT_STATE.md`의 최종 갱신일, Phase 11 상태, 테스트 수, 빌드 산출물 크기를 현재 검증 결과에 맞췄다.
-- Phase 11을 완료로 올리지 않고, keyword-rule/dialogues.json 출처 정리 1차 완료와 잔여 정규화 범위를 분리해 기록했다.
+- `CURRENT_STATE.md`와 `TASK_BOARD.md`에서 Phase 11 Dialogue Source Normalization을 DONE으로 정리했다.
+- ResponsePlan-backed legacy category 삭제, required legacy fallback 유지, 표현 소유권 정리, Character QA 확장 완료를 Phase 11 종료 조건으로 기록했다.
+- Interaction Timeline, Rapport, WebLLM 런타임 통합은 Phase 11 밖의 후속 범위로 분리했다.
 - Verification: `npm.cmd test`, `npm.cmd run build`, `git diff --check` passed.
 
 ## 2026-07-10 / Codex / Interaction cue first extraction
