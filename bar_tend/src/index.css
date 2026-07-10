@@ -694,6 +694,12 @@ html::before {
   border-color: rgba(180, 136, 208, 0.45);
   background: rgba(120, 80, 180, 0.1);
 }
+.music-divider {
+  border: none;
+  height: 1px;
+  background: rgba(196, 163, 90, 0.12);
+  margin: 12px 0;
+}
 .music-slider {
   display: grid;
   grid-template-columns: auto 1fr 42px;

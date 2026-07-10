@@ -152,6 +152,7 @@ export function useAudioManager(
   const retryCountRef = useRef(0)
   const playingEventRef = useRef(false)
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const currentPresetRef = useRef<BgmPreset | null>(null)
 
   const selectedPreset = useMemo(
     () => BGM_PRESETS.find((preset) => preset.id === selectedPresetId) ?? null,
@@ -193,6 +194,12 @@ export function useAudioManager(
   }, [])
 
   const playYtVideo = useCallback((player: YtPlayer) => {
+    if (window.YT && player.getPlayerState() === window.YT.PlayerState.PLAYING) {
+      playingEventRef.current = true
+      setAutoplayBlocked(false)
+      setIsPlaying(true)
+      return
+    }
     playingEventRef.current = false
     setAutoplayBlocked(false)
     player.playVideo()
@@ -207,6 +214,7 @@ export function useAudioManager(
   const ensurePlayer = useCallback(async (preset: BgmPreset, shouldPlay: boolean) => {
     setError(null)
     pendingPlayRef.current = shouldPlay
+    currentPresetRef.current = preset
 
     try {
       await loadYouTubeApi()
@@ -248,8 +256,8 @@ export function useAudioManager(
             return
           }
           retryCountRef.current++
-          if (retryCountRef.current <= 1 && playerRef.current) {
-            playerRef.current.loadVideoById(preset.youtubeId)
+          if (retryCountRef.current <= 1 && playerRef.current && currentPresetRef.current) {
+            playerRef.current.loadVideoById(currentPresetRef.current.youtubeId)
             if (pendingPlayRef.current) {
               playerRef.current.playVideo()
             }

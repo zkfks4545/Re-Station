@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 type SfxId = 'shake' | 'serve'
 
 const SFX_URLS: Record<SfxId, string> = {
-  shake: '/sfx/shake.wav',
+  shake: '/sfx/shake.mp3',
   serve: '/sfx/serve.wav',
 }
 
@@ -105,6 +105,7 @@ export function useSfxManager(): SfxChannel {
     loopInstancesRef.current.clear()
     for (const audio of activeOneShotsRef.current) {
       audio.pause()
+      audio.src = ''
     }
     activeOneShotsRef.current.clear()
   }, [])
@@ -114,6 +115,9 @@ export function useSfxManager(): SfxChannel {
     volumeRef.current = clamped
     setVolumeState(clamped)
     for (const audio of loopInstancesRef.current.values()) {
+      audio.volume = clamped
+    }
+    for (const audio of activeOneShotsRef.current) {
       audio.volume = clamped
     }
   }, [])
