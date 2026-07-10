@@ -52,10 +52,20 @@ export interface WebLLMSemanticAnalysis {
   confidence: number
 }
 
+export type WebLLMSemanticSnapshot = WebLLMSemanticAnalysis
+
 export interface WebLLMSemanticResult {
-  analysis: WebLLMSemanticAnalysis | null
+  analysis: WebLLMSemanticSnapshot | null
   usedWebLLM: boolean
   metadata: WebLLMMetadata
+}
+
+export interface WebLLMStatistics {
+  attempts: number
+  successes: number
+  skips: number
+  failures: number
+  byReason: Partial<Record<WebLLMSkipReason, number>>
 }
 
 export interface WebLLMEngine {

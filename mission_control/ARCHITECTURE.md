@@ -134,7 +134,7 @@ IDLE
 | React 및 React DOM | 주 실행 경로에서 사용 |
 | TheCocktailDB | 과거 정적 데이터 생성·보강 출처. 현재 런타임 API 모듈은 제거됨 |
 | IBA 공식 칵테일 목록 | 클래식 칵테일 레시피 수치와 공식 분류 출처. URL을 정적 데이터에 기록 |
-| WebLLM | idle 시 Worker 준비, 구조화 의미 분석 기본 OFF, 최종 대사 생성 금지 |
+| WebLLM | idle 시 Worker 준비, 구조화 의미 분석 기본 OFF, Semantic Snapshot 전용, 최종 대사 생성 금지 |
 | 외부 이미지 URL | 일부 칵테일 이미지에 사용 |
 | 지도 링크 | 시그니처 칵테일의 제휴 바 위치에 사용 |
 
@@ -143,7 +143,7 @@ IDLE
 | 위험 | 근거 | 영향 |
 |---|---|---|
 | 컨트롤러 통합 검증 한계 | 도메인·서비스 단위 테스트는 확장됐지만 React 컨트롤러 전체 흐름은 주로 하위 계약 테스트에 의존 | 세션 reducer와 UI 부수효과 연결의 통합 회귀 위험 |
-| WebLLM 실제 대화 미연결 | 준비·검증·폴백 인프라는 있으나 DialogueService 출력에는 연결하지 않음 | JSON 대화는 동일하게 유지되며 생성형 표현은 실험 API로만 검증 가능 |
+| WebLLM 실제 대화 미연결 | 준비·검증·폴백·관측 인프라는 있으나 DialogueService 출력, ResponsePlan 선택, Recommendation, Action, FSM에는 연결하지 않음 | JSON 대화는 동일하게 유지되며 생성형 표현은 실험 API로만 검증 가능 |
 
 `useRestationController`의 응답 준비, 타이핑, 추천 카드, 화면 흔들림, 퇴장 지연 작업은 관리형 타이머 레지스트리를 사용한다. 퇴장, 초기화, 컴포넌트 언마운트 시 남은 작업을 모두 취소하며, 처리 상태는 `idle`, `processing`, `typing`, `exiting` 중 하나로 유지한다.
 
@@ -265,6 +265,7 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 - 프롬프트와 출력 토큰을 제한하고, 요청별 시간 예산과 취소를 지원한다.
 - 초기 렌더 뒤 capability 검사를 통과하면 WebLLM 패키지를 동적으로 불러와 Worker 준비를 시작한다. 준비 작업은 렌더링과 JSON 대화를 차단하지 않는다.
 - WebLLM 출력은 허용 목록으로 검증된 topic, stance, response block, session tag, rapport hint, confidence만 사용할 수 있다. 자유문장, 잘못된 JSON, 알 수 없는 태그는 폐기한다.
+- 개발 모드 관측 API는 `window.__RESTATION_WEBLLM__.snapshot()`이며 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 노출한다.
 
 ### 캐릭터 대화 구조 목표
 

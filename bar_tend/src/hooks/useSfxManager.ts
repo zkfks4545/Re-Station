@@ -105,7 +105,6 @@ export function useSfxManager(): SfxChannel {
     loopInstancesRef.current.clear()
     for (const audio of activeOneShotsRef.current) {
       audio.pause()
-      audio.src = ''
     }
     activeOneShotsRef.current.clear()
   }, [])
@@ -115,9 +114,6 @@ export function useSfxManager(): SfxChannel {
     volumeRef.current = clamped
     setVolumeState(clamped)
     for (const audio of loopInstancesRef.current.values()) {
-      audio.volume = clamped
-    }
-    for (const audio of activeOneShotsRef.current) {
       audio.volume = clamped
     }
   }, [])

@@ -1,4 +1,5 @@
 import { WEB_LLM_RUNTIME_CONFIG, readWebLLMFeatureFlags, type WebLLMFeatureFlags } from './config.js'
+import { experimentalWebLLMDiagnostics, type ExperimentalWebLLMDiagnostics } from './diagnostics.js'
 import { experimentalWebLLMLoader, type ExperimentalWebLLMLoader } from './loader.js'
 import { buildSemanticAnalysisPrompt } from './prompt.js'
 import { semanticSessionTags, type SemanticSessionTagStore } from './session-tags.js'
@@ -11,6 +12,7 @@ export interface SemanticAssistantDependencies {
   flags?: () => WebLLMFeatureFlags
   now?: () => number
   timeoutMs?: number
+  diagnostics?: ExperimentalWebLLMDiagnostics
 }
 
 export class ExperimentalSemanticAssistant {
@@ -19,6 +21,7 @@ export class ExperimentalSemanticAssistant {
   private readonly flags: () => WebLLMFeatureFlags
   private readonly now: () => number
   private readonly timeoutMs: number
+  private readonly diagnostics: ExperimentalWebLLMDiagnostics
   private active = false
 
   constructor(dependencies: SemanticAssistantDependencies = {}) {
@@ -27,14 +30,15 @@ export class ExperimentalSemanticAssistant {
     this.flags = dependencies.flags ?? readWebLLMFeatureFlags
     this.now = dependencies.now ?? (() => performance.now())
     this.timeoutMs = dependencies.timeoutMs ?? WEB_LLM_RUNTIME_CONFIG.timeoutMs
+    this.diagnostics = dependencies.diagnostics ?? experimentalWebLLMDiagnostics
   }
 
   async analyze(request: WebLLMSemanticRequest): Promise<WebLLMSemanticResult> {
-    if (!this.flags().semanticEnabled) return this.skipped('semantic-disabled')
-    if (!isEligible(request.route)) return this.skipped('ineligible-route')
-    if (this.loader.isDisabled()) return this.skipped('session-disabled')
-    if (!this.loader.isPrepared()) return this.skipped('not-prepared')
-    if (this.active) return this.skipped('generation-busy')
+    if (!this.flags().semanticEnabled) return this.record(this.skipped('semantic-disabled'))
+    if (!isEligibleSemanticRoute(request.route)) return this.record(this.skipped('ineligible-route'))
+    if (this.loader.isDisabled()) return this.record(this.skipped('session-disabled'))
+    if (!this.loader.isPrepared()) return this.record(this.skipped('not-prepared'))
+    if (this.active) return this.record(this.skipped('generation-busy'))
 
     const controller = new AbortController()
     const startedAt = this.now()
@@ -46,16 +50,15 @@ export class ExperimentalSemanticAssistant {
         () => {
           controller.abort()
           this.loader.interrupt()
-          // 종료가 확인되지 않은 분석과 다음 요청이 겹치지 않도록 세션에서 비활성화한다.
           this.loader.disableForSession()
         },
       )
       const validation = validateSemanticAnalysis(raw)
       if (!validation.valid || !validation.analysis) {
-        return this.skipped('validation-failed', this.now() - startedAt, validation.warnings)
+        return this.record(this.skipped('validation-failed', this.now() - startedAt, validation.warnings))
       }
       this.tagStore.add(validation.analysis.sessionTags)
-      return {
+      return this.record({
         analysis: validation.analysis,
         usedWebLLM: true,
         metadata: {
@@ -64,17 +67,22 @@ export class ExperimentalSemanticAssistant {
           validationWarnings: [],
           enabled: true,
         },
-      }
+      })
     } catch (error) {
-      return this.skipped(
+      return this.record(this.skipped(
         controller.signal.aborted ? 'timeout' : 'generation-failed',
         this.now() - startedAt,
         [],
         errorMessage(error),
-      )
+      ))
     } finally {
       this.active = false
     }
+  }
+
+  private record(result: WebLLMSemanticResult): WebLLMSemanticResult {
+    this.diagnostics.record(result)
+    return result
   }
 
   private skipped(
@@ -100,9 +108,19 @@ export class ExperimentalSemanticAssistant {
 
 export const experimentalSemanticAssistant = new ExperimentalSemanticAssistant()
 
-const ELIGIBLE_ROUTES = new Set(['general', 'general-chat', 'mood-talk', 'bar-atmosphere', 'small-talk-weather'])
+export const SEMANTIC_ELIGIBLE_ROUTES = [
+  'general',
+  'general-chat',
+  'mood-talk',
+  'quiet-talk',
+  'bar-atmosphere',
+  'weather-talk',
+  'uncertain-talk',
+] as const
 
-function isEligible(route: string): boolean {
+const ELIGIBLE_ROUTES = new Set<string>(SEMANTIC_ELIGIBLE_ROUTES)
+
+export function isEligibleSemanticRoute(route: string): boolean {
   return ELIGIBLE_ROUTES.has(route)
 }
 
@@ -110,7 +128,7 @@ function withTimeout<T>(task: Promise<T>, timeoutMs: number, onTimeout: () => vo
   return new Promise<T>((resolve, reject) => {
     const timeout = setTimeout(() => {
       onTimeout()
-      reject(new Error('WebLLM 의미 분석 제한 시간을 초과했습니다.'))
+      reject(new Error('WebLLM semantic analysis timed out.'))
     }, timeoutMs)
     task.then(
       (value) => { clearTimeout(timeout); resolve(value) },

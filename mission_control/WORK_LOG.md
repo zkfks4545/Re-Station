@@ -1,5 +1,14 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / Phase 12 semantic layer stabilization start
+
+- WebLLM 의미 결과를 `WebLLMSemanticSnapshot`으로 명명하고, 현재 출력·ResponsePlan·Recommendation·Action·FSM에 연결하지 않는 Phase 12 경계를 코드 계약으로 고정했다.
+- 실제 `IntentType` 기준 eligible route를 정리해 general-chat, mood-talk, quiet-talk, bar-atmosphere, weather-talk, uncertain-talk만 의미 분석 대상으로 허용했다.
+- `window.__RESTATION_WEBLLM__.snapshot()` 관측 API를 추가해 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인할 수 있게 했다.
+- `semantic-contract.test.ts`와 WebLLM service 테스트를 추가·정리해 금지 경로, invalid JSON 폐기, unknown tag 폐기, diagnostics 기록, core response/recommendation/action/FSM의 WebLLM 미의존을 검증했다.
+- 남은 Phase 12 종료 작업: 실제 브라우저 preload/prepare, cold start, warm start, timeout, 모델 다운로드 크기와 준비 시간 수동 기록.
+- Verification: `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build` passed. Current Vitest total: 49 files, 769 tests.
+
 ## 2026-07-10 / Codex / Phase 11 source ownership closure
 
 - `response-templates`, `story-query`, `welcome-drink`, `farewell-replies`에 Phase 11 이후 표현 출처 소유권 계약을 추가했다.

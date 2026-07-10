@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~11 완료, **Interaction Timeline/Rapport/WebLLM 런타임 통합은 후속 범위** |
+| 단계 | RST-000 MVP + Phase 1~11 완료, **Phase 12 WebLLM 의미 계층 안정화 진행 중** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 526.59 kB, gzip 157.20 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 765개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 534.84 kB, gzip 160.12 kB, WebLLM/lib 지연 청크 분리) |
+| 테스트 | **Vitest 769개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -41,7 +41,7 @@
 | Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
 | Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
 | Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query/welcome-drink/farewell-replies 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
-| WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
+| WebLLM 의미 보조 (Worker·Semantic Snapshot·허용 목록 검증·세션 태그·비차단 실행·관측 API·격리 계약 테스트, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -58,7 +58,7 @@
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 526.59 kB, gzip 157.20 kB, WebLLM/lib 지연 청크 분리 | 유지 |
+| 번들 | 메인 JS 534.84 kB, gzip 160.12 kB, WebLLM/lib 지연 청크 분리 | 유지 |
 
 ## 현재 우선순위
 1. Phase 11 완료 상태의 필수 expression·JSON 제거 독립성·fallback-required JSON 계약 유지
@@ -80,7 +80,16 @@
 | 허용 목록·confidence 검증 | Semantic Validator |
 | 최종 대사 조립 | Rule Engine |
 
-WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12/13 런타임 통합 전에는 태그를 실제 대사 선택에 반영하지 않는다.
+WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12에서는 WebLLM 결과를 최종 대사, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다. 개발 모드에서는 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
+
+### Phase 12 남은 작업
+
+- 실제 브라우저에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true` 기준 preload/prepare 동작 확인
+- cold start 준비 시간과 모델 다운로드 크기 기록
+- warm start 준비 시간과 재사용 여부 기록
+- timeout 발생 시 `lastFailure`, `statistics.byReason.timeout`, 세션 비활성화 상태 확인
+- WebLLM ON/OFF에서 현재 사용자 출력, Recommendation, Action, FSM이 동일한지 브라우저 수동 시나리오로 재확인
+- 수동 검증 결과를 `WORK_LOG.md`와 Phase 12 종료 조건에 반영
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -91,7 +100,7 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 | ISSUE-004 자동 테스트 부족 | 해결됨 | [`de40d39`] |
 | ISSUE-005 JS 번들 593kB | 해결됨 | [`dcbbda5`] |
 | ISSUE-006 OpenAI/Ollama 잔재 | 해결됨 | [`dcbbda5`] |
-| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, 실제 장치 준비·구조화 분석 검증 필요 | 현재 작업 |
+| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, scope lock·관측 API·격리 계약 테스트 진행. 실제 장치 prepare/cold/warm/timeout 측정 필요 | 현재 작업 |
 | ISSUE-008 카루아 규칙 계약 | 해결됨 | [`bc23714`] |
 | ISSUE-009 안전 fallback/빈 응답 | 해결됨 | [`2ad13e4`] |
 | ISSUE-010 추천 UI 잔존 | 해결됨 | [`2ad13e4`] |

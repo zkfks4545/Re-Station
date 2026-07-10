@@ -25,7 +25,7 @@
 | 3 | 애플리케이션 로직 분리 | 완료 |
 | 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
-| 6 | WebLLM 의미 보조 계층 | 구조화 분석 인프라 진행 중, ResponsePlan 선택 연결 보류 |
+| 6 | WebLLM 의미 보조 계층 | Semantic Snapshot 격리·관측·계약 테스트 진행 중, ResponsePlan 선택 연결 보류 |
 | 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
 | 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
@@ -677,7 +677,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정. RapportState v3.0.0은 숨은 정수 축 0~10(초기값 4)이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 미연결 |
 | Phase 10 | ResponsePlan DB 리팩토링 | 완료 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | 대화 14개 카테고리·108개 문장 + Recommendation Formatter 4/4 + Welcome Formatter 완료 + Farewell Formatter 완료(standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home). formatter plan 38개·template line 120개, 필수 expression·제한 slot·legacy formatter fallback 고정. 697 tests pass |
 | Phase 11 | 대사 출처 정상화 | DONE | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | ResponsePlan-backed legacy dialogue category를 삭제하고 required legacy fallback은 의도적으로 유지한다. keyword-rule, response-template, story-query, welcome-drink, farewell-replies 표현 소유권과 Character QA 범위를 정리했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위다. |
-| Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 비차단 분석·허용 목록 검증·세션 태그 메모리 저장 완료. ResponsePlan 선택 연결은 Phase 10 이후 |
+| Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | Semantic Snapshot 타입명, intent 허용 목록, `window.__RESTATION_WEBLLM__.snapshot()` 관측, WebLLM 격리 계약 테스트 진행. ResponsePlan 선택 연결은 Phase 13 이후 |
 | Phase 13 | 의미 태그 기반 ResponsePlan 선택 보조 | 계획 | 검증된 태그와 block 후보로 기존 JSON 블록 조합 다양화 | WebLLM 힌트가 없거나 충돌하면 기존 규칙 선택 유지. Action·Session 변경 금지 |
 | Phase 14 | 이야기 주제 의미 분류 | 계획 | 내부 DB 사실을 바꾸지 않고 story topic과 공개할 block 종류만 제안 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. 자유문장·사실·재료·효과 생성 금지 |
 | Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
@@ -725,6 +725,10 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 - WebLLM은 topic·stance·ResponsePlan block 후보·세션 태그·rapport 힌트를 구조화 JSON으로만 제안한다.
 - 최종 문장을 생성하지 않으며 추천 결과, 칵테일 ID, 추천 이유, Action, 세션 상태를 변경할 수 없다.
 - 분석 오류, 시간 초과, 검증 실패는 무시하고 JSON/FSM 흐름을 그대로 사용한다.
+- Phase 12에서는 WebLLM 결과를 현재 사용자에게 보이는 출력, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다.
+- 개발 모드 관측은 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
+- 완료 전 남은 수동 검증: 실제 브라우저 preload/prepare, cold start, warm start, timeout, 모델 다운로드 크기와 준비 시간 기록.
+- 수동 검증 체크리스트: preload/prepare 성공, cold start 시간, warm start 시간, 다운로드 크기, timeout 관측, WebLLM ON/OFF 출력 동일성, Recommendation/Action/FSM 동일성.
 
 #### Phase 13: 의미 태그 기반 ResponsePlan 선택 보조
 
