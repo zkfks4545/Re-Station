@@ -23,6 +23,17 @@ const namedTemplateGroups = [
 ] as const
 
 describe('dialogue response source contract', () => {
+  function collectTemplateDialogueCategories(): string[] {
+    return Array.from(new Set([
+      ...templateGroups.flatMap((templates) => Object.values(templates)),
+      MOOD_DEFAULT,
+      TASTE_DEFAULT,
+      RUDE_DEFAULT,
+    ]
+      .map((template) => template.dialogueCategory)
+      .filter((category): category is string => typeof category === 'string')))
+  }
+
   it('backs every referenced dialogue category with JSON fallback or ResponsePlan data', () => {
     for (const templates of templateGroups) {
       for (const template of Object.values(templates)) {
@@ -36,6 +47,54 @@ describe('dialogue response source contract', () => {
         ).toBe(true)
       }
     }
+  })
+
+  it('documents response-template dialogue source ownership after Phase 11 JSON fallback deletion', () => {
+    const categories = collectTemplateDialogueCategories()
+    const responsePlanBacked = categories
+      .filter((category) => isResponsePlanDialogueCategory(category))
+      .sort()
+    const jsonBacked = categories
+      .filter((category) => !isResponsePlanDialogueCategory(category))
+      .sort()
+    const responsePlanCategoriesStillInJson = responsePlanBacked
+      .filter((category) => (dialoguesData.categories[category as keyof typeof dialoguesData.categories]?.lines.length ?? 0) > 0)
+    const missingJsonBacked = jsonBacked
+      .filter((category) => (dialoguesData.categories[category as keyof typeof dialoguesData.categories]?.lines.length ?? 0) === 0)
+
+    expect(responsePlanBacked).toEqual([
+      'bar-atmosphere',
+      'bar-intro',
+      'character-query',
+      'cocktail-request',
+      'general-chat',
+      'guest-uncertain',
+      'ingredient-constraint',
+      'mood-happy',
+      'mood-sad',
+      'mood-tired',
+      'overdrunk',
+      'quiet-moment',
+      'random-request',
+      'real-world-info',
+      'recipe-request',
+      'recommendation-cancel',
+      'rude-annoyed',
+      'rude-boundary',
+      'siesta-mention',
+      'small-talk-weather',
+      'story-unresolved',
+      'taste-sweet',
+      'unknown-cocktail-request',
+      'water-request',
+    ].sort())
+    expect(jsonBacked).toEqual([
+      'rude-disappointed',
+      'taste-bitter',
+      'taste-refresh',
+    ])
+    expect(responsePlanCategoriesStillInJson).toEqual([])
+    expect(missingJsonBacked).toEqual([])
   })
 
   it('documents which response-template fallbacks are locally owned', () => {

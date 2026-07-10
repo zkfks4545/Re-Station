@@ -9,11 +9,22 @@ import {
   selectWelcomeDrink,
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
+  WELCOME_DRINK_SOURCE_OWNERSHIP,
 } from './welcome-drink.js'
 import { selectCocktailTalkingPoint } from './response.js'
 import type { ResponsePlan } from '../dialogue/response-plan.js'
 
 describe('welcome drink selection', () => {
+  it('documents Phase 11 source ownership for welcome drink replies', () => {
+    expect(WELCOME_DRINK_SOURCE_OWNERSHIP).toEqual({
+      drinkSelection: 'welcome-drink',
+      talkingPointSelection: 'cocktail-data',
+      finalReplyText: 'ResponsePlan',
+      feedbackQuestion: 'welcome-drink',
+      fallbackText: 'welcome-drink safety fallback',
+    })
+  })
+
   it('selects an approachable classic cocktail', () => {
     const cocktail = selectWelcomeDrink()
 

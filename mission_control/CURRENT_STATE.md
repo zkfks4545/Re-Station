@@ -9,7 +9,7 @@
 | 단계 | RST-000 MVP + Phase 1~11 완료, **Interaction Timeline/Rapport/WebLLM 런타임 통합은 후속 범위** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/check | 통과 (메인 JS 526.59 kB, gzip 157.20 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 761개 전체 통과** |
+| 테스트 | **Vitest 765개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -40,7 +40,7 @@
 | Phase 10 Recommendation Formatter | 4/4 완료: randomPick + exact + nearest fallback 본문 + acknowledgement/lead-in (plan 19개·template line 101개) |
 | Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
 | Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
-| Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
+| Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query/welcome-drink/farewell-replies 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
 | WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |

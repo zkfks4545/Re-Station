@@ -10,6 +10,12 @@ export interface StoryQueryReply {
 
 export type CocktailContentKind = 'story' | 'lore' | 'info'
 
+export const STORY_QUERY_SOURCE_OWNERSHIP = Object.freeze({
+  cocktailFacts: 'cocktail-data',
+  generalLoreFallback: 'story-query',
+  exhaustedFallback: 'story-query',
+} as const)
+
 const GENERAL_LORE_REPLIES = [
   'Re:Station은 잠깐 멈춰 서는 사람들을 위한 가상의 바예요.\n메뉴보다 먼저 오늘의 흐름을 보고, 그 다음에 잔을 고릅니다.',
   '여기는 실제 주소가 있는 매장이라기보다, 하루를 정리하는 쪽에 가까운 바예요.\n그래서 이야기도 레시피보다 손님의 상태에서 먼저 시작됩니다.',

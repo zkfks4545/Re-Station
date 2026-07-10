@@ -11,6 +11,12 @@ import {
   renderXyzFarewellResponsePlan,
 } from '../dialogue/response-plan-renderer.js'
 
+export const FAREWELL_REPLY_SOURCE_OWNERSHIP = Object.freeze({
+  stateSelection: 'farewell-replies',
+  finalReplyText: 'ResponsePlan',
+  fallbackText: 'farewell-replies safety fallback',
+} as const)
+
 type FarewellConversationState =
   | 'no-xyz-ejection'
   | 'no-xyz-generic'

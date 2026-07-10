@@ -1,5 +1,11 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / Phase 11 source ownership closure
+
+- `response-templates`, `story-query`, `welcome-drink`, `farewell-replies`에 Phase 11 이후 표현 출처 소유권 계약을 추가했다.
+- ResponsePlan-backed legacy category와 required JSON fallback category의 경계를 테스트로 고정했다.
+- 검증: `npm.cmd test`, `npm.cmd run check`, `git diff --check` 통과. 현재 Vitest 765개 통과.
+
 ## 2026-07-10 / Codex / Audio System 1차 도입
 
 - `useAudioManager`를 추가해 YouTube BGM player lifecycle, preset 선택, play/pause, volume/mute, localStorage 저장/복원을 앱 수준 책임으로 이동했다.

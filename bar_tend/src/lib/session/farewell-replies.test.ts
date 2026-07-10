@@ -13,6 +13,7 @@ import {
   formatWelcomeXyzClarificationReply,
   formatXyzReply,
   formatXyzResponse,
+  FAREWELL_REPLY_SOURCE_OWNERSHIP,
   isEjectionConcern,
 } from './farewell-replies.js'
 import { getCocktailById } from '../cocktails/database.js'
@@ -20,6 +21,14 @@ import { XYZ_COCKTAIL_ID } from './session-flow.js'
 import type { ResponsePlan } from '../dialogue/response-plan.js'
 
 describe('farewell replies', () => {
+  it('documents Phase 11 source ownership for farewell replies', () => {
+    expect(FAREWELL_REPLY_SOURCE_OWNERSHIP).toEqual({
+      stateSelection: 'farewell-replies',
+      finalReplyText: 'ResponsePlan',
+      fallbackText: 'farewell-replies safety fallback',
+    })
+  })
+
   it('keeps welcome-drink XYZ clarification separate from farewell meaning', () => {
     const reply = formatWelcomeXyzClarificationReply()
 

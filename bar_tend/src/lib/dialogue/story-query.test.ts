@@ -5,9 +5,18 @@ import {
   formatStoryQueryReply,
   getSelectedCocktailStoryFactKey,
   selectCocktailContentFact,
+  STORY_QUERY_SOURCE_OWNERSHIP,
 } from './story-query.js'
 
 describe('story and lore query replies', () => {
+  it('documents Phase 11 source ownership for story query replies', () => {
+    expect(STORY_QUERY_SOURCE_OWNERSHIP).toEqual({
+      cocktailFacts: 'cocktail-data',
+      generalLoreFallback: 'story-query',
+      exhaustedFallback: 'story-query',
+    })
+  })
+
   it('reveals one new cocktail fact at a time without repetition', () => {
     const cocktail = getCocktailById('cocktail_classic_001')
     expect(cocktail).toBeDefined()

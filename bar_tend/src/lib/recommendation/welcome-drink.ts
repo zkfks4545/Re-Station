@@ -9,6 +9,14 @@ import {
 } from '../dialogue/response-plan-renderer.js'
 import { selectCocktailTalkingPoint } from './response.js'
 
+export const WELCOME_DRINK_SOURCE_OWNERSHIP = Object.freeze({
+  drinkSelection: 'welcome-drink',
+  talkingPointSelection: 'cocktail-data',
+  finalReplyText: 'ResponsePlan',
+  feedbackQuestion: 'welcome-drink',
+  fallbackText: 'welcome-drink safety fallback',
+} as const)
+
 export const WELCOME_DRINK_FEEDBACK_QUESTION: RecommendationQuestion = {
   id: 'welcome-drink-feedback',
   topic: 'welcome-feedback',
