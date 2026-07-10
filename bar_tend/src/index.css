@@ -746,6 +746,7 @@ html::before {
   height: var(--chat-dock-height);
   max-height: var(--chat-dock-height);
   min-height: 0;
+  overflow: hidden;
 }
 @media (max-height: 600px) {
   .chat-input-wrap {
@@ -907,17 +908,6 @@ html::before {
   /* Header compact on mobile */
   header {
     padding: 8px 12px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .bartender-sprite__image {
-    height: 100%;
-    min-height: 100px;
-    max-height: 180px;
-  }
-  .restation-chat-dock {
-    --chat-dock-height: clamp(190px, 46vh, 300px);
   }
 }
 

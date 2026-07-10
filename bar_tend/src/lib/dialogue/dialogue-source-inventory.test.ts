@@ -12,28 +12,7 @@ import { pickDialogueFromSourcesWithPlans } from './dialogue-loader.js'
 
 describe('Phase 11 dialogue source inventory', () => {
   const expectedLegacyKeywordDialogueCategories: string[] = []
-  const expectedKeywordRuleJsonDeletionCandidates = [
-    'bar-atmosphere',
-    'bar-intro',
-    'cocktail-request',
-    'greeting',
-    'guest-uncertain',
-    'ingredient-constraint',
-    'mood-happy',
-    'mood-sad',
-    'mood-tired',
-    'overdrunk',
-    'quiet-moment',
-    'real-world-info',
-    'rude-annoyed',
-    'rude-boundary',
-    'siesta-mention',
-    'small-talk-weather',
-    'taste-strong',
-    'taste-sweet',
-    'water-request',
-  ]
-  const expectedResponsePlanJsonFallbackDeletionCandidates = [
+  const responsePlanOnlyReadyCategories = [
     'bar-atmosphere',
     'bar-intro',
     'character-query',
@@ -62,6 +41,33 @@ describe('Phase 11 dialogue source inventory', () => {
     'unknown-cocktail-request',
     'water-request',
   ]
+  const fallbackRequiredCategories = [
+    'rude-disappointed',
+    'taste-bitter',
+    'taste-refresh',
+  ]
+  const keywordRuleDeletionPendingCategories = [
+    'bar-atmosphere',
+    'bar-intro',
+    'cocktail-request',
+    'greeting',
+    'guest-uncertain',
+    'ingredient-constraint',
+    'mood-happy',
+    'mood-sad',
+    'mood-tired',
+    'overdrunk',
+    'quiet-moment',
+    'real-world-info',
+    'rude-annoyed',
+    'rude-boundary',
+    'siesta-mention',
+    'small-talk-weather',
+    'taste-strong',
+    'taste-sweet',
+    'water-request',
+  ]
+  const deletionPendingJsonFallbackCategories = responsePlanOnlyReadyCategories
   const dialogueCategories = (dialoguesData as DialoguesData).categories
   const keywordDialogueCategories = Array.from(new Set(
     keywordRulesData
@@ -77,24 +83,44 @@ describe('Phase 11 dialogue source inventory', () => {
     expect(unresolved).toEqual([])
   })
 
-  it('migrated ResponsePlan categories keep legacy fallback lines until deletion audit', () => {
-    const missingFallbacks = RESPONSE_PLAN_DIALOGUE_CATEGORIES.filter(
+  it('documents ResponsePlan-only categories ready to render without legacy JSON lines', () => {
+    const actual = RESPONSE_PLAN_DIALOGUE_CATEGORIES
+      .filter((category) => pickResponsePlanDialogue(category, [], () => 0))
+      .sort()
+
+    expect(actual).toEqual([...responsePlanOnlyReadyCategories].sort())
+  })
+
+  it('documents categories whose legacy JSON fallback is still contract-required', () => {
+    const missingFallbacks = fallbackRequiredCategories.filter(
+      (category) => (dialogueCategories[category]?.lines.length ?? 0) === 0,
+    )
+    const accidentallyMigrated = fallbackRequiredCategories.filter(
+      (category) => isResponsePlanDialogueCategory(category),
+    )
+
+    expect(missingFallbacks).toEqual([])
+    expect(accidentallyMigrated).toEqual([])
+  })
+
+  it('keeps ResponsePlan-ready JSON fallbacks only as deletion-pending safety nets', () => {
+    const missingFallbacks = deletionPendingJsonFallbackCategories.filter(
       (category) => (dialogueCategories[category]?.lines.length ?? 0) === 0,
     )
 
     expect(missingFallbacks).toEqual([])
   })
 
-  it('migrated ResponsePlan categories render without depending on legacy JSON lines', () => {
-    const missingPlans = RESPONSE_PLAN_DIALOGUE_CATEGORIES.filter(
+  it('ResponsePlan-only categories render without depending on legacy JSON lines', () => {
+    const missingPlans = responsePlanOnlyReadyCategories.filter(
       (category) => !pickResponsePlanDialogue(category, [], () => 0),
     )
 
     expect(missingPlans).toEqual([])
   })
 
-  it('migrated ResponsePlan categories remain text/expression-equivalent to legacy fallback lines', () => {
-    const mismatches = RESPONSE_PLAN_DIALOGUE_CATEGORIES.flatMap((category) => {
+  it('deletion-pending JSON fallbacks remain text/expression-equivalent to ResponsePlan lines', () => {
+    const mismatches = deletionPendingJsonFallbackCategories.flatMap((category) => {
       const legacyLines = dialogueCategories[category]?.lines ?? []
       return legacyLines.flatMap((legacyLine, index) => {
         const picked = pickResponsePlanDialogue(category, [], () => (index + 0.1) / legacyLines.length)
@@ -123,7 +149,7 @@ describe('Phase 11 dialogue source inventory', () => {
     expect(missing).toEqual([])
   })
 
-  it('invalid ResponsePlan data falls back to legacy JSON lines through the dialogue source chain', () => {
+  it('invalid ResponsePlan data falls back to deletion-pending JSON safety nets through the source chain', () => {
     const category = 'water-request'
     const legacyLines = dialogueCategories[category].lines
     const validPlanIds = new Set(RESPONSE_PLANS
@@ -157,7 +183,7 @@ describe('Phase 11 dialogue source inventory', () => {
       .filter((category) => (dialogueCategories[category]?.lines.length ?? 0) > 0)
       .sort()
 
-    expect(candidates).toEqual(expectedKeywordRuleJsonDeletionCandidates)
+    expect(candidates).toEqual(keywordRuleDeletionPendingCategories)
   })
 
   it('documents all dialogues.json categories that are now ResponsePlan fallback-only candidates', () => {
@@ -165,6 +191,6 @@ describe('Phase 11 dialogue source inventory', () => {
       .filter((category) => (dialogueCategories[category]?.lines.length ?? 0) > 0)
       .sort()
 
-    expect(candidates).toEqual(expectedResponsePlanJsonFallbackDeletionCandidates)
+    expect(candidates).toEqual(deletionPendingJsonFallbackCategories)
   })
 })

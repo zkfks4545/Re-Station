@@ -1,5 +1,12 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / Phase 11 pre-delete test contract split
+
+- `dialogue-source-inventory.test.ts` now separates `ResponsePlan-only ready`, `fallback-required`, and `deletion-pending JSON fallback` categories before any `dialogues.json` deletion.
+- Added `response-plan-route-smoke.test.ts` to cover high-risk Phase 11 routes (`water-request`, `overdrunk`, `rude-*`, `mood-*`, `siesta-setting`, etc.) through classifier + engine rendering.
+- No `dialogues.json` category was deleted in this step.
+- Verification: `npm.cmd test -- dialogue-source-inventory response-plan-route-smoke response-plan-adapter response-templates`, `npm.cmd run check` passed.
+
 ## 2026-07-09 / Codex / Phase 11 story/welcome/farewell fallback 출처 점검
 
 - `story-query.ts`에서 칵테일 fact 선택 책임을 `selectCocktailContentFact()`로 분리하고, 선택된 fact를 최종 응답 형태로 감싸는 `formatStoryQueryFactReply()`를 추가했다. 기존 `formatStoryQueryReply()` API와 반환 형태는 유지했다.
