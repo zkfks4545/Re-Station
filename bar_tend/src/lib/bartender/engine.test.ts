@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import dialoguesData from '../../data/dialogues.json'
-import type { DialoguesData, Message } from '../../types.js'
+import type { Message } from '../../types.js'
 import { cocktails, findCocktailByName } from '../cocktails/database.js'
+import { RESPONSE_PLANS } from '../dialogue/response-plan-data.js'
 import { detectSafetyConcern, getCocktailResponse, getCocktailResponseFromClassified } from './engine.js'
 import { IntentClassifier, type DialogueContext } from './intent-classifier.js'
 
@@ -14,14 +14,17 @@ const DIRECT_COMFORT_OR_ALCOHOL_SOLUTION = [
   /괜찮아질 거예요/,
 ]
 
-const MOOD_TIRED_TEXTS = (dialoguesData as DialoguesData).categories['mood-tired'].lines
-  .map((line) => line.text)
-const BAR_INTRO_TEXTS = (dialoguesData as DialoguesData).categories['bar-intro'].lines
-  .map((line) => line.text)
-const CHARACTER_QUERY_TEXTS = (dialoguesData as DialoguesData).categories['character-query'].lines
-  .map((line) => line.text)
-const SIESTA_MENTION_TEXTS = (dialoguesData as DialoguesData).categories['siesta-mention'].lines
-  .map((line) => line.text)
+function getPlanTexts(planId: string): string[] {
+  return RESPONSE_PLANS
+    .find((plan) => plan.id === planId)!
+    .blocks.answer!
+    .map((line) => line.text)
+}
+
+const MOOD_TIRED_TEXTS = getPlanTexts('karua.comfort.mood-tired')
+const BAR_INTRO_TEXTS = getPlanTexts('karua.small-talk.bar-intro')
+const CHARACTER_QUERY_TEXTS = getPlanTexts('karua.small-talk.character-query')
+const SIESTA_MENTION_TEXTS = getPlanTexts('karua.small-talk.siesta-mention')
 
 function expectKahluaBoundary(response: string) {
   for (const forbidden of DIRECT_COMFORT_OR_ALCOHOL_SOLUTION) {

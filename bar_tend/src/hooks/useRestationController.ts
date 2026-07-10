@@ -156,6 +156,11 @@ export function useRestationController() {
     setIsPreparingCocktail(false)
   }, [])
 
+  const playScreenShakeCue = useCallback(() => {
+    setScreenShake(true)
+    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+  }, [])
+
   const enqueueInteraction = useCallback((interaction: QueuedInteraction) => {
     const queue = queuedInteractionsRef.current
     const shouldKeepSingle =
@@ -275,8 +280,7 @@ export function useRestationController() {
     }
 
     dispatchDialogueSession({ type: 'enter-farewell', entryKind })
-    setScreenShake(true)
-    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+    playScreenShakeCue()
     const ids = unlockCocktailId(xyzCocktail.id)
     setUnlockedIds(ids)
     const servingEvents = dialogueService.buildServingContextEvents(xyzCocktail)
@@ -294,7 +298,7 @@ export function useRestationController() {
         dispatchDialogueSession({ type: 'set-phase', phase: 'farewell' })
       },
     )
-  }, [bartenderReply, recordConversationEvents, setUnlockedIds])
+  }, [bartenderReply, playScreenShakeCue, recordConversationEvents, setUnlockedIds])
 
   const enterStandardFarewell = useCallback(() => {
     dispatchDialogueSession({ type: 'enter-farewell', entryKind: 'standard' })
@@ -476,8 +480,7 @@ export function useRestationController() {
     dispatchDialogueSession({ type: 'set-phase', phase: 'conversation' })
     resetRecommendation()
     setMessages((prev) => [...prev, { role: 'user', text: '웰컴 드링크' }])
-    setScreenShake(true)
-    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+    playScreenShakeCue()
     const ids = unlockCocktailId(cocktail.id)
     setUnlockedIds(ids)
     const welcomeReply = formatWelcomeDrinkResponse(cocktail, { alcoholStarTotal })
@@ -496,6 +499,7 @@ export function useRestationController() {
     activeQuestion,
     alcoholStarTotal,
     bartenderReply,
+    playScreenShakeCue,
     recordConversationEvents,
     resetRecommendation,
     servedCocktail,
@@ -802,8 +806,7 @@ export function useRestationController() {
               recommended: servingEffect?.recommended ?? false,
             })
             afterCocktailRevealed = () => recordConversationEvents(servingEvents)
-            setScreenShake(true)
-            timerRegistry.current.schedule(() => setScreenShake(false), 500)
+            playScreenShakeCue()
             const ids = unlockCocktailId(cocktail.id)
             setUnlockedIds(ids)
             if (servingPlan.shouldUpdateAlcoholTotal) {
@@ -868,6 +871,7 @@ export function useRestationController() {
       mapIntentToRapportContext,
       messages,
       moveOutsideAfterDelay,
+      playScreenShakeCue,
       resetRecommendation,
       resolveDialogueInput,
       recordConversationEvents,
@@ -961,8 +965,7 @@ export function useRestationController() {
     recordConversationEvents(dialogueResolution.contextEvents)
     const servingEvents = dialogueService.buildServingContextEvents(orderedCocktail, { reply: turn.reply })
 
-    setScreenShake(true)
-    timerRegistry.current.schedule(() => setScreenShake(false), 500)
+    playScreenShakeCue()
     const ids = unlockCocktailId(orderedCocktail.id)
     setUnlockedIds(ids)
     const servingPlan = createServingPlan({
@@ -1004,6 +1007,7 @@ export function useRestationController() {
     executeAction,
     ingestUserMessage,
     messages,
+    playScreenShakeCue,
     recordConversationEvents,
     resolveDialogueInput,
     sessionPhase,

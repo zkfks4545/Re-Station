@@ -43,6 +43,7 @@ import {
 } from '../recommendation/response.js'
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
 import { PARAGRAPH_PRESETS } from '../dialogue/text-presets.js'
+import { RESPONSE_PLANS } from '../dialogue/response-plan-data.js'
 
 const FORBIDDEN_PHRASES: { pattern: RegExp; reason: string }[] = [
   { pattern: /힘드셨겠어요/, reason: '직접 위로 금지' },
@@ -230,6 +231,13 @@ function collectRecommendationTexts(): string[] {
   return texts
 }
 
+function collectResponsePlanTexts(): string[] {
+  return RESPONSE_PLANS.flatMap((plan) => [
+    plan.fallbackText,
+    ...Object.values(plan.blocks).flatMap((lines) => lines.map((line) => line.text)),
+  ])
+}
+
 function countSentences(text: string): number {
   const normalized = text.trim()
   if (!normalized) return 0
@@ -297,6 +305,12 @@ describe('karua speech contract — response-templates.ts', () => {
   it('has no forbidden phrases in draft formatters', () => {
     const texts = collectTemplateDraftTexts()
     checkTexts('response-templates drafts', texts)
+  })
+})
+
+describe('karua speech contract — response-plan-data.ts', () => {
+  it('has no forbidden phrases in ResponsePlan text', () => {
+    checkTexts('response-plan-data', collectResponsePlanTexts())
   })
 })
 

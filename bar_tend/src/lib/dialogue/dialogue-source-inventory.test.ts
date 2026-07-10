@@ -46,10 +46,13 @@ describe('Phase 11 dialogue source inventory', () => {
     'taste-bitter',
     'taste-refresh',
   ]
-  const keywordRuleDeletionPendingCategories = [
+  const keywordRuleDeletionPendingCategories: string[] = []
+  const deletedJsonFallbackCategories = [
     'bar-atmosphere',
     'bar-intro',
+    'character-query',
     'cocktail-request',
+    'general-chat',
     'greeting',
     'guest-uncertain',
     'ingredient-constraint',
@@ -58,16 +61,23 @@ describe('Phase 11 dialogue source inventory', () => {
     'mood-tired',
     'overdrunk',
     'quiet-moment',
+    'random-request',
     'real-world-info',
+    'recipe-request',
+    'recommendation-cancel',
     'rude-annoyed',
     'rude-boundary',
     'siesta-mention',
     'small-talk-weather',
+    'story-request',
+    'story-unresolved',
     'taste-strong',
     'taste-sweet',
+    'unknown-cocktail-request',
     'water-request',
   ]
   const deletionPendingJsonFallbackCategories = responsePlanOnlyReadyCategories
+    .filter((category) => !deletedJsonFallbackCategories.includes(category))
   const dialogueCategories = (dialoguesData as DialoguesData).categories
   const keywordDialogueCategories = Array.from(new Set(
     keywordRulesData
@@ -107,8 +117,12 @@ describe('Phase 11 dialogue source inventory', () => {
     const missingFallbacks = deletionPendingJsonFallbackCategories.filter(
       (category) => (dialogueCategories[category]?.lines.length ?? 0) === 0,
     )
+    const stillPresentDeletedFallbacks = deletedJsonFallbackCategories.filter(
+      (category) => (dialogueCategories[category]?.lines.length ?? 0) > 0,
+    )
 
     expect(missingFallbacks).toEqual([])
+    expect(stillPresentDeletedFallbacks).toEqual([])
   })
 
   it('ResponsePlan-only categories render without depending on legacy JSON lines', () => {
@@ -149,9 +163,8 @@ describe('Phase 11 dialogue source inventory', () => {
     expect(missing).toEqual([])
   })
 
-  it('invalid ResponsePlan data falls back to deletion-pending JSON safety nets through the source chain', () => {
+  it('invalid ResponsePlan data no longer falls back through deleted JSON safety nets', () => {
     const category = 'water-request'
-    const legacyLines = dialogueCategories[category].lines
     const validPlanIds = new Set(RESPONSE_PLANS
       .filter((plan) => plan.request === category)
       .map((plan) => plan.id))
@@ -169,12 +182,12 @@ describe('Phase 11 dialogue source inventory', () => {
 
     const picked = pickDialogueFromSourcesWithPlans(
       category,
-      legacyLines,
+      [],
       plansWithInvalidWaterRequest,
       () => 0,
     )
 
-    expect(picked).toEqual(legacyLines[0])
+    expect(picked).toBeNull()
   })
 
   it('documents keyword-rule JSON fallback categories eligible for category-by-category deletion review', () => {

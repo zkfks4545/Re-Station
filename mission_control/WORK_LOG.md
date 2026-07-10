@@ -1,5 +1,27 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / Interaction cue first extraction
+
+- Audited `useRestationController` presentation responsibilities: typing, preparation, serving reveal, screen shake, delayed outside transition, and queued interactions.
+- Classified `clearPendingWork`, `bartenderReply`, `runCocktailPreparation`, safety lock, recommendation cancel, and session block handling as mixed domain/timeline boundaries that should stay in the controller for now.
+- Extracted only the repeated pure `screenShake` serving cue into `playScreenShakeCue()` and reused it from XYZ, welcome drink, recommendation serve, and card-order serve paths.
+- Verification: `npm.cmd test` and `npm.cmd run check` passed.
+
+## 2026-07-10 / Codex / Phase 11 follow-up architecture audit
+
+- Extended `karua-speech-contract.test.ts` so Character QA scans `RESPONSE_PLANS` text directly after `dialogues.json` fallback-only deletion.
+- Reviewed Rapport usage: state updates exist and `selectVariation()` is available, but current runtime does not use rapport to select ResponsePlan/dialogue output.
+- Reviewed WebLLM role: current implementation remains semantic-only, eligible for limited free-talk routes, stores session tags, and does not generate final replies.
+- Reviewed interaction timeline: typing, preparation, serving reveal, screen shake, and queued interactions are still coordinated in `useRestationController`, making a future `InteractionTimeline` layer a clear extraction candidate.
+- Verification: `npm.cmd test`, `npm.cmd run check`, and `git diff --check` passed.
+
+## 2026-07-10 / Codex / Phase 11 dialogues.json fallback-only deletion
+
+- Removed all ResponsePlan-backed fallback-only categories from `dialogues.json`; `fallback-required` legacy categories remain owned by JSON.
+- Updated Phase 11 inventory tests so `keywordRuleDeletionPendingCategories` is empty and deleted categories are explicitly documented as ResponsePlan-only.
+- Reworked `response-plan-adapter.test.ts` and `engine.test.ts` to read migrated dialogue text from ResponsePlan instead of deleted JSON pools.
+- Verification: `npm.cmd test`, `npm.cmd run check`, `npm.cmd run build`, and `git diff --check` passed.
+
 ## 2026-07-10 / Codex / Phase 11 pre-delete test contract split
 
 - `dialogue-source-inventory.test.ts` now separates `ResponsePlan-only ready`, `fallback-required`, and `deletion-pending JSON fallback` categories before any `dialogues.json` deletion.
