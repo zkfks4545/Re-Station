@@ -1,6 +1,6 @@
 # EXTERNAL_STRUCTURE_REPORT 작성 가이드
 
-> 최종 갱신일: 2026-07-09
+> 최종 갱신일: 2026-07-10
 > 대상 문서: `mission_control/EXTERNAL_STRUCTURE_REPORT.md`
 > 목적: 외부 구조 보고서를 장기 유지 가능한 구조 지도 문서로 유지하기 위한 작성 기준
 
@@ -11,6 +11,7 @@
 이 문서는 다음 정보를 소유한다.
 
 - 프로젝트의 핵심 목적과 설계 원칙
+- 30초 안에 전체 구조를 이해할 수 있는 책임 계층 지도
 - 런타임 흐름과 주요 모듈의 책임
 - 도메인 간 책임 경계
 - 데이터 소유권과 정보 흐름
@@ -52,6 +53,21 @@
 5. 파일 경로는 실제 코드 경로를 쓴다.
 6. 문서를 길게 만드는 것보다 중복을 줄이고 책임을 분명히 하는 것을 우선한다.
 7. 임시 판단, 리뷰 코멘트, 수정 지시는 구조보고서에 남기지 않는다.
+8. 문서 초입은 전체 지도에서 시작하고, 세부 구현 흐름은 Runtime Architecture 이후에 설명한다.
+
+### Architecture at a Glance 작성 기준
+
+`Architecture at a Glance`는 Project Overview 바로 뒤에 둔다. 이 섹션은 Runtime Architecture의 축약본이 아니라, 사람과 AI가 프로젝트를 처음 읽을 때 30초 안에 전체 책임 구조를 잡도록 돕는 진입 지도다.
+
+이 섹션은 다음을 지킨다.
+
+- 파일명보다 책임 계층과 데이터 흐름을 우선한다.
+- User Input, Input Understanding, Decision Layer, Expression Layer, Presentation, UI 같은 장기 책임 단위로 설명한다.
+- Recommendation, Session, Story, Safety, Cocktail DB는 Decision Layer를 지원하는 요소로 배치한다.
+- ResponsePlan이 Expression Layer의 중심이라는 점을 드러낸다.
+- ASCII diagram 또는 짧은 계층도로 한 화면 안에 들어가게 유지한다.
+- 세부 모듈명, 구현 파일명, 테스트 수, 작업 상태를 넣지 않는다.
+- 자세한 실행 순서와 파일 책임은 Runtime Architecture와 Major Modules가 담당하게 둔다.
 
 ## 4. 갱신 기준
 
@@ -78,16 +94,17 @@
 
 1. 문서 사용법
 2. Project Overview
-3. Core Design Principles
-4. Runtime Architecture
-5. Major Modules
-6. Responsibility Boundaries
-7. Dialogue Architecture
-8. Recommendation Architecture
-9. Session and Context
-10. ResponsePlan and Data Ownership
-11. Character and External Collaboration
-12. Extension Points
+3. Architecture at a Glance
+4. Core Design Principles
+5. Runtime Architecture
+6. Major Modules
+7. Responsibility Boundaries
+8. Dialogue Architecture
+9. Recommendation Architecture
+10. Session and Context
+11. ResponsePlan and Data Ownership
+12. Character and External Collaboration
+13. Extension Points
 
 필요하면 섹션을 추가할 수 있지만, 새 섹션이 기존 섹션의 책임을 반복하면 안 된다.
 
@@ -132,6 +149,8 @@
 - [ ] 작업 로그가 포함되어 있지 않은가
 - [ ] 특정 날짜의 완료 보고가 포함되어 있지 않은가
 - [ ] Runtime Architecture가 충분히 설명되는가
+- [ ] Architecture at a Glance가 책임 계층 중심의 30초 지도로 기능하는가
+- [ ] Architecture at a Glance가 Runtime Architecture의 파일별 실행 순서를 중복하지 않는가
 - [ ] Responsibility Boundary가 명확한가
 - [ ] Data Ownership이 설명되는가
 - [ ] 장기적으로 유지될 설명인가
