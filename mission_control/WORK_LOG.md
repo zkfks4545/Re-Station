@@ -1,5 +1,11 @@
 # 작업 이력 (축약)
 
+## 2026-07-10 / Codex / CURRENT_STATE Phase 11 불일치 해소
+
+- `CURRENT_STATE.md`의 최종 갱신일, Phase 11 상태, 테스트 수, 빌드 산출물 크기를 현재 검증 결과에 맞췄다.
+- Phase 11을 완료로 올리지 않고, keyword-rule/dialogues.json 출처 정리 1차 완료와 잔여 정규화 범위를 분리해 기록했다.
+- Verification: `npm.cmd test`, `npm.cmd run build`, `git diff --check` passed.
+
 ## 2026-07-10 / Codex / Interaction cue first extraction
 
 - Audited `useRestationController` presentation responsibilities: typing, preparation, serving reveal, screen shake, delayed outside transition, and queued interactions.
