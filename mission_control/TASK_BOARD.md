@@ -748,6 +748,7 @@ Input
 - 모바일 사이드바에 닫기 버튼, ESC, 포커스 트랩, 닫힌 상태 `inert`, tab/tabpanel 연결을 적용했다.
 - 모바일 입력을 16px로 유지하고 44px 터치 영역, 동적 viewport, safe-area, 작은 화면 세로 배치, reduced-motion을 적용했다.
 - 대화 영역은 polite live log로, 입장 버튼과 메뉴 버튼은 명확한 접근 가능한 이름으로 노출한다.
+- 타이핑 중인 부분 문자열은 접근성 트리에서 숨기고 완성된 메시지만 live log의 추가 항목으로 노출해 스크린리더 반복 낭독을 막는다.
 
 남은 수동 검수:
 
@@ -757,13 +758,23 @@ Input
 
 #### P3 구조 정리 완료 결과
 
-> 상태: **DONE (2026-07-13)** — 외부 동작과 데이터 순서를 유지하면서 Controller, ResponsePlan, 칵테일 DB의 공개 경계를 분리하고 전체 회귀·빌드를 통과했다.
+> 상태: **DONE (2026-07-13)** — Controller 보조 책임, ResponsePlan 도메인 데이터, DB 진입점을 물리 분리하고 전체 Conversation QA·정적 검사·빌드를 통과했다.
 
 - `useRestationController`에서 공개 상태/상호작용 계약과 타이밍·rapport 매핑을 `restation-controller-model.ts`로 분리했다.
 - DialogueService 요청 snapshot 조립을 `restation-dialogue-request.ts`, 관계성 상태 수명을 `useRapportSession.ts`로 분리했다.
-- `response-plan-data.ts`는 raw plan 저장소로 한정하고, 런타임 소비자는 `response-plan-catalog.ts`의 안정적인 catalog와 도메인별 partition을 사용한다.
+- 중복 제거와 FIFO·예약 상태를 가진 상호작용 대기열을 `restation-interaction-queue.ts`로 분리하고 계약 테스트를 추가했다.
+- 대기열 타입별 실행 분기를 `restation-interaction-runner.ts`의 순수 dispatcher로 분리하고 payload·거부 결과 전달 계약을 고정했다.
+- 타이핑 완료·제조 지연·후속 메시지·칵테일 공개 상태를 `useRestationPresentation.ts`로 이동했다.
+- 웰컴드링크 실행과 대기열 진입을 `useRestationWelcomeDrink.ts`, XYZ·표준 배웅 진입을 `useRestationFarewell.ts`로 이동하고 hospitality 계약 테스트를 추가했다.
+- 중복되던 서빙 계획·farewell entry·다음 phase 결정을 `restation-serving-decision.ts`로 분리하고 일반/XYZ 전이 계약을 고정했다.
+- `response-plan-data.ts`는 일반 대화 raw plan 저장소로 한정하고, 런타임 소비자는 `response-plan-catalog.ts`의 안정적인 catalog와 도메인별 partition을 사용한다.
+- welcome/farewell raw plan 11개를 `response-plan-data-session.ts`로 물리 분리하고 기존 ID·조립 순서를 유지했다.
+- 추천 질문·추천 응답·추천 취소 raw plan을 `response-plan-data-recommendation.ts`로 물리 분리하고 일반 대화 파일에서 추천 ID를 제거했다.
+- catalog가 `recommend`, `ask_preference`, 추천 취소 plan을 recommendation 도메인으로 분류하도록 의미 계약을 보정했다.
 - 칵테일 데이터 소비자는 `lib/cocktails/index.ts` 단일 공개 진입점을 사용하며 `database.ts` 직접 참조는 저장소 내부로 제한했다.
 - 새 경계마다 요청 매핑, ResponsePlan ID 보존·단일 partition, DB 객체 동일성 계약 테스트를 추가했다.
+
+최종 검수에서 `database.ts` 외부 직접 import와 raw ResponsePlan 우회 소비가 없음을 확인했다. `useRestationController.ts`는 입출력 상태를 조정하는 최상위 오케스트레이터로 남고, 분리된 도메인·presentation 모듈의 결정을 연결한다.
 
 ### Phase 9~15 후속 계획 계약
 

@@ -85,12 +85,12 @@
 
 ## 현재 우선순위
 
-P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 기다리는 REVIEW 상태이며, 사용자 요청에 따라 동작 변경이 없는 P3 구조 정리까지 완료했다. 다음 구현 범위는 P4 성능 측정과 최적화다.
+P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 기다리는 REVIEW 상태다. P3는 Controller 보조 책임, ResponsePlan 도메인 데이터, DB 공개 진입점 분리와 전체 회귀 검수를 마쳐 DONE으로 판정했다. 다음 구현 범위는 P4 성능 측정과 최적화다.
 
 1. **P0 — 대화 연속성 (DONE)**: FSM/ContinuationResolver 연결, 추천 문맥·PendingQuestion·SessionTopic 전이, 실제 플레이 로그 기반 Conversation QA 완료
 2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
 3. **P2 — 사용성 (REVIEW)**: 접근성, 모바일 UX, 모달, 전송 버튼 구현·자동 검증 완료. 실제 모바일 viewport와 키보드 수동 검수 필요
-4. **P3 — 구조 정리 (DONE)**: Controller 상태/요청/관계성 경계, ResponsePlan raw/catalog, 칵테일 DB 공개 진입점 분리
+4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
 5. **P4 — 성능 (NEXT)**: 이미지 최적화, 번들 측정, 지연 로딩
 6. **P5 — 문서 동기화**: README, CURRENT_STATE, TASK_BOARD, 테스트 수를 기능 안정화 뒤 일괄 정리
 

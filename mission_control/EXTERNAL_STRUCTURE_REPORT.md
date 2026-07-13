@@ -109,7 +109,12 @@ App / ChatInput
 | 경로 | 책임 |
 |---|---|
 | `bar_tend/src/App.tsx` | 전체 화면 조립 |
-| `bar_tend/src/hooks/useRestationController.ts` | 입장, 퇴장, 세션 reducer, 메시지, 추천 실행, 제조·서빙 cue, 카드·도감·시에스타 UI 효과 연결 |
+| `bar_tend/src/hooks/useRestationController.ts` | 입장·세션 reducer·대화·추천·카드·시에스타 흐름을 분리된 실행 모듈과 연결하는 최상위 오케스트레이터 |
+| `bar_tend/src/hooks/useRestationPresentation.ts` | 타이핑 완료, 제조 지연, 후속 메시지, 칵테일 공개 presentation 상태 |
+| `bar_tend/src/hooks/useRestationWelcomeDrink.ts` | 웰컴드링크 허용 조건, 실행, 대기열 연결 |
+| `bar_tend/src/hooks/useRestationFarewell.ts` | XYZ와 표준 farewell 진입 오케스트레이션 |
+| `bar_tend/src/hooks/restation-interaction-queue.ts` | 상호작용 FIFO, 중복 제거, 예약 상태 |
+| `bar_tend/src/hooks/restation-serving-decision.ts` | 서빙 계획, farewell entry, 다음 session phase 결정 |
 | `bar_tend/src/components/entrance/BarExterior.tsx` | 바 외부 입장 화면 |
 | `bar_tend/src/components/bar/BarInterior.tsx` | 바 내부 메인 화면 |
 | `bar_tend/src/components/bar/ChatInput.tsx` | 사용자 입력과 추천 선택지 |
@@ -152,7 +157,10 @@ App / ChatInput
 | `bar_tend/src/lib/dialogue/response-pipeline.ts` | 텍스트와 tone/affect를 최종 응답 문자열·표정으로 조립 |
 | `bar_tend/src/lib/dialogue/text-presets.ts` | 추천 질문 문장 프리셋과 추천 응답 문단 프리셋 |
 | `bar_tend/src/lib/dialogue/response-plan.ts` | ResponsePlan 타입, 선택, 검증 계약 |
-| `bar_tend/src/lib/dialogue/response-plan-data.ts` | ResponsePlan 데이터 |
+| `bar_tend/src/lib/dialogue/response-plan-data.ts` | 일반 대화 ResponsePlan 데이터와 도메인 plan 조립 |
+| `bar_tend/src/lib/dialogue/response-plan-data-recommendation.ts` | 추천 질문·응답·취소 ResponsePlan 데이터 |
+| `bar_tend/src/lib/dialogue/response-plan-data-session.ts` | welcome/farewell ResponsePlan 데이터 |
+| `bar_tend/src/lib/dialogue/response-plan-catalog.ts` | ResponsePlan 공개 진입점과 도메인 partition |
 | `bar_tend/src/lib/dialogue/response-plan-renderer.ts` | 제한 slot 기반 ResponsePlan 렌더링 |
 | `bar_tend/src/lib/dialogue/response-plan-adapter.ts` | legacy category를 ResponsePlan query로 매핑하는 어댑터 |
 | `bar_tend/src/lib/bartender/persona.ts` | 카루아 말투 기준 |

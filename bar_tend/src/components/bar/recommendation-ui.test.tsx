@@ -64,6 +64,7 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('role="group"')
     expect(markup).toContain('role="log"')
     expect(markup).toContain('aria-live="polite"')
+    expect(markup).toContain('aria-relevant="additions"')
     expect(markup).toContain(activeQuestion!.prompt)
     expect(markup).toContain(activeQuestion!.choices[0].label)
     expect(markup).toContain('잘 모르겠어요')
@@ -192,6 +193,18 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toBe('')
+  })
+
+  it('keeps partial typing text out of the accessibility tree', () => {
+    const markup = renderToStaticMarkup(
+      <DialogueBox
+        messages={[{ role: 'bartender', speaker: 'karua', text: '완성된 답변' }]}
+        isTyping
+      />,
+    )
+
+    expect(markup).toContain('aria-hidden="true"')
+    expect(markup).not.toContain('aria-relevant="additions text"')
   })
 
   it('uses the native disabled contract for the welcome drink action', () => {

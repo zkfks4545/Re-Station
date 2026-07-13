@@ -50,14 +50,18 @@ export default function DialogueBox({
       onScroll={handleScroll}
       role="log"
       aria-live="polite"
-      aria-relevant="additions text"
+      aria-relevant="additions"
       className="flex-1 overflow-y-auto px-6 pt-6 pb-3 space-y-4"
     >
       {messages.map((msg, i) => {
         const isTypingMessage = isTyping && i === typingMsgIndex && msg.role === 'bartender'
 
         return (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            key={i}
+            aria-hidden={isTypingMessage || undefined}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
             <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
               msg.role === 'user'
                 ? 'text-white/90'

@@ -3,19 +3,15 @@ import type { ResponsePlan } from './response-plan.js'
 
 export type ResponsePlanDomain = 'dialogue' | 'recommendation' | 'welcome' | 'farewell'
 
-const RECOMMENDATION_REQUESTS = new Set([
-  'random-pick-body',
-  'exact-recommendation-body',
-  'nearest-recommendation-body',
-  'recommendation-question-lead-in',
-  'recommendation-question-continuation',
-])
-
 export function getResponsePlanDomain(plan: ResponsePlan): ResponsePlanDomain {
   const request = plan.request ?? ''
   if (request.startsWith('welcome-')) return 'welcome'
   if (request.startsWith('farewell-')) return 'farewell'
-  if (RECOMMENDATION_REQUESTS.has(request)) return 'recommendation'
+  if (
+    plan.intent === 'recommend' ||
+    plan.intent === 'ask_preference' ||
+    request === 'recommendation-cancel'
+  ) return 'recommendation'
   return 'dialogue'
 }
 
