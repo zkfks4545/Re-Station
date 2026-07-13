@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getCocktailById } from '../cocktails/database.js'
+import { getCocktailById } from '../cocktails/index.js'
 import {
   formatStoryQueryFactReply,
   formatStoryQueryReply,

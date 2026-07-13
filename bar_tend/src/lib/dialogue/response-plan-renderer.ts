@@ -1,5 +1,5 @@
 import type { DialogueLine } from '../../types.js'
-import { RESPONSE_PLANS } from './response-plan-data.js'
+import { RESPONSE_PLANS } from './response-plan-catalog.js'
 import {
   selectResponsePlan,
   validateResponsePlan,

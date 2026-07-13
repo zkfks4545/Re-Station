@@ -43,7 +43,7 @@ import {
 } from '../recommendation/response.js'
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
 import { PARAGRAPH_PRESETS } from '../dialogue/text-presets.js'
-import { RESPONSE_PLANS } from '../dialogue/response-plan-data.js'
+import { RESPONSE_PLANS } from '../dialogue/response-plan-catalog.js'
 
 const FORBIDDEN_PHRASES: { pattern: RegExp; reason: string }[] = [
   { pattern: /힘드셨겠어요/, reason: '직접 위로 금지' },

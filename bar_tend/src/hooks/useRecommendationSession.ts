@@ -10,7 +10,7 @@ import {
   pickFromPool,
   selectNextQuestion,
 } from '@/lib/recommendation/question-engine.js'
-import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
+import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/index.js'
 import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
 import { classifyRecommendationQuestionInput } from '@/lib/recommendation/question-context.js'
 import {

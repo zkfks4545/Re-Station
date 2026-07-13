@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findCocktailByName } from '../cocktails/database.js'
+import { findCocktailByName } from '../cocktails/index.js'
 import { routeUserInput } from './input-router.js'
 
 describe('user input routing priority', () => {

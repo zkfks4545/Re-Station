@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getAllCocktailData } from '../cocktails/database.js'
+import { getAllCocktailData } from '../cocktails/index.js'
 import {
   addQuestionHistory,
   answerLatestQuestion,

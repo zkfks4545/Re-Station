@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import CocktailBookTab from './CocktailBookTab.jsx'
-import { publicCocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/index.js'
 import type { CocktailData } from '@/types.js'
 import type { AudioManager } from '@/hooks/useAudioManager.js'
 

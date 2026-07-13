@@ -3,7 +3,7 @@ import dialoguesData from '../../data/dialogues.json'
 import type { DialogueLine, Expression } from '../../types.js'
 import { pickDialogue, pickDialogueFromSources } from './dialogue-loader.js'
 import { pickResponsePlanDialogue } from './response-plan-adapter.js'
-import { RESPONSE_PLANS } from './response-plan-data.js'
+import { RESPONSE_PLANS } from './response-plan-catalog.js'
 import { validateResponsePlan, type ResponsePlan } from './response-plan.js'
 
 const dialogueCategories = dialoguesData.categories as Record<string, { lines: DialogueLine[] } | undefined>

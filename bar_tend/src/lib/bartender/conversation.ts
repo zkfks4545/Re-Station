@@ -1,4 +1,4 @@
-import { findCocktailByName, publicCocktails } from '../cocktails/database.js'
+import { findCocktailByName, publicCocktails } from '../cocktails/index.js'
 import { pickDialogue } from '../dialogue/dialogue-loader.js'
 import { kf, SHAKE_REFERENCE } from '../dialogue/pattern-utils.js'
 import { assembleResponse } from '../dialogue/response-pipeline.js'

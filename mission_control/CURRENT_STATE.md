@@ -85,13 +85,13 @@
 
 ## 현재 우선순위
 
-P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2 사용성 구현과 자동 검증을 완료했으며 실제 모바일·키보드 화면 검수를 기다리는 REVIEW 상태다. Phase 12는 진행 상태를 유지하되 P2 검수를 마치기 전에 우선 확장하지 않는다.
+P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 기다리는 REVIEW 상태이며, 사용자 요청에 따라 동작 변경이 없는 P3 구조 정리까지 완료했다. 다음 구현 범위는 P4 성능 측정과 최적화다.
 
 1. **P0 — 대화 연속성 (DONE)**: FSM/ContinuationResolver 연결, 추천 문맥·PendingQuestion·SessionTopic 전이, 실제 플레이 로그 기반 Conversation QA 완료
 2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
 3. **P2 — 사용성 (REVIEW)**: 접근성, 모바일 UX, 모달, 전송 버튼 구현·자동 검증 완료. 실제 모바일 viewport와 키보드 수동 검수 필요
-4. **P3 — 구조 정리**: `useRestationController`, `response-plan-data`, 칵테일 DB 진입점 분리
-5. **P4 — 성능**: 이미지 최적화, 번들 측정, 지연 로딩
+4. **P3 — 구조 정리 (DONE)**: Controller 상태/요청/관계성 경계, ResponsePlan raw/catalog, 칵테일 DB 공개 진입점 분리
+5. **P4 — 성능 (NEXT)**: 이미지 최적화, 번들 측정, 지연 로딩
 6. **P5 — 문서 동기화**: README, CURRENT_STATE, TASK_BOARD, 테스트 수를 기능 안정화 뒤 일괄 정리
 
 P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.

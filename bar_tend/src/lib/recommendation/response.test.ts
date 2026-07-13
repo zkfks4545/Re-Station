@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findCocktailByName, getCocktailById } from '../cocktails/database.js'
+import { findCocktailByName, getCocktailById } from '../cocktails/index.js'
 import { createRecommendationDecision, createRecommendationState } from './state.js'
 import {
   formatExplicitCocktailReply,

@@ -1,4 +1,4 @@
-import { cocktails, findCocktailByName, publicCocktails } from '../cocktails/database.js'
+import { cocktails, findCocktailByName, publicCocktails } from '../cocktails/index.js'
 import { findCocktailByLoreReference, hasExplicitLoreReference } from '../cocktails/lore-reference.js'
 import { findSecretMenuOrder } from '../cocktails/secret-menu.js'
 import { isRecommendationIntent } from '../recommendation/question-engine.js'

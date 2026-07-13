@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Message } from '../../types.js'
-import { cocktails, findCocktailByName } from '../cocktails/database.js'
-import { RESPONSE_PLANS } from '../dialogue/response-plan-data.js'
+import { cocktails, findCocktailByName } from '../cocktails/index.js'
+import { RESPONSE_PLANS } from '../dialogue/response-plan-catalog.js'
 import { detectSafetyConcern, getCocktailResponse, getCocktailResponseFromClassified } from './engine.js'
 import { IntentClassifier, type DialogueContext } from './intent-classifier.js'
 

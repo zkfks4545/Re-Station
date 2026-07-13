@@ -7,7 +7,7 @@ import {
   pickResponsePlanDialogue,
   RESPONSE_PLAN_DIALOGUE_CATEGORIES,
 } from './response-plan-adapter.js'
-import { RESPONSE_PLANS } from './response-plan-data.js'
+import { RESPONSE_PLANS } from './response-plan-catalog.js'
 import { pickDialogueFromSourcesWithPlans } from './dialogue-loader.js'
 
 describe('Phase 11 dialogue source inventory', () => {

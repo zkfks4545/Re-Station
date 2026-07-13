@@ -1,6 +1,6 @@
 import type { CocktailData, Expression } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
-import { getPublicCocktailData } from '../cocktails/database.js'
+import { getPublicCocktailData } from '../cocktails/index.js'
 import type { InputRoute } from '../dialogue/input-router.js'
 import type { ResponsePlan } from '../dialogue/response-plan.js'
 import {

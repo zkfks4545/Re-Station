@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import CocktailCard from '../../components/bar/CocktailCard.js'
-import { cocktails, getCocktailById } from '../cocktails/database.js'
+import { cocktails, getCocktailById } from '../cocktails/index.js'
 import {
   applyQuestionAnswer,
   createRecommendationSourcePool,

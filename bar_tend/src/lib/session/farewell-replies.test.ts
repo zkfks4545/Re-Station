@@ -16,7 +16,7 @@ import {
   FAREWELL_REPLY_SOURCE_OWNERSHIP,
   isEjectionConcern,
 } from './farewell-replies.js'
-import { getCocktailById } from '../cocktails/database.js'
+import { getCocktailById } from '../cocktails/index.js'
 import { XYZ_COCKTAIL_ID } from './session-flow.js'
 import type { ResponsePlan } from '../dialogue/response-plan.js'
 

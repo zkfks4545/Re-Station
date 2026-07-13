@@ -685,7 +685,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | P0 — DONE | 대화 연속성 FSM, ContinuationResolver, 추천 문맥, PendingQuestion, SessionTopic | 실제 플레이 로그를 턴 배열로 실행해 Intent, Topic, PendingQuestion, Route, ResponsePlan, Expression, SessionAffect와 다음 snapshot을 모두 검증 |
 | P1 — DONE | 제품 계약, 핵심 E2E, 추천 카드 계약, 카루아 명칭 | 기능 안정화 뒤 대표 사용자 흐름과 문서 계약이 일치하고 명칭·정보 책임이 단일화됨 |
 | P2 — REVIEW | 접근성, 모바일 UX, 모달, 전송 버튼 | 핵심 흐름을 모바일·키보드로 완주하고 포커스·닫기·전송 동작이 명확함 |
-| P3 | Controller, ResponsePlan data, DB 진입점 | 동작 계약을 유지하면서 책임 경계를 분리하고 전체 회귀 통과 |
+| P3 — DONE | Controller, ResponsePlan data, DB 진입점 | 동작 계약을 유지하면서 책임 경계를 분리하고 전체 회귀 통과 |
 | P4 | 이미지, 번들, lazy loading | 측정값을 기준으로 대형 자산과 초기 로딩 비용 축소 |
 | P5 | README와 mission_control 동기화 | 구현·검증이 안정된 시점에 상태, 테스트 수, 작업 보드를 한 번에 갱신 |
 
@@ -754,6 +754,16 @@ Input
 - 320px, 375px, 768px viewport에서 입력·전송·하단 작업 버튼과 추천 카드가 겹치지 않는지 확인한다.
 - 키보드만으로 메뉴와 추천 카드에 진입하고 Tab 순환, ESC 닫기, 원래 트리거 포커스 복귀를 확인한다.
 - 모바일 가상 키보드가 열린 상태에서 입력과 전송 버튼이 가려지지 않는지 확인한다.
+
+#### P3 구조 정리 완료 결과
+
+> 상태: **DONE (2026-07-13)** — 외부 동작과 데이터 순서를 유지하면서 Controller, ResponsePlan, 칵테일 DB의 공개 경계를 분리하고 전체 회귀·빌드를 통과했다.
+
+- `useRestationController`에서 공개 상태/상호작용 계약과 타이밍·rapport 매핑을 `restation-controller-model.ts`로 분리했다.
+- DialogueService 요청 snapshot 조립을 `restation-dialogue-request.ts`, 관계성 상태 수명을 `useRapportSession.ts`로 분리했다.
+- `response-plan-data.ts`는 raw plan 저장소로 한정하고, 런타임 소비자는 `response-plan-catalog.ts`의 안정적인 catalog와 도메인별 partition을 사용한다.
+- 칵테일 데이터 소비자는 `lib/cocktails/index.ts` 단일 공개 진입점을 사용하며 `database.ts` 직접 참조는 저장소 내부로 제한했다.
+- 새 경계마다 요청 매핑, ResponsePlan ID 보존·단일 partition, DB 객체 동일성 계약 테스트를 추가했다.
 
 ### Phase 9~15 후속 계획 계약
 

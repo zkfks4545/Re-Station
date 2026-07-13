@@ -353,7 +353,7 @@ const FAREWELL_PHASE_PLANS: readonly ResponsePlan[] = [
   },
 ]
 
-export const RESPONSE_PLANS: readonly ResponsePlan[] = [
+export const RAW_RESPONSE_PLANS: readonly ResponsePlan[] = [
   {
     id: 'karua.small-talk.general-chat',
     speaker: 'karua',

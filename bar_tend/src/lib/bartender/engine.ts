@@ -3,7 +3,7 @@ import { IntentClassifierAdapter } from './intent-classifier-adapter.js'
 import type { ClassifiedIntent } from './intent-classifier.js'
 import { SAFETY_REDIRECT_REPLY } from '../dialogue/turn-builder.js'
 import { assembleResponse } from '../dialogue/response-pipeline.js'
-import { cocktails } from '../cocktails/database.js'
+import { cocktails } from '../cocktails/index.js'
 import type { BartenderResponse, CocktailData, Message } from '../../types.js'
 
 export { detectSafetyConcern } from '../dialogue/input-router.js'

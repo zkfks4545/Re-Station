@@ -2,7 +2,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import type { SfxChannel } from './useSfxManager.js'
 import { createSiestaEvent, MAX_SIESTA_EVENTS_PER_SESSION, SIESTA_EVENT_COOLDOWN_TURNS } from '@/lib/banter/siesta-event.js'
 import { addUnknownCocktail } from '@/lib/cocktails/admin-queue-manager.js'
-import { cocktails, getCocktailById } from '@/lib/cocktails/database.js'
+import { cocktails, getCocktailById } from '@/lib/cocktails/index.js'
 import {
   createConversationContext,
   updateConversationContext,
@@ -11,7 +11,6 @@ import {
 import { executeDialogueAction } from '@/lib/dialogue/action-executor.js'
 import { getFeedbackExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogue-service.js'
-import { createConversationContextSnapshot } from '@/lib/dialogue/conversation-context-snapshot.js'
 import { createServingPlan } from '@/lib/dialogue/serving-plan.js'
 import {
   formatWelcomeDrinkFeedbackReply,
@@ -26,7 +25,6 @@ import {
   dialogueSessionReducer,
   isWelcomeDrinkFeedbackPending,
   sessionTopicForRoute,
-  type DialogueSessionMode,
   type DialogueSessionState,
 } from '@/lib/session/dialogue-session.js'
 import { transitionSessionAffect } from '@/lib/session/session-affect.js'
@@ -57,33 +55,26 @@ import { experimentalSemanticAssistant } from '@/lib/webllm/service.js'
 import { semanticSessionTags } from '@/lib/webllm/session-tags.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
 import type { CocktailData, Expression, Message } from '@/types.js'
-import type { IntentType } from '@/lib/bartender/intent-classifier.js'
-import { createInitialRapport, updateRapport, createUpdateTracker } from '@/lib/relationship/index.js'
 import { useGuestPreferenceSession } from './useGuestPreferenceSession.js'
 import { useRecommendationSession } from './useRecommendationSession.js'
+import { useRapportSession } from './useRapportSession.js'
+import { createRestationDialogueRequest } from './restation-dialogue-request.js'
+import {
+  COCKTAIL_PREPARATION_DELAY_MS,
+  COCKTAIL_PREPARATION_DURATION_MS,
+  CONVERSATION_RECOMMENDATION_PROMPT_TURN,
+  SIESTA_EVENTS_ENABLED,
+  estimateTypingFallbackDelay,
+  mapIntentToRapportContext,
+  type ActionSessionMode,
+  type InteractionStatus,
+  type QueuedInteraction,
+  type ServedCocktailMode,
+} from './restation-controller-model.js'
 
-type InteractionStatus = 'idle' | 'processing' | 'typing' | 'preparing' | 'exiting'
-type ServedCocktailMode = 'recommendation' | 'codex'
-export type ActionSessionMode = DialogueSessionMode
-type QueuedInteraction =
-  | { type: 'send'; text: string }
-  | { type: 'welcome-drink' }
-  | { type: 'start-recommendation' }
-  | { type: 'order-cocktail'; cocktail: CocktailData }
-  | { type: 'story-from-card'; cocktail: CocktailData }
-  | { type: 'cancel-recommendation' }
-
-const COCKTAIL_PREPARATION_DELAY_MS = 600
-const COCKTAIL_PREPARATION_DURATION_MS = 1800
-const TYPING_FALLBACK_BUFFER_MS = 1200
-const TYPING_FALLBACK_MAX_TOKEN_MS = 180
-const CONVERSATION_RECOMMENDATION_PROMPT_TURN = 12
-const SIESTA_EVENTS_ENABLED = false
 const dialogueService = new DialogueService(cocktails)
 
-function estimateTypingFallbackDelay(text: string): number {
-  return Array.from(text).length * TYPING_FALLBACK_MAX_TOKEN_MS + TYPING_FALLBACK_BUFFER_MS
-}
+export type { ActionSessionMode } from './restation-controller-model.js'
 
 export function useRestationController(sfx?: SfxChannel) {
   const [scene, setScene] = useState<'outside' | 'inside'>('outside')
@@ -101,10 +92,6 @@ export function useRestationController(sfx?: SfxChannel) {
   )
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
-  const [rapport, setRapport] = useState(createInitialRapport)
-  const rapportRef = useRef(rapport)
-  const rapportTrackerRef = useRef(createUpdateTracker())
-  const rapportTurnRef = useRef(0)
   const timerRegistry = useRef(createTimerRegistry())
   const userMessageCountRef = useRef(0)
   const siestaEventCountRef = useRef(0)
@@ -150,6 +137,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resolveLoreBasedCocktail,
     resolveRecommendation,
   } = useRecommendationSession()
+  const { rapport, resetRapport, applyRapportUpdate } = useRapportSession()
 
   const recordConversationContext = useCallback((event: ConversationContextEvent) => {
     dispatchConversationContext(event)
@@ -365,11 +353,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resetSiestaEventSession()
     semanticSessionTags.reset()
     resetSessionFlow('conversation')
-    const initialRapport = createInitialRapport()
-    rapportRef.current = initialRapport
-    setRapport(initialRapport)
-    rapportTrackerRef.current = createUpdateTracker()
-    rapportTurnRef.current = 0
+    resetRapport()
     setErrorMessage(null)
     setScene('inside')
     setServedCocktail(null)
@@ -387,7 +371,7 @@ export function useRestationController(sfx?: SfxChannel) {
         speaker: 'karua',
       },
     ])
-  }, [clearPendingWork, resetSessionFlow, resetSiestaEventSession])
+  }, [clearPendingWork, resetRapport, resetSessionFlow, resetSiestaEventSession])
 
   const handleExit = useCallback(() => {
     clearPendingWork()
@@ -426,11 +410,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resetNight()
     semanticSessionTags.reset()
     resetSessionFlow('conversation')
-    const initialRapport = createInitialRapport()
-    rapportRef.current = initialRapport
-    setRapport(initialRapport)
-    rapportTrackerRef.current = createUpdateTracker()
-    rapportTurnRef.current = 0
+    resetRapport()
     setMessages([])
     setExpression('idle')
     setErrorMessage(null)
@@ -449,6 +429,7 @@ export function useRestationController(sfx?: SfxChannel) {
     clearPendingWork,
     resetNight,
     resetRecommendation,
+    resetRapport,
     resetSessionFlow,
     resetSiestaEventSession,
   ])
@@ -547,26 +528,19 @@ export function useRestationController(sfx?: SfxChannel) {
     forcedSessionMode?: ActionSessionMode,
   ) => {
     const effectiveSessionMode = forcedSessionMode ?? actionSessionMode
-    return dialogueService.resolve({
+    return dialogueService.resolve(createRestationDialogueRequest({
       text,
       messages: nextMessages,
       conversationContext,
-      session: {
-        phase: sessionPhase,
-        activeRecommendationSession: effectiveSessionMode === 'recommendation' && activeQuestion !== null,
-        allowRecommendationRoutes:
-          effectiveSessionMode === 'recommendation' || welcomeDrinkFeedbackPending,
-        welcomeDrinkUsed: welcomeDrinkServed,
-        alcoholStarsTotal: alcoholStarTotal,
-        totalUserMessages: userMessageCountRef.current,
-        conversationTurnCount: dialogueSession.dialogue.turnCount,
-        sessionAffect: dialogueSession.sessionAffect,
-        sessionTopic: dialogueSession.sessionTopic,
-        pendingQuestion: dialogueSession.pendingQuestion,
-      },
+      dialogueSession,
+      effectiveSessionMode,
+      activeQuestion,
+      welcomeDrinkFeedbackPending,
+      welcomeDrinkServed,
+      alcoholStarTotal,
+      totalUserMessages: userMessageCountRef.current,
       displayedCocktail: servedCocktail,
-      continuationContext: createConversationContextSnapshot(dialogueSession, conversationContext),
-    })
+    }))
   }, [
     actionSessionMode,
     activeQuestion,
@@ -574,7 +548,6 @@ export function useRestationController(sfx?: SfxChannel) {
     conversationContext,
     dialogueSession,
     servedCocktail,
-    sessionPhase,
     welcomeDrinkFeedbackPending,
     welcomeDrinkServed,
   ])
@@ -596,31 +569,6 @@ export function useRestationController(sfx?: SfxChannel) {
     resolveRandomRecommendation,
     resolveRecommendation,
   ])
-
-  const mapIntentToRapportContext = useCallback((intent: string): string => {
-    const MAP: Partial<Record<IntentType, string>> = {
-      'order-cocktail': 'cocktail-order',
-      'order-cocktail-mixed': 'cocktail-order',
-      'recommendation-query': 'recommend-request',
-      'mood-talk': 'mood-expression',
-      'taste-query': 'taste-statement',
-      'uncertain-talk': 'general-chat',
-    }
-    return MAP[intent as IntentType] ?? intent
-  }, [])
-
-  const applyRapportUpdate = useCallback((intent: string) => {
-    rapportTurnRef.current += 1
-    const ctx = mapIntentToRapportContext(intent)
-    const result = updateRapport(rapportRef.current, {
-      intent: ctx,
-      sessionTurnCount: rapportTurnRef.current,
-    }, rapportTrackerRef.current)
-    if (result.rapport !== rapportRef.current) {
-      rapportRef.current = result.rapport
-      setRapport(result.rapport)
-    }
-  }, [mapIntentToRapportContext])
 
   const performSend = useCallback(
     (text: string, forcedSessionMode?: ActionSessionMode) => {
@@ -936,7 +884,6 @@ export function useRestationController(sfx?: SfxChannel) {
       executeAction,
       ingestUserMessage,
       lastServedCocktail,
-      mapIntentToRapportContext,
       messages,
       moveOutsideAfterDelay,
       playScreenShakeCue,

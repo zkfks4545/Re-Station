@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cocktails, getCocktailById } from '../cocktails/database.js'
+import { cocktails, getCocktailById } from '../cocktails/index.js'
 import { createConversationContext, updateConversationContext } from './conversation-context.js'
 import { createConversationContextSnapshot } from './conversation-context-snapshot.js'
 import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
@@ -19,7 +19,7 @@ import {
 import { applyQuestionAnswer, getQuestionById } from '../recommendation/question-engine.js'
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
 import { formatExactRecommendationResponse } from '../recommendation/response.js'
-import { RESPONSE_PLANS } from './response-plan-data.js'
+import { RESPONSE_PLANS } from './response-plan-catalog.js'
 import type { Message } from '../../types.js'
 
 interface ConversationTrace {

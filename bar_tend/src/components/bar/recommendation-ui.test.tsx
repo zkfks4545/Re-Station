@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { getCocktailById } from '../../lib/cocktails/database.js'
+import { getCocktailById } from '../../lib/cocktails/index.js'
 import { getQuestionById } from '../../lib/recommendation/question-engine.js'
 import { WELCOME_DRINK_FEEDBACK_QUESTION } from '../../lib/recommendation/welcome-drink.js'
 import ChatInput from './ChatInput.js'

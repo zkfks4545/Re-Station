@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getCocktailResponse } from '../bartender/engine.js'
 import { IntentClassifier, type DialogueContext, type IntentType } from '../bartender/intent-classifier.js'
-import { cocktails } from '../cocktails/database.js'
+import { cocktails } from '../cocktails/index.js'
 
 const classifier = new IntentClassifier(cocktails)
 const baseContext: DialogueContext = {
