@@ -237,7 +237,7 @@ RapportState는 숨은 관계 상태다. controller는 입력 맥락에 따라 �
 
 ### 6.8 Character Sprite Contract
 
-`Expression`은 대사 표현과 무대 표정의 공통 계약이다. `sprites.ts`는 문자열 경로 조합 없이 `Record<Expression, image>`로 정적 PNG를 제공하고, 준비되지 않은 슬롯은 명시적 fallback으로 처리한다. 현재 카루아의 `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed` 표정은 각각 독립 이미지로 연결되며, `talk`만 `idle` 이미지를 fallback으로 사용한다.
+`Expression`은 대사 표현과 무대 표정의 공통 계약이다. `sprites.ts`는 문자열 경로 조합 없이 `Record<Expression, image>`로 정적 PNG를 제공하고, 준비되지 않은 슬롯은 명시적 fallback으로 처리한다. 현재 카루아의 `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed` 표정은 각각 독립 이미지로 연결되며, `talk`은 별도 입 모양 PNG를 만들지 않고 `idle` 이미지를 의도적으로 공유한다.
 
 `upset.png`는 별도 대사 표현 타입을 만들지 않고, 안전·경계 응답에 쓰이는 기존 `stern` 슬롯의 이미지 자산으로 연결한다. 이미지 파일명은 에셋 관리 정보이며, 대화·안전·세션 로직은 항상 `Expression` 타입만 사용한다.
 

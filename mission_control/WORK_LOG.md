@@ -1,5 +1,11 @@
 # 작업 이력 (축약)
 
+## 2026-07-13 / Codex / SPR-002 talk fallback 확정
+
+- `talk`은 별도 PNG를 제작하지 않고 `idle` 이미지를 의도적으로 공유하기로 확정했다. 타이핑 표시와 대사 변화가 발화감을 담당한다.
+- SPR-002는 데스크톱·모바일 수동 화면 검수만 남은 REVIEW 상태다. 현재 브라우저 연결이 없어 해당 검수는 수행하지 못했다.
+- 검증: `git diff --check` 통과.
+
 ## 2026-07-13 / Codex / 외부 구조 보고서 최신화
 
 - `EXTERNAL_STRUCTURE_REPORT.md`에 카루아 `sprites.ts` 에셋 진입점과 `Expression` 기반 정적 스프라이트 계약을 반영했다.

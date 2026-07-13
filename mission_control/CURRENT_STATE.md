@@ -54,7 +54,7 @@
 ## 현재 구현 vs 목표 차이
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + `talk`만 `idle` fallback, 시에스타 라벨만 | `talk` PNG + 시에스타 난입 스프라이트 |
+| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + 의도된 `talk`=`idle` 공유, 시에스타 라벨만 | 시에스타 난입 스프라이트 |
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
@@ -84,7 +84,7 @@
 - Step 4는 새 기본 UI를 만드는 일이 아니라 SFX 상태·접근성·오류/차단 상태를 기존 UI에 보강하는 단계다.
 
 ## 현재 우선순위
-1. SPR-002 PNG 제작과 기존 fallback 슬롯의 실제 에셋 교체
+1. SPR-002 화면 검수 후 완료: `talk`은 별도 PNG 없이 `idle`을 의도적으로 공유
 2. Phase 12 실제 브라우저 WebLLM 측정과 격리 검증 종료
 3. Character QA를 대사 변경과 함께 지속
 4. Phase 13 활용 여부 결정 전에는 Semantic Snapshot을 ResponsePlan 선택에 연결하지 않음
