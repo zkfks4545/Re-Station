@@ -26,7 +26,7 @@ const BAR_INTRO_TEXTS = getPlanTexts('karua.small-talk.bar-intro')
 const CHARACTER_QUERY_TEXTS = getPlanTexts('karua.small-talk.character-query')
 const SIESTA_MENTION_TEXTS = getPlanTexts('karua.small-talk.siesta-mention')
 
-function expectKahluaBoundary(response: string) {
+function expectKaruaBoundary(response: string) {
   for (const forbidden of DIRECT_COMFORT_OR_ALCOHOL_SOLUTION) {
     expect(response).not.toMatch(forbidden)
   }
@@ -119,7 +119,7 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(result.response).toMatch(/분위기|조명|음악|공기|잔|어둡|느리|수상|좋은 곳/)
     expect(['talk', 'smirk', 'thinking']).toContain(result.expression)
-    expectKahluaBoundary(result.response)
+    expectKaruaBoundary(result.response)
   })
 
   it('uses weather dialogue without starting a recommendation loop', () => {
@@ -127,21 +127,21 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(result.response).toMatch(/날씨|비|밖|잔|소리|시원|산뜻|눈|추운|더운|습한|바람/)
     expect(result.response).not.toContain('추천')
-    expectKahluaBoundary(result.response)
+    expectKaruaBoundary(result.response)
   })
 
   it('handles uncertain casual talk as a bar conversation cue', () => {
     const result = getCocktailResponse('뭐 마실지 모르겠고 그냥 왔어', [])
 
     expect(result.response).toMatch(/정해진|고민|아무 생각|싫은 것|표정|주문|선택지|방향|첫 단추|그냥|충분해요|이유|첫 모금/)
-    expectKahluaBoundary(result.response)
+    expectKaruaBoundary(result.response)
   })
 
   it('keeps quiet solo visit dialogue low pressure', () => {
     const result = getCocktailResponse('오늘은 혼자 조용히 쉬고 싶어', [])
 
     expect(result.response).toMatch(/조용|혼자|말없이|향|쉬|잔|가만히|천천히/)
-    expectKahluaBoundary(result.response)
+    expectKaruaBoundary(result.response)
   })
 
   it('responds to a difficult mood naturally, not with an alcohol solution', () => {
@@ -149,7 +149,7 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(response.length).toBeGreaterThan(0)
     expect(response).not.toMatch(/농담|알바/)
-    expectKahluaBoundary(response)
+    expectKaruaBoundary(response)
   })
 
   it('routes tired mood to tired-specific dialogue variants', () => {
@@ -157,7 +157,7 @@ describe('neutral runtime dialogue contract', () => {
 
     expect(MOOD_TIRED_TEXTS).toContain(result.response)
     expect(result.expression).toBe('sympathy')
-    expectKahluaBoundary(result.response)
+    expectKaruaBoundary(result.response)
   })
 
   it('does not let an earlier cocktail mention override the current user input', () => {
@@ -184,7 +184,7 @@ describe('neutral runtime dialogue contract', () => {
       expect(result).toBeDefined()
       expect(result.response.length).toBeGreaterThan(0)
       expect(result.expression).toBe('sympathy')
-      expectKahluaBoundary(result.response)
+      expectKaruaBoundary(result.response)
     }
   })
 
@@ -194,7 +194,7 @@ describe('neutral runtime dialogue contract', () => {
       expect(result).toBeDefined()
       expect(result.response.length).toBeGreaterThan(0)
       expect(result.expression).toBe('smirk')
-      expectKahluaBoundary(result.response)
+      expectKaruaBoundary(result.response)
     }
   })
 
@@ -218,14 +218,14 @@ describe('neutral runtime dialogue contract', () => {
     const response = getCocktailResponse('도수 높은 걸로 세게 줘', []).response
 
     expect(response.length).toBeGreaterThan(0)
-    expectKahluaBoundary(response)
+    expectKaruaBoundary(response)
   })
 
   it('stops offering alcohol when the guest says they are already drunk', () => {
     const response = getCocktailResponse('나 너무 취했어', []).response
 
     expect(response).toMatch(/권하지|멈추|물|쉬/)
-    expectKahluaBoundary(response)
+    expectKaruaBoundary(response)
   })
 
   it('does not use dedicated minor or non-alcoholic service replies', () => {
@@ -249,7 +249,7 @@ describe('neutral runtime dialogue contract', () => {
   })
 })
 
-describe('Kahlua safety boundary', () => {
+describe('Karua safety boundary', () => {
   it('detects immediate self-harm language', () => {
     expect(detectSafetyConcern('죽고 싶어')).toBe(true)
     expect(detectSafetyConcern('오늘 너무 피곤해')).toBe(false)

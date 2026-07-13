@@ -147,7 +147,9 @@ export default function BarExterior({ onEnter }: { onEnter: () => void }) {
 
             {/* Door */}
             <button
+              type="button"
               onClick={onEnter}
+              aria-label="Re:Station 입장하기"
               className="absolute cursor-pointer"
               style={{
                 left: '33%', top: '22%', width: '34%', height: '64%',

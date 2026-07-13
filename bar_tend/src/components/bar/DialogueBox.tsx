@@ -5,7 +5,7 @@ import DialogueRenderer from './DialogueRenderer.jsx'
 
 function getSpeakerLabel(message: Message): string | null {
   if (message.role !== 'bartender' || !message.speaker) return null
-  return message.speaker === 'siesta' ? '시에스타' : '칼루아'
+  return message.speaker === 'siesta' ? '시에스타' : '카루아'
 }
 
 export default function DialogueBox({
@@ -45,7 +45,14 @@ export default function DialogueBox({
   const typingMsgIndex = lastBartenderIndex >= 0 ? messages.length - 1 - lastBartenderIndex : -1
 
   return (
-    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pt-6 pb-3 space-y-4">
+    <div
+      ref={scrollRef}
+      onScroll={handleScroll}
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions text"
+      className="flex-1 overflow-y-auto px-6 pt-6 pb-3 space-y-4"
+    >
       {messages.map((msg, i) => {
         const isTypingMessage = isTyping && i === typingMsgIndex && msg.role === 'bartender'
 

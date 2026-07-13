@@ -201,7 +201,7 @@ describe('adaptive recommendation questions', () => {
     }
   })
 
-  it('ends questioning only when Kahlua is asked to take over', () => {
+  it('ends questioning only when Karua is asked to take over', () => {
     const question = getQuestionById('fizz')
     expect(question).not.toBeNull()
 
@@ -217,7 +217,7 @@ describe('adaptive recommendation questions', () => {
     expect(unknown.finishRecommendation).toBe(false)
   })
 
-  it('treats 아무거나 as asking Kahlua to take over while preserving prior answers', () => {
+  it('treats 아무거나 as asking Karua to take over while preserving prior answers', () => {
     const question = getQuestionById('fizz')!
     const state = applyRecommendationSignals(createRecommendationState(), [
       { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'question' },
@@ -493,7 +493,7 @@ describe('adaptive recommendation questions', () => {
     expect(unknown.finishRecommendation).toBe(false)
   })
 
-  it('keeps Kahlua delegation behavior while question text uses ResponsePlan', () => {
+  it('keeps Karua delegation behavior while question text uses ResponsePlan', () => {
     const question = getQuestionById('fizz')!
     const delegatedChoice = question.choices.find((choice) => choice.finishRecommendation)!
     const delegated = applyQuestionAnswer(createRecommendationState(), question, delegatedChoice.label)

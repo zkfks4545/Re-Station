@@ -7,9 +7,10 @@ import ChatInput from './ChatInput.js'
 import CocktailCard from './CocktailCard.js'
 import DialogueBox from './DialogueBox.js'
 import WelcomeDrinkButton from './WelcomeDrinkButton.js'
+import Sidebar from '../sidebar/Sidebar.js'
 
 describe('recommendation UI rendering contracts', () => {
-  it('renders the recommendation card with details and order/story actions', () => {
+  it('renders only neutral DB details and order/story actions on the recommendation card', () => {
     const cocktail = getCocktailById('cocktail_classic_001')
     expect(cocktail).not.toBeNull()
 
@@ -23,9 +24,23 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toContain(cocktail!.name)
+    expect(markup).toContain('role="dialog"')
+    expect(markup).toContain('aria-modal="true"')
+    expect(markup).toContain('aria-labelledby=')
+    expect(markup).toContain('aria-describedby=')
     expect(markup).toContain(cocktail!.description)
+    expect(markup).toContain(cocktail!.vibe === 'Classic cocktail' ? '클래식 칵테일' : cocktail!.vibe)
     expect(markup).toContain('설명')
-    expect(markup).toContain('레시피')
+    expect(markup).toContain('베이스')
+    expect(markup).toContain(cocktail!.base)
+    expect(markup).toContain('재료')
+    expect(markup).toContain(cocktail!.ingredients[0])
+    expect(markup).toContain('잔')
+    expect(markup).toContain('분류')
+    expect(markup).toContain('맛 프로필')
+    expect(markup).not.toContain(cocktail!.recipeText)
+    expect(markup).not.toContain('이야깃거리')
+    expect(markup).not.toContain('추천 이유')
     expect(markup).toContain('주문하기')
     expect(markup).toContain('이야기하기')
     expect(markup.match(/type="button"/g)).toHaveLength(3)
@@ -47,6 +62,8 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toContain('role="group"')
+    expect(markup).toContain('role="log"')
+    expect(markup).toContain('aria-live="polite"')
     expect(markup).toContain(activeQuestion!.prompt)
     expect(markup).toContain(activeQuestion!.choices[0].label)
     expect(markup).toContain('잘 모르겠어요')
@@ -113,6 +130,9 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toContain('바텐더에게 말을 걸어보세요...')
+    expect(markup).toContain('type="submit"')
+    expect(markup).toContain('aria-label="메시지 전송"')
+    expect(markup).toContain('전송')
   })
 
   it('hides the order/story actions when the flow does not provide them', () => {
@@ -144,7 +164,7 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toContain('시에스타')
-    expect(markup).toContain('칼루아')
+    expect(markup).toContain('카루아')
     expect(markup).toContain('잘 골랐네.')
     expect(markup).not.toContain('좋아요</div>')
   })
@@ -172,5 +192,34 @@ describe('recommendation UI rendering contracts', () => {
     )
 
     expect(markup).toBe('')
+  })
+
+  it('uses the native disabled contract for the welcome drink action', () => {
+    const markup = renderToStaticMarkup(
+      <WelcomeDrinkButton disabled hidden={false} onClick={() => undefined} />,
+    )
+
+    expect(markup).toContain('disabled=""')
+    expect(markup).not.toContain('aria-disabled=')
+  })
+
+  it('exposes labelled tabs and an explicit mobile close action for the sidebar', () => {
+    const markup = renderToStaticMarkup(
+      <Sidebar
+        unlockedIds={new Set()}
+        mobileOpen={false}
+        onMobileClose={() => undefined}
+        onResetNight={() => undefined}
+        onViewCocktail={() => undefined}
+        onOrderCocktail={() => undefined}
+        audio={{} as never}
+      />,
+    )
+
+    expect(markup).toContain('id="bar-terminal-menu"')
+    expect(markup).toContain('aria-label="바 메뉴 닫기"')
+    expect(markup).toContain('role="tablist"')
+    expect(markup).toContain('aria-controls="sidebar-panel-codex"')
+    expect(markup).toContain('aria-labelledby="sidebar-tab-codex"')
   })
 })

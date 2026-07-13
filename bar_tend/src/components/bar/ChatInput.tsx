@@ -22,6 +22,7 @@ export default function ChatInput({
   return (
     <div className="chat-input-shell bg-black/40 border-t border-white/5">
       <form
+        className="chat-input-form"
         onSubmit={(event: FormEvent) => {
           event.preventDefault()
           if (val.trim()) {
@@ -37,11 +38,20 @@ export default function ChatInput({
           disabled={disabled}
           placeholder={placeholder}
           aria-label="바텐더에게 메시지 보내기"
-          className="w-full bg-white/5 border border-white/10 rounded-full px-6 text-white placeholder:text-white/20 focus:outline-none transition-all"
-             style={{ padding: 'clamp(8px, 1.5vh, 14px) 24px' }}
+          autoComplete="off"
+          className="min-w-0 flex-1 bg-white/5 border border-white/10 rounded-full px-6 text-white placeholder:text-white/20 focus:outline-none transition-all"
+          style={{ padding: 'clamp(8px, 1.5vh, 14px) 24px' }}
           onFocus={(event) => event.currentTarget.style.borderColor = 'rgba(180, 136, 208, 0.5)'}
           onBlur={(event) => event.currentTarget.style.borderColor = ''}
         />
+        <button
+          type="submit"
+          className="chat-send-btn"
+          disabled={disabled || !val.trim()}
+          aria-label="메시지 전송"
+        >
+          전송
+        </button>
       </form>
     </div>
   )

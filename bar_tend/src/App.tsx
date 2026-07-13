@@ -84,6 +84,8 @@ export default function App() {
               className="sidebar-toggle"
               onClick={() => setSidebarOpen((o) => !o)}
               aria-expanded={sidebarOpen}
+              aria-controls="bar-terminal-menu"
+              aria-label="바 메뉴 열기"
             >
               [ MENU ]
             </button>

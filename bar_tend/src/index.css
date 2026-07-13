@@ -14,6 +14,14 @@ body,
   overflow: hidden;
 }
 
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -210,7 +218,7 @@ html::before {
 }
 
 .session-mode-btn:hover:not(:disabled),
-.welcome-drink-btn:hover:not([aria-disabled='true']),
+.welcome-drink-btn:hover:not(:disabled),
 .exit-btn:hover:not(:disabled),
 .session-mode-btn:focus-visible,
 .welcome-drink-btn:focus-visible,
@@ -229,7 +237,6 @@ html::before {
 
 .session-mode-btn:disabled,
 .welcome-drink-btn:disabled,
-.welcome-drink-btn[aria-disabled='true'],
 .exit-btn:disabled {
   cursor: wait;
   opacity: 0.45;
@@ -251,7 +258,7 @@ html::before {
 }
 
 /* ── Mobile touch target size ── */
-.sidebar-tab, .sidebar-toggle, .reset-btn, .music-track, .session-mode-btn, .exit-btn {
+.sidebar-tab, .sidebar-toggle, .sidebar-close, .reset-btn, .music-track, .session-mode-btn, .welcome-drink-btn, .exit-btn {
   min-height: 44px;
 }
 
@@ -618,6 +625,19 @@ html::before {
 .music-panel__hint {
   margin-bottom: 10px;
 }
+
+.sidebar-close {
+  display: none;
+  position: absolute;
+  top: max(6px, env(safe-area-inset-top));
+  right: 8px;
+  z-index: 3;
+  min-width: 44px;
+  color: #d9c6e8;
+  background: rgba(120, 80, 180, 0.1);
+  border: 1px solid rgba(180, 136, 208, 0.35);
+  font-size: 20px;
+}
 .music-panel {
   display: flex;
   flex-direction: column;
@@ -847,7 +867,50 @@ html::before {
 }
 
 .chat-input-shell form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: clamp(8px, 1.5vh, 16px) 16px clamp(5px, 1vh, 9px);
+}
+.chat-send-btn {
+  min-width: 52px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(180, 136, 208, 0.35);
+  border-radius: 999px;
+  color: #d9c6e8;
+  background: rgba(120, 80, 180, 0.14);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chat-send-btn:hover:not(:disabled),
+.chat-send-btn:focus-visible,
+.sidebar-close:hover,
+.sidebar-close:focus-visible {
+  color: #f5e6d3;
+  border-color: rgba(180, 136, 208, 0.7);
+  background: rgba(120, 80, 180, 0.25);
+  outline: 2px solid rgba(196, 163, 90, 0.65);
+  outline-offset: 2px;
+}
+.chat-send-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.cocktail-card-backdrop {
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.cocktail-card-dialog {
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+.cocktail-card-dialog > button[aria-label='닫기'] {
+  min-width: 44px;
+  min-height: 44px;
+}
+.cocktail-card-dialog button:focus-visible {
+  outline: 2px solid rgba(196, 163, 90, 0.75);
+  outline-offset: 2px;
 }
 .recommendation-choices {
   display: flex;
@@ -931,6 +994,14 @@ html::before {
   .sidebar-toggle {
     display: inline-block;
   }
+  .sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar-tabs {
+    padding-right: 48px;
+  }
 
   /* Reduce sprite height on small screens to give chat more room */
   .bartender-sprite__image {
@@ -959,7 +1030,7 @@ html::before {
   }
   .chat-input-shell form input {
     padding: 10px 16px !important;
-    font-size: 14px;
+    font-size: 16px;
   }
   .recommendation-choices {
     display: block;
@@ -999,6 +1070,21 @@ html::before {
 }
 
 @media (max-width: 480px) {
+  .chat-input-wrap {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .chat-input-wrap > div:last-child {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .chat-send-btn {
+    min-width: 56px;
+  }
+  .cocktail-card-dialog {
+    padding: 20px;
+  }
   .bartender-sprite__image {
     height: 100%;
     min-height: 100px;
@@ -1006,6 +1092,17 @@ html::before {
   }
   .restation-chat-dock {
     --chat-dock-height: clamp(190px, 46vh, 300px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
