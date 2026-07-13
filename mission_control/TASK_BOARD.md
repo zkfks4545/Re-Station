@@ -678,6 +678,56 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 14 | ResponsePlan 보조 선택 | 계획 | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | 힌트가 없거나 충돌하면 기존 규칙 선택 유지. 자유문장·사실·재료·효과 생성 금지 |
 | Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
 
+### 현재 실행 우선순위와 Conversation QA gate (2026-07-13)
+
+| 우선순위 | 범위 | 완료 조건 |
+|---|---|---|
+| P0 — DONE | 대화 연속성 FSM, ContinuationResolver, 추천 문맥, PendingQuestion, SessionTopic | 실제 플레이 로그를 턴 배열로 실행해 Intent, Topic, PendingQuestion, Route, ResponsePlan, Expression, SessionAffect와 다음 snapshot을 모두 검증 |
+| P1 | 제품 계약, 핵심 E2E, 추천 카드 계약, 카루아 명칭 | 기능 안정화 뒤 대표 사용자 흐름과 문서 계약이 일치하고 명칭·정보 책임이 단일화됨 |
+| P2 | 접근성, 모바일 UX, 모달, 전송 버튼 | 핵심 흐름을 모바일·키보드로 완주하고 포커스·닫기·전송 동작이 명확함 |
+| P3 | Controller, ResponsePlan data, DB 진입점 | 동작 계약을 유지하면서 책임 경계를 분리하고 전체 회귀 통과 |
+| P4 | 이미지, 번들, lazy loading | 측정값을 기준으로 대형 자산과 초기 로딩 비용 축소 |
+| P5 | README와 mission_control 동기화 | 구현·검증이 안정된 시점에 상태, 테스트 수, 작업 보드를 한 번에 갱신 |
+
+#### P0 Conversation QA 완료 계약
+
+> 상태: **DONE (2026-07-13)** — `conversation-continuity.test.ts`가 실제 다중 턴 로그와 전이 경계를 검증하며 전체 테스트·타입 검사·린트를 통과했다.
+
+Conversation QA는 단위 함수들의 존재가 아니라 실제 사용자 대화가 다음 순서로 이어지는지를 검증한다.
+
+```text
+Input
+→ Intent
+→ SessionTopic
+→ PendingQuestion
+→ Route
+→ ResponsePlan
+→ Expression
+→ SessionAffect
+→ next context snapshot
+```
+
+필수 대표 로그:
+
+```text
+여긴 뭐하는 곳이에요
+당신은?
+추천받기
+잘 모르겠어요
+베이스가 뭐예요
+카루아에게 맡기기
+```
+
+추가 완료 조건:
+
+- `ContinuationResolver`가 직전 topic·subject가 있을 때만 짧은 후속 입력을 복구한다.
+- 활성 추천 질문에서 도움말·반복·건너뛰기·위임 입력이 일반 잡담 route로 새지 않는다.
+- 질문 도움말 뒤에는 동일 `PendingQuestion`이 유지되고, 건너뛰기에는 다음 질문 또는 추천으로 전이한다.
+- 위임·추천 완료·추천 취소·safety·farewell에서는 더 이상 유효하지 않은 `PendingQuestion`이 제거된다.
+- `SessionTopic`과 cocktail subject가 후속 이야기·정보 요청 동안 유지되고 명시적 새 대상에서 교체된다.
+- ResponsePlan 변경이 Intent, Route, 추천 결과, 세션 전이를 바꾸지 않는다는 회귀를 고정한다.
+- 실패 출력은 턴 번호와 각 단계의 기대값·실제값을 보여 문맥이 끊긴 경계를 바로 찾을 수 있어야 한다.
+
 ### Phase 9~15 후속 계획 계약
 
 #### Phase 9: Character Layer

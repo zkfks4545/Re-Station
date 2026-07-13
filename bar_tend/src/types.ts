@@ -70,6 +70,7 @@ export interface Message {
 export interface BartenderResponse {
   response: string
   expression: Expression
+  responsePlanId?: string
   character?: CharacterResponseMetadata
 }
 
@@ -93,6 +94,7 @@ export interface KeywordRule {
 export interface DialogueLine {
   text: string
   expression: Expression
+  responsePlanId?: string
 }
 
 export interface DialogueCategory {

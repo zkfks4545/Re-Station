@@ -23,6 +23,7 @@ export interface RecommendationOutcome {
 interface DialogueTurnOptions {
   confidence?: number
   entities?: Partial<ExtractedEntities>
+  responsePlanId?: string
 }
 
 export const SAFETY_REDIRECT_REPLY =
@@ -188,6 +189,7 @@ export function buildDialogueTurn(
     },
     reply,
     expression: outcome?.expression ?? fallbackExpression,
+    ...(options.responsePlanId ? { responsePlanId: options.responsePlanId } : {}),
   }
 }
 

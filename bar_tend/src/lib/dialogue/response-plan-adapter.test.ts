@@ -59,6 +59,7 @@ function getPlanLines(planId: string): DialogueLine[] {
   return (plan.blocks.answer ?? []).map((line) => ({
     text: line.text,
     expression: line.expression,
+    responsePlanId: plan.id,
   }))
 }
 
@@ -134,6 +135,7 @@ describe('ResponsePlan dual-read adapter', () => {
     expect(pickDialogueFromSources(category, [], () => 0)).toEqual({
       text: first?.text,
       expression,
+      responsePlanId: first?.responsePlanId,
     })
   })
 

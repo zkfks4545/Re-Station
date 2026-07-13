@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-10 (Phase 11 Dialogue Source Normalization 완료 반영)
+> 최종 갱신일: 2026-07-13 (P0 대화 연속성 및 Conversation QA 완료 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
@@ -84,10 +84,17 @@
 - Step 4는 새 기본 UI를 만드는 일이 아니라 SFX 상태·접근성·오류/차단 상태를 기존 UI에 보강하는 단계다.
 
 ## 현재 우선순위
-1. SPR-002 화면 검수 후 완료: `talk`은 별도 PNG 없이 `idle`을 의도적으로 공유
-2. Phase 12 실제 브라우저 WebLLM 측정과 격리 검증 종료
-3. Character QA를 대사 변경과 함께 지속
-4. Phase 13 활용 여부 결정 전에는 Semantic Snapshot을 ResponsePlan 선택에 연결하지 않음
+
+P0 대화 연속성 gate를 닫았다. 다음 제품 병목은 기능 구현과 제품 계약이 일치하는지 확인하는 P1이다. Phase 12는 진행 상태를 유지하되 P1보다 우선 확장하지 않는다.
+
+1. **P0 — 대화 연속성 (DONE)**: FSM/ContinuationResolver 연결, 추천 문맥·PendingQuestion·SessionTopic 전이, 실제 플레이 로그 기반 Conversation QA 완료
+2. **P1 — 제품 계약 (NEXT)**: 핵심 E2E, 추천 카드 책임, 카루아 명칭 통일, 구현과 제품 계약 대조
+3. **P2 — 사용성**: 접근성, 모바일 UX, 모달, 전송 버튼
+4. **P3 — 구조 정리**: `useRestationController`, `response-plan-data`, 칵테일 DB 진입점 분리
+5. **P4 — 성능**: 이미지 최적화, 번들 측정, 지연 로딩
+6. **P5 — 문서 동기화**: README, CURRENT_STATE, TASK_BOARD, 테스트 수를 기능 안정화 뒤 일괄 정리
+
+P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 
 ---
 

@@ -151,6 +151,7 @@ export interface DialogueTurn {
   statePatch: StatePatch
   reply: string
   expression: Expression
+  responsePlanId?: string
 }
 
 export function validateDialogueTurn(turn: unknown): turn is DialogueTurn {
@@ -171,7 +172,8 @@ export function validateDialogueTurn(turn: unknown): turn is DialogueTurn {
     isStringArray(t.forbidden) &&
     validateStatePatch(t.statePatch) &&
     isNonEmptyString(t.reply) &&
-    isOneOf(t.expression, EXPRESSIONS)
+    isOneOf(t.expression, EXPRESSIONS) &&
+    optionalString(t.responsePlanId)
   )
 }
 

@@ -1,4 +1,5 @@
 import type { RecommendationQuestion } from '../../types/recommendation.js'
+import type { PendingQuestion } from '../session/dialogue-session.js'
 
 export type RecommendationQuestionInput = 'help' | 'repeat' | 'skip' | 'delegate' | null
 
@@ -19,4 +20,24 @@ export function explainRecommendationQuestion(question: RecommendationQuestion):
     carbonation: '탄산감은 입안에서 톡 쏘는 느낌이에요. 하이볼처럼 청량한 쪽과 잔잔한 쪽 중 편한 쪽을 고르면 돼요.',
   }
   return explanations[question.topic] ?? '이 질문은 취향을 조금만 좁히기 위한 거예요. 잘 모르시면 제가 편한 쪽으로 골라볼게요.'
+}
+
+export function createPendingRecommendationQuestion(
+  question: RecommendationQuestion,
+  askedAtTurn: number,
+): PendingQuestion {
+  const kindByTopic: Record<string, PendingQuestion['kind']> = {
+    flavor: 'recommendation-flavor', alcohol: 'recommendation-strength',
+    base: 'recommendation-base', fizz: 'recommendation-carbonation',
+  }
+  return {
+    kind: kindByTopic[question.topic] ?? 'clarification',
+    topic: 'recommendation',
+    askedAtTurn,
+    sourcePlanId: question.promptPreset?.id ?? question.id,
+  }
+}
+
+export function preservesPendingRecommendationQuestion(input: RecommendationQuestionInput): boolean {
+  return input === 'help' || input === 'repeat'
 }

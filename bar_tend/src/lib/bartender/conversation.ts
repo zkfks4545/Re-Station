@@ -6,10 +6,18 @@ import { formatStoryQueryReply } from '../dialogue/story-query.js'
 import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailInfoDraft, formatCocktailMentionDraft, formatMartiniLoreFollowupDraft, formatShakeOrderDraft, type IntentResponseTemplate } from '../dialogue/response-templates.js'
 import type { CocktailData, Message, BartenderResponse } from '../../types.js'
 
+function assembleDialogueLine(line: { text: string; expression: import('../../types.js').Expression; responsePlanId?: string }): BartenderResponse {
+  return assembleResponse({
+    text: line.text,
+    preferredExpression: line.expression,
+    responsePlanId: line.responsePlanId,
+  })
+}
+
 function pickStoryFallback(): BartenderResponse {
   if (STORY_FALLBACK.dialogueCategory) {
     const picked = pickDialogue(STORY_FALLBACK.dialogueCategory)
-    if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
+    if (picked) return assembleDialogueLine(picked)
   }
   return assembleResponse({ text: STORY_FALLBACK.fallback, tone: STORY_FALLBACK.tone })
 }
@@ -21,7 +29,7 @@ function resolveFromSubTemplate(
 ): BartenderResponse {
   if (tmpl && tmpl.dialogueCategory) {
     const picked = pickDialogue(tmpl.dialogueCategory)
-    if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
+    if (picked) return assembleDialogueLine(picked)
   }
   if (tmpl) return assembleResponse({ text: tmpl.fallback, tone: tmpl.tone })
   if (extraDefaultCheck) {
@@ -49,7 +57,7 @@ export function generateResponse(
   if (tmpl) {
     if (tmpl.dialogueCategory) {
       const picked = pickDialogue(tmpl.dialogueCategory)
-      if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
+      if (picked) return assembleDialogueLine(picked)
     }
     return assembleResponse({ text: tmpl.fallback, tone: tmpl.tone })
   }
@@ -64,7 +72,7 @@ export function generateResponse(
     }
     if (cocktailFallback.dialogueCategory) {
       const picked = pickDialogue(cocktailFallback.dialogueCategory)
-      if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
+      if (picked) return assembleDialogueLine(picked)
     }
     return assembleResponse({ text: cocktailFallback.fallback, tone: cocktailFallback.tone })
   }
@@ -120,7 +128,7 @@ export function generateResponse(
       return resolveFromSubTemplate(rudeKey ? RUDE_SUB_TEMPLATES[rudeKey] : undefined, RUDE_DEFAULT, () => {
         if (RUDE_DEFAULT.dialogueCategory) {
           const picked = pickDialogue(RUDE_DEFAULT.dialogueCategory)
-          if (picked) return assembleResponse({ text: picked.text, preferredExpression: picked.expression })
+          if (picked) return assembleDialogueLine(picked)
         }
       })
     }

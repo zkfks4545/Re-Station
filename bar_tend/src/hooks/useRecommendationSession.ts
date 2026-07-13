@@ -36,7 +36,7 @@ import {
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
-import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
+import type { RecommendationDecision, RecommendationQuestion, RecommendationState } from '@/types/recommendation.js'
 import { addExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 
 export interface RecommendationResult {
@@ -44,6 +44,7 @@ export interface RecommendationResult {
   expression: Expression
   cocktail: CocktailData | null
   decision: RecommendationDecision | null
+  pendingQuestion: RecommendationQuestion | null
 }
 
 export function useRecommendationSession() {
@@ -218,6 +219,8 @@ export function useRecommendationSession() {
           'thinking',
           null,
           null,
+          undefined,
+          nextQuestion,
         )
       }
 
@@ -286,6 +289,7 @@ function assembleRecommendationResult(
   cocktail: CocktailData | null,
   decision: RecommendationDecision | null,
   preferredExpression?: Expression,
+  pendingQuestion: RecommendationQuestion | null = null,
 ): RecommendationResult {
   const assembled = assembleResponse({
     text,
@@ -301,5 +305,6 @@ function assembleRecommendationResult(
     expression: assembled.expression,
     cocktail,
     decision,
+    pendingQuestion,
   }
 }

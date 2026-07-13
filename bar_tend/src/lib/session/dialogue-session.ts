@@ -4,6 +4,7 @@ import {
   type SessionAffect,
   type SessionAffectSnapshot,
 } from './session-affect.js'
+import type { InputRoute } from '../dialogue/input-router.js'
 
 export type DialogueSessionMode = 'conversation' | 'recommendation'
 
@@ -70,7 +71,7 @@ export type DialogueSessionAction =
   | { type: 'reset-conversation-progress' }
   | { type: 'welcome-served' }
   | { type: 'welcome-resolved' }
-  | { type: 'cocktail-served' }
+  | { type: 'cocktail-served'; cocktailId?: string }
   | { type: 'set-alcohol-total'; total: number }
   | { type: 'lock-safety' }
   | { type: 'enter-farewell'; entryKind: Exclude<FarewellEntryKind, 'none'> }
@@ -117,11 +118,19 @@ export function dialogueSessionReducer(
     case 'set-phase':
       return { ...state, phase: action.phase }
     case 'set-mode':
-      return { ...state, mode: action.mode }
+      return {
+        ...state,
+        mode: action.mode,
+        pendingQuestion: action.mode === 'conversation' ? null : state.pendingQuestion,
+      }
     case 'set-session-affect':
       return { ...state, ...action.affect }
     case 'set-topic':
-      return { ...state, sessionTopic: action.topic, topicCocktailId: action.cocktailId ?? state.topicCocktailId }
+      return {
+        ...state,
+        sessionTopic: action.topic,
+        topicCocktailId: action.cocktailId === undefined ? state.topicCocktailId : action.cocktailId,
+      }
     case 'set-pending-question':
       return { ...state, pendingQuestion: action.question }
     case 'record-conversation-turn':
@@ -152,6 +161,9 @@ export function dialogueSessionReducer(
       return {
         ...state,
         mode: 'conversation',
+        sessionTopic: action.cocktailId ? 'cocktail-info' : state.sessionTopic,
+        topicCocktailId: action.cocktailId ?? state.topicCocktailId,
+        pendingQuestion: null,
       }
     case 'set-alcohol-total':
       return {
@@ -178,6 +190,9 @@ export function dialogueSessionReducer(
           ? 'xyz'
           : 'farewell',
         mode: 'conversation',
+        sessionTopic: 'smalltalk',
+        topicCocktailId: null,
+        pendingQuestion: null,
         welcomeDrink: {
           ...state.welcomeDrink,
           resolved: true,
@@ -201,6 +216,14 @@ export function dialogueSessionReducer(
 export function isWelcomeDrinkFeedbackPending(state: DialogueSessionState): boolean {
   return state.welcomeDrink.served && !state.welcomeDrink.resolved
 }
+
+export function sessionTopicForRoute(route: InputRoute): SessionTopic {
+  if (route === 'recommendation' || route === 'random-recommendation') return 'recommendation'
+  if (route === 'story-query' || route === 'lore-query') return 'cocktail-story'
+  if (route === 'cocktail-info-query') return 'cocktail-info'
+  return route === 'safety' ? 'safety' : 'smalltalk'
+}
+
 
 export function decideFarewellEntry(
   state: DialogueSessionState,

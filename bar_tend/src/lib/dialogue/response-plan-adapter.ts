@@ -183,5 +183,6 @@ export function pickResponsePlanDialogueFromPlans(
   return {
     text: selected.text,
     expression: selected.expression,
+    responsePlanId: plan.id,
   }
 }

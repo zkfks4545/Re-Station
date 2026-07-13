@@ -35,6 +35,7 @@ User Input
   ↓
 Input Understanding
   - intent, route, safety, explicit cocktail/story target
+  - continuation, SessionTopic, PendingQuestion, current subject
   ↓
 Decision Layer
   - Recommendation: 후보 필터, 질문 순서, 추천 결과
@@ -79,6 +80,7 @@ UI
 App / ChatInput
 → useRestationController
 → DialogueService
+→ ConversationContextSnapshot + ContinuationResolver
 → IntentClassifier + input-router
 → action-resolver
 → action-executor
@@ -128,6 +130,8 @@ App / ChatInput
 | `bar_tend/src/lib/bartender/keywords.ts` | `keyword-rules.json`을 런타임 규칙으로 컴파일 |
 | `bar_tend/src/data/keyword-rules.json` | 키워드 패턴, route, 표현 category 연결 |
 | `bar_tend/src/lib/dialogue/input-router.ts` | 원문 입력을 안전, 퇴장, 추천, 주문, 이야기, 정보, 캐릭터, 일반 대화 route로 분류 |
+| `bar_tend/src/lib/dialogue/conversation-context-snapshot.ts` | SessionTopic, SessionAffect, 현재 subject, PendingQuestion, 추천·안전 상태를 한 턴의 입력 해석용 snapshot으로 고정 |
+| `bar_tend/src/lib/dialogue/continuation-resolver.ts` | 짧은 후속 입력을 직전 topic·subject와 결합해 이야기 후속 질문, 캐릭터 질문 같은 연속 의도로 복구 |
 | `bar_tend/src/lib/dialogue/dialogue-service.ts` | 분류와 Action 해석을 오케스트레이션하고 검증된 DialogueTurn 반환 |
 | `bar_tend/src/lib/dialogue/action-resolver.ts` | route/intent와 컨텍스트를 행동 객체로 변환 |
 | `bar_tend/src/lib/dialogue/action-executor.ts` | 행동을 추천·주문·이야기 도메인 포트에 연결 |
@@ -162,6 +166,7 @@ App / ChatInput
 |---|---|
 | `bar_tend/src/data/recommendation-questions.json` | 추천 질문, 선택지, 상태 갱신 신호 |
 | `bar_tend/src/lib/recommendation/question-engine.ts` | 다음 질문 선택, 답변 반영, 후보 분별력 계산 |
+| `bar_tend/src/lib/recommendation/question-context.ts` | 활성 추천 질문 중 도움말, 반복, 건너뛰기, 카루아 위임 입력을 질문 문맥 안에서 분류 |
 | `bar_tend/src/lib/recommendation/state.ts` | 자유 입력 신호 추출, 추천 상태, 후보 필터, 추천 근거 |
 | `bar_tend/src/lib/recommendation/response.ts` | 결정된 추천 결과의 최종 표현 포맷 |
 | `bar_tend/src/hooks/useRecommendationSession.ts` | 추천 FSM과 추천 엔진 호출 |
@@ -173,6 +178,7 @@ App / ChatInput
 | 경로 | 책임 |
 |---|---|
 | `bar_tend/src/lib/session/dialogue-session.ts` | 대화/추천 모드, 웰컴 상태, 누적 도수, farewell 종류, safety lock을 소유하는 세션 reducer |
+| `bar_tend/src/lib/session/session-affect.ts` | 한 턴 표정과 구분되는 세션 감정 상태, 감쇠·회복, 허용 표정 계약 |
 | `bar_tend/src/lib/session/session-flow.ts` | 세션 단계, 주문 가능 여부, XYZ 마지막 잔, Farewell 정책 |
 | `bar_tend/src/lib/session/farewell-replies.ts` | XYZ, Farewell 단계, 주문 차단, 귀가 응답 표현 |
 | `bar_tend/src/lib/dialogue/serving-plan.ts` | 서빙 대상의 도수 누적, XYZ 여부, farewell 필요 여부, 다음 phase 계산 |
@@ -284,6 +290,57 @@ RapportState는 숨은 관계 상태다. controller는 입력 맥락에 따라 �
 - 명시적 귀가 입력 또는 종료 조건으로 returnHome
 
 Conversation Context는 직전 논의, 추천, 서빙, 주문 후보, story target, 칵테일별 공개 fact 이력을 관리한다. 명시적 칵테일명과 lore/person/media 검색 결과는 대명사 컨텍스트보다 우선한다.
+
+### 9.1 Conversation Continuity Contract
+
+대화 연속성은 단일 키워드 매칭이 아니라 직전 턴에서 확정된 세션 문맥을 다음 입력 해석에 전달하는 계약이다.
+
+```text
+Input
+↓
+Intent
+↓
+SessionTopic + current subject
+↓
+PendingQuestion
+↓
+ContinuationResolver / question-context
+↓
+Route
+↓
+ResponsePlan
+↓
+Expression
+↓
+SessionAffect
+↓
+next ConversationContextSnapshot
+```
+
+- `SessionTopic`은 현재 대화가 추천, 칵테일 이야기, 정보, 재료, 레시피, 잡담, 안전 중 무엇을 다루는지 소유한다.
+- `PendingQuestion`은 아직 답을 기다리는 질문의 종류, topic, 질문 시점과 출처 plan을 소유한다.
+- `ConversationContextSnapshot`은 세션 상태와 장기 Conversation Context를 입력 해석에 필요한 읽기 전용 문맥으로 축약한다.
+- `ContinuationResolver`는 `더 들려줘`, `당신은?`처럼 독립적으로 의미가 부족한 입력을 현재 topic·subject 안에서만 복구한다.
+- 추천 질문 중 `잘 모르겠어요`, 질문 의미 확인, 반복 요청, `카루아에게 맡기기`는 일반 잡담으로 보내지 않고 활성 `PendingQuestion` 문맥에서 먼저 해석한다.
+- safety lock, 명시적 제어 입력, 명시적 칵테일명은 추론된 continuation보다 우선한다.
+- 한 턴이 끝날 때 다음 턴이 읽을 topic, subject, pending question, affect가 함께 갱신되어야 하며 종료·취소·위임·추천 완료 시 더 이상 유효하지 않은 질문 문맥을 지워야 한다.
+
+### 9.2 Conversation QA Contract
+
+모듈별 단위 테스트만으로는 대화 연속성을 보장하지 못한다. Conversation QA는 실제 플레이 로그를 입력 배열로 사용해 위 파이프라인 전체를 턴별로 검증하는 장기 회귀 계층이다.
+
+대표 로그는 다음과 같은 연결을 포함한다.
+
+```text
+여긴 뭐하는 곳이에요
+당신은?
+추천받기
+잘 모르겠어요
+베이스가 뭐예요
+카루아에게 맡기기
+```
+
+각 턴은 최소한 `Intent → SessionTopic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 함께 검증한다. 대사 문구를 수정하더라도 의미 경로와 상태 전이가 유지되어야 하며, 회귀 실패는 최종 문장 차이보다 어느 경계에서 문맥이 끊겼는지를 먼저 보여줘야 한다.
 
 ## 10. ResponsePlan and Data Ownership
 
