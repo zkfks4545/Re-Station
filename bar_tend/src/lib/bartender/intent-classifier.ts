@@ -3,6 +3,8 @@ import { routeUserInput, type InputRoute, type RouteResult } from '../dialogue/i
 import { kf } from '../dialogue/pattern-utils.js'
 
 import { keywordRules } from './keywords.js'
+import type { SessionAffect } from '../session/session-affect.js'
+import type { PendingQuestion, SessionTopic } from '../session/dialogue-session.js'
 
 export type IntentType =
   | 'general-chat'
@@ -85,6 +87,8 @@ export interface DialogueContext {
   allowRecommendationRoutes?: boolean
   lastDiscussedCocktailId?: string
   orderCandidateCocktailId?: string
+  sessionTopic?: SessionTopic
+  pendingQuestion?: PendingQuestion | null
 }
 
 export interface CocktailReference {
@@ -122,6 +126,9 @@ export interface ClassifiedIntent {
         recentTopics?: string[]
       }
     }
+    keywordAffect?: SessionAffect
+    sessionTopic?: SessionTopic
+    answersPendingQuestion?: boolean
   }
 }
 
@@ -219,6 +226,14 @@ export class IntentClassifier {
           previousTurnContext: context.lastTopic,
           sessionHistoryContext: this.buildSessionHistoryContext(context),
         },
+        // Flow-control routes always win. A general conversational keyword can
+        // still persist its affect, even when the richer intent classifier owns
+        // the response selection.
+        keywordAffect: route.route === 'general'
+          ? resolveKeywordAffect(normalizedInput, keywordRulesResult.rule)
+          : undefined,
+        sessionTopic: context.sessionTopic,
+        answersPendingQuestion: context.pendingQuestion !== null && route.route === 'general',
       },
     }
   }
@@ -245,12 +260,14 @@ export class IntentClassifier {
   }
 
   private evaluateKeywordRules(input: string) {
-    const keywordMatch = this.detectKeywordMatch(input)
+    const rule = keywordRules.find((candidate) => candidate.pattern.test(input))
+    const keywordMatch = rule ? (rule.dialogueCategory || rule.response) : null
     const intent = keywordMatch ? this.mapKeywordResultToIntent(keywordMatch) : 'general'
     return {
       intent,
       confidence: keywordMatch ? 0.8 : 0.5,
       matched: keywordMatch,
+      rule,
     }
   }
 
@@ -297,15 +314,6 @@ export class IntentClassifier {
     if (/[가-힣]{2,}[이가]\s*마시/.test(lower)) return ['lore-query']
 
     return ['general-chat']
-  }
-
-  private detectKeywordMatch(input: string): string | null {
-    for (const rule of keywordRules) {
-      if (rule.pattern.test(input)) {
-        return rule.dialogueCategory || rule.response
-      }
-    }
-    return null
   }
 
   private extractEntities(input: string): ExtractedEntities {
@@ -517,4 +525,19 @@ export class IntentClassifier {
       recentTopics: [context.lastTopic].filter((x): x is string => x !== null && x !== undefined),
     }
   }
+}
+
+function resolveKeywordAffect(
+  input: string,
+  rule: typeof keywordRules[number] | undefined,
+): SessionAffect | undefined {
+  if (!rule?.affect) return undefined
+
+  // The same taste word can express preference, rejection, or anxiety.
+  // Keep these contextual overrides beside classification instead of duplicating rules.
+  const dislikesTaste = /싫|별로|안s*좋|못s*마시/.test(input)
+  const fearsStrength = /무서|겁|부담|세s*보/.test(input)
+  if (rule.dialogueCategory === 'taste-sweet' && dislikesTaste) return 'curious'
+  if (rule.dialogueCategory === 'taste-strong' && fearsStrength) return 'concerned'
+  return rule.affect
 }

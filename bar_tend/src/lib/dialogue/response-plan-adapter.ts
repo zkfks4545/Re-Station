@@ -1,6 +1,7 @@
 import type { DialogueLine } from '../../types.js'
 import { RESPONSE_PLANS } from './response-plan-data.js'
 import { selectResponsePlan, validateResponsePlan, type ResponsePlan } from './response-plan.js'
+import type { SessionTopic } from '../session/dialogue-session.js'
 
 const CATEGORY_QUERIES = {
   'general-chat': {
@@ -157,8 +158,9 @@ export function pickResponsePlanDialogue(
   category: string,
   legacyLines: readonly DialogueLine[],
   random: () => number = Math.random,
+  context: { topic?: SessionTopic } = {},
 ): DialogueLine | null {
-  return pickResponsePlanDialogueFromPlans(category, legacyLines, RESPONSE_PLANS, random)
+  return pickResponsePlanDialogueFromPlans(category, legacyLines, RESPONSE_PLANS, random, context)
 }
 
 export function pickResponsePlanDialogueFromPlans(
@@ -166,9 +168,10 @@ export function pickResponsePlanDialogueFromPlans(
   _legacyLines: readonly DialogueLine[],
   plans: readonly ResponsePlan[],
   random: () => number = Math.random,
+  context: { topic?: SessionTopic } = {},
 ): DialogueLine | null {
   if (!isResponsePlanDialogueCategory(category)) return null
-  const query = CATEGORY_QUERIES[category]
+  const query = { ...CATEGORY_QUERIES[category], topic: context.topic }
 
   const plan = selectResponsePlan(plans, query)
   if (!plan || !validateResponsePlan(plan).valid) return null

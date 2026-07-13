@@ -27,6 +27,14 @@ describe('DialogueSessionState', () => {
     expect(state.dialogue).toEqual({ turnCount: 1, recommendationPrompted: true })
   })
 
+  it('persists the affect selected by a conversational keyword', () => {
+    const state = dialogueSessionReducer(
+      createDialogueSessionState('conversation'),
+      { type: 'set-session-affect', affect: { sessionAffect: 'concerned', affectTurnsRemaining: 3, affectRecoveryTurns: 0 } },
+    )
+    expect(state.sessionAffect).toBe('concerned')
+  })
+
   it('uses Welcome-Farewell XYZ when farewell starts before a welcome drink', () => {
     const state = createDialogueSessionState('conversation')
     expect(decideFarewellEntry(state, 'exit')).toBe('welcome-farewell-xyz')
@@ -56,6 +64,7 @@ describe('DialogueSessionState', () => {
     expect(locked.phase).toBe('safetyLocked')
     expect(locked.safetyLocked).toBe(true)
     expect(locked.mode).toBe('conversation')
+    expect(locked.sessionAffect).toBe('firm')
     expect(locked.welcomeDrink.resolved).toBe(true)
     expect(locked.farewell.entryKind).toBe('none')
     expect(decideFarewellEntry(locked, 'exit')).toBeNull()

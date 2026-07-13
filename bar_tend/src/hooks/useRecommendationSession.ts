@@ -12,6 +12,7 @@ import {
 } from '@/lib/recommendation/question-engine.js'
 import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
 import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
+import { classifyRecommendationQuestionInput } from '@/lib/recommendation/question-context.js'
 import {
   formatExplicitCocktailReply,
   formatExactRecommendationResponse,
@@ -151,11 +152,18 @@ export function useRecommendationSession() {
       let finishRecommendation = false
       const activeQuestion = getQuestionById(activeQuestionId)
       if (candidatePool !== null && activeQuestion) {
-        nextState = answerLatestQuestion(nextState, text)
-        const applied = applyQuestionAnswer(nextState, activeQuestion, text)
-        nextState = applied.state
-        acknowledgement = applied.acknowledgement
-        finishRecommendation = applied.finishRecommendation
+        const questionInput = classifyRecommendationQuestionInput(text)
+        if (questionInput === 'delegate') {
+          finishRecommendation = true
+        } else {
+          nextState = answerLatestQuestion(nextState, text)
+          const applied = applyQuestionAnswer(nextState, activeQuestion, text)
+          nextState = applied.state
+          acknowledgement = questionInput === 'skip'
+            ? '그 항목은 비워둘게요. 다른 쪽만 보고 골라볼게요.'
+            : applied.acknowledgement
+          finishRecommendation = applied.finishRecommendation
+        }
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }

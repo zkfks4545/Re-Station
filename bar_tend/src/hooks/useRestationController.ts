@@ -27,6 +27,9 @@ import {
   type DialogueSessionMode,
   type DialogueSessionState,
 } from '@/lib/session/dialogue-session.js'
+import { transitionSessionAffect } from '@/lib/session/session-affect.js'
+import { classifyRecommendationQuestionInput, explainRecommendationQuestion } from '@/lib/recommendation/question-context.js'
+import type { SessionTopic } from '@/lib/session/dialogue-session.js'
 import {
   isOrderingClosedPhase,
   nextPhaseAfterRoute,
@@ -90,6 +93,7 @@ export function useRestationController(sfx?: SfxChannel) {
     undefined,
     () => createDialogueSessionState(),
   )
+  const sessionTopicRef = useRef<SessionTopic>('none')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [screenShake, setScreenShake] = useState(false)
   const [rapport, setRapport] = useState(createInitialRapport)
@@ -244,6 +248,16 @@ export function useRestationController(sfx?: SfxChannel) {
         typingSequenceRef.current = typingSequence
         setInteractionStatus('typing')
         setExpression(exp)
+        if (/\?$/.test(text.trim()) && sessionTopicRef.current !== 'none') {
+          dispatchDialogueSession({
+            type: 'set-pending-question',
+            question: {
+              kind: sessionTopicRef.current === 'recommendation' ? 'clarification' : 'clarification',
+              topic: sessionTopicRef.current,
+              askedAtTurn: dialogueSession.dialogue.turnCount,
+            },
+          })
+        }
 
         typingCompleteFnRef.current = () => {
           setExpression(exp)
@@ -281,7 +295,7 @@ export function useRestationController(sfx?: SfxChannel) {
 
       showReply()
     },
-    [onTypingComplete, runCocktailPreparation],
+    [dialogueSession.dialogue.turnCount, onTypingComplete, runCocktailPreparation],
   )
 
   const serveXyzAndEnterFarewell = useCallback((entryKind: 'alcohol-xyz' | 'welcome-farewell-xyz') => {
@@ -552,6 +566,9 @@ export function useRestationController(sfx?: SfxChannel) {
         alcoholStarsTotal: alcoholStarTotal,
         totalUserMessages: userMessageCountRef.current,
         conversationTurnCount: dialogueSession.dialogue.turnCount,
+        sessionAffect: dialogueSession.sessionAffect,
+        sessionTopic: dialogueSession.sessionTopic,
+        pendingQuestion: dialogueSession.pendingQuestion,
       },
       displayedCocktail: servedCocktail,
     })
@@ -561,6 +578,9 @@ export function useRestationController(sfx?: SfxChannel) {
     alcoholStarTotal,
     conversationContext,
     dialogueSession.dialogue.turnCount,
+    dialogueSession.sessionAffect,
+    dialogueSession.sessionTopic,
+    dialogueSession.pendingQuestion,
     servedCocktail,
     sessionPhase,
     welcomeDrinkFeedbackPending,
@@ -623,6 +643,18 @@ export function useRestationController(sfx?: SfxChannel) {
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
       const dialogueResolution = resolveDialogueInput(text, nextMessages, forcedSessionMode)
       const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
+      const nextTopic = topicForRoute(routeResult.route)
+      sessionTopicRef.current = nextTopic
+      dispatchDialogueSession({ type: 'set-topic', topic: nextTopic, cocktailId: routeResult.matchedCocktailId ?? null })
+      dispatchDialogueSession({ type: 'set-pending-question', question: null })
+      dispatchDialogueSession({
+        type: 'set-session-affect',
+        affect: transitionSessionAffect(dialogueSession, {
+          candidate: classifiedIntent.metadata.keywordAffect,
+          route: routeResult.route,
+          input: text,
+        }),
+      })
       const handlesWelcomeFeedback = welcomeDrinkFeedbackPending
         && shouldHandleWelcomeDrinkFeedback(routeResult.route, text)
       const welcomeFeedback = handlesWelcomeFeedback
@@ -679,6 +711,18 @@ export function useRestationController(sfx?: SfxChannel) {
         setSidebarOpen(false)
         bartenderReply(directResponse.turn.reply, directResponse.turn.expression, null, 'exiting')
         return
+      }
+
+      if (activeQuestion && routeResult.route === 'recommendation') {
+        const questionInput = classifyRecommendationQuestionInput(text)
+        if (questionInput === 'help') {
+          bartenderReply(explainRecommendationQuestion(activeQuestion), 'thinking')
+          return
+        }
+        if (questionInput === 'repeat') {
+          bartenderReply(activeQuestion.prompt, 'thinking')
+          return
+        }
       }
 
       // --- 세션 마감 처리(Farewell phase) ---
@@ -781,6 +825,7 @@ export function useRestationController(sfx?: SfxChannel) {
             {
               outcome: recommendation,
               inviteRecommendation: shouldInviteRecommendationFromConversation,
+              sessionAffect: dialogueSession.sessionAffect,
             },
           )
           if (!turn) throw new Error('Invalid dialogue turn')
@@ -970,7 +1015,7 @@ export function useRestationController(sfx?: SfxChannel) {
     const turn = dialogueService.buildMainTurn(
       { text, messages: nextMessages },
       dialogueResolution,
-      { outcome: execution.outcome },
+      { outcome: execution.outcome, sessionAffect: dialogueSession.sessionAffect },
     )
     if (!turn) {
       setExpression('idle')
@@ -1160,4 +1205,11 @@ export function useRestationController(sfx?: SfxChannel) {
     setServedCocktail,
     setSidebarOpen,
   }
+}
+
+function topicForRoute(route: string): SessionTopic {
+  if (route === 'recommendation' || route === 'random-recommendation') return 'recommendation'
+  if (route === 'story-query' || route === 'lore-query') return 'cocktail-story'
+  if (route === 'cocktail-info-query') return 'cocktail-info'
+  return 'smalltalk'
 }

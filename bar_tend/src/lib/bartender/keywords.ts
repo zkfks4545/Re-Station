@@ -1,11 +1,13 @@
 import keywordRulesData from '../../data/keyword-rules.json'
 import type { KeywordRule } from '../../types.js'
+import type { SessionAffect } from '../session/session-affect.js'
 
 interface KeywordRuleData {
   patterns: string[]
   expression: KeywordRule['expression']
   response: string
   dialogueCategory?: string
+  affect?: SessionAffect
 }
 
 function koreanFriendly(patterns: string[]): string {
@@ -24,4 +26,5 @@ export const keywordRules: KeywordRule[] = (keywordRulesData as KeywordRuleData[
   expression: rule.expression,
   response: rule.response,
   dialogueCategory: rule.dialogueCategory,
+  affect: rule.affect,
 }))

@@ -37,6 +37,8 @@ import {
   type RecommendationOutcome,
 } from './turn-builder.js'
 import { validateDialogueTurn } from '../../types/dialogue-turn.js'
+import { expressionForSessionAffect, type SessionAffect } from '../session/session-affect.js'
+import type { PendingQuestion, SessionTopic } from '../session/dialogue-session.js'
 
 export interface DialogueServiceSessionSnapshot {
   phase: SessionPhase
@@ -46,6 +48,10 @@ export interface DialogueServiceSessionSnapshot {
   alcoholStarsTotal: number
   totalUserMessages: number
   conversationTurnCount: number
+  sessionAffect?: SessionAffect
+  sessionTopic?: SessionTopic
+  topicCocktailId?: string | null
+  pendingQuestion?: PendingQuestion | null
 }
 
 export interface DialogueServiceRequest {
@@ -86,6 +92,7 @@ export interface DialogueResolution {
 export interface MainTurnOptions {
   outcome: RecommendationOutcome | null
   inviteRecommendation?: boolean
+  sessionAffect?: SessionAffect
 }
 
 export class DialogueService {
@@ -119,7 +126,9 @@ export class DialogueService {
       action,
       blockedBySession,
       contextEvents,
-      directResponse,
+      directResponse: directResponse
+        ? { ...directResponse, turn: this.constrainTurnExpression(directResponse.turn, request.session.sessionAffect ?? 'neutral') }
+        : null,
     }
   }
 
@@ -184,7 +193,9 @@ export class DialogueService {
       reactedOutcome,
       { confidence: resolution.routeResult.confidence },
     )
-    return validateDialogueTurn(turn) ? turn : null
+    return validateDialogueTurn(turn)
+      ? this.constrainTurnExpression(turn, options.sessionAffect ?? 'neutral')
+      : null
   }
 
   private resolveReaction(text: string, classifiedIntent: ClassifiedIntent): UserReaction | null {
@@ -230,6 +241,8 @@ export class DialogueService {
       alcoholStarsTotal: request.session.alcoholStarsTotal,
       totalUserMessages: request.session.totalUserMessages,
       conversationTurnCount: request.session.conversationTurnCount,
+      sessionTopic: request.session.sessionTopic,
+      pendingQuestion: request.session.pendingQuestion,
     }
   }
 
@@ -395,6 +408,10 @@ export class DialogueService {
   ): DialogueTurn | null {
     const turn = buildDialogueTurn(text, route, reply, expression, null, { confidence, entities })
     return validateDialogueTurn(turn) ? turn : null
+  }
+
+  private constrainTurnExpression(turn: DialogueTurn, sessionAffect: SessionAffect): DialogueTurn {
+    return { ...turn, expression: expressionForSessionAffect(turn.expression, sessionAffect) }
   }
 
   private getCocktail(id: string | null | undefined): CocktailData | null {

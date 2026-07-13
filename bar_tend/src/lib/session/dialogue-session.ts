@@ -1,6 +1,13 @@
 import type { SessionPhase } from './session-flow.js'
+import {
+  createSessionAffect,
+  type SessionAffect,
+  type SessionAffectSnapshot,
+} from './session-affect.js'
 
 export type DialogueSessionMode = 'conversation' | 'recommendation'
+
+export type { SessionAffect }
 
 export type FarewellEntryKind =
   | 'none'
@@ -8,9 +15,32 @@ export type FarewellEntryKind =
   | 'welcome-farewell-xyz'
   | 'standard'
 
+export type SessionTopic =
+  | 'none'
+  | 'recommendation'
+  | 'cocktail-story'
+  | 'cocktail-info'
+  | 'ingredient'
+  | 'recipe'
+  | 'smalltalk'
+  | 'safety'
+
+export interface PendingQuestion {
+  kind: 'recommendation-flavor' | 'recommendation-strength' | 'recommendation-base' | 'recommendation-carbonation' | 'clarification'
+  topic: Exclude<SessionTopic, 'none'>
+  askedAtTurn: number
+  sourcePlanId?: string
+}
+
 export interface DialogueSessionState {
   phase: SessionPhase
   mode: DialogueSessionMode
+  sessionAffect: SessionAffect
+  affectTurnsRemaining: number | null
+  affectRecoveryTurns: number
+  sessionTopic: SessionTopic
+  topicCocktailId: string | null
+  pendingQuestion: PendingQuestion | null
   safetyLocked: boolean
   dialogue: {
     turnCount: number
@@ -33,6 +63,9 @@ export type DialogueSessionAction =
   | { type: 'reset'; phase?: SessionPhase }
   | { type: 'set-phase'; phase: SessionPhase }
   | { type: 'set-mode'; mode: DialogueSessionMode }
+  | { type: 'set-session-affect'; affect: SessionAffectSnapshot }
+  | { type: 'set-topic'; topic: SessionTopic; cocktailId?: string | null }
+  | { type: 'set-pending-question'; question: PendingQuestion | null }
   | { type: 'record-conversation-turn'; recommendationPrompted: boolean }
   | { type: 'reset-conversation-progress' }
   | { type: 'welcome-served' }
@@ -49,6 +82,10 @@ export function createDialogueSessionState(
   return {
     phase,
     mode: 'conversation',
+    ...createSessionAffect('neutral'),
+    sessionTopic: 'none',
+    topicCocktailId: null,
+    pendingQuestion: null,
     safetyLocked: false,
     dialogue: {
       turnCount: 0,
@@ -81,6 +118,12 @@ export function dialogueSessionReducer(
       return { ...state, phase: action.phase }
     case 'set-mode':
       return { ...state, mode: action.mode }
+    case 'set-session-affect':
+      return { ...state, ...action.affect }
+    case 'set-topic':
+      return { ...state, sessionTopic: action.topic, topicCocktailId: action.cocktailId ?? state.topicCocktailId }
+    case 'set-pending-question':
+      return { ...state, pendingQuestion: action.question }
     case 'record-conversation-turn':
       return {
         ...state,
@@ -120,6 +163,10 @@ export function dialogueSessionReducer(
         ...state,
         phase: 'safetyLocked',
         mode: 'conversation',
+        ...createSessionAffect('firm'),
+        sessionTopic: 'safety',
+        topicCocktailId: null,
+        pendingQuestion: null,
         safetyLocked: true,
         welcomeDrink: { ...state.welcomeDrink, resolved: true },
         farewell: { entryKind: 'none', turnCount: 0 },

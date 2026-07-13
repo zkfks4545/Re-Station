@@ -87,6 +87,7 @@ export interface KeywordRule {
   expression: Expression
   response: string
   dialogueCategory?: string
+  affect?: import('./lib/session/session-affect.js').SessionAffect
 }
 
 export interface DialogueLine {
