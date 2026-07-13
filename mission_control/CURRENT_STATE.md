@@ -54,19 +54,40 @@
 ## 현재 구현 vs 목표 차이
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| 캐릭터 | 카루아 표정 PNG 일부 연결(`smirk`, `thinking`, `embarrassed/disappointed`) + 나머지 `idle` fallback, 시에스타 라벨만 | 모든 표정 슬롯별 PNG + 시에스타 난입 스프라이트 |
+| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + `talk`만 `idle` fallback, 시에스타 라벨만 | `talk` PNG + 시에스타 난입 스프라이트 |
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
 | 번들 | 메인 JS 534.84 kB, gzip 160.12 kB, WebLLM/lib 지연 청크 분리 | 유지 |
 
+## 승인된 후속 로드맵 (2026-07-13)
+
+### Dialogue
+
+`Phase 11 완료 → Character QA 병행 → Phase 12 Semantic Layer Stabilization + WebLLM 실측 → Phase 13 Semantic Snapshot 활용 여부 결정 → Phase 14 ResponsePlan 보조 선택 → Phase 15 최종 Dialogue QA`
+
+- Character QA는 Phase 12~14와 병행한다. 최종 전수 확정은 Phase 15가 소유한다.
+- WebLLM 실제 브라우저 측정은 별도 다음 단계가 아니라 Phase 12 종료 조건이다. 측정·격리 검증이 끝나기 전 ResponsePlan 선택에는 연결하지 않는다.
+- Phase 13은 기능 구현이 아니라 활용 여부를 결정하는 gate다. 보류하면 Phase 14는 착수하지 않고 기존 규칙 기반 선택을 유지한다.
+
+### Presentation
+
+`SPR-001 완료 → SPR-002 PNG 제작 → SPR-003 Sprite Animation → SPR-004 Siesta → SPR-005 Event Sync`
+
+- 기존 에셋 제작·정리 가이드는 SPR-002의 완료 조건으로 흡수한다. 별도 단계로 중복 관리하지 않는다.
+
+### Audio
+
+`Step 1 완료 → Step 2 SFX → Step 3 Cue → Step 4 Audio UX 보강`
+
+- Step 1에서 BGM 재생·볼륨·음소거·저장과 기본 UI는 완료했다.
+- Step 4는 새 기본 UI를 만드는 일이 아니라 SFX 상태·접근성·오류/차단 상태를 기존 UI에 보강하는 단계다.
+
 ## 현재 우선순위
-1. Phase 11 완료 상태의 필수 expression·JSON 제거 독립성·fallback-required JSON 계약 유지
-2. InteractionTimeline 후속 범위 검토: 현재는 `screenShake` cue만 `playScreenShakeCue()`로 최소 추출 완료
-3. Rapport 활용 여부는 ResponsePlan 선택에 직접 연결하기 전 별도 검토
-4. Phase 12 의미 보조의 ResponsePlan 선택 연결은 별도 런타임 통합 범위에서 검토
-5. Phase 13~14 의미 태그·이야기 topic 연결은 Phase 12 경계 확정 후 순차 검토
-6. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
+1. SPR-002 PNG 제작과 기존 fallback 슬롯의 실제 에셋 교체
+2. Phase 12 실제 브라우저 WebLLM 측정과 격리 검증 종료
+3. Character QA를 대사 변경과 함께 지속
+4. Phase 13 활용 여부 결정 전에는 Semantic Snapshot을 ResponsePlan 선택에 연결하지 않음
 
 ---
 
@@ -82,7 +103,7 @@
 
 WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12에서는 WebLLM 결과를 최종 대사, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다. 개발 모드에서는 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
 
-### Phase 12 남은 작업
+### Phase 12 종료 조건: WebLLM 실측
 
 - 실제 브라우저에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true` 기준 preload/prepare 동작 확인
 - cold start 준비 시간과 모델 다운로드 크기 기록
@@ -125,3 +146,9 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 - 칵테일 확정→`preparing`→셰이킹 또는 서빙 컷→추천대사+카드
 - 새 에셋: `{character}/static/`(PNG), `animations/{action}/`(프레임), `sprites.ts`(import)
 - 표정=`Expression` 1:1 매핑, 누락=`idle` fallback
+
+### SPR-001 캐릭터 스프라이트 슬롯 계약 완료
+
+- 카루아 기준 디자인은 현재 런타임의 `static/Kaura.png`으로 고정했다.
+- 모든 `Expression`은 `sprites.ts`의 이미지·fallback 맵을 통해 표시한다. 새 `sympathy/surprised/disappointed/annoyed` PNG는 같은 이름 슬롯에 연결했고, `upset.png`는 safety 경계용 `stern` 슬롯에 연결했다. `talk`만 `idle` fallback이다.
+- 다음 작업은 새 표정 PNG를 이 슬롯에 추가하는 `SPR-002`이며, 시에스타 화면 연출은 `SPR-004~005` 범위다.

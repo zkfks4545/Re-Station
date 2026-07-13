@@ -1,5 +1,32 @@
 # 작업 이력 (축약)
 
+## 2026-07-13 / Codex / 외부 구조 보고서 최신화
+
+- `EXTERNAL_STRUCTURE_REPORT.md`에 카루아 `sprites.ts` 에셋 진입점과 `Expression` 기반 정적 스프라이트 계약을 반영했다.
+- `upset.png`가 별도 대화 타입이 아닌 `stern` 이미지 자산이라는 경계와, 노출 시간·자동 복귀 정책은 아직 구조에 포함하지 않았다는 점을 명시했다.
+- 검증: `git diff --check` 통과.
+
+## 2026-07-13 / Codex / SPR-002 표정 PNG 5종 연결
+
+- 새 `sympathy`, `surprised`, `disappointed`, `annoyed` PNG를 동명 `Expression` 슬롯에 연결했다.
+- `upset.png`는 별도 `Expression`을 추가하지 않고, 기존 safety 경계 표현인 `stern` 슬롯에 연결했다.
+- 이제 `talk`만 `idle` fallback을 사용한다.
+- 검증: `npm.cmd test -- sprites.test.ts --run` (2개), `npm.cmd run check`, `npm.cmd run build`, `git diff --check` 통과. 메인 JS 535.04 kB, gzip 160.22 kB.
+
+## 2026-07-13 / Codex / 후속 로드맵 정렬
+
+- Dialogue는 `Phase 12 안정화 + WebLLM 실측`을 하나의 종료 단계로 묶고, Character QA 병행 → Phase 13 활용 결정 gate → Phase 14 ResponsePlan 보조 선택 → Phase 15 최종 QA 순서로 정리했다.
+- Presentation은 PNG 제작 → 카루아 애니메이션 → 시에스타 표시 → 이벤트 동기화로 재정렬했다. 기존 에셋 제작 가이드는 SPR-002 완료 조건에 흡수했다.
+- Audio는 기본 BGM UI가 Step 1에서 완료됐으므로 Step 4를 새 UI가 아닌 Audio UX 보강으로 정의했다.
+- 검증: 문서 정합성 검토 및 `git diff --check` 통과.
+
+## 2026-07-13 / Codex / SPR-001 캐릭터 스프라이트 슬롯 계약
+
+- `karua/sprites.ts`에 모든 `Expression`의 명시적 fallback 맵을 추가했다. 기준 디자인은 현재 런타임의 `Kaura.png`이며, 미제작 표정은 `idle`, `disappointed`는 `embarrassed`로 표시한다.
+- `sprites.test.ts`로 모든 표현 슬롯의 이미지와 fallback 슬롯 존재를 고정했다.
+- `TASK_BOARD.md`와 `CURRENT_STATE.md`에 기준 디자인, 표시 크기, 다음 스프라이트 작업 경계를 반영했다.
+- 검증: `npm.cmd test -- sprites.test.ts --run` (2개), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build`, `git diff --check` 통과.
+
 ## 2026-07-10 / Codex / Phase 12 semantic layer stabilization start
 
 - WebLLM 의미 결과를 `WebLLMSemanticSnapshot`으로 명명하고, 현재 출력·ResponsePlan·Recommendation·Action·FSM에 연결하지 않는 Phase 12 경계를 코드 계약으로 고정했다.

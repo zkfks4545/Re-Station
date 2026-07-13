@@ -374,11 +374,11 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | DLG-807 카루아 말투 계약 재검수 및 금지 패턴 대사 정리 | DONE |
 | DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | DONE (Phase 11 범위) |
 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DONE (Phase 11 범위) |
-| SPR-001 캐릭터 스프라이트 슬롯 계약 | PROPOSED |
-| SPR-002 카루아 표정별 스프라이트 연결 | PROPOSED |
-| SPR-003 시에스타 난입 스프라이트 표시 | PROPOSED |
-| SPR-004 시에스타 이벤트 스프라이트 큐 연결 | PROPOSED |
-| SPR-005 캐릭터 에셋 제작·정리 가이드 | PROPOSED |
+| SPR-001 캐릭터 스프라이트 슬롯 계약 | DONE |
+| SPR-002 카루아 표정 PNG 제작·연결 | PROPOSED |
+| SPR-003 카루아 Sprite Animation | PROPOSED |
+| SPR-004 시에스타 Sprite 표시 | PROPOSED |
+| SPR-005 시에스타 Event Sync | PROPOSED |
 | FLOW-001 환상주점 세션 흐름 사양 | DONE |
 | FLOW-002 XYZ와 Farewell Phase 상태 머신 설계 | DONE |
 | FLOW-003 선택지 이벤트와 자유입력 복귀 정책 구현 | PROPOSED |
@@ -501,15 +501,17 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DONE |
 | 목적 | 카루아와 시에스타가 어떤 표정·상태 이미지를 가져야 하는지 코드 계약과 파일명으로 먼저 고정 |
-| 현재 상태 | 카루아는 `BartenderSprite.tsx`에서 단일 `character.png`를 표시하고, `idle/talk/surprised/smirk/sympathy/thinking` 표정은 CSS 필터로만 구분한다. 시에스타는 대사 화자 라벨만 있고 화면 스프라이트는 없다. |
+| 구현 결과 | `assets/characters/karua/sprites.ts`가 모든 `Expression`을 `Record<Expression, image>`로 고정한다. 기준 디자인은 현재 런타임의 `static/Kaura.png`이며, `smirk`·`thinking`·`embarrassed`는 전용 PNG를 사용한다. `talk/surprised/sympathy/annoyed/stern`은 `idle`, `disappointed`는 `embarrassed` fallback을 명시한다. 시에스타는 대사 화자 라벨만 있고 화면 스프라이트는 다음 범위다. |
 | 카루아 최소 슬롯 | `idle`, `talk`, `thinking`, `smirk`, `sympathy`, `surprised` |
 | 시에스타 최소 슬롯 | `idle`, `talk`, `smirk`, `concern`, `exit` |
 | 가이드 | 에셋 파일명은 표정 타입과 1:1로 맞춘다. 예: `karua/idle.png`, `karua/talk.png`, `siesta/idle.png`. 코드에서는 문자열 분기 대신 `Record<Expression, image>` 매핑을 사용한다. |
-| 순서 의존성 | 반드시 먼저 수행한다. `SPR-002~004`는 모두 이 슬롯명과 fallback 규칙을 참조한다. 실제 그림이 없어도 placeholder나 기존 `character.png` fallback으로 계약을 먼저 고정할 수 있다. |
-| 결정할 것 | 카루아 기준 디자인을 현재 `character.png`로 유지할지, `character0.png` 계열로 새로 통일할지 결정한다. 시에스타의 키, 화면 위치, 카루아와의 상대적 크기, 기본 등장 위치도 여기서 정한다. |
-| 완료 조건 | 타입, 파일명, fallback 규칙, 모바일/데스크톱 표시 크기 기준이 문서와 코드에 고정됨 |
+| 순서 의존성 | 반드시 먼저 수행한다. `SPR-002~005`는 모두 이 슬롯명과 fallback 규칙을 참조한다. 실제 그림이 없어도 placeholder나 기존 `character.png` fallback으로 계약을 먼저 고정할 수 있다. |
+| 디자인 기준 | 새 카루아 정적 PNG는 `Kaura.png`의 디자인·캔버스 기준을 따른다. `character.png`, `character0.png`는 새 슬롯 기준으로 사용하지 않는다. 시에스타의 키·위치·상대 크기는 `SPR-003`에서 결정한다. |
+| 표시 기준 | 데스크톱은 높이 180~360px·최대 폭 80vw/360px, 모바일은 120~240px, 480px 이하는 100~180px으로 고정한다. `object-fit: contain`과 bottom-center 정렬로 표정 전환이 레이아웃을 바꾸지 않는다. |
+| 검증 | `sprites.test.ts`가 모든 `Expression`의 이미지와 fallback 슬롯 존재를 확인한다. |
+| 완료 조건 | 완료: 타입, fallback 규칙, 모바일/데스크톱 표시 기준을 문서와 코드·테스트에 고정했다. |
 
 #### WLC-001: 1회성 웰컴드링크 버튼과 환영 추천 흐름
 
@@ -564,54 +566,48 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 구현 결과 | `formatQuestion`이 고정 `한 가지만 더 여쭤볼게요.` 대신 `dialogueFlow.leadIn` 또는 `dialogueFlow.continuation`을 사용한다. 모든 추천 질문은 flow 계약을 가진다. |
 | 검증 | `npm.cmd test -- question-engine.test.ts --run`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint` 통과. 현재 Vitest 127개 통과 |
 
-#### SPR-002: 카루아 표정별 스프라이트 연결
+#### SPR-002: 카루아 표정 PNG 제작·연결
 
 | 항목 | 내용 |
 |---|---|
 | 상태 | PROPOSED |
-| 목적 | 현재 CSS 필터 기반 표정 흉내를 실제 표정별 PNG 교체 방식으로 전환 |
+| 목적 | 고정된 표현 슬롯에 실제 표정 PNG를 제작·연결하고, 에셋 제작 규칙을 함께 완료 |
+| 현재 연결 | `sympathy`, `surprised`, `disappointed`, `annoyed`는 동명 PNG를 사용한다. `upset.png`는 현재 `Expression` 타입에 없는 이름이므로 safety 경계의 `stern` 슬롯으로 명시 연결했다. 남은 정적 표정 PNG는 `talk`이다. |
 | 범위 | `BartenderSprite.tsx` 이미지 매핑, 기존 `Expression`별 fallback, CSS 크기와 위치 안정화, 표정 변경 시 레이아웃 흔들림 방지 |
 | 가이드 | 기존 `character.png`와 `character0.png`는 스타일이 다르므로 먼저 기준 카루아 디자인을 결정한다. 결정 전에는 현재 `character.png`를 fallback으로 유지한다. |
 | 구현 메모 | `Expression` 타입을 그대로 사용하되 이미지 import를 맵으로 분리한다. 누락된 표정은 `idle` 또는 현재 `character.png`로 fallback한다. CSS filter는 실제 표정 이미지가 준비되면 보조 효과 수준으로 줄인다. |
 | 검증 기준 | `idle/talk/thinking/smirk/sympathy/surprised` 전부 렌더링 가능해야 한다. 표정 전환 시 `restation-stage`, 채팅 dock, 추천 카드 위치가 흔들리지 않아야 한다. |
-| 완료 조건 | 모든 `Expression` 값이 실제 이미지 또는 명시적 fallback으로 표시되고, 기존 대화·추천 흐름에서 표정 전환이 깨지지 않음 |
+| 완료 조건 | 모든 `Expression` 값이 실제 이미지 또는 명시적 fallback으로 표시되고, 에셋 폴더·명명 규칙·기준 이미지가 정리되며 기존 대화·추천 흐름에서 표정 전환이 깨지지 않음 |
 
-#### SPR-003: 시에스타 난입 스프라이트 표시
-
-| 항목 | 내용 |
-|---|---|
-| 상태 | PROPOSED |
-| 목적 | 시에스타 만담 이벤트가 발생할 때만 시에스타 스프라이트를 무대에 짧게 표시 |
-| 범위 | `SiestaSprite` 또는 공통 `CharacterSprite` 컴포넌트 추가, 무대 오른쪽/후면/카운터 옆 배치, 등장·퇴장 CSS 상태, 모바일 겹침 방지 |
-| 가이드 | 시에스타는 상시 캐릭터가 아니므로 기본 화면에는 보이지 않는다. 이벤트 중에만 나타나고, 마지막 카루아 대화권 반환 뒤에는 사라진다. |
-| 구현 메모 | 카루아와 같은 stage 안에 배치하되 z-index와 크기를 분리한다. 시에스타는 카루아보다 약간 뒤 또는 옆에서 끼어드는 느낌이 나야 하며, 중앙 주인공처럼 고정되면 안 된다. |
-| 검증 기준 | 데스크톱과 모바일에서 채팅 영역, 추천 카드, 메뉴 버튼을 가리지 않는다. 이벤트가 없을 때 DOM 또는 표시 상태가 비활성임을 테스트한다. |
-| 완료 조건 | 추천 진행 중·안전·퇴장·추천 취소 구간에서는 시에스타 스프라이트가 표시되지 않고, 허용된 만담 이벤트에서만 등장함 |
-
-#### SPR-004: 시에스타 이벤트 스프라이트 큐 연결
+#### SPR-003: 카루아 Sprite Animation
 
 | 항목 | 내용 |
 |---|---|
 | 상태 | PROPOSED |
-| 목적 | `createSiestaEvent`의 대사 결과에 화면 연출용 큐를 붙여 시에스타와 카루아 스프라이트 상태를 동기화 |
-| 범위 | `SiestaEventResult`에 `spriteCue` 또는 `stageDirection` 추가, 대사별 speaker에 따른 활성 캐릭터와 표정 전환, 퇴장 타이밍, 카루아 대화권 반환 표시 |
-| 가이드 | 대사 텍스트로 화면 상태를 추론하지 않는다. 이벤트 엔진이 구조화된 큐를 반환하고 UI는 큐만 소비한다. |
-| 구현 메모 | `speaker`만으로 충분하지 않으면 `stageDirection`에 `enter`, `speak`, `exit`, `returnToKarua` 같은 큐를 둔다. 큐는 텍스트 내용과 분리해 테스트 가능해야 한다. |
-| 검증 기준 | `createSiestaEvent` 단위 테스트에서 마지막 큐가 카루아 반환인지 확인한다. 컨트롤러 테스트 또는 UI 테스트에서 보호 경로에서는 시에스타 큐가 생성되지 않는지 확인한다. |
-| 완료 조건 | 시에스타 발화 중에는 시에스타가 활성, 카루아 응답 중에는 카루아가 활성, 마지막 카루아 반환 발화 뒤 시에스타가 비활성화됨 |
+| 목적 | PNG 표정 전환과 제조·서빙 연출을 같은 스프라이트 상태 계약으로 정리 |
+| 범위 | 기존 셰이킹·서빙 컷, 정적 표정 전환, 필요 시 짧은 전환 효과를 `BartenderSprite`와 구조화된 presentation cue로 정리 |
+| 경계 | 대화 텍스트로 화면 상태를 추론하지 않는다. 대화의 `expression`과 제조/서빙 cue만 소비하며, 추천·Action·세션 판단은 변경하지 않는다. |
+| 완료 조건 | 표정·셰이킹·서빙 상태가 모바일/데스크톱에서 레이아웃을 흔들지 않고, 각 상태 전환을 테스트하거나 수동 검증한다. |
 
-#### SPR-005: 캐릭터 에셋 제작·정리 가이드
+#### SPR-004: 시에스타 Sprite 표시
 
 | 항목 | 내용 |
 |---|---|
 | 상태 | PROPOSED |
-| 목적 | 카루아 전체 표정과 시에스타 난입용 스프라이트를 일관된 톤으로 제작·관리 |
-| 권장 경로 | `bar_tend/src/assets/characters/karua/`, `bar_tend/src/assets/characters/siesta/` |
-| 제작 기준 | 투명 배경 PNG, 같은 캔버스 비율, 같은 기준선, 같은 조명 방향, 바 내부 배경에서 얼굴과 상반신이 읽히는 명도. 모바일에서는 채팅창을 가리지 않도록 반신 중심으로 제작 |
-| 주의 | 카루아와 시에스타의 캐릭터 디자인을 섞지 않는다. 현재 `character.png`와 `character0.png`는 톤이 달라 기준 디자인 확정 후 통일한다. |
-| 병행 가능 범위 | 최종 에셋 제작은 `SPR-001` 이후부터 병행 가능하다. 다만 코드 연결은 placeholder/fallback으로 먼저 진행해도 된다. 최종 에셋 교체는 파일명 계약만 지키면 코드 변경 없이 가능해야 한다. |
-| 품질 기준 | 두 캐릭터는 같은 세계의 인물처럼 조명·선명도·채도·비율이 맞아야 한다. 표정 차이는 얼굴에서 읽혀야 하며 단순 색 필터 차이에 기대지 않는다. PNG 주변 투명 픽셀과 그림자 여백은 모든 슬롯에서 동일해야 한다. |
-| 완료 조건 | 에셋 폴더, 명명 규칙, 기준 이미지, 누락 슬롯 fallback이 정리되고 Playwright 또는 수동 브라우저 검증으로 겹침이 확인됨 |
+| 목적 | 허용된 시에스타 만담 이벤트에서만 시에스타 스프라이트를 무대에 짧게 표시 |
+| 범위 | `SiestaSprite` 또는 공통 `CharacterSprite`, 무대 오른쪽/후면 배치, 등장·퇴장 CSS 상태, 모바일 겹침 방지 |
+| 경계 | 시에스타는 기본 화면에 보이지 않으며, 추천 진행·안전·퇴장·추천 취소에서는 표시하지 않는다. |
+| 완료 조건 | 데스크톱·모바일에서 채팅 영역과 추천 카드를 가리지 않고, 이벤트가 없을 때 DOM 또는 표시 상태가 비활성임을 검증한다. |
+
+#### SPR-005: 시에스타 Event Sync
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | PROPOSED |
+| 목적 | `createSiestaEvent` 결과의 speaker·stage direction을 시에스타와 카루아 스프라이트 상태에 동기화 |
+| 범위 | `SiestaEventResult`의 구조화된 `spriteCue` 또는 `stageDirection`, 활성 화자·표정, 퇴장 타이밍, 카루아 대화권 반환 |
+| 경계 | 대사 텍스트를 화면 상태 판단에 사용하지 않는다. 이벤트 엔진이 구조화된 cue를 반환하고 UI는 cue만 소비한다. |
+| 완료 조건 | 시에스타 발화 중에는 시에스타가 활성, 마지막 카루아 반환 발화 뒤 시에스타가 비활성화되며 보호 경로에서는 cue가 생성되지 않음을 테스트한다. |
 
 #### DLG-801: JSON 중심 대화 계약
 
@@ -678,8 +674,8 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 10 | ResponsePlan DB 리팩토링 | 완료 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | 대화 14개 카테고리·108개 문장 + Recommendation Formatter 4/4 + Welcome Formatter 완료 + Farewell Formatter 완료(standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home). formatter plan 38개·template line 120개, 필수 expression·제한 slot·legacy formatter fallback 고정. 697 tests pass |
 | Phase 11 | 대사 출처 정상화 | DONE | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | ResponsePlan-backed legacy dialogue category를 삭제하고 required legacy fallback은 의도적으로 유지한다. keyword-rule, response-template, story-query, welcome-drink, farewell-replies 표현 소유권과 Character QA 범위를 정리했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위다. |
 | Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | Semantic Snapshot 타입명, intent 허용 목록, `window.__RESTATION_WEBLLM__.snapshot()` 관측, WebLLM 격리 계약 테스트 진행. ResponsePlan 선택 연결은 Phase 13 이후 |
-| Phase 13 | 의미 태그 기반 ResponsePlan 선택 보조 | 계획 | 검증된 태그와 block 후보로 기존 JSON 블록 조합 다양화 | WebLLM 힌트가 없거나 충돌하면 기존 규칙 선택 유지. Action·Session 변경 금지 |
-| Phase 14 | 이야기 주제 의미 분류 | 계획 | 내부 DB 사실을 바꾸지 않고 story topic과 공개할 block 종류만 제안 | talkingPoints/lore/recipe/taste는 내부 DB가 결정. 자유문장·사실·재료·효과 생성 금지 |
+| Phase 13 | Semantic Snapshot 활용 여부 검토 | 계획 | Phase 12 측정과 품질 기준을 근거로 Snapshot 활용 여부를 결정 | 보류하면 기존 규칙 기반 선택 유지. Action·Session 변경 금지 |
+| Phase 14 | ResponsePlan 보조 선택 | 계획 | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | 힌트가 없거나 충돌하면 기존 규칙 선택 유지. 자유문장·사실·재료·효과 생성 금지 |
 | Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
 
 ### Phase 9~15 후속 계획 계약
@@ -730,18 +726,17 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 - 완료 전 남은 수동 검증: 실제 브라우저 preload/prepare, cold start, warm start, timeout, 모델 다운로드 크기와 준비 시간 기록.
 - 수동 검증 체크리스트: preload/prepare 성공, cold start 시간, warm start 시간, 다운로드 크기, timeout 관측, WebLLM ON/OFF 출력 동일성, Recommendation/Action/FSM 동일성.
 
-#### Phase 13: 의미 태그 기반 ResponsePlan 선택 보조
+#### Phase 13: Semantic Snapshot 활용 여부 검토
 
-- 검증된 세션 태그와 block 후보는 이후 턴의 ResponsePlan 선택 힌트로만 사용한다.
-- 힌트가 없거나 규칙과 충돌하면 기존 JSON 선택을 유지한다.
-- WebLLM 분석 때문에 현재 응답을 기다리게 하지 않는다.
+- Phase 12 실측값, timeout·복구 결과, 의미 태그 품질을 근거로 Snapshot을 Phase 14에 연결할지 결정한다.
+- 이 단계에서는 현재 사용자 출력이나 ResponsePlan 선택을 변경하지 않는다.
+- 보류하면 이후 단계 없이 기존 JSON·규칙 선택을 유지한다.
 
-#### Phase 14: 이야기 주제 의미 분류
+#### Phase 14: ResponsePlan 보조 선택
 
-- 내부 칵테일 DB를 단일 사실 출처로 유지한다.
-- WebLLM은 이야기 topic과 사용할 block 종류만 제안한다.
-- `talkingPoints`, `lore`, `recipe`, `taste`와 공개 이력은 내부 DB와 규칙 로직이 결정한다.
-- lore, 재료, 효과, 레시피, 최종 문장 생성은 금지한다.
+- 승인된 세션 태그와 block 후보만 이후 턴의 ResponsePlan 선택 힌트로 사용한다.
+- 힌트가 없거나 규칙과 충돌하면 기존 JSON 선택을 유지하고, WebLLM 분석 때문에 현재 응답을 기다리게 하지 않는다.
+- 내부 칵테일 DB를 단일 사실 출처로 유지하며, lore·재료·효과·레시피·최종 문장 생성은 금지한다.
 
 #### Phase 15: 최종 캐릭터 QA
 

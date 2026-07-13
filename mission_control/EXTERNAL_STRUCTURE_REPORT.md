@@ -1,7 +1,7 @@
 # Re:Station 외부 구조 보고서
 
 > 작성일: 2026-06-22
-> 최종 갱신일: 2026-07-10
+> 최종 갱신일: 2026-07-13
 > 목적: 외부 AI 또는 기획 협업자가 현재 프로젝트 구조, 책임 경계, 데이터 흐름을 빠르게 파악하기 위한 구조 지도
 > 대상 경로: `bar_tend/`
 > 작성·갱신 기준: `mission_control/EXTERNAL_STRUCTURE_REPORT_GUIDE.md`
@@ -116,6 +116,7 @@ App / ChatInput
 | `bar_tend/src/components/bar/WelcomeDrinkButton.tsx` | 웰컴드링크 요청 버튼 |
 | `bar_tend/src/components/bar/CocktailCard.tsx` | 추천 결과 카드와 주문·이야기 행동 |
 | `bar_tend/src/components/bar/BartenderSprite.tsx` | 카루아 표정 스프라이트와 제조/서빙 표시 |
+| `bar_tend/src/assets/characters/karua/sprites.ts` | `Expression`별 정적 PNG, 명시적 fallback, 셰이킹/서빙 프레임을 제공하는 캐릭터 에셋 진입점 |
 | `bar_tend/src/components/bar/RapportDebugDisplay.tsx` | 개발용 hidden rapport 표시 |
 | `bar_tend/src/components/sidebar/Sidebar.tsx` | 레시피, 도감, BGM 탭 컨테이너 |
 
@@ -234,6 +235,14 @@ WebLLM은 구조화 의미 분석만 담당한다. 최종 대사, 추천 결과,
 
 RapportState는 숨은 관계 상태다. controller는 입력 맥락에 따라 값을 갱신하고 개발용 표시를 제공할 수 있지만, 현재 구조에서 추천 결과, Action, SessionState, ResponsePlan 선택을 직접 변경하지 않는다. rapport 기반 variation 선택은 별도 헬퍼로 존재하며 런타임 표현 선택에 연결할 때도 안전·추천·세션 판단보다 낮은 우선순위여야 한다.
 
+### 6.8 Character Sprite Contract
+
+`Expression`은 대사 표현과 무대 표정의 공통 계약이다. `sprites.ts`는 문자열 경로 조합 없이 `Record<Expression, image>`로 정적 PNG를 제공하고, 준비되지 않은 슬롯은 명시적 fallback으로 처리한다. 현재 카루아의 `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed` 표정은 각각 독립 이미지로 연결되며, `talk`만 `idle` 이미지를 fallback으로 사용한다.
+
+`upset.png`는 별도 대사 표현 타입을 만들지 않고, 안전·경계 응답에 쓰이는 기존 `stern` 슬롯의 이미지 자산으로 연결한다. 이미지 파일명은 에셋 관리 정보이며, 대화·안전·세션 로직은 항상 `Expression` 타입만 사용한다.
+
+표정의 노출 시간, 자동 복귀, 전환 효과 같은 시간 정책은 `Presentation Layer`의 후속 책임이다. 현재 스프라이트 계약은 이미지 선택과 fallback만 소유한다.
+
 ## 7. Dialogue Architecture
 
 대사 출처는 여러 계층으로 나뉜다. 중심 소유자는 ResponsePlan과 도메인 formatter이며, legacy JSON은 ResponsePlan이 실패하거나 아직 별도 안전망이 필요한 일부 category에만 fallback으로 남는다.
@@ -339,6 +348,6 @@ ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 lin
 - 시에스타 스프라이트와 이벤트 큐: 허용 구간에서만 짧은 만담 표시
 - WebLLM 의미 보조: 검증된 태그를 낮은 우선순위 ResponsePlan 선택 힌트로 사용할지 검토
 - 칵테일 DB 확장: IBA 우선, 관리자 검증 큐 기반 승격
-- 에셋 확장: 표정별 PNG와 제조 애니메이션 슬롯 정리
+- 캐릭터 연출: 정적 표정 PNG와 제조 애니메이션을 분리한 현재 에셋 계약 위에 전환·시간 정책을 추가
 
 확장 시에도 추천 결과, 세션 상태, safety, 칵테일 사실 선택을 표현 계층이나 WebLLM으로 옮기지 않는다.
