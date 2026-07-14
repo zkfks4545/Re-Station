@@ -1,5 +1,28 @@
 # 작업 이력 (축약)
 
+## 2026-07-14 / Codex / Phase 12 실측 완료 및 Phase 13 보류 결정
+
+- 실제 Chrome에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true`, `VITE_WEB_LLM_SEMANTIC_ENABLED=true`로 WebLLM 준비를 실행했다. WebGPU API, 16 GB memory, 16 CPU는 감지됐으나 호환 GPU를 확보하지 못했다.
+- cold prepare는 약 375 ms에 `preparation-failed`로 종료되고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았고, warm prepare는 `session-disabled`로 즉시 생략됐다.
+- `capability`, `loader`, `service`, `semantic-contract` 테스트 4 files / 24 tests가 통과했다. timeout 시 세션 비활성화와 WebLLM의 ResponsePlan·Recommendation·Action·FSM 미의존 계약을 검증한다.
+- Phase 13은 **보류**로 결정한다. 현 환경에서의 준비 실패와 사용자 응답에 주는 가치가 비용을 정당화하지 못하므로 Phase 14를 착수하지 않고 기존 JSON/FSM/Rule Engine을 유지한다.
+
+## 2026-07-14 / Codex / P2 모바일·키보드 실제 검수
+
+- production preview를 375×812 모바일 viewport로 열어 메뉴를 dialog로 열고, ESC 닫기와 원래 메뉴 트리거 포커스 복귀를 확인했다.
+- 메뉴 마지막 탭에서 Tab을 누르면 닫기 버튼으로 순환하는 것을 확인했다.
+- 375×400 가상 키보드 높이에서 입력창은 y=293.61~339.61, 전송 버튼은 y=294.61~338.61으로 모두 viewport 안에 남았다.
+- 입력값이 있는 상태에서 Enter 제출 후 입력값이 초기화되고 전송 버튼이 비활성화되는 것을 확인했다.
+- P2를 DONE으로 판정한다. CocktailCard의 dialog·focus trap 계약은 기존 UI 회귀 테스트가 유지한다.
+
+## 2026-07-14 / Codex / P4 초기 로딩 최적화 및 P5 문서 동기화
+
+- `BartenderSprite` 마운트 시 정적 표정 9장과 셰이커 프레임 4장을 모두 내려받던 선로딩을 제거했다. 첫 화면은 현재 표현에 필요한 이미지 하나만 요청하며, 셰이커 프레임은 실제 제조 동작에서만 요청한다.
+- 기본 OFF인 WebLLM 준비 훅을 `ExperimentalWebLLMPreparation` 지연 청크로 분리했다. 개발 모드 또는 `VITE_WEB_LLM_PRELOAD_ENABLED=true`에서만 로드하므로 기본 production 진입 경로는 WebLLM 준비 요청을 만들지 않는다.
+- 검증: `npm.cmd test -- --run` (63 files, 824 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과. 메인 JS 549.33 kB(gzip 164.52 kB), WebLLM worker 6,029.70 kB와 lib 5,895.35 kB는 별도 청크다.
+- production Network 검증: 기본 OFF에서 입장 후 카루아 현재 표정 PNG 1장만 요청되고 WebLLM 청크는 0건이었다. `VITE_WEB_LLM_PRELOAD_ENABLED=true` 빌드에서는 `ExperimentalWebLLMPreparation`, `lib`, `webllm.worker` 요청이 발생했다.
+- P4는 이미지·WebLLM 로딩 격리와 ON/OFF 실측을 마쳐 DONE으로 판정한다. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 때 재검토한다. P5는 README, CURRENT_STATE, TASK_BOARD, WORK_LOG를 동기화해 DONE으로 판정했다.
+
 ## 2026-07-13 / Codex / SPR-002 talk fallback 확정
 
 - `talk`은 별도 PNG를 제작하지 않고 `idle` 이미지를 의도적으로 공유하기로 확정했다. 타이핑 표시와 대사 변화가 발화감을 담당한다.

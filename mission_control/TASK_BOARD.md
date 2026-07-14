@@ -673,9 +673,9 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 9 | Character Layer + 전체 대사 감사 + RapportState | 완료 | 카루아 말투, 농담, 반존대, 표정 FSM 반영, 전체 525개 대사 검수, 숨은 관계성 단일 축 | Character Profile·검증기·메타데이터·Response Pipeline + 3건 금지 패턴 수정. RapportState v3.0.0은 숨은 정수 축 0~10(초기값 4)이며 추천·FSM·Action·SessionState·ResponsePlan 선택에 미연결 |
 | Phase 10 | ResponsePlan DB 리팩토링 | 완료 | 완성 대사 DB를 의미·표현 블록 중심 ResponsePlan DB로 전환 | 대화 14개 카테고리·108개 문장 + Recommendation Formatter 4/4 + Welcome Formatter 완료 + Farewell Formatter 완료(standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home). formatter plan 38개·template line 120개, 필수 expression·제한 slot·legacy formatter fallback 고정. 697 tests pass |
 | Phase 11 | 대사 출처 정상화 | DONE | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | ResponsePlan-backed legacy dialogue category를 삭제하고 required legacy fallback은 의도적으로 유지한다. keyword-rule, response-template, story-query, welcome-drink, farewell-replies 표현 소유권과 Character QA 범위를 정리했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위다. |
-| Phase 12 | WebLLM 의미 보조 | 진행 중 | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | Semantic Snapshot 타입명, intent 허용 목록, `window.__RESTATION_WEBLLM__.snapshot()` 관측, WebLLM 격리 계약 테스트 진행. ResponsePlan 선택 연결은 Phase 13 이후 |
-| Phase 13 | Semantic Snapshot 활용 여부 검토 | 계획 | Phase 12 측정과 품질 기준을 근거로 Snapshot 활용 여부를 결정 | 보류하면 기존 규칙 기반 선택 유지. Action·Session 변경 금지 |
-| Phase 14 | ResponsePlan 보조 선택 | 계획 | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | 힌트가 없거나 충돌하면 기존 규칙 선택 유지. 자유문장·사실·재료·효과 생성 금지 |
+| Phase 12 | WebLLM 의미 보조 | DONE | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 실제 Chrome에서 WebGPU 호환 GPU 미확보로 cold prepare가 약 375 ms에 실패·세션 비활성화됨. 격리·timeout 계약 테스트 통과 |
+| Phase 13 | Semantic Snapshot 활용 여부 검토 | DONE — 보류 | Phase 12 측정과 품질 기준을 근거로 Snapshot 활용 여부를 결정 | 현 환경의 준비 실패와 가치 대비 비용을 근거로 보류. 기존 규칙 기반 선택 유지, Action·Session 변경 금지 |
+| Phase 14 | ResponsePlan 보조 선택 | DEFERRED | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | Phase 13 보류에 따라 착수하지 않음. 자유문장·사실·재료·효과 생성 금지 |
 | Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
 
 ### 현재 실행 우선순위와 Conversation QA gate (2026-07-13)
@@ -684,10 +684,10 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 |---|---|---|
 | P0 — DONE | 대화 연속성 FSM, ContinuationResolver, 추천 문맥, PendingQuestion, SessionTopic | 실제 플레이 로그를 턴 배열로 실행해 Intent, Topic, PendingQuestion, Route, ResponsePlan, Expression, SessionAffect와 다음 snapshot을 모두 검증 |
 | P1 — DONE | 제품 계약, 핵심 E2E, 추천 카드 계약, 카루아 명칭 | 기능 안정화 뒤 대표 사용자 흐름과 문서 계약이 일치하고 명칭·정보 책임이 단일화됨 |
-| P2 — REVIEW | 접근성, 모바일 UX, 모달, 전송 버튼 | 핵심 흐름을 모바일·키보드로 완주하고 포커스·닫기·전송 동작이 명확함 |
+| P2 — DONE | 접근성, 모바일 UX, 모달, 전송 버튼 | 375 px 모바일에서 메뉴 dialog의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 전송을 실측 |
 | P3 — DONE | Controller, ResponsePlan data, DB 진입점 | 동작 계약을 유지하면서 책임 경계를 분리하고 전체 회귀 통과 |
-| P4 | 이미지, 번들, lazy loading | 측정값을 기준으로 대형 자산과 초기 로딩 비용 축소 |
-| P5 | README와 mission_control 동기화 | 구현·검증이 안정된 시점에 상태, 테스트 수, 작업 보드를 한 번에 갱신 |
+| P4 — DONE | 이미지, 번들, lazy loading | 카루아 전체 이미지 선로딩 제거와 기본 OFF WebLLM 준비 경로 지연 로딩 적용. production Network에서 OFF는 카루아 현재 표정 1장만, ON은 WebLLM 청크 요청을 확인 |
+| P5 — DONE | README와 mission_control 동기화 | README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 갱신 |
 
 #### P0 Conversation QA 완료 계약
 
@@ -737,9 +737,9 @@ Input
 - 상세 레시피는 사이드바 책임으로 유지하고 추천 이유, 농담, 카루아용 이야깃거리는 대화 계층에 남긴다.
 - 사용자에게 표시하는 캐릭터 이름은 `카루아`로 통일한다. 사용자가 `칼루아`로 입력한 경우에만 위임 의도의 호환 별칭으로 허용한다.
 
-#### P2 사용성 구현 및 검수 상태
+#### P2 사용성 구현 및 검수 결과
 
-> 상태: **REVIEW (2026-07-13)** — 코드·렌더링 계약·전체 자동 회귀는 통과했다. 인앱 브라우저가 연결되지 않아 실제 viewport와 키보드 수동 검수는 남아 있다.
+> 상태: **DONE (2026-07-14)** — 코드·렌더링 계약·전체 자동 회귀와 production preview의 모바일·키보드 실측을 모두 통과했다.
 
 구현 완료:
 
@@ -753,8 +753,9 @@ Input
 남은 수동 검수:
 
 - 320px, 375px, 768px viewport에서 입력·전송·하단 작업 버튼과 추천 카드가 겹치지 않는지 확인한다.
-- 키보드만으로 메뉴와 추천 카드에 진입하고 Tab 순환, ESC 닫기, 원래 트리거 포커스 복귀를 확인한다.
-- 모바일 가상 키보드가 열린 상태에서 입력과 전송 버튼이 가려지지 않는지 확인한다.
+- 375 px viewport에서 메뉴 dialog의 Tab 순환, ESC 닫기, 원래 메뉴 트리거 포커스 복귀를 확인했다.
+- 400 px 가상 키보드 높이에서 입력과 전송 버튼이 화면 안에 남는 것을 확인했다.
+- 입력값이 있는 상태에서 Enter 제출 뒤 입력값 초기화와 전송 버튼 비활성화를 확인했다. CocktailCard의 dialog·ESC·focus trap은 UI 회귀 테스트로 검증한다.
 
 #### P3 구조 정리 완료 결과
 

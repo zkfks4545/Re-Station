@@ -1,15 +1,15 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-13 (P0 대화 연속성 및 Conversation QA 완료 반영)
+> 최종 갱신일: 2026-07-14 (P0~P5 재검수 및 Phase 12/13 결정 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~11 완료, **Phase 12 WebLLM 의미 계층 안정화 진행 중** |
+| 단계 | RST-000 MVP + Phase 1~12 완료, **Phase 13에서 WebLLM 활용 보류 결정** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 534.84 kB, gzip 160.12 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 769개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리) |
+| 테스트 | **Vitest 824개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -58,7 +58,7 @@
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 534.84 kB, gzip 160.12 kB, WebLLM/lib 지연 청크 분리 | 유지 |
+| 번들 | 메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리. 초기 카루아 전체 이미지 선로딩 제거 | 브라우저 Network에서 초기 요청량 확인 |
 
 ## 승인된 후속 로드맵 (2026-07-13)
 
@@ -67,8 +67,8 @@
 `Phase 11 완료 → Character QA 병행 → Phase 12 Semantic Layer Stabilization + WebLLM 실측 → Phase 13 Semantic Snapshot 활용 여부 결정 → Phase 14 ResponsePlan 보조 선택 → Phase 15 최종 Dialogue QA`
 
 - Character QA는 Phase 12~14와 병행한다. 최종 전수 확정은 Phase 15가 소유한다.
-- WebLLM 실제 브라우저 측정은 별도 다음 단계가 아니라 Phase 12 종료 조건이다. 측정·격리 검증이 끝나기 전 ResponsePlan 선택에는 연결하지 않는다.
-- Phase 13은 기능 구현이 아니라 활용 여부를 결정하는 gate다. 보류하면 Phase 14는 착수하지 않고 기존 규칙 기반 선택을 유지한다.
+- WebLLM 실제 브라우저 측정은 Phase 12 종료 조건으로 완료했다. 실측 환경에서 호환 GPU를 확보하지 못해 준비가 실패했으며, 세션 비활성화와 기존 JSON/FSM 흐름 유지가 확인됐다.
+- Phase 13은 기능 구현이 아니라 활용 여부를 결정하는 gate다. 현재는 활용을 보류하며, Phase 14는 착수하지 않고 기존 규칙 기반 선택을 유지한다.
 
 ### Presentation
 
@@ -85,14 +85,14 @@
 
 ## 현재 우선순위
 
-P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 기다리는 REVIEW 상태다. P3는 Controller 보조 책임, ResponsePlan 도메인 데이터, DB 공개 진입점 분리와 전체 회귀 검수를 마쳐 DONE으로 판정했다. 다음 구현 범위는 P4 성능 측정과 최적화다.
+P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 마쳐 DONE으로 판정했다. P3는 Controller 보조 책임, ResponsePlan 도메인 데이터, DB 공개 진입점 분리와 전체 회귀 검수를 마쳐 DONE으로 판정했다. P4는 초기 이미지 선로딩 제거, WebLLM 조건부 지연 로딩, production Network 실측까지 마쳐 DONE으로 판정했다. P5 문서 동기화도 완료했다.
 
 1. **P0 — 대화 연속성 (DONE)**: FSM/ContinuationResolver 연결, 추천 문맥·PendingQuestion·SessionTopic 전이, 실제 플레이 로그 기반 Conversation QA 완료
 2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
-3. **P2 — 사용성 (REVIEW)**: 접근성, 모바일 UX, 모달, 전송 버튼 구현·자동 검증 완료. 실제 모바일 viewport와 키보드 수동 검수 필요
+3. **P2 — 사용성 (DONE)**: 375 px 모바일 viewport에서 메뉴 다이얼로그의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 제출을 실측
 4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
-5. **P4 — 성능 (NEXT)**: 이미지 최적화, 번들 측정, 지연 로딩
-6. **P5 — 문서 동기화**: README, CURRENT_STATE, TASK_BOARD, 테스트 수를 기능 안정화 뒤 일괄 정리
+5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 시 재검토
+6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
 
 P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 
@@ -110,14 +110,13 @@ P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → Pending
 
 WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12에서는 WebLLM 결과를 최종 대사, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다. 개발 모드에서는 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
 
-### Phase 12 종료 조건: WebLLM 실측
+### Phase 12 종료 결과: WebLLM 실측
 
-- 실제 브라우저에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true` 기준 preload/prepare 동작 확인
-- cold start 준비 시간과 모델 다운로드 크기 기록
-- warm start 준비 시간과 재사용 여부 기록
-- timeout 발생 시 `lastFailure`, `statistics.byReason.timeout`, 세션 비활성화 상태 확인
-- WebLLM ON/OFF에서 현재 사용자 출력, Recommendation, Action, FSM이 동일한지 브라우저 수동 시나리오로 재확인
-- 수동 검증 결과를 `WORK_LOG.md`와 Phase 12 종료 조건에 반영
+- 실제 Chrome에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true`, `VITE_WEB_LLM_SEMANTIC_ENABLED=true`로 prepare를 실행했다.
+- WebGPU API·16 GB memory·16 CPU는 감지됐지만 호환 GPU를 확보하지 못해 cold prepare가 약 375 ms에 `preparation-failed`로 종료되고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았다.
+- warm prepare는 `session-disabled`로 즉시 생략됐다. 실제 GPU 환경의 warm 재사용·모델 다운로드 측정은 지원 장비가 생길 때 재실행한다.
+- timeout·세션 비활성화·ON/OFF 출력, Recommendation, Action, FSM 격리 계약은 WebLLM 24개 단위·계약 테스트로 확인했다. 현재 환경에서는 GPU 준비 실패가 선행되어 실제 generation timeout은 재현되지 않았다.
+- **Phase 13 결정: 활용 보류.** ResponsePlan 선택에는 연결하지 않으며 Phase 14는 착수하지 않는다.
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
