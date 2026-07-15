@@ -72,7 +72,7 @@
 
 ### Presentation
 
-`SPR-001 완료 → SPR-002 PNG 제작 → SPR-003 Sprite Animation → SPR-004 Siesta → SPR-005 Event Sync`
+`SPR-001 완료 → SPR-002 PNG 제작·검수 완료 → SPR-003 Sprite Animation → SPR-004 Siesta → SPR-005 Event Sync`
 
 - 기존 에셋 제작·정리 가이드는 SPR-002의 완료 조건으로 흡수한다. 별도 단계로 중복 관리하지 않는다.
 
@@ -157,4 +157,4 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 
 - 카루아 기준 디자인은 현재 런타임의 `static/Kaura.png`으로 고정했다.
 - 모든 `Expression`은 `sprites.ts`의 이미지·fallback 맵을 통해 표시한다. 새 `sympathy/surprised/disappointed/annoyed` PNG는 같은 이름 슬롯에 연결했고, `upset.png`는 safety 경계용 `stern` 슬롯에 연결했다. `talk`만 `idle` fallback이다.
-- 다음 작업은 새 표정 PNG를 이 슬롯에 추가하는 `SPR-002`이며, 시에스타 화면 연출은 `SPR-004~005` 범위다.
+- 정적 표정 PNG의 제작·연결·화면 검수는 `SPR-002`에서 완료했다. 다음 프레젠테이션 범위는 `SPR-003` 애니메이션이며, 시에스타 화면 연출은 `SPR-004~005` 범위다.

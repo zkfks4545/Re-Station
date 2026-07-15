@@ -1,5 +1,10 @@
 # 작업 이력 (축약)
 
+## 2026-07-15 / Codex / SPR-002 화면 검수 완료
+
+- production preview에서 카루아 기본 스프라이트를 확인했다. 데스크톱 1280×800 viewport에서는 360×360px, 모바일 375×812 viewport에서는 180×180px로 표시됐고 두 화면 모두 viewport 안에 완전히 들어왔다.
+- `sprites.test.ts` 2개, `npm.cmd run check`, `npm.cmd run lint`를 통과했다. 모든 `Expression` 이미지·fallback 슬롯 계약과 실제 기본 표시 레이아웃을 함께 확인해 SPR-002를 DONE으로 전환한다.
+
 ## 2026-07-14 / Codex / Phase 12 실측 완료 및 Phase 13 보류 결정
 
 - 실제 Chrome에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true`, `VITE_WEB_LLM_SEMANTIC_ENABLED=true`로 WebLLM 준비를 실행했다. WebGPU API, 16 GB memory, 16 CPU는 감지됐으나 호환 GPU를 확보하지 못했다.

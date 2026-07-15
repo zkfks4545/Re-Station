@@ -375,7 +375,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | DLG-808 `dialogues.json` 카테고리 대사 풀 정상화 및 문단 프리셋 이관 | DONE (Phase 11 범위) |
 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DONE (Phase 11 범위) |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | DONE |
-| SPR-002 카루아 표정 PNG 제작·연결 | REVIEW |
+| SPR-002 카루아 표정 PNG 제작·연결 | DONE |
 | SPR-003 카루아 Sprite Animation | PROPOSED |
 | SPR-004 시에스타 Sprite 표시 | PROPOSED |
 | SPR-005 시에스타 Event Sync | PROPOSED |
@@ -570,14 +570,14 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | REVIEW |
+| 상태 | DONE (2026-07-15) |
 | 목적 | 고정된 표현 슬롯에 실제 표정 PNG를 제작·연결하고, 에셋 제작 규칙을 함께 완료 |
 | 현재 연결 | `sympathy`, `surprised`, `disappointed`, `annoyed`는 동명 PNG를 사용한다. `upset.png`는 현재 `Expression` 타입에 없는 이름이므로 safety 경계의 `stern` 슬롯으로 명시 연결했다. `talk`은 별도 PNG를 만들지 않고 `idle`을 의도적으로 공유한다. |
 | 범위 | `BartenderSprite.tsx` 이미지 매핑, 기존 `Expression`별 fallback, CSS 크기와 위치 안정화, 표정 변경 시 레이아웃 흔들림 방지 |
 | 가이드 | 기존 `character.png`와 `character0.png`는 스타일이 다르므로 먼저 기준 카루아 디자인을 결정한다. 결정 전에는 현재 `character.png`를 fallback으로 유지한다. |
 | 구현 메모 | `Expression` 타입을 그대로 사용하되 이미지 import를 맵으로 분리한다. 누락된 표정은 `idle` 또는 현재 `character.png`로 fallback한다. CSS filter는 실제 표정 이미지가 준비되면 보조 효과 수준으로 줄인다. |
 | 검증 기준 | `idle/talk/thinking/smirk/sympathy/surprised` 전부 렌더링 가능해야 한다. 표정 전환 시 `restation-stage`, 채팅 dock, 추천 카드 위치가 흔들리지 않아야 한다. |
-| 완료 조건 | 모든 `Expression` 값이 실제 이미지 또는 명시적 fallback으로 표시되고, 에셋 폴더·명명 규칙·기준 이미지가 정리되며 기존 대화·추천 흐름에서 표정 전환이 깨지지 않음. 현재 남은 검증은 데스크톱·모바일 수동 화면 검수다. |
+| 완료 조건 | 모든 `Expression` 값이 실제 이미지 또는 명시적 fallback으로 표시되고, 에셋 폴더·명명 규칙·기준 이미지가 정리되며 기존 대화·추천 흐름에서 표정 전환이 깨지지 않음. `sprites.test.ts` 통과와 production preview의 데스크톱·모바일 화면 검수를 완료했다. |
 
 #### SPR-003: 카루아 Sprite Animation
 
