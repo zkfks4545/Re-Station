@@ -70,6 +70,7 @@ export interface Message {
 export interface BartenderResponse {
   response: string
   expression: Expression
+  responsePlanId?: string
   character?: CharacterResponseMetadata
 }
 
@@ -87,11 +88,13 @@ export interface KeywordRule {
   expression: Expression
   response: string
   dialogueCategory?: string
+  affect?: import('./lib/session/session-affect.js').SessionAffect
 }
 
 export interface DialogueLine {
   text: string
   expression: Expression
+  responsePlanId?: string
 }
 
 export interface DialogueCategory {

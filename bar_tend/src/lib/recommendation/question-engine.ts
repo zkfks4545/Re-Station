@@ -1,5 +1,5 @@
 import questionsJson from '../../data/recommendation-questions.json'
-import type { CocktailData } from '../../types.js'
+import type { CocktailData, DialogueLine } from '../../types.js'
 import type { FeatureKey, TastePreference } from '../../types/cocktail-db.js'
 import type {
   RecommendationQuestion,
@@ -8,6 +8,8 @@ import type {
 } from '../../types/recommendation.js'
 import { getPublicCocktailData, scoreCocktailMatch } from '../cocktails/cocktail-db.js'
 import { kf } from '../dialogue/pattern-utils.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
+import { renderRecommendationQuestionResponsePlan } from '../dialogue/response-plan-renderer.js'
 import { renderTextPreset } from '../dialogue/text-presets.js'
 import {
   applyRecommendationSignals,
@@ -143,6 +145,47 @@ export function isRecommendationDecisive(
 }
 
 export function formatQuestion(
+  question: RecommendationQuestion,
+  acknowledgement?: string | null,
+): string {
+  return formatQuestionDialogueLine(question, acknowledgement).text
+}
+
+export function formatQuestionDialogueLine(
+  question: RecommendationQuestion,
+  acknowledgement?: string | null,
+  options: { plans?: readonly ResponsePlan[] } = {},
+): DialogueLine {
+  const legacy = formatQuestionLegacy(question, acknowledgement)
+  const leadIn = acknowledgement
+    ? renderTextPreset(
+      question.dialogueFlow?.continuationPreset,
+      question.dialogueFlow?.continuation,
+    )
+    : renderTextPreset(
+      question.dialogueFlow?.leadInPreset,
+      question.dialogueFlow?.leadIn,
+    )
+  const questionLabel = renderTextPreset(question.promptPreset, question.prompt)
+  const rendered = renderRecommendationQuestionResponsePlan(
+    Boolean(acknowledgement),
+    acknowledgement
+      ? {
+        acknowledgement,
+        continuation: leadIn,
+        question_label: questionLabel,
+      }
+      : {
+        lead_in: leadIn || '??媛吏留????ъ?蹂쇨쾶??',
+        question_label: questionLabel,
+      },
+    options.plans,
+  )
+
+  return rendered ?? { text: legacy, expression: 'thinking' }
+}
+
+function formatQuestionLegacy(
   question: RecommendationQuestion,
   acknowledgement?: string | null,
 ): string {

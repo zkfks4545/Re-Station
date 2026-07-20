@@ -1,7 +1,8 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import CocktailBookTab from './CocktailBookTab.jsx'
-import { publicCocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/index.js'
 import type { CocktailData } from '@/types.js'
+import type { AudioManager } from '@/hooks/useAudioManager.js'
 
 export type SidebarTab = 'codex' | 'recipe' | 'music' | 'reset'
 
@@ -23,6 +24,7 @@ export default function Sidebar({
   lastServedCocktail,
   onViewCocktail,
   onOrderCocktail,
+  audio,
 }: {
   unlockedIds: Set<string>
   mobileOpen: boolean
@@ -31,11 +33,62 @@ export default function Sidebar({
   lastServedCocktail?: CocktailData | null
   onViewCocktail?: (cocktail: CocktailData) => void
   onOrderCocktail?: (cocktail: CocktailData) => void
+  audio: AudioManager
 }) {
   const [tab, setTab] = useState<SidebarTab>('codex')
   const [confirmReset, setConfirmReset] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const sidebarRef = useRef<HTMLElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const onMobileCloseRef = useRef(onMobileClose)
   const totalCocktails = publicCocktails.length
   const publicUnlockedCount = publicCocktails.filter((cocktail) => unlockedIds.has(cocktail.id)).length
+
+  useEffect(() => {
+    onMobileCloseRef.current = onMobileClose
+  }, [onMobileClose])
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 768px)')
+    const sync = () => setIsMobile(query.matches)
+    sync()
+    query.addEventListener('change', sync)
+    return () => query.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile || !mobileOpen) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    closeButtonRef.current?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onMobileCloseRef.current()
+        return
+      }
+      if (event.key !== 'Tab' || !sidebarRef.current) return
+      const focusable = [...sidebarRef.current.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      )]
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      previouslyFocused?.focus()
+    }
+  }, [isMobile, mobileOpen])
 
   const handleReset = () => {
     if (!confirmReset) {
@@ -56,16 +109,33 @@ export default function Sidebar({
         aria-hidden={!mobileOpen}
       />
       <aside
+        ref={sidebarRef}
+        id="bar-terminal-menu"
         className={`restation-sidebar ${mobileOpen ? 'restation-sidebar--open' : ''}`}
-        aria-label="Bar terminal menu"
+        aria-label="바 메뉴"
+        aria-hidden={isMobile ? !mobileOpen : undefined}
+        aria-modal={isMobile && mobileOpen ? true : undefined}
+        role={isMobile && mobileOpen ? 'dialog' : undefined}
+        inert={isMobile && !mobileOpen}
       >
         <div className="sidebar-glitch-border" />
+        <button
+          ref={closeButtonRef}
+          type="button"
+          className="sidebar-close"
+          onClick={onMobileClose}
+          aria-label="바 메뉴 닫기"
+        >
+          ×
+        </button>
         <nav className="sidebar-tabs" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               role="tab"
+              id={`sidebar-tab-${t.id}`}
+              aria-controls={`sidebar-panel-${t.id}`}
               aria-selected={tab === t.id}
               className={`sidebar-tab ${tab === t.id ? 'sidebar-tab--active' : ''}`}
               onClick={() => {
@@ -79,7 +149,12 @@ export default function Sidebar({
           ))}
         </nav>
 
-        <div className="sidebar-panel" role="tabpanel">
+        <div
+          id={`sidebar-panel-${tab}`}
+          className="sidebar-panel"
+          role="tabpanel"
+          aria-labelledby={`sidebar-tab-${tab}`}
+        >
           {tab === 'codex' && (
             <>
               <h2 className="sidebar-title">칵테일 도감</h2>
@@ -107,7 +182,7 @@ export default function Sidebar({
             <>
               <h2 className="sidebar-title">유튜브 주크박스</h2>
               <Suspense fallback={<p className="sidebar-muted">주크박스를 불러오는 중입니다.</p>}>
-                <BarMusicTab />
+                <BarMusicTab bgm={audio.bgm} sfx={audio.sfx} />
               </Suspense>
             </>
           )}

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { CocktailData } from '../../types.js'
-import { cocktails, getCocktailById, publicCocktails } from '../cocktails/database.js'
+import { cocktails, getCocktailById, publicCocktails } from '../cocktails/index.js'
 import {
   createRecommendationSourcePool,
   pickFromPool,

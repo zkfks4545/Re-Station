@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ExperimentalWebLLMDiagnostics } from './diagnostics.js'
 import { ExperimentalWebLLMLoader } from './loader.js'
-import { ExperimentalSemanticAssistant } from './service.js'
+import { ExperimentalSemanticAssistant, isEligibleSemanticRoute } from './service.js'
 import { SemanticSessionTagStore } from './session-tags.js'
 import type { WebLLMEngine, WebLLMSemanticRequest } from './types.js'
 
 function request(overrides: Partial<WebLLMSemanticRequest> = {}): WebLLMSemanticRequest {
-  return { input: '요즘 일이 좀 많았어요.', route: 'general-chat', ...overrides }
+  return { input: 'Long day at work.', route: 'general-chat', ...overrides }
 }
 
 function semanticJson(): string {
@@ -29,8 +30,8 @@ async function preparedLoader(engine: WebLLMEngine): Promise<ExperimentalWebLLML
   return loader
 }
 
-describe('WebLLM 의미 보조 서비스', () => {
-  it('SEMANTIC OFF이면 엔진을 호출하지 않고 분석 없이 끝난다', async () => {
+describe('WebLLM semantic assistant', () => {
+  it('does not call the engine when semantic analysis is disabled', async () => {
     const engine = fakeEngine(semanticJson())
     const loader = await preparedLoader(engine)
     const assistant = new ExperimentalSemanticAssistant({
@@ -46,7 +47,7 @@ describe('WebLLM 의미 보조 서비스', () => {
   })
 
   it.each(['safety-alert', 'order-cocktail', 'recommendation-query', 'farewell', 'lore-query'])(
-    '결정 경로 %s에서는 의미 분석을 호출하지 않는다',
+    'does not call the engine for decision route %s',
     async (route) => {
       const engine = fakeEngine(semanticJson())
       const loader = await preparedLoader(engine)
@@ -63,7 +64,19 @@ describe('WebLLM 의미 보조 서비스', () => {
     },
   )
 
-  it('검증된 의미 정보와 세션 태그만 저장한다', async () => {
+  it('allows only low-risk conversation intents for semantic snapshots', () => {
+    expect(isEligibleSemanticRoute('general-chat')).toBe(true)
+    expect(isEligibleSemanticRoute('mood-talk')).toBe(true)
+    expect(isEligibleSemanticRoute('weather-talk')).toBe(true)
+
+    expect(isEligibleSemanticRoute('order-cocktail')).toBe(false)
+    expect(isEligibleSemanticRoute('recommendation-query')).toBe(false)
+    expect(isEligibleSemanticRoute('safety-alert')).toBe(false)
+    expect(isEligibleSemanticRoute('exit-intent')).toBe(false)
+    expect(isEligibleSemanticRoute('recipe-query')).toBe(false)
+  })
+
+  it('stores only validated semantic session tags', async () => {
     const tagStore = new SemanticSessionTagStore()
     const loader = await preparedLoader(fakeEngine(semanticJson()))
     const assistant = new ExperimentalSemanticAssistant({
@@ -78,7 +91,7 @@ describe('WebLLM 의미 보조 서비스', () => {
     expect(tagStore.snapshot()).toEqual(['burnout', 'work'])
   })
 
-  it('분석 중 새 요청은 기다리지 않고 즉시 건너뛴다', async () => {
+  it('skips overlapping requests instead of blocking the current response', async () => {
     let resolve!: (value: string) => void
     const engine = fakeEngine(new Promise<string>((done) => { resolve = done }))
     const loader = await preparedLoader(engine)
@@ -87,8 +100,8 @@ describe('WebLLM 의미 보조 서비스', () => {
       flags: () => ({ preloadEnabled: true, semanticEnabled: true }),
     })
 
-    const first = assistant.analyze(request({ input: '첫 입력' }))
-    const second = await assistant.analyze(request({ input: '다음 입력' }))
+    const first = assistant.analyze(request({ input: 'first input' }))
+    const second = await assistant.analyze(request({ input: 'next input' }))
     resolve(semanticJson())
     await first
 
@@ -96,7 +109,7 @@ describe('WebLLM 의미 보조 서비스', () => {
     expect(second.metadata.generationSkippedReason).toBe('generation-busy')
   })
 
-  it('timeout이면 결과를 버리고 해당 세션의 WebLLM을 비활성화한다', async () => {
+  it('discards timed out results and disables WebLLM for the session', async () => {
     const engine = fakeEngine(new Promise<string>(() => undefined))
     const loader = await preparedLoader(engine)
     const assistant = new ExperimentalSemanticAssistant({
@@ -110,6 +123,30 @@ describe('WebLLM 의미 보조 서비스', () => {
     expect(result.analysis).toBeNull()
     expect(result.metadata.generationSkippedReason).toBe('timeout')
     expect(loader.isDisabled()).toBe(true)
+  })
+
+  it('records last result, last failure, and reason statistics for runtime inspection', async () => {
+    const diagnostics = new ExperimentalWebLLMDiagnostics()
+    const loader = await preparedLoader(fakeEngine('not json'))
+    const assistant = new ExperimentalSemanticAssistant({
+      loader,
+      diagnostics,
+      flags: () => ({ preloadEnabled: true, semanticEnabled: true }),
+    })
+
+    const result = await assistant.analyze(request())
+    const snapshot = diagnostics.snapshot()
+
+    expect(result.analysis).toBeNull()
+    expect(snapshot.lastResult?.metadata.generationSkippedReason).toBe('validation-failed')
+    expect(snapshot.lastFailure?.generationSkippedReason).toBe('validation-failed')
+    expect(snapshot.statistics).toMatchObject({
+      attempts: 1,
+      successes: 0,
+      failures: 1,
+      skips: 0,
+    })
+    expect(snapshot.statistics.byReason['validation-failed']).toBe(1)
   })
 })
 

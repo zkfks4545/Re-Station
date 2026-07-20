@@ -4,6 +4,7 @@ import {
   decideFarewellEntry,
   dialogueSessionReducer,
   isWelcomeDrinkFeedbackPending,
+  sessionTopicForRoute,
 } from './dialogue-session.js'
 
 describe('DialogueSessionState', () => {
@@ -25,6 +26,14 @@ describe('DialogueSessionState', () => {
       { type: 'record-conversation-turn', recommendationPrompted: true },
     )
     expect(state.dialogue).toEqual({ turnCount: 1, recommendationPrompted: true })
+  })
+
+  it('persists the affect selected by a conversational keyword', () => {
+    const state = dialogueSessionReducer(
+      createDialogueSessionState('conversation'),
+      { type: 'set-session-affect', affect: { sessionAffect: 'concerned', affectTurnsRemaining: 3, affectRecoveryTurns: 0 } },
+    )
+    expect(state.sessionAffect).toBe('concerned')
   })
 
   it('uses Welcome-Farewell XYZ when farewell starts before a welcome drink', () => {
@@ -56,6 +65,7 @@ describe('DialogueSessionState', () => {
     expect(locked.phase).toBe('safetyLocked')
     expect(locked.safetyLocked).toBe(true)
     expect(locked.mode).toBe('conversation')
+    expect(locked.sessionAffect).toBe('firm')
     expect(locked.welcomeDrink.resolved).toBe(true)
     expect(locked.farewell.entryKind).toBe('none')
     expect(decideFarewellEntry(locked, 'exit')).toBeNull()
@@ -79,6 +89,45 @@ describe('DialogueSessionState', () => {
     const served = dialogueSessionReducer(recommending, { type: 'cocktail-served' })
 
     expect(served.mode).toBe('conversation')
+    expect(served.pendingQuestion).toBeNull()
+  })
+
+  it('clears stale cocktail subjects explicitly and maps routes to session topics', () => {
+    let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-topic', topic: 'cocktail-story', cocktailId: 'paloma',
+    })
+    state = dialogueSessionReducer(state, {
+      type: 'set-topic', topic: 'smalltalk', cocktailId: null,
+    })
+
+    expect(state.topicCocktailId).toBeNull()
+    expect(sessionTopicForRoute('recommendation')).toBe('recommendation')
+    expect(sessionTopicForRoute('story-query')).toBe('cocktail-story')
+    expect(sessionTopicForRoute('safety')).toBe('safety')
+  })
+
+  it('clears pending recommendation context when service or farewell closes the question', () => {
+    let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-pending-question',
+      question: { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 },
+    })
+    expect(dialogueSessionReducer(state, { type: 'cocktail-served' }).pendingQuestion).toBeNull()
+    expect(dialogueSessionReducer(state, { type: 'set-mode', mode: 'conversation' }).pendingQuestion).toBeNull()
+
+    state = dialogueSessionReducer(state, { type: 'enter-farewell', entryKind: 'standard' })
+    expect(state.pendingQuestion).toBeNull()
+    expect(state.topicCocktailId).toBeNull()
+  })
+
+  it('moves the session subject to the served cocktail for follow-up questions', () => {
+    const served = dialogueSessionReducer(createDialogueSessionState('recommending'), {
+      type: 'cocktail-served', cocktailId: 'paloma',
+    })
+
+    expect(served).toMatchObject({
+      mode: 'conversation', sessionTopic: 'cocktail-info', topicCocktailId: 'paloma',
+      pendingQuestion: null,
+    })
   })
 
   it('keeps safetyLocked absorbing until an explicit session reset', () => {

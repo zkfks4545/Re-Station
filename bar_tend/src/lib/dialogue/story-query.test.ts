@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { getCocktailById } from '../cocktails/database.js'
+import { getCocktailById } from '../cocktails/index.js'
 import {
+  formatStoryQueryFactReply,
   formatStoryQueryReply,
   getSelectedCocktailStoryFactKey,
+  selectCocktailContentFact,
+  STORY_QUERY_SOURCE_OWNERSHIP,
 } from './story-query.js'
 
 describe('story and lore query replies', () => {
+  it('documents Phase 11 source ownership for story query replies', () => {
+    expect(STORY_QUERY_SOURCE_OWNERSHIP).toEqual({
+      cocktailFacts: 'cocktail-data',
+      generalLoreFallback: 'story-query',
+      exhaustedFallback: 'story-query',
+    })
+  })
+
   it('reveals one new cocktail fact at a time without repetition', () => {
     const cocktail = getCocktailById('cocktail_classic_001')
     expect(cocktail).toBeDefined()
@@ -19,6 +30,22 @@ describe('story and lore query replies', () => {
     expect(second.factKeys).toHaveLength(1)
     expect(second.factKeys[0]).not.toBe(first.factKeys[0])
     expect(second.text).not.toBe(first.text)
+  })
+
+  it('separates fact selection from the final reply wrapper', () => {
+    const cocktail = getCocktailById('cocktail_classic_001')!
+    const fact = selectCocktailContentFact(cocktail, [], 'story')
+
+    expect(fact).not.toBeNull()
+    expect(fact?.key).toMatch(/^story:/)
+
+    const reply = formatStoryQueryFactReply(fact!)
+    expect(reply).toEqual({
+      text: fact!.text,
+      expression: 'talk',
+      facts: [fact!.text],
+      factKeys: [fact!.key],
+    })
   })
 
   it('skips the story fragment already used while serving', () => {

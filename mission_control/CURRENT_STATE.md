@@ -1,16 +1,16 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-06
+> 최종 갱신일: 2026-07-14 (P0~P5 재검수 및 Phase 12/13 결정 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~8 완료, **Phase 9 Character Layer 완료** |
+| 단계 | RST-000 MVP + Phase 1~12 완료, **Phase 13에서 WebLLM 활용 보류 결정** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/린트 | 통과 (메인 JS 524.23 kB, gzip 155.65 kB, WebLLM 지연 청크 분리) |
-| 테스트 | **Vitest 609개 전체 통과** |
-| 세션 테스트 | farewell-replies.test.ts + session-flow.test.ts 통과 |
+| 빌드/check | 통과 (메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리) |
+| 테스트 | **Vitest 824개 전체 통과** |
+| 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
 | 완료 항목 | 커밋 |
@@ -36,9 +36,12 @@
 | CocktailCard 버튼 "다시 추천받기" → "주문하기"·"이야기하기" 교체 | 현재 작업 |
 | Phase 10 ResponsePlan 타입·선택·검증·fallback 계약 | [`완료`] |
 | Phase 10 ResponsePlanLine expression 필수 계약 보강 | [`완료`] |
-| Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 진행 중 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
-| Phase 10 Recommendation Formatter | 2/4 완료: randomPick + exact recommendation 본문 (plan 9개·template line 91개) |
-| WebLLM 의미 보조 (Worker·구조화 분석·허용 목록 검증·세션 태그·비차단 실행, 최종 대사 생성 없음) | 현재 작업 |
+| Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 완료 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
+| Phase 10 Recommendation Formatter | 4/4 완료: randomPick + exact + nearest fallback 본문 + acknowledgement/lead-in (plan 19개·template line 101개) |
+| Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
+| Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
+| Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query/welcome-drink/farewell-replies 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
+| WebLLM 의미 보조 (Worker·Semantic Snapshot·허용 목록 검증·세션 태그·비차단 실행·관측 API·격리 계약 테스트, 최종 대사 생성 없음) | 현재 작업 |
 | 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
 | 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
@@ -51,20 +54,47 @@
 ## 현재 구현 vs 목표 차이
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| 캐릭터 | 카루아 표정 PNG 일부 연결(`smirk`, `thinking`, `embarrassed/disappointed`) + 나머지 `idle` fallback, 시에스타 라벨만 | 모든 표정 슬롯별 PNG + 시에스타 난입 스프라이트 |
+| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + 의도된 `talk`=`idle` 공유, 시에스타 라벨만 | 시에스타 난입 스프라이트 |
 | 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 524.23 kB, gzip 155.65 kB, WebLLM 지연 청크 분리 | 유지 |
+| 번들 | 메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리. 초기 카루아 전체 이미지 선로딩 제거 | 브라우저 Network에서 초기 요청량 확인 |
+
+## 승인된 후속 로드맵 (2026-07-13)
+
+### Dialogue
+
+`Phase 11 완료 → Character QA 병행 → Phase 12 Semantic Layer Stabilization + WebLLM 실측 → Phase 13 Semantic Snapshot 활용 여부 결정 → Phase 14 ResponsePlan 보조 선택 → Phase 15 최종 Dialogue QA`
+
+- Character QA는 Phase 12~14와 병행한다. 최종 전수 확정은 Phase 15가 소유한다.
+- WebLLM 실제 브라우저 측정은 Phase 12 종료 조건으로 완료했다. 실측 환경에서 호환 GPU를 확보하지 못해 준비가 실패했으며, 세션 비활성화와 기존 JSON/FSM 흐름 유지가 확인됐다.
+- Phase 13은 기능 구현이 아니라 활용 여부를 결정하는 gate다. 현재는 활용을 보류하며, Phase 14는 착수하지 않고 기존 규칙 기반 선택을 유지한다.
+
+### Presentation
+
+`SPR-001 완료 → SPR-002 PNG 제작·검수 완료 → SPR-003 Sprite Animation → SPR-004 Siesta → SPR-005 Event Sync`
+
+- 기존 에셋 제작·정리 가이드는 SPR-002의 완료 조건으로 흡수한다. 별도 단계로 중복 관리하지 않는다.
+
+### Audio
+
+`Step 1 완료 → Step 2 SFX → Step 3 Cue → Step 4 Audio UX 보강`
+
+- Step 1에서 BGM 재생·볼륨·음소거·저장과 기본 UI는 완료했다.
+- Step 4는 새 기본 UI를 만드는 일이 아니라 SFX 상태·접근성·오류/차단 상태를 기존 UI에 보강하는 단계다.
 
 ## 현재 우선순위
-1. CocktailCard 주문하기·이야기하기 버튼 수동 검증 및 안정화
-2. Phase 10 이관 14개 카테고리의 필수 expression·JSON 제거 독립성·legacy fallback 계약 유지
-3. nearest recommendation fallback 경계를 다음 formatter 슬라이스로 사전 조사
-4. Phase 11 대사 출처 정상화 (기존 JSON 출처 → ResponsePlan 순차 이관)
-5. Phase 12 의미 보조의 ResponsePlan 선택 연결은 Phase 10 이후 검토
-6. Phase 13~14 의미 태그·이야기 topic 연결은 앞선 정규화 완료 후 순차 검토
-7. Phase 15 최종 캐릭터 QA와 시에스타 재활성화 여부 평가
+
+P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바일·키보드 화면 검수를 마쳐 DONE으로 판정했다. P3는 Controller 보조 책임, ResponsePlan 도메인 데이터, DB 공개 진입점 분리와 전체 회귀 검수를 마쳐 DONE으로 판정했다. P4는 초기 이미지 선로딩 제거, WebLLM 조건부 지연 로딩, production Network 실측까지 마쳐 DONE으로 판정했다. P5 문서 동기화도 완료했다.
+
+1. **P0 — 대화 연속성 (DONE)**: FSM/ContinuationResolver 연결, 추천 문맥·PendingQuestion·SessionTopic 전이, 실제 플레이 로그 기반 Conversation QA 완료
+2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
+3. **P2 — 사용성 (DONE)**: 375 px 모바일 viewport에서 메뉴 다이얼로그의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 제출을 실측
+4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
+5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 시 재검토
+6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
+
+P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 
 ---
 
@@ -78,7 +108,15 @@
 | 허용 목록·confidence 검증 | Semantic Validator |
 | 최종 대사 조립 | Rule Engine |
 
-WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 10 전에는 태그를 실제 대사 선택에 반영하지 않는다.
+WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시키지 않는다. 검증된 세션 태그는 메모리에만 존재하고 새 입장·퇴장·밤 초기화 때 삭제한다. Phase 12에서는 WebLLM 결과를 최종 대사, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다. 개발 모드에서는 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
+
+### Phase 12 종료 결과: WebLLM 실측
+
+- 실제 Chrome에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true`, `VITE_WEB_LLM_SEMANTIC_ENABLED=true`로 prepare를 실행했다.
+- WebGPU API·16 GB memory·16 CPU는 감지됐지만 호환 GPU를 확보하지 못해 cold prepare가 약 375 ms에 `preparation-failed`로 종료되고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았다.
+- warm prepare는 `session-disabled`로 즉시 생략됐다. 실제 GPU 환경의 warm 재사용·모델 다운로드 측정은 지원 장비가 생길 때 재실행한다.
+- timeout·세션 비활성화·ON/OFF 출력, Recommendation, Action, FSM 격리 계약은 WebLLM 24개 단위·계약 테스트로 확인했다. 현재 환경에서는 GPU 준비 실패가 선행되어 실제 generation timeout은 재현되지 않았다.
+- **Phase 13 결정: 활용 보류.** ResponsePlan 선택에는 연결하지 않으며 Phase 14는 착수하지 않는다.
 
 ## 주요 이슈
 | 이슈 | 상태 | 해결 커밋 |
@@ -89,7 +127,7 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 | ISSUE-004 자동 테스트 부족 | 해결됨 | [`de40d39`] |
 | ISSUE-005 JS 번들 593kB | 해결됨 | [`dcbbda5`] |
 | ISSUE-006 OpenAI/Ollama 잔재 | 해결됨 | [`dcbbda5`] |
-| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, 실제 장치 준비·구조화 분석 검증 필요 | 현재 작업 |
+| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, scope lock·관측 API·격리 계약 테스트 진행. 실제 장치 prepare/cold/warm/timeout 측정 필요 | 현재 작업 |
 | ISSUE-008 카루아 규칙 계약 | 해결됨 | [`bc23714`] |
 | ISSUE-009 안전 fallback/빈 응답 | 해결됨 | [`2ad13e4`] |
 | ISSUE-010 추천 UI 잔존 | 해결됨 | [`2ad13e4`] |
@@ -101,7 +139,7 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 
 ## 향후 방침
 - RapportState는 숨은 상태이며 추천 결과·FSM·Action·SessionState·ResponsePlan 선택에 연결하지 않음
-- WebLLM 자유대사 생성 금지, Phase 10 전 의미 태그의 ResponsePlan 선택 반영 금지
+- WebLLM 자유대사 생성 금지, Phase 12/13 런타임 통합 전 의미 태그의 ResponsePlan 선택 반영 금지
 - 칵테일 확장 = IBA 우선, 관리자 검증 큐 (DEC-020)
 - 대사 풀 = 입력 경로 선택, FSM=말투·리듬, affectState=표정
 - 스프라이트 작업은 WebLLM보다 우선
@@ -111,6 +149,12 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 - `assets/characters/karua/static/` (정적PNG)
 - `assets/characters/karua/animations/shaker/` (셰이킹)
 - `sprites.ts` = 코드 진입점
-- 칵테일 확정→`preparing`→셰이킹→추천대사+카드
+- 칵테일 확정→`preparing`→셰이킹 또는 서빙 컷→추천대사+카드
 - 새 에셋: `{character}/static/`(PNG), `animations/{action}/`(프레임), `sprites.ts`(import)
 - 표정=`Expression` 1:1 매핑, 누락=`idle` fallback
+
+### SPR-001 캐릭터 스프라이트 슬롯 계약 완료
+
+- 카루아 기준 디자인은 현재 런타임의 `static/Kaura.png`으로 고정했다.
+- 모든 `Expression`은 `sprites.ts`의 이미지·fallback 맵을 통해 표시한다. 새 `sympathy/surprised/disappointed/annoyed` PNG는 같은 이름 슬롯에 연결했고, `upset.png`는 safety 경계용 `stern` 슬롯에 연결했다. `talk`만 `idle` fallback이다.
+- 정적 표정 PNG의 제작·연결·화면 검수는 `SPR-002`에서 완료했다. 다음 프레젠테이션 범위는 `SPR-003` 애니메이션이며, 시에스타 화면 연출은 `SPR-004~005` 범위다.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bartenderPersona } from '../bartender/persona.js'
-import { getCocktailById } from '../cocktails/database.js'
+import { getCocktailById } from '../cocktails/index.js'
 import { formatRecommendationReply } from '../recommendation/response.js'
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
 import { applyCharacterLayer } from './character-layer.js'

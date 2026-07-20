@@ -1,5 +1,6 @@
 import type { Expression } from '../../types.js'
 import type { DialogueParagraphIntent, DialogueSpeaker } from './text-presets.js'
+import type { SessionTopic } from '../session/dialogue-session.js'
 
 export type ResponsePlanBlockKind =
   | 'reaction'
@@ -20,6 +21,7 @@ export interface ResponsePlan {
   speaker: DialogueSpeaker
   state?: string
   request?: string
+  topic?: SessionTopic
   blocks: Partial<Record<ResponsePlanBlockKind, readonly ResponsePlanLine[]>>
   fallbackText: string
   expression?: Expression
@@ -30,6 +32,7 @@ export interface ResponsePlanQuery {
   speaker: DialogueSpeaker
   state?: string
   request?: string
+  topic?: SessionTopic
 }
 
 export interface ResponsePlanValidationResult {
@@ -45,7 +48,8 @@ export function selectResponsePlan(
     .filter((plan) => plan.intent === query.intent && plan.speaker === query.speaker)
     .filter((plan) => plan.state === undefined || plan.state === query.state)
     .filter((plan) => plan.request === undefined || plan.request === query.request)
-    .map((plan) => ({ plan, score: Number(plan.state !== undefined) + Number(plan.request !== undefined) }))
+    .filter((plan) => plan.topic === undefined || plan.topic === query.topic)
+    .map((plan) => ({ plan, score: Number(plan.state !== undefined) + Number(plan.request !== undefined) + Number(plan.topic !== undefined) }))
     .sort((a, b) => b.score - a.score)
   return candidates[0]?.plan ?? null
 }

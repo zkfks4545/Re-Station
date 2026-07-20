@@ -1,12 +1,277 @@
 # 작업 이력 (축약)
 
+## 2026-07-15 / Codex / SPR-002 화면 검수 완료
+
+- production preview에서 카루아 기본 스프라이트를 확인했다. 데스크톱 1280×800 viewport에서는 360×360px, 모바일 375×812 viewport에서는 180×180px로 표시됐고 두 화면 모두 viewport 안에 완전히 들어왔다.
+- `sprites.test.ts` 2개, `npm.cmd run check`, `npm.cmd run lint`를 통과했다. 모든 `Expression` 이미지·fallback 슬롯 계약과 실제 기본 표시 레이아웃을 함께 확인해 SPR-002를 DONE으로 전환한다.
+
+## 2026-07-14 / Codex / Phase 12 실측 완료 및 Phase 13 보류 결정
+
+- 실제 Chrome에서 `VITE_WEB_LLM_PRELOAD_ENABLED=true`, `VITE_WEB_LLM_SEMANTIC_ENABLED=true`로 WebLLM 준비를 실행했다. WebGPU API, 16 GB memory, 16 CPU는 감지됐으나 호환 GPU를 확보하지 못했다.
+- cold prepare는 약 375 ms에 `preparation-failed`로 종료되고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았고, warm prepare는 `session-disabled`로 즉시 생략됐다.
+- `capability`, `loader`, `service`, `semantic-contract` 테스트 4 files / 24 tests가 통과했다. timeout 시 세션 비활성화와 WebLLM의 ResponsePlan·Recommendation·Action·FSM 미의존 계약을 검증한다.
+- Phase 13은 **보류**로 결정한다. 현 환경에서의 준비 실패와 사용자 응답에 주는 가치가 비용을 정당화하지 못하므로 Phase 14를 착수하지 않고 기존 JSON/FSM/Rule Engine을 유지한다.
+
+## 2026-07-14 / Codex / P2 모바일·키보드 실제 검수
+
+- production preview를 375×812 모바일 viewport로 열어 메뉴를 dialog로 열고, ESC 닫기와 원래 메뉴 트리거 포커스 복귀를 확인했다.
+- 메뉴 마지막 탭에서 Tab을 누르면 닫기 버튼으로 순환하는 것을 확인했다.
+- 375×400 가상 키보드 높이에서 입력창은 y=293.61~339.61, 전송 버튼은 y=294.61~338.61으로 모두 viewport 안에 남았다.
+- 입력값이 있는 상태에서 Enter 제출 후 입력값이 초기화되고 전송 버튼이 비활성화되는 것을 확인했다.
+- P2를 DONE으로 판정한다. CocktailCard의 dialog·focus trap 계약은 기존 UI 회귀 테스트가 유지한다.
+
+## 2026-07-14 / Codex / P4 초기 로딩 최적화 및 P5 문서 동기화
+
+- `BartenderSprite` 마운트 시 정적 표정 9장과 셰이커 프레임 4장을 모두 내려받던 선로딩을 제거했다. 첫 화면은 현재 표현에 필요한 이미지 하나만 요청하며, 셰이커 프레임은 실제 제조 동작에서만 요청한다.
+- 기본 OFF인 WebLLM 준비 훅을 `ExperimentalWebLLMPreparation` 지연 청크로 분리했다. 개발 모드 또는 `VITE_WEB_LLM_PRELOAD_ENABLED=true`에서만 로드하므로 기본 production 진입 경로는 WebLLM 준비 요청을 만들지 않는다.
+- 검증: `npm.cmd test -- --run` (63 files, 824 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build` 통과. 메인 JS 549.33 kB(gzip 164.52 kB), WebLLM worker 6,029.70 kB와 lib 5,895.35 kB는 별도 청크다.
+- production Network 검증: 기본 OFF에서 입장 후 카루아 현재 표정 PNG 1장만 요청되고 WebLLM 청크는 0건이었다. `VITE_WEB_LLM_PRELOAD_ENABLED=true` 빌드에서는 `ExperimentalWebLLMPreparation`, `lib`, `webllm.worker` 요청이 발생했다.
+- P4는 이미지·WebLLM 로딩 격리와 ON/OFF 실측을 마쳐 DONE으로 판정한다. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 때 재검토한다. P5는 README, CURRENT_STATE, TASK_BOARD, WORK_LOG를 동기화해 DONE으로 판정했다.
+
+## 2026-07-13 / Codex / SPR-002 talk fallback 확정
+
+- `talk`은 별도 PNG를 제작하지 않고 `idle` 이미지를 의도적으로 공유하기로 확정했다. 타이핑 표시와 대사 변화가 발화감을 담당한다.
+- SPR-002는 데스크톱·모바일 수동 화면 검수만 남은 REVIEW 상태다. 현재 브라우저 연결이 없어 해당 검수는 수행하지 못했다.
+- 검증: `git diff --check` 통과.
+
+## 2026-07-13 / Codex / 외부 구조 보고서 최신화
+
+- `EXTERNAL_STRUCTURE_REPORT.md`에 카루아 `sprites.ts` 에셋 진입점과 `Expression` 기반 정적 스프라이트 계약을 반영했다.
+- `upset.png`가 별도 대화 타입이 아닌 `stern` 이미지 자산이라는 경계와, 노출 시간·자동 복귀 정책은 아직 구조에 포함하지 않았다는 점을 명시했다.
+- 검증: `git diff --check` 통과.
+
+## 2026-07-13 / Codex / SPR-002 표정 PNG 5종 연결
+
+- 새 `sympathy`, `surprised`, `disappointed`, `annoyed` PNG를 동명 `Expression` 슬롯에 연결했다.
+- `upset.png`는 별도 `Expression`을 추가하지 않고, 기존 safety 경계 표현인 `stern` 슬롯에 연결했다.
+- 이제 `talk`만 `idle` fallback을 사용한다.
+- 검증: `npm.cmd test -- sprites.test.ts --run` (2개), `npm.cmd run check`, `npm.cmd run build`, `git diff --check` 통과. 메인 JS 535.04 kB, gzip 160.22 kB.
+
+## 2026-07-13 / Codex / 후속 로드맵 정렬
+
+- Dialogue는 `Phase 12 안정화 + WebLLM 실측`을 하나의 종료 단계로 묶고, Character QA 병행 → Phase 13 활용 결정 gate → Phase 14 ResponsePlan 보조 선택 → Phase 15 최종 QA 순서로 정리했다.
+- Presentation은 PNG 제작 → 카루아 애니메이션 → 시에스타 표시 → 이벤트 동기화로 재정렬했다. 기존 에셋 제작 가이드는 SPR-002 완료 조건에 흡수했다.
+- Audio는 기본 BGM UI가 Step 1에서 완료됐으므로 Step 4를 새 UI가 아닌 Audio UX 보강으로 정의했다.
+- 검증: 문서 정합성 검토 및 `git diff --check` 통과.
+
+## 2026-07-13 / Codex / SPR-001 캐릭터 스프라이트 슬롯 계약
+
+- `karua/sprites.ts`에 모든 `Expression`의 명시적 fallback 맵을 추가했다. 기준 디자인은 현재 런타임의 `Kaura.png`이며, 미제작 표정은 `idle`, `disappointed`는 `embarrassed`로 표시한다.
+- `sprites.test.ts`로 모든 표현 슬롯의 이미지와 fallback 슬롯 존재를 고정했다.
+- `TASK_BOARD.md`와 `CURRENT_STATE.md`에 기준 디자인, 표시 크기, 다음 스프라이트 작업 경계를 반영했다.
+- 검증: `npm.cmd test -- sprites.test.ts --run` (2개), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build`, `git diff --check` 통과.
+
+## 2026-07-10 / Codex / Phase 12 semantic layer stabilization start
+
+- WebLLM 의미 결과를 `WebLLMSemanticSnapshot`으로 명명하고, 현재 출력·ResponsePlan·Recommendation·Action·FSM에 연결하지 않는 Phase 12 경계를 코드 계약으로 고정했다.
+- 실제 `IntentType` 기준 eligible route를 정리해 general-chat, mood-talk, quiet-talk, bar-atmosphere, weather-talk, uncertain-talk만 의미 분석 대상으로 허용했다.
+- `window.__RESTATION_WEBLLM__.snapshot()` 관측 API를 추가해 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인할 수 있게 했다.
+- `semantic-contract.test.ts`와 WebLLM service 테스트를 추가·정리해 금지 경로, invalid JSON 폐기, unknown tag 폐기, diagnostics 기록, core response/recommendation/action/FSM의 WebLLM 미의존을 검증했다.
+- 남은 Phase 12 종료 작업: 실제 브라우저 preload/prepare, cold start, warm start, timeout, 모델 다운로드 크기와 준비 시간 수동 기록.
+- Verification: `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build` passed. Current Vitest total: 49 files, 769 tests.
+
+## 2026-07-10 / Codex / Phase 11 source ownership closure
+
+- `response-templates`, `story-query`, `welcome-drink`, `farewell-replies`에 Phase 11 이후 표현 출처 소유권 계약을 추가했다.
+- ResponsePlan-backed legacy category와 required JSON fallback category의 경계를 테스트로 고정했다.
+- 검증: `npm.cmd test`, `npm.cmd run check`, `git diff --check` 통과. 현재 Vitest 765개 통과.
+
+## 2026-07-10 / Codex / Audio System 1차 도입
+
+- `useAudioManager`를 추가해 YouTube BGM player lifecycle, preset 선택, play/pause, volume/mute, localStorage 저장/복원을 앱 수준 책임으로 이동했다.
+- `BarMusicTab`은 Audio Manager 상태를 표시하고 조작하는 UI-only 컴포넌트로 전환하고, `Sidebar`/`App`이 오디오 상태를 주입하도록 연결했다.
+- SFX channel, shaker loop, serving one-shot, reset/exit/safety stopAllSfx는 2차 범위로 남겼다.
+- Verification: `npm.cmd run check`, `npm.cmd test -- recommendation-ui` passed.
+
+## 2026-07-10 / Codex / Phase 11 DONE 문서 정리
+
+- `CURRENT_STATE.md`와 `TASK_BOARD.md`에서 Phase 11 Dialogue Source Normalization을 DONE으로 정리했다.
+- ResponsePlan-backed legacy category 삭제, required legacy fallback 유지, 표현 소유권 정리, Character QA 확장 완료를 Phase 11 종료 조건으로 기록했다.
+- Interaction Timeline, Rapport, WebLLM 런타임 통합은 Phase 11 밖의 후속 범위로 분리했다.
+- Verification: `npm.cmd test`, `npm.cmd run build`, `git diff --check` passed.
+
+## 2026-07-10 / Codex / Interaction cue first extraction
+
+- Audited `useRestationController` presentation responsibilities: typing, preparation, serving reveal, screen shake, delayed outside transition, and queued interactions.
+- Classified `clearPendingWork`, `bartenderReply`, `runCocktailPreparation`, safety lock, recommendation cancel, and session block handling as mixed domain/timeline boundaries that should stay in the controller for now.
+- Extracted only the repeated pure `screenShake` serving cue into `playScreenShakeCue()` and reused it from XYZ, welcome drink, recommendation serve, and card-order serve paths.
+- Verification: `npm.cmd test` and `npm.cmd run check` passed.
+
+## 2026-07-10 / Codex / Phase 11 follow-up architecture audit
+
+- Extended `karua-speech-contract.test.ts` so Character QA scans `RESPONSE_PLANS` text directly after `dialogues.json` fallback-only deletion.
+- Reviewed Rapport usage: state updates exist and `selectVariation()` is available, but current runtime does not use rapport to select ResponsePlan/dialogue output.
+- Reviewed WebLLM role: current implementation remains semantic-only, eligible for limited free-talk routes, stores session tags, and does not generate final replies.
+- Reviewed interaction timeline: typing, preparation, serving reveal, screen shake, and queued interactions are still coordinated in `useRestationController`, making a future `InteractionTimeline` layer a clear extraction candidate.
+- Verification: `npm.cmd test`, `npm.cmd run check`, and `git diff --check` passed.
+
+## 2026-07-10 / Codex / Phase 11 dialogues.json fallback-only deletion
+
+- Removed all ResponsePlan-backed fallback-only categories from `dialogues.json`; `fallback-required` legacy categories remain owned by JSON.
+- Updated Phase 11 inventory tests so `keywordRuleDeletionPendingCategories` is empty and deleted categories are explicitly documented as ResponsePlan-only.
+- Reworked `response-plan-adapter.test.ts` and `engine.test.ts` to read migrated dialogue text from ResponsePlan instead of deleted JSON pools.
+- Verification: `npm.cmd test`, `npm.cmd run check`, `npm.cmd run build`, and `git diff --check` passed.
+
+## 2026-07-10 / Codex / Phase 11 pre-delete test contract split
+
+- `dialogue-source-inventory.test.ts` now separates `ResponsePlan-only ready`, `fallback-required`, and `deletion-pending JSON fallback` categories before any `dialogues.json` deletion.
+- Added `response-plan-route-smoke.test.ts` to cover high-risk Phase 11 routes (`water-request`, `overdrunk`, `rude-*`, `mood-*`, `siesta-setting`, etc.) through classifier + engine rendering.
+- No `dialogues.json` category was deleted in this step.
+- Verification: `npm.cmd test -- dialogue-source-inventory response-plan-route-smoke response-plan-adapter response-templates`, `npm.cmd run check` passed.
+
+## 2026-07-09 / Codex / Phase 11 story/welcome/farewell fallback 출처 점검
+
+- `story-query.ts`에서 칵테일 fact 선택 책임을 `selectCocktailContentFact()`로 분리하고, 선택된 fact를 최종 응답 형태로 감싸는 `formatStoryQueryFactReply()`를 추가했다. 기존 `formatStoryQueryReply()` API와 반환 형태는 유지했다.
+- `welcome-drink.ts`와 `farewell-replies.ts`는 Phase 10 이관 후에도 `plans: []` 또는 invalid ResponsePlan에서 legacy formatter로 내려가는 테스트가 남아 있어, 현재 legacy fallback은 아직 실제 안전망으로 필요하다고 판단했다.
+- `dialogue-source-inventory.test.ts`에 전체 `dialogues.json` category 중 ResponsePlan이 이미 소유하고 JSON은 fallback-only로 남은 삭제 후보 목록을 고정했다. 삭제는 수행하지 않았다.
+- 검증: `npm.cmd test -- story-query welcome-drink farewell-replies dialogue-source-inventory`, `npm.cmd run check` 통과.
+
+## 2026-07-09 / Codex / response-templates 출처 계약 정리
+
+- `response-templates.ts`에 fallback 출처 판별 함수와 inline draft 출처 목록을 추가했다. `dialogueCategory`가 있는 template의 fallback은 ResponsePlan/JSON 실패 시 안전문구이고, `exit-intent`, `mood:default`, `taste:default`만 이 파일이 직접 소유하는 기본 fallback으로 고정했다.
+- `dialogue-service.ts`의 셰이킹 주문 응답 하드코딩을 `formatShakeOrderDraft()` 호출로 통합해 같은 문구의 소유 출처를 `response-templates.ts` 한 곳으로 줄였다.
+- `response-templates.test.ts`가 fallback 소유권과 남은 inline draft 출처를 문서화하도록 갱신했다.
+- 검증: `npm.cmd test -- response-templates dialogue-source-inventory`, `npm.cmd run check` 통과.
+
+## 2026-07-09 / Codex / 셰이킹 없는 서빙 컷 표시
+
+- `BartenderSprite`가 `isServingCocktail` 플래그를 받아 셰이킹 루프 없이도 `SERVE` 컷을 표시할 수 있게 했다.
+- `useRestationController`는 recipe text에 흔들기 계열 표현이 없는 칵테일을 서빙할 때 셰이킹 루프를 생략하고 서빙 컷만 보여준다. 흔들기 계열 칵테일은 기존 셰이킹 흐름을 유지한다.
+- `App.tsx`가 새 서빙 플래그를 스프라이트로 전달하고, UI 렌더 테스트에 셰이킹 없이 `SERVE` cue가 표시되는 계약을 추가했다.
+- 검증: `npm.cmd test -- recommendation-ui`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 703개 통과.
+
+## 2026-07-09 / Codex / Phase 11 대사 출처 인벤토리 착수
+
+- `response-plan-adapter.ts`가 현재 ResponsePlan으로 이관된 대사 카테고리 목록과 판별 함수를 명시적으로 내보내도록 했다.
+- `dialogue-source-inventory.test.ts`를 추가해 `keyword-rules.json`의 `dialogueCategory`가 알려진 출처로 해석되는지, 이관 카테고리가 아직 legacy fallback 라인을 유지하는지, ResponsePlan 단독 렌더링이 가능한지 고정했다.
+- `keyword-rules.json` 기준 legacy-only 카테고리 목록을 테스트로 고정하고, 첫 안전 이관 대상으로 `guest-uncertain` 8개 라인을 ResponsePlan에 복사 연결했다. 기존 `dialogues.json` 라인은 삭제하지 않았다.
+- 같은 방식으로 `quiet-moment` 8개 라인을 ResponsePlan에 복사 연결했다. 기존 `dialogues.json` 라인은 삭제하지 않았다.
+- `greeting` 10개 라인을 ResponsePlan에 복사 연결했다. 앱 첫 입장/웰컴드링크 흐름은 변경하지 않고 keyword-rule category 응답 경로만 이관했다.
+- `siesta-mention` 10개 라인을 ResponsePlan에 복사 연결했다. 시에스타 이벤트/관계성 로직은 변경하지 않고 keyword-rule category 응답 경로만 이관했다.
+- `water-request` 8개 라인과 `overdrunk` 10개 라인을 ResponsePlan에 복사 연결했다. 물 요청/과음 케어 응답의 문구만 이관하고 safety/session/action 로직은 변경하지 않았다.
+- 남은 keyword-rule legacy category인 `ingredient-constraint`, `real-world-info`, `rude-annoyed`, `rude-boundary`, `cocktail-request`, `taste-sweet`, `taste-strong`도 ResponsePlan에 복사 연결했다. 추천·제외 재료·실매장 안내·무례 대응의 판단 로직은 변경하지 않았다.
+- keyword-rule이 참조하는 모든 `dialogueCategory`가 ResponsePlan으로 렌더링되며, 기존 `dialogues.json` 라인은 삭제하지 않고 fallback으로 유지한다.
+- keyword-rule 경로의 ResponsePlan-only 렌더링 테스트, invalid ResponsePlan 주입 시 legacy fallback으로 내려가는 테스트, category-by-category 삭제 후보 목록 테스트를 추가했다. `response-templates` 계약은 JSON pool 고정이 아니라 JSON fallback 또는 ResponsePlan source 중 하나를 허용하도록 갱신했다.
+- 검증: `npm.cmd test -- dialogue-source-inventory response-plan-adapter response-templates`, `npm.cmd run check`, `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` 통과. 현재 Vitest 706개 통과.
+
+## 2026-07-09 / Codex / mission_control 문서 포털 1차 압축
+
+- `HANDOVER.md`의 중복 상태 요약을 제거하고, 다음 작업자가 바로 이어받을 행동 맥락·주의사항·검증 기준만 남겼다. 현재 상태는 `CURRENT_STATE.md`, 작업 계획은 `TASK_BOARD.md`, 상세 이력은 `WORK_LOG.md`가 소유한다.
+- `CURRENT_LOGIC_FOCUS.md`의 현재 로직 메모를 검토했다. 제품 루프는 `PROJECT_VISION.md`, 세션 종료 기준은 `SESSION_FLOW_SPEC.md`, 구조 경계는 `EXTERNAL_STRUCTURE_REPORT.md`가 이미 소유하므로 별도 문서 책임이 남지 않았다.
+- `REFACTORING_LOG.md`의 REF-SESSION-001/002 기록은 기존 `WORK_LOG.md`의 `2026-06-25 / REF-SESSION-001~002 / 세션 컨트롤러 책임 축소` 1줄 요약이 소유하도록 정리했다.
+- `WEBLLM_EXPERIMENT.md`의 장기 원칙은 `DECISIONS.md`, `ARCHITECTURE.md`, `EXTERNAL_STRUCTURE_REPORT.md`로 흡수하고, 실험 이력은 기존 WebLLM 작업 로그가 소유하도록 정리했다.
+- `HANDOVER.md`와 `CURRENT_STATE.md`는 병합하지 않기로 판단했다. `CURRENT_STATE.md`는 현재 상태 스냅샷, `HANDOVER.md`는 다음 작업자가 바로 이어받을 행동 맥락을 소유하되, 이후 `HANDOVER.md`의 중복 상태 요약은 축소 대상이다.
+- 세 문서를 삭제하고 `README.md`의 읽기 경로와 정보 소유권을 갱신했다.
+- 검증: 문서 작업. 코드 변경 없음.
+
+## 2026-07-09 / Codex / Phase 10 farewell phase/block replies Farewell Formatter
+
+- `formatFarewellConversationReply()`의 farewell phase conversation 5종을 ResponsePlan으로 이관했다: `no-xyz-ejection`, `no-xyz-generic`, `xyz-ejection`, `xyz-why`, `xyz-generic`.
+- `formatFarewellBlockReply()`와 `formatReturnHomeReply()`는 문자열 API를 유지하고, `formatFarewellBlockResponse()` / `formatReturnHomeResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- semantic slot은 만들지 않았고 각 ResponsePlanLine이 final text와 expression을 직접 소유한다. ejection concern 감지, hasXyz 판단, farewell turn count, returnHome 전이, ordering block, safety, DialogueService, Action, Router, CocktailCard는 변경하지 않았다.
+- 컨트롤러의 farewell block / return-home 경로는 ResponsePlan expression을 사용하도록 연결했다.
+- Phase 10 Farewell Formatter와 Phase 10 ResponsePlan DB 리팩토링은 완료 상태로 본다. 다음은 Phase 11 대사 출처 정상화다.
+- 검증: targeted Vitest 3개 파일·85개 테스트, 전체 Vitest 46개 파일·697개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 538.46 kB, gzip 159.63 kB.
+
+## 2026-07-09 / Codex / Phase 10 welcome-farewell XYZ Farewell Formatter
+
+- `formatWelcomeFarewellXyzReply()` welcome-farewell XYZ final body만 ResponsePlan으로 이관했다.
+- 허용 slot은 이미 선택된 `{cocktail_name}` 하나뿐이며 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- 기존 문자열 API `formatWelcomeFarewellXyzReply()`는 유지하고, `formatWelcomeFarewellXyzResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- welcome-farewell 컨트롤러 경로는 ResponsePlan expression을 사용하되, welcome-farewell entry decision, XYZ selection, session-flow, phase transition, safety, DialogueService, Action, Router, CocktailCard는 변경하지 않았다.
+- 남은 Farewell slice는 farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·679개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 534.20 kB, gzip 158.80 kB.
+
+## 2026-07-09 / Codex / Phase 10 regular XYZ Farewell Formatter
+
+- `formatXyzReply()` regular XYZ final body만 ResponsePlan으로 이관했다.
+- 허용 slot은 이미 선택된 `{cocktail_name}` 하나뿐이며 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- 기존 문자열 API `formatXyzReply()`는 유지하고, `formatXyzResponse()`가 ResponsePlan 우선·legacy fallback `{ text, expression }`을 반환한다.
+- 표준 XYZ 컨트롤러 경로는 ResponsePlan expression을 사용하되, XYZ cocktail selection, serving-plan, alcohol accumulation, session-flow, DialogueService, FSM, SessionState, CocktailCard, unlock, safety는 변경하지 않았다.
+- 남은 Farewell slices는 welcome-farewell XYZ / welcome-missed replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·673개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 533.35 kB, gzip 158.62 kB.
+
+## 2026-07-08 / Codex / Phase 10 welcome XYZ clarification Farewell Formatter
+
+- `formatWelcomeXyzClarificationReply()` welcome-drink XYZ clarification body만 ResponsePlan으로 이관했다.
+- semantic slot 없이 ResponsePlanLine이 final text와 `smirk` expression을 직접 소유한다.
+- XYZ selection, welcome detection, session state, phase transition, DialogueService, Router, IntentClassifier, safety, CocktailCard, unlock timing, serving animation은 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·금지 slot·invalid expression은 기존 farewell formatter로 안전하게 fallback한다.
+- 남은 Farewell slices는 XYZ / welcome-missed main replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·666개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 532.48 kB, gzip 158.46 kB.
+
+## 2026-07-08 / Codex / 외부 구조 보고서 프로젝트 구조 최신화
+
+- `rg --files` 기준으로 루트 운영 문서와 실제 앱 경로 `bar_tend/`의 현재 구조를 다시 확인했다.
+- `EXTERNAL_STRUCTURE_REPORT.md`의 상단 기준, 주요 파일 지도, CocktailCard 버튼 계약, Recommendation/Welcome Formatter 책임, 검증 상태와 빌드 산출물 수치를 갱신했다.
+- 검증: `npm.cmd test` 46개 파일·654개 테스트 통과, `npm.cmd run build` 통과, `npm.cmd run lint` 통과. 메인 JS 531.18 kB, gzip 158.22 kB.
+
+## 2026-07-08 / Codex / Phase 10 standard farewell entry Formatter
+
+- `formatStandardFarewellEntryReply()` standard farewell entry body만 ResponsePlan으로 이관했다.
+- semantic slot 없이 ResponsePlanLine이 final text와 `sympathy` expression을 직접 소유한다.
+- `decideFarewellEntry()`, `beginFarewell()`, `enter-farewell`, phase transition, XYZ/welcome-missed replies, farewell block/conversation/returnHome replies, safety, unlock timing, serving animation, CocktailCard는 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락 line·invalid expression·금지 slot은 기존 farewell formatter로 안전하게 fallback한다.
+- 남은 Farewell slices는 XYZ / welcome-missed replies, farewell phase / block replies다. Phase 10은 아직 완료로 표시하지 않는다.
+- 검증: Vitest 46개 파일·660개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 531.93 kB, gzip 158.38 kB.
+
+## 2026-07-08 / Codex / Phase 10 welcome feedback + Farewell boundary
+
+- welcome feedback final presentation만 ResponsePlan으로 이관했다.
+- feedback ResponsePlan은 semantic slot 없이 positive/lighter/sweeter/alternate/neutral state별 text/expression을 직접 소유한다.
+- `welcomeDrink.served/resolved`, welcome selection, feedback answer detection, SessionState, Action, Router, DialogueService, safety, XYZ/farewell, CocktailCard는 변경하지 않았다.
+- Welcome Formatter body+feedback 전체 검증을 통과해 Welcome Formatter를 완료 상태로 기록한다.
+- Farewell Formatter는 조사만 수행했다. trigger와 transition은 `useRestationController.ts`, `dialogue-session.ts`, `session-flow.ts`, `serving-plan.ts`가 소유하고, presentation 후보는 `farewell-replies.ts`에 있다.
+- 추천 첫 Farewell slice는 `formatStandardFarewellEntryReply()` 단일 body다. session transition, XYZ selection, unlock, safety, CocktailCard는 이관하지 않는다.
+- 검증: Vitest 46개 파일·654개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 531.18 kB, gzip 158.22 kB.
+
+## 2026-07-08 / Codex / Phase 10 welcome-drink body Welcome Formatter
+
+- welcome-drink 최종 응답 본문만 ResponsePlan으로 이관했다.
+- `{cocktail_name}`, `{talking_point}`만 허용 slot으로 사용하고, 각 ResponsePlanLine이 `smirk` expression을 직접 소유한다.
+- welcome drink selection, `welcomeDrink.served/resolved`, feedback, unlock/serving flow, alcohol accumulation, XYZ/farewell, CocktailCard는 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락/금지 slot은 기존 welcome formatter로 안전하게 fallback한다.
+- Welcome Formatter slice 1은 완료했다. Phase 10 전체 완료와는 구분하며 welcome feedback/farewell이 남은 Phase 10 대상이다.
+- 검증: Vitest 46개 파일·644개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 528.78 kB, gzip 157.70 kB.
+
+## 2026-07-08 / Codex / Phase 10 acknowledgement-lead-in Recommendation Formatter
+
+- 추천 질문 acknowledgement/lead-in/continuation/prompt 조립만 ResponsePlan으로 이관했다.
+- `{question_label}`, `{acknowledgement}`, `{lead_in}`, `{continuation}`만 허용 slot으로 사용하고, 각 ResponsePlanLine이 expression을 직접 소유한다.
+- 질문 선택·질문 순서·slot filling·signal extraction·`잘 모르겠어요`·`카루아에게 맡기기`·추천 완료 로직·exact/randomPick/nearest 본문은 변경하지 않았다.
+- ResponsePlan 부재·검증 실패·누락/금지 slot은 기존 question formatter로 안전하게 fallback한다.
+- Recommendation Formatter는 4/4 완료했다. Phase 10 전체 완료와는 구분하며 welcome/farewell이 남은 Phase 10 대상이다.
+- 검증: Vitest 46개 파일·634개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 526.93 kB, gzip 157.36 kB.
+
+## 2026-07-08 / Codex / Phase 10 nearest fallback Recommendation Formatter
+
+- exact match 실패 뒤 이미 선택된 nearest cocktail의 최종 본문만 ResponsePlan으로 이관했다.
+- affect별 8개 plan이 `{cocktail_name}`, `{fallback_reason}`, `{talking_point}`를 배치하고 기존 expression을 직접 소유한다.
+- opening·acknowledgement, 후보 필터·거리 계산·nearest 선택·추천 사유·talking point 선택은 변경하지 않았다.
+- plan 부재·검증 실패·누락/금지 slot은 기존 formatter로 안전하게 복귀한다.
+- 검증: Vitest 46개 파일·623개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 525.67 kB, gzip 156.01 kB.
+
+## 2026-07-06 / UI 개선 — 레이아웃·스크롤·추천 선택지 위치 변경
+
+- **레이아웃 보호**: 캐릭터 영역(stage)이 창 크기에 따라 먼저 찌그러지던 문제 수정. stage에 `flex-shrink: 0`, `min-height: calc(60vh - 60px)` 적용, chat-dock을 `flex: 1`로 변경
+- **캐릭터 이미지**: `height: clamp(180px, 36vh, 360px)` → `height: 100%` + min/max로 변경, viewport 높이에 직접 반응하지 않도록 수정
+- **입력창+버튼 그룹화**: ChatInput과 하단 버튼바를 `chat-input-wrap`으로 묶고 높이 기준(`max-height: 600px`)으로 같은 줄(row) 전환 트리거 추가
+- **추천 선택지 이동**: `recommendation-choices`를 ChatInput → DialogueBox 내부(메시지 영역 최하단)로 이동
+- **자동 스크롤 개선**: 유저가 위로 스크롤하면 자동 스크롤 중단, 최하단일 때만 새 메시지 따라가도록 `onScroll` 핸들링 추가
+- **컨테이너 여백 축소**: `.recommendation-choices` padding/gap 0, DialogueBox 하단 패딩 `p-6` → `pb-3`, chat-input-shell form 하단 패딩 절반으로 축소
+- **기타**: 미사용 코드(`Suspense`, `RapportDebugDisplay`, `rapport`) 정리, 테스트 수정
+- **검증**: TypeScript, Vitest 610개 통과
+- **미커밋** (검수 후 커밋 예정)
+
 ## 2026-07-06 / Card action buttons 변경
 
 - CocktailCard의 "다시 추천받기" 버튼을 "주문하기"·"이야기하기" 두 버튼으로 교체했다.
 - "주문하기"는 현 칵테일을 즉시 주문/서빙한다. `handleOrderCocktail(cocktail)`을 호출하며 주문→제조→서빙 전 과정을 실행한다.
 - "이야기하기"는 카드를 닫고 칵테일명을 포함한 story-query를 전송해 카루아가 이야기를 들려주는 흐름으로 전환한다. 새 `handleCardStory`/`performCardStory`를 추가했으며 queue 지원(`story-from-card` 타입)도 포함했다.
 - `handleReRecommend`/`performReRecommend` 및 `canReRecommend`는 제거하고 `canCardActions`로 대체했다.
-- 검증: Vitest 609개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.23 kB, gzip 155.65 kB.
+- 2026-07-08 안정화: 닫기·주문하기·이야기하기 버튼에 `type="button"`을 명시하고 UI 렌더링 계약에 3개 버튼 타입 검증을 추가했다.
+- 검증: Vitest 46개 파일·610개 테스트, typecheck, lint, build, `git diff --check` 통과. 메인 JS 524.64 kB, gzip 155.80 kB.
+- 브라우저 수동 검증은 인앱 브라우저 연결 후 수행할 항목으로 남아 있다.
 
 ## 2026-07-03 / Codex / Phase 10 exact Recommendation Formatter
 
@@ -805,6 +1070,7 @@
 
 ## 작성 규칙
 - 작업 종료 시 최신 로그를 위에 추가한다.
+- 동작 보존 리팩토링 기록도 이 문서가 소유한다. 별도 리팩토링 로그를 만들지 않는다.
 - 수정 또는 생성 파일은 경로를 명시한다.
 - 각 작업 항목에 해당 커밋 해시를 `[hash]` 형태로 기록한다.
 - **커밋 발생 시** 해당 커밋 해시(`git rev-parse --short HEAD`)와 커밋 메시지(`git log -1 --format=%s`)를 작업 항목에 즉시 기록한다.

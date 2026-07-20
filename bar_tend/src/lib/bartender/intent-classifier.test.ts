@@ -57,6 +57,13 @@ describe('IntentClassifier', () => {
       expect(result.intent).toBe(intent)
     })
 
+    it('exposes keyword affect without changing a flow-control route', () => {
+      const result = classifier.classify('Re:Station', baseContext)
+
+      expect(result.route.route).toBe('general')
+      expect(result.metadata.keywordAffect).toBe('warm')
+    })
+
     it('keeps flow routing separate from detailed response intent', () => {
       const result = classifier.classify('뭐 마실지 모르겠고 그냥 왔어', baseContext)
 

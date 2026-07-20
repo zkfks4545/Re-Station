@@ -1,16 +1,30 @@
 import { describe, expect, it } from 'vitest'
-import { getAllCocktailData } from '../cocktails/database.js'
+import { getAllCocktailData } from '../cocktails/index.js'
 import {
   formatWelcomeDrinkFeedbackReply,
+  formatWelcomeDrinkFeedbackResponse,
   formatWelcomeDrinkReply,
+  formatWelcomeDrinkResponse,
   isWelcomeDrinkFeedbackAnswer,
   selectWelcomeDrink,
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
+  WELCOME_DRINK_SOURCE_OWNERSHIP,
 } from './welcome-drink.js'
 import { selectCocktailTalkingPoint } from './response.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
 
 describe('welcome drink selection', () => {
+  it('documents Phase 11 source ownership for welcome drink replies', () => {
+    expect(WELCOME_DRINK_SOURCE_OWNERSHIP).toEqual({
+      drinkSelection: 'welcome-drink',
+      talkingPointSelection: 'cocktail-data',
+      finalReplyText: 'ResponsePlan',
+      feedbackQuestion: 'welcome-drink',
+      fallbackText: 'welcome-drink safety fallback',
+    })
+  })
+
   it('selects an approachable classic cocktail', () => {
     const cocktail = selectWelcomeDrink()
 
@@ -56,6 +70,89 @@ describe('welcome drink selection', () => {
     expect(reply).toContain(selectedPoint)
   })
 
+  it.each([
+    ['first', 0],
+    ['after-order', 6],
+    ['late', 11],
+  ] as const)('keeps %s welcome ResponsePlan text and expression equal to legacy', (_case, alcoholStarTotal) => {
+    const cocktail = selectWelcomeDrink()
+    const legacy = formatWelcomeDrinkResponse(cocktail, { alcoholStarTotal, plans: [] })
+    const migrated = formatWelcomeDrinkResponse(cocktail, { alcoholStarTotal })
+
+    expect(migrated).toEqual(legacy)
+    expect(migrated.expression).toBe('smirk')
+  })
+
+  it('prioritizes the welcome ResponsePlan over the legacy formatter', () => {
+    const cocktail = selectWelcomeDrink()
+    const plans: readonly ResponsePlan[] = [{
+      id: 'test.welcome-drink-body',
+      speaker: 'karua',
+      intent: 'welcome_drink',
+      state: 'first',
+      request: 'welcome-drink-body',
+      blocks: {
+        answer: [{ text: 'plan:{cocktail_name}:{talking_point}', expression: 'thinking' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatWelcomeDrinkResponse(cocktail, { plans })).toEqual({
+      text: `plan:${cocktail.name_ko ?? cocktail.name}:${selectCocktailTalkingPoint(cocktail)}`,
+      expression: 'thinking',
+    })
+  })
+
+  it('falls back to the legacy welcome formatter when ResponsePlan is unavailable', () => {
+    const cocktail = selectWelcomeDrink()
+
+    expect(formatWelcomeDrinkResponse(cocktail, { plans: [] })).toEqual({
+      text: formatWelcomeDrinkReply(cocktail),
+      expression: 'smirk',
+    })
+  })
+
+  it.each([
+    { text: 'plan:{cocktail_name}:{missing_slot}' },
+    { text: 'plan:{opening}:{talking_point}' },
+  ])('falls back safely when welcome slot rendering fails', ({ text }) => {
+    const cocktail = selectWelcomeDrink()
+    const plans: readonly ResponsePlan[] = [{
+      id: `test.welcome-drink-slot.${text}`,
+      speaker: 'karua',
+      intent: 'welcome_drink',
+      state: 'first',
+      request: 'welcome-drink-body',
+      blocks: {
+        answer: [{ text, expression: 'smirk' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatWelcomeDrinkResponse(cocktail, { plans })).toEqual({
+      text: formatWelcomeDrinkReply(cocktail),
+      expression: 'smirk',
+    })
+  })
+
+  it('keeps welcome drink selection unchanged while formatting with ResponsePlan', () => {
+    const cocktails = getAllCocktailData().slice(0, 3)
+    const selected = selectWelcomeDrink(cocktails)
+
+    formatWelcomeDrinkResponse(selected)
+
+    expect(selectWelcomeDrink([selected]).id).toBe(selected.id)
+  })
+
+  it('keeps welcome talking point selection unchanged while formatting with ResponsePlan', () => {
+    const cocktail = getAllCocktailData().find((item) => item.id === 'cocktail_classic_001')!
+    const before = selectCocktailTalkingPoint(cocktail)
+
+    formatWelcomeDrinkResponse(cocktail)
+
+    expect(selectCocktailTalkingPoint(cocktail)).toBe(before)
+  })
+
   it('adjusts the welcome-drink reply after prior orders', () => {
     const cocktail = selectWelcomeDrink()
     const reply = formatWelcomeDrinkReply(cocktail, { alcoholStarTotal: 6 })
@@ -91,6 +188,66 @@ describe('welcome drink selection', () => {
     const sweeter = formatWelcomeDrinkFeedbackReply('더 달았으면 좋겠어')
     expect(sweeter.text).toContain('단맛')
     expect(sweeter.expression).toBe('embarrassed')
+  })
+
+  it.each([
+    ['positive', '좋았어요', 'smirk'],
+    ['lighter', '조금 더 가볍게', 'embarrassed'],
+    ['sweeter', '조금 더 달게', 'embarrassed'],
+    ['alternate', '다른 느낌이 좋아요', 'embarrassed'],
+    ['neutral', '잘 모르겠지만 기억해줘', 'embarrassed'],
+  ] as const)('keeps %s welcome feedback ResponsePlan text and expression equal to legacy', (_case, answer, expression) => {
+    const legacy = formatWelcomeDrinkFeedbackResponse(answer, { plans: [] })
+    const migrated = formatWelcomeDrinkFeedbackResponse(answer)
+
+    expect(migrated).toEqual(legacy)
+    expect(migrated.expression).toBe(expression)
+  })
+
+  it('prioritizes the welcome feedback ResponsePlan over the legacy formatter', () => {
+    const plans: readonly ResponsePlan[] = [{
+      id: 'test.welcome-feedback',
+      speaker: 'karua',
+      intent: 'welcome_drink',
+      state: 'positive',
+      request: 'welcome-feedback',
+      blocks: {
+        answer: [{ text: 'plan feedback', expression: 'thinking' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatWelcomeDrinkFeedbackResponse('좋았어요', { plans })).toEqual({
+      text: 'plan feedback',
+      expression: 'thinking',
+    })
+  })
+
+  it('falls back to the legacy welcome feedback formatter when ResponsePlan is unavailable', () => {
+    expect(formatWelcomeDrinkFeedbackResponse('좋았어요', { plans: [] })).toEqual(
+      formatWelcomeDrinkFeedbackReply('좋았어요'),
+    )
+  })
+
+  it.each([
+    { text: '' },
+    { text: 'bad:{opening}' },
+  ])('falls back safely when welcome feedback ResponsePlan rendering fails', ({ text }) => {
+    const plans: readonly ResponsePlan[] = [{
+      id: `test.welcome-feedback.${text || 'empty'}`,
+      speaker: 'karua',
+      intent: 'welcome_drink',
+      state: 'positive',
+      request: 'welcome-feedback',
+      blocks: {
+        answer: [{ text, expression: 'smirk' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatWelcomeDrinkFeedbackResponse('좋았어요', { plans })).toEqual(
+      formatWelcomeDrinkFeedbackReply('좋았어요'),
+    )
   })
 
   it('lets explicit orders bypass the welcome drink feedback prompt', () => {

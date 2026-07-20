@@ -35,6 +35,22 @@ describe('serving plan', () => {
     expect(plan.nextPhase).toBeNull()
   })
 
+  it('keeps alcohol accumulation as the only regular XYZ serving trigger input', () => {
+    const plan = createServingPlan({
+      cocktail: cocktail('sidecar', 3),
+      currentPhase: 'conversation',
+      alcoholStarTotal: 7,
+    })
+
+    expect(plan).toMatchObject({
+      isXyz: false,
+      nextAlcoholStarTotal: 10,
+      shouldUpdateAlcoholTotal: true,
+      requiresFarewell: true,
+      nextPhase: null,
+    })
+  })
+
   it('does not add XYZ alcohol twice', () => {
     const plan = createServingPlan({
       cocktail: cocktail(XYZ_COCKTAIL_ID, 5),

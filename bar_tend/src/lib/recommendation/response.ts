@@ -10,6 +10,7 @@ import { renderParagraphPreset } from '../dialogue/text-presets.js'
 import { expressionForTone } from '../dialogue/response-pipeline.js'
 import {
   renderExactRecommendationResponsePlan,
+  renderNearestRecommendationResponsePlan,
   renderRandomPickResponsePlan,
 } from '../dialogue/response-plan-renderer.js'
 import type { ResponsePlan } from '../dialogue/response-plan.js'
@@ -244,7 +245,7 @@ export function formatRecommendationReply(
   const reason = decision.reasons.find((item) => item.code !== 'context')
   const opening = acknowledgement ?? selectRecommendationOpening(decision).text
   if (matchType === 'nearest') {
-    return `${opening}\n완전히 맞는 칵테일은 없어서 가장 가까운 「${decision.cocktail.name}」을 골랐어요.\n${selectCocktailTalkingPoint(decision.cocktail)}\n말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.`
+    return `${opening}\n${formatNearestRecommendationResponse(decision).text}`
   }
   const reasonLine = reason
     ? reason.detail
@@ -257,6 +258,36 @@ export function formatRecommendationReply(
 
   const reply = renderLegacyExactRecommendationReply(decision, reasonLine, talkingPoint)
   return `${acknowledgement}\n${reply}`
+}
+
+const NEAREST_FALLBACK_REASON = '말씀하신 조건과 조금 다른 부분이 있을 수 있습니다.'
+
+export function formatNearestRecommendationResponse(
+  decision: RecommendationDecision,
+  options: { plans?: readonly ResponsePlan[] } = {},
+): { text: string; expression: Expression } {
+  const talkingPoint = selectCocktailTalkingPoint(decision.cocktail)
+  const fallback = {
+    text: renderLegacyNearestRecommendationReply(decision, talkingPoint),
+    expression: expressionForTone(decision.dialogue.affectState),
+  }
+
+  return renderNearestRecommendationResponsePlan(
+    decision.dialogue.affectState,
+    {
+      cocktail_name: decision.cocktail.name,
+      fallback_reason: NEAREST_FALLBACK_REASON,
+      talking_point: talkingPoint,
+    },
+    options.plans,
+  ) ?? fallback
+}
+
+function renderLegacyNearestRecommendationReply(
+  decision: RecommendationDecision,
+  talkingPoint: string,
+): string {
+  return `완전히 맞는 칵테일은 없어서 가장 가까운 「${decision.cocktail.name}」을 골랐어요.\n${talkingPoint}\n${NEAREST_FALLBACK_REASON}`
 }
 
 export function formatExactRecommendationResponse(

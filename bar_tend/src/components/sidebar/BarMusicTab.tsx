@@ -1,141 +1,114 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { BGM_PRESETS, type BgmPreset } from '@/data/bgm-presets.js'
+import type { BgmAudioChannel } from '@/hooks/useAudioManager.js'
+import type { SfxChannel } from '@/hooks/useSfxManager.js'
 
-declare global {
-  interface Window {
-    YT?: {
-      Player: new (
-        el: HTMLElement | string,
-        opts: {
-          height: string
-          width: string
-          videoId: string
-          playerVars?: Record<string, number | string>
-          events?: { onReady?: (e: { target: YtPlayer }) => void }
-        },
-      ) => YtPlayer
-      PlayerState: { PLAYING: number; PAUSED: number }
-    }
-    onYouTubeIframeAPIReady?: () => void
-  }
+interface BarMusicTabProps {
+  bgm: BgmAudioChannel
+  sfx: SfxChannel
 }
 
-interface YtPlayer {
-  playVideo: () => void
-  pauseVideo: () => void
-  loadVideoById: (id: string) => void
-  getPlayerState: () => number
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
 }
 
-let apiLoading: Promise<void> | null = null
-
-function loadYouTubeApi(): Promise<void> {
-  if (window.YT?.Player) return Promise.resolve()
-  if (apiLoading) return apiLoading
-
-  apiLoading = new Promise((resolve) => {
-    const prev = window.onYouTubeIframeAPIReady
-    window.onYouTubeIframeAPIReady = () => {
-      prev?.()
-      resolve()
-    }
-    const tag = document.createElement('script')
-    tag.src = 'https://www.youtube.com/iframe_api'
-    tag.async = true
-    document.head.appendChild(tag)
-  })
-  return apiLoading
-}
-
-export default function BarMusicTab() {
-  const playerHostRef = useRef<HTMLDivElement>(null)
-  const playerRef = useRef<YtPlayer | null>(null)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [ready, setReady] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const initPlayer = useCallback(async (preset: BgmPreset) => {
-    setError(null)
-    try {
-      await loadYouTubeApi()
-      if (!playerHostRef.current || !window.YT) return
-
-      if (!playerRef.current) {
-        playerRef.current = new window.YT.Player(playerHostRef.current, {
-          height: '0',
-          width: '0',
-          videoId: preset.youtubeId,
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            modestbranding: 1,
-            rel: 0,
-          },
-          events: {
-            onReady: (e) => {
-              playerRef.current = e.target
-              setReady(true)
-              e.target.playVideo()
-            },
-          },
-        })
-      } else {
-        playerRef.current.loadVideoById(preset.youtubeId)
-        playerRef.current.playVideo()
-      }
-      setActiveId(preset.id)
-    } catch {
-      setError('유튜브 플레이어를 불러오지 못했습니다.')
-    }
-  }, [])
-
-  const togglePreset = useCallback(
-    (preset: BgmPreset) => {
-      if (activeId === preset.id && playerRef.current) {
-        const state = playerRef.current.getPlayerState()
-        if (state === window.YT?.PlayerState.PLAYING) {
-          playerRef.current.pauseVideo()
-          setActiveId(null)
-        } else {
-          playerRef.current.playVideo()
-        }
-        return
-      }
-      void initPlayer(preset)
-    },
-    [activeId, initPlayer],
-  )
-
-  useEffect(() => {
-    return () => {
-      playerRef.current = null
-    }
-  }, [])
+export default function BarMusicTab({ bgm, sfx }: BarMusicTabProps) {
+  const volumePercent = Math.round(bgm.volume * 100)
+  const sfxVolumePercent = Math.round(sfx.volume * 100)
+  const showTime = bgm.isReady && bgm.selectedPresetId
 
   return (
     <div className="music-panel">
-      <p className="sidebar-muted music-panel__hint">
-        배경음만 재생됩니다. 영상 UI는 숨겨져 있어요.
-      </p>
-      <div ref={playerHostRef} className="music-player-host" aria-hidden />
+      <div className="music-now">
+        <span className="music-now__label">NOW</span>
+        <strong className="music-now__title">
+          {bgm.selectedPreset?.title ?? '선택된 BGM 없음'}
+        </strong>
+        <span className="music-now__state">
+          {bgm.autoplayBlocked ? '자동재생 차단' : bgm.isPlaying ? '재생 중' : bgm.isReady ? '일시정지' : '대기 중'}
+        </span>
+        {showTime && (
+          <div className="music-progress">
+            <div
+              className="music-progress__fill"
+              style={{ width: `${bgm.duration > 0 ? (bgm.currentTime / bgm.duration) * 100 : 0}%` }}
+            />
+            <span className="music-progress__label">
+              {formatTime(bgm.currentTime)} / {formatTime(bgm.duration)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="music-control-btn"
+        onClick={bgm.togglePlayPause}
+      >
+        {bgm.isPlaying ? '[ 일시정지 ]' : '[ 재생 ]'}
+      </button>
+
+      <label className="music-slider">
+        <span>BGM 볼륨</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={volumePercent}
+          onChange={(event) => bgm.setVolume(Number(event.target.value) / 100)}
+        />
+        <span>{volumePercent}%</span>
+      </label>
+
+      <button
+        type="button"
+        className={`music-control-btn ${bgm.muted ? 'music-control-btn--active' : ''}`}
+        onClick={bgm.toggleMuted}
+      >
+        {bgm.muted ? '[ 음소거 해제 ]' : '[ 음소거 ]'}
+      </button>
+
+      <hr className="music-divider" />
+
+      <label className="music-slider">
+        <span>효과음 볼륨</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={sfxVolumePercent}
+          onChange={(event) => sfx.setVolume(Number(event.target.value) / 100)}
+        />
+        <span>{sfxVolumePercent}%</span>
+      </label>
+
+      <button
+        type="button"
+        className={`music-control-btn ${sfx.muted ? 'music-control-btn--active' : ''}`}
+        onClick={() => sfx.setMuted(!sfx.muted)}
+      >
+        {sfx.muted ? '[ 효과음 음소거 해제 ]' : '[ 효과음 음소거 ]'}
+      </button>
+
       <ul className="music-track-list">
-        {BGM_PRESETS.map((preset) => (
+        {bgm.presets.map((preset) => (
           <li key={preset.id}>
             <button
               type="button"
-              className={`music-track ${activeId === preset.id ? 'music-track--active' : ''}`}
-              onClick={() => togglePreset(preset)}
+              className={`music-track ${bgm.selectedPresetId === preset.id ? 'music-track--active' : ''}`}
+              onClick={() => bgm.togglePreset(preset.id)}
             >
               <span className="music-track__title">{preset.title}</span>
               <span className="music-track__sub">{preset.subtitle}</span>
               <span className="music-track__state">
-                {activeId === preset.id ? (ready ? '▶ ON' : '…') : '○'}
+                {bgm.selectedPresetId === preset.id ? (bgm.isPlaying ? '▶ ON' : 'Ⅱ') : '○'}
               </span>
             </button>
           </li>
         ))}
       </ul>
-      {error && <p className="sidebar-error">{error}</p>}
+
+      {bgm.error && <p className="sidebar-error">{bgm.error}</p>}
     </div>
   )
 }

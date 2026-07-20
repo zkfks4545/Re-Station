@@ -27,6 +27,7 @@ import { getContentLeadReaction } from './conversation-flow.js'
 import { SHAKE_REFERENCE } from './pattern-utils.js'
 import { detectUserReaction, type UserReaction } from './reaction-layer.js'
 import { assembleResponse } from './response-pipeline.js'
+import { formatShakeOrderDraft } from './response-templates.js'
 import {
   formatStoryQueryReply,
   getSelectedCocktailStoryFactKey,
@@ -36,6 +37,10 @@ import {
   type RecommendationOutcome,
 } from './turn-builder.js'
 import { validateDialogueTurn } from '../../types/dialogue-turn.js'
+import { expressionForSessionAffect, type SessionAffect } from '../session/session-affect.js'
+import type { PendingQuestion, SessionTopic } from '../session/dialogue-session.js'
+import type { ConversationContextSnapshot } from './conversation-context-snapshot.js'
+import { resolveContinuation } from './continuation-resolver.js'
 
 export interface DialogueServiceSessionSnapshot {
   phase: SessionPhase
@@ -45,6 +50,10 @@ export interface DialogueServiceSessionSnapshot {
   alcoholStarsTotal: number
   totalUserMessages: number
   conversationTurnCount: number
+  sessionAffect?: SessionAffect
+  sessionTopic?: SessionTopic
+  topicCocktailId?: string | null
+  pendingQuestion?: PendingQuestion | null
 }
 
 export interface DialogueServiceRequest {
@@ -53,6 +62,7 @@ export interface DialogueServiceRequest {
   conversationContext: ConversationContextState
   session: DialogueServiceSessionSnapshot
   displayedCocktail: CocktailData | null
+  continuationContext?: ConversationContextSnapshot
 }
 
 export type DirectDialogueKind =
@@ -85,6 +95,7 @@ export interface DialogueResolution {
 export interface MainTurnOptions {
   outcome: RecommendationOutcome | null
   inviteRecommendation?: boolean
+  sessionAffect?: SessionAffect
 }
 
 export class DialogueService {
@@ -98,7 +109,11 @@ export class DialogueService {
 
   resolve(request: DialogueServiceRequest): DialogueResolution {
     const dialogueContext = this.buildDialogueContext(request)
-    const classifiedIntent = this.classifier.classify(request.text, dialogueContext)
+    const classifiedIntent = this.applyContinuation(
+      this.classifier.classify(request.text, dialogueContext),
+      request.text,
+      request.continuationContext,
+    )
     const routeResult = classifiedIntent.route
     const reaction = this.resolveReaction(request.text, classifiedIntent)
     const action = resolveDialogueAction(classifiedIntent, request.conversationContext, reaction)
@@ -110,6 +125,9 @@ export class DialogueService {
     const directResponse = reaction
       ? null
       : this.resolveDirectResponse(request, classifiedIntent, action)
+    const responseAffect = routeResult.route === 'safety'
+      ? 'firm'
+      : request.session.sessionAffect ?? 'neutral'
 
     return {
       classifiedIntent,
@@ -118,7 +136,9 @@ export class DialogueService {
       action,
       blockedBySession,
       contextEvents,
-      directResponse,
+    directResponse: directResponse
+        ? { ...directResponse, turn: this.constrainTurnExpression(directResponse.turn, responseAffect) }
+        : null,
     }
   }
 
@@ -181,9 +201,14 @@ export class DialogueService {
       fallbackResponse.response,
       fallbackResponse.expression,
       reactedOutcome,
-      { confidence: resolution.routeResult.confidence },
+      {
+        confidence: resolution.routeResult.confidence,
+        responsePlanId: reactedOutcome ? undefined : fallbackResponse.responsePlanId,
+      },
     )
-    return validateDialogueTurn(turn) ? turn : null
+    return validateDialogueTurn(turn)
+      ? this.constrainTurnExpression(turn, options.sessionAffect ?? 'neutral')
+      : null
   }
 
   private resolveReaction(text: string, classifiedIntent: ClassifiedIntent): UserReaction | null {
@@ -229,6 +254,8 @@ export class DialogueService {
       alcoholStarsTotal: request.session.alcoholStarsTotal,
       totalUserMessages: request.session.totalUserMessages,
       conversationTurnCount: request.session.conversationTurnCount,
+      sessionTopic: request.session.sessionTopic,
+      pendingQuestion: request.session.pendingQuestion,
     }
   }
 
@@ -249,8 +276,28 @@ export class DialogueService {
   ): DirectDialogueResponse | null {
     const { route } = classifiedIntent.route
 
-    if (route === 'safety' || route === 'exit' || route === 'recommendation-cancel') {
-      const turn = this.createTurn(request.text, route, '', 'idle', classifiedIntent.route.confidence)
+    if (route === 'recommendation-cancel') {
+      const response = getCocktailResponseFromClassified(request.text, request.messages, classifiedIntent)
+      const turn = this.createTurn(
+        request.text,
+        route,
+        response.response,
+        response.expression,
+        classifiedIntent.route.confidence,
+        undefined,
+        response.responsePlanId,
+      )
+      return turn ? { kind: route, turn, cocktail: null, contextEvents: [] } : null
+    }
+
+    if (route === 'safety' || route === 'exit') {
+      const turn = this.createTurn(
+        request.text,
+        route,
+        '',
+        route === 'safety' ? 'stern' : 'idle',
+        classifiedIntent.route.confidence,
+      )
       return turn
         ? { kind: route, turn, cocktail: null, contextEvents: [] }
         : null
@@ -268,6 +315,8 @@ export class DialogueService {
         response.response,
         response.expression,
         classifiedIntent.route.confidence,
+        undefined,
+        response.responsePlanId,
       )
       return turn ? { kind: 'character', turn, cocktail: null, contextEvents: [] } : null
     }
@@ -374,12 +423,9 @@ export class DialogueService {
     if (!outcome || resolution.classifiedIntent.intent !== 'order-cocktail' || !SHAKE_REFERENCE.test(text)) {
       return outcome
     }
-    const cocktailName = outcome.decision?.cocktail?.name
-    if (!cocktailName) return outcome
-    const response = assembleResponse({
-      text: `${cocktailName} 한 잔, 본드식으로요. 젓지 말고 흔들어서 준비할게요.`,
-      tone: 'smirk',
-    })
+    const cocktail = outcome.decision?.cocktail
+    if (!cocktail) return outcome
+    const response = assembleResponse(formatShakeOrderDraft(cocktail))
     return {
       ...outcome,
       reply: response.response,
@@ -394,9 +440,44 @@ export class DialogueService {
     expression: Expression,
     confidence: number,
     entities?: { cocktailName?: string },
+    responsePlanId?: string,
   ): DialogueTurn | null {
-    const turn = buildDialogueTurn(text, route, reply, expression, null, { confidence, entities })
+    const turn = buildDialogueTurn(text, route, reply, expression, null, {
+      confidence,
+      entities,
+      responsePlanId,
+    })
     return validateDialogueTurn(turn) ? turn : null
+  }
+
+  private applyContinuation(
+    classified: ClassifiedIntent,
+    text: string,
+    context?: ConversationContextSnapshot,
+  ): ClassifiedIntent {
+    if (!context || classified.route.route !== 'general' || context.safetyLocked) return classified
+    const continuation = resolveContinuation(text, context)
+    if (!continuation) return classified
+
+    const route: RouteResult = continuation === 'story-query-followup'
+      ? {
+          route: 'story-query',
+          matchedCocktailId: context.subject.type === 'cocktail' ? context.subject.id ?? undefined : undefined,
+          confidence: 0.9,
+        }
+      : { route: 'character-query', confidence: 0.9 }
+
+    return {
+      ...classified,
+      route,
+      intent: continuation,
+      confidence: route.confidence,
+      source: 'inference',
+    }
+  }
+
+  private constrainTurnExpression(turn: DialogueTurn, sessionAffect: SessionAffect): DialogueTurn {
+    return { ...turn, expression: expressionForSessionAffect(turn.expression, sessionAffect) }
   }
 
   private getCocktail(id: string | null | undefined): CocktailData | null {

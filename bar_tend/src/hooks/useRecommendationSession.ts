@@ -10,12 +10,14 @@ import {
   pickFromPool,
   selectNextQuestion,
 } from '@/lib/recommendation/question-engine.js'
-import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/database.js'
+import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/index.js'
 import { assembleResponse, type ResponseTone } from '@/lib/dialogue/response-pipeline.js'
+import { classifyRecommendationQuestionInput } from '@/lib/recommendation/question-context.js'
 import {
   formatExplicitCocktailReply,
   formatExactRecommendationResponse,
   formatLoreBasedOrderReply,
+  formatNearestRecommendationResponse,
   formatRandomRecommendationResponse,
   formatRecommendationReply,
   formatSecretMenuOrderReply,
@@ -34,7 +36,7 @@ import {
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
-import type { RecommendationDecision, RecommendationState } from '@/types/recommendation.js'
+import type { RecommendationDecision, RecommendationQuestion, RecommendationState } from '@/types/recommendation.js'
 import { addExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 
 export interface RecommendationResult {
@@ -42,6 +44,7 @@ export interface RecommendationResult {
   expression: Expression
   cocktail: CocktailData | null
   decision: RecommendationDecision | null
+  pendingQuestion: RecommendationQuestion | null
 }
 
 export function useRecommendationSession() {
@@ -150,11 +153,18 @@ export function useRecommendationSession() {
       let finishRecommendation = false
       const activeQuestion = getQuestionById(activeQuestionId)
       if (candidatePool !== null && activeQuestion) {
-        nextState = answerLatestQuestion(nextState, text)
-        const applied = applyQuestionAnswer(nextState, activeQuestion, text)
-        nextState = applied.state
-        acknowledgement = applied.acknowledgement
-        finishRecommendation = applied.finishRecommendation
+        const questionInput = classifyRecommendationQuestionInput(text)
+        if (questionInput === 'delegate') {
+          finishRecommendation = true
+        } else {
+          nextState = answerLatestQuestion(nextState, text)
+          const applied = applyQuestionAnswer(nextState, activeQuestion, text)
+          nextState = applied.state
+          acknowledgement = questionInput === 'skip'
+            ? '그 항목은 비워둘게요. 다른 쪽만 보고 골라볼게요.'
+            : applied.acknowledgement
+          finishRecommendation = applied.finishRecommendation
+        }
       } else {
         nextState = applyRecommendationSignals(nextState, extractRecommendationSignals(text))
       }
@@ -209,6 +219,8 @@ export function useRecommendationSession() {
           'thinking',
           null,
           null,
+          undefined,
+          nextQuestion,
         )
       }
 
@@ -227,8 +239,12 @@ export function useRecommendationSession() {
       const exactFormatted = resolved.exactMatch && !acknowledgement
         ? formatExactRecommendationResponse(decision)
         : null
-      const reply = exactFormatted
-        ? [selectedOpening?.text, exactFormatted.text].filter(Boolean).join('\n')
+      const nearestFormatted = !resolved.exactMatch
+        ? formatNearestRecommendationResponse(decision)
+        : null
+      const formattedBody = exactFormatted ?? nearestFormatted
+      const reply = formattedBody
+        ? [acknowledgement ?? selectedOpening?.text, formattedBody.text].filter(Boolean).join('\n')
         : formatRecommendationReply(
             decision,
             acknowledgement ?? selectedOpening?.text,
@@ -240,7 +256,7 @@ export function useRecommendationSession() {
         decision.dialogue.affectState,
         cocktail,
         decision,
-        exactFormatted?.expression,
+        formattedBody?.expression,
       )
     },
     [
@@ -273,6 +289,7 @@ function assembleRecommendationResult(
   cocktail: CocktailData | null,
   decision: RecommendationDecision | null,
   preferredExpression?: Expression,
+  pendingQuestion: RecommendationQuestion | null = null,
 ): RecommendationResult {
   const assembled = assembleResponse({
     text,
@@ -288,5 +305,6 @@ function assembleRecommendationResult(
     expression: assembled.expression,
     cocktail,
     decision,
+    pendingQuestion,
   }
 }

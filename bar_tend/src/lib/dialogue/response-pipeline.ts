@@ -9,6 +9,7 @@ export interface ResponseDraft {
   text: string
   tone?: ResponseTone
   preferredExpression?: Expression
+  responsePlanId?: string
   character?: {
     speaker?: CharacterId
     intent?: string
@@ -39,11 +40,14 @@ const TONE_EXPRESSIONS: Record<ResponseTone, Expression> = {
 }
 
 export function assembleResponse(draft: ResponseDraft): BartenderResponse {
-  return applyCharacterLayer({
+  const response = applyCharacterLayer({
     text: draft.text,
     expression: draft.preferredExpression ?? expressionForTone(draft.tone),
     ...draft.character,
   })
+  return draft.responsePlanId
+    ? { ...response, responsePlanId: draft.responsePlanId }
+    : response
 }
 
 export function expressionForTone(tone: ResponseTone = 'talk'): Expression {

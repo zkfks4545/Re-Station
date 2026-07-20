@@ -30,18 +30,6 @@ export default function BartenderSprite({
   isPreparingCocktail?: boolean
   isBartenderTyping?: boolean
 }) {
-  useEffect(() => {
-    const images = [
-      ...Object.values(KARUA_STATIC_SPRITES),
-      ...KARUA_SHAKER_LOOP_FRAMES,
-      KARUA_SHAKER_FINISH_FRAME,
-    ]
-    images.forEach((src) => {
-      const img = new Image()
-      img.src = src
-    })
-  }, [])
-
   const [shakeFrameIndex, setShakeFrameIndex] = useState(0)
   const [isShowingFinishFrame, setIsShowingFinishFrame] = useState(false)
   const wasPreparingCocktail = useRef(isPreparingCocktail)

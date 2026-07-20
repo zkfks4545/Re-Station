@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IntentClassifier, type DialogueContext } from '../bartender/intent-classifier.js'
-import { cocktails, findCocktailByName } from '../cocktails/database.js'
+import { cocktails, findCocktailByName } from '../cocktails/index.js'
 import { resolveDialogueAction } from './action-resolver.js'
 import { createConversationContext, updateConversationContext } from './conversation-context.js'
 import { detectUserReaction } from './reaction-layer.js'

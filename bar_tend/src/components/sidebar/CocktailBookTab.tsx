@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { publicCocktails } from '@/lib/cocktails/database.js'
+import { publicCocktails } from '@/lib/cocktails/index.js'
 import { formatTasteRating } from '@/lib/cocktails/taste-format.js'
 import type { CocktailData } from '@/types.js'
 

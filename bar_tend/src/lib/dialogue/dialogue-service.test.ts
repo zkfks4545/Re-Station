@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cocktails } from '../cocktails/database.js'
+import { cocktails } from '../cocktails/index.js'
 import { createConversationContext, updateConversationContext } from './conversation-context.js'
 import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
 

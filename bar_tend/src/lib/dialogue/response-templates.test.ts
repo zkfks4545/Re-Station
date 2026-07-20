@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, formatCocktailMentionDraft } from './response-templates.js'
+import { INTENT_RESPONSE_TEMPLATES, COCKTAIL_FALLBACK_TEMPLATES, MOOD_SUB_TEMPLATES, MOOD_DEFAULT, MOOD_KEYWORD_MAP, TASTE_SUB_TEMPLATES, TASTE_DEFAULT, TASTE_KEYWORD_MAP, RUDE_SUB_TEMPLATES, RUDE_DEFAULT, RUDE_KEYWORD_MAP, STORY_FALLBACK, STORY_PERSON_MISSING_TEMPLATE, RESPONSE_TEMPLATE_DRAFT_SOURCES, formatCocktailMentionDraft, getTemplateFallbackSource } from './response-templates.js'
 import type { CocktailData } from '../../types.js'
 import dialoguesData from '../../data/dialogues.json'
+import { isResponsePlanDialogueCategory } from './response-plan-adapter.js'
 
 const templateGroups = [
   INTENT_RESPONSE_TEMPLATES,
@@ -12,16 +13,126 @@ const templateGroups = [
   { story: STORY_FALLBACK },
 ]
 
+const namedTemplateGroups = [
+  ['intent', INTENT_RESPONSE_TEMPLATES],
+  ['cocktail', COCKTAIL_FALLBACK_TEMPLATES],
+  ['mood', MOOD_SUB_TEMPLATES],
+  ['taste', TASTE_SUB_TEMPLATES],
+  ['rude', RUDE_SUB_TEMPLATES],
+  ['story', { unresolved: STORY_FALLBACK }],
+] as const
+
 describe('dialogue response source contract', () => {
-  it('backs every referenced dialogue category with a non-empty JSON pool', () => {
+  function collectTemplateDialogueCategories(): string[] {
+    return Array.from(new Set([
+      ...templateGroups.flatMap((templates) => Object.values(templates)),
+      MOOD_DEFAULT,
+      TASTE_DEFAULT,
+      RUDE_DEFAULT,
+    ]
+      .map((template) => template.dialogueCategory)
+      .filter((category): category is string => typeof category === 'string')))
+  }
+
+  it('backs every referenced dialogue category with JSON fallback or ResponsePlan data', () => {
     for (const templates of templateGroups) {
       for (const template of Object.values(templates)) {
         if (!template.dialogueCategory) continue
         const category = dialoguesData.categories[template.dialogueCategory as keyof typeof dialoguesData.categories]
-        expect(category, `missing dialogue category "${template.dialogueCategory}"`).toBeDefined()
-        expect(category?.lines.length, `empty dialogue category "${template.dialogueCategory}"`).toBeGreaterThan(0)
+        const hasJsonFallback = (category?.lines.length ?? 0) > 0
+        const hasResponsePlan = isResponsePlanDialogueCategory(template.dialogueCategory)
+        expect(
+          hasJsonFallback || hasResponsePlan,
+          `missing dialogue source "${template.dialogueCategory}"`,
+        ).toBe(true)
       }
     }
+  })
+
+  it('documents response-template dialogue source ownership after Phase 11 JSON fallback deletion', () => {
+    const categories = collectTemplateDialogueCategories()
+    const responsePlanBacked = categories
+      .filter((category) => isResponsePlanDialogueCategory(category))
+      .sort()
+    const jsonBacked = categories
+      .filter((category) => !isResponsePlanDialogueCategory(category))
+      .sort()
+    const responsePlanCategoriesStillInJson = responsePlanBacked
+      .filter((category) => (dialoguesData.categories[category as keyof typeof dialoguesData.categories]?.lines.length ?? 0) > 0)
+    const missingJsonBacked = jsonBacked
+      .filter((category) => (dialoguesData.categories[category as keyof typeof dialoguesData.categories]?.lines.length ?? 0) === 0)
+
+    expect(responsePlanBacked).toEqual([
+      'bar-atmosphere',
+      'bar-intro',
+      'character-query',
+      'cocktail-request',
+      'general-chat',
+      'guest-uncertain',
+      'ingredient-constraint',
+      'mood-happy',
+      'mood-sad',
+      'mood-tired',
+      'overdrunk',
+      'quiet-moment',
+      'random-request',
+      'real-world-info',
+      'recipe-request',
+      'recommendation-cancel',
+      'rude-annoyed',
+      'rude-boundary',
+      'siesta-mention',
+      'small-talk-weather',
+      'story-unresolved',
+      'taste-sweet',
+      'unknown-cocktail-request',
+      'water-request',
+    ].sort())
+    expect(jsonBacked).toEqual([
+      'rude-disappointed',
+      'taste-bitter',
+      'taste-refresh',
+    ])
+    expect(responsePlanCategoriesStillInJson).toEqual([])
+    expect(missingJsonBacked).toEqual([])
+  })
+
+  it('documents which response-template fallbacks are locally owned', () => {
+    const locallyOwned: string[] = []
+    const dialogueBacked: string[] = []
+
+    for (const [groupName, templates] of namedTemplateGroups) {
+      for (const [key, template] of Object.entries(templates)) {
+        const label = `${groupName}:${key}`
+        if (getTemplateFallbackSource(template) === 'response-template') {
+          locallyOwned.push(label)
+        } else {
+          dialogueBacked.push(label)
+        }
+      }
+    }
+
+    if (getTemplateFallbackSource(MOOD_DEFAULT) === 'response-template') locallyOwned.push('mood:default')
+    if (getTemplateFallbackSource(TASTE_DEFAULT) === 'response-template') locallyOwned.push('taste:default')
+    if (getTemplateFallbackSource(RUDE_DEFAULT) === 'response-template') locallyOwned.push('rude:default')
+    else dialogueBacked.push('rude:default')
+
+    expect(locallyOwned.sort()).toEqual([
+      'intent:exit-intent',
+      'mood:default',
+      'taste:default',
+    ])
+    expect(dialogueBacked.length).toBeGreaterThan(0)
+  })
+
+  it('documents the remaining inline draft text sources', () => {
+    expect(RESPONSE_TEMPLATE_DRAFT_SOURCES).toEqual({
+      storyPersonMissing: 'response-template',
+      cocktailMention: 'cocktail-data-and-template',
+      cocktailInfo: 'cocktail-data-and-template',
+      shakeOrder: 'cocktail-data-and-template',
+      martiniLoreFollowup: 'response-template',
+    })
   })
 })
 

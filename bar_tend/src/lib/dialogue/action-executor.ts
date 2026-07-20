@@ -1,9 +1,11 @@
 import type { CocktailData } from '../../types.js'
 import type { RecommendationOutcome } from './turn-builder.js'
 import type { DialogueAction } from './action-resolver.js'
+import type { RecommendationQuestion } from '../../types/recommendation.js'
 
 export interface ActionOutcome extends RecommendationOutcome {
   cocktail: CocktailData | null
+  pendingQuestion?: RecommendationQuestion | null
 }
 
 export interface ActionExecutionPorts {

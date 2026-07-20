@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { getAllCocktailData } from '../cocktails/database.js'
+import { getAllCocktailData } from '../cocktails/index.js'
 import {
   applyQuestionAnswer,
   createRecommendationSourcePool,
   formatQuestion,
+  formatQuestionDialogueLine,
   getQuestionById,
   initCandidatePool,
   isRecommendationDecisive,
@@ -11,6 +12,7 @@ import {
   pickFromPool,
   selectNextQuestion,
 } from './question-engine.js'
+import type { ResponsePlan } from '../dialogue/response-plan.js'
 import {
   addQuestionHistory,
   applyRecommendationSignals,
@@ -199,7 +201,7 @@ describe('adaptive recommendation questions', () => {
     }
   })
 
-  it('ends questioning only when Kahlua is asked to take over', () => {
+  it('ends questioning only when Karua is asked to take over', () => {
     const question = getQuestionById('fizz')
     expect(question).not.toBeNull()
 
@@ -215,7 +217,7 @@ describe('adaptive recommendation questions', () => {
     expect(unknown.finishRecommendation).toBe(false)
   })
 
-  it('treats 아무거나 as asking Kahlua to take over while preserving prior answers', () => {
+  it('treats 아무거나 as asking Karua to take over while preserving prior answers', () => {
     const question = getQuestionById('fizz')!
     const state = applyRecommendationSignals(createRecommendationState(), [
       { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'question' },
@@ -382,5 +384,123 @@ describe('adaptive recommendation questions', () => {
 
     expect(formatted).toContain(question.dialogueFlow!.leadIn)
     expect(formatted).toContain(question.prompt)
+  })
+
+  it('preserves acknowledgement and lead-in text through ResponsePlan formatting', () => {
+    const question = getQuestionById('alcohol-strength')!
+    const acknowledgement = question.choices[0].acknowledgement
+    const formatted = formatQuestionDialogueLine(question, acknowledgement)
+
+    expect(formatted).toEqual({
+      text: `${acknowledgement}\n${question.dialogueFlow!.continuation}\n${question.prompt}`,
+      expression: 'thinking',
+    })
+  })
+
+  it('uses recommendation question ResponsePlan when available', () => {
+    const question = getQuestionById('fizz')!
+    const plans: readonly ResponsePlan[] = [{
+      id: 'test.question.priority',
+      speaker: 'karua',
+      intent: 'ask_preference',
+      state: 'lead-in',
+      request: 'recommendation-question',
+      blocks: {
+        answer: [{ text: 'plan:{lead_in}:{question_label}', expression: 'smirk' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatQuestionDialogueLine(question, null, { plans })).toEqual({
+      text: `plan:${question.dialogueFlow!.leadIn}:${question.prompt}`,
+      expression: 'smirk',
+    })
+  })
+
+  it('falls back to legacy question formatting when ResponsePlan is invalid', () => {
+    const question = getQuestionById('fizz')!
+    const legacy = formatQuestion(question, null)
+    const plans = [{
+      id: 'test.question.invalid',
+      speaker: 'karua',
+      intent: 'ask_preference',
+      state: 'lead-in',
+      request: 'recommendation-question',
+      blocks: {
+        answer: [{ text: 'plan:{lead_in}:{question_label}', expression: '' }],
+      },
+      fallbackText: 'fallback',
+    }] as unknown as readonly ResponsePlan[]
+
+    expect(formatQuestionDialogueLine(question, null, { plans })).toEqual({
+      text: legacy,
+      expression: 'thinking',
+    })
+  })
+
+  it.each([
+    { text: 'plan:{continuation}:{question_label}' },
+    { text: 'plan:{opening}:{question_label}' },
+  ])('falls back safely when question ResponsePlan slot is missing or forbidden', ({ text }) => {
+    const question = getQuestionById('fizz')!
+    const legacy = formatQuestion(question, null)
+    const plans: readonly ResponsePlan[] = [{
+      id: `test.question.slot.${text}`,
+      speaker: 'karua',
+      intent: 'ask_preference',
+      state: 'lead-in',
+      request: 'recommendation-question',
+      blocks: {
+        answer: [{ text, expression: 'thinking' }],
+      },
+      fallbackText: 'fallback',
+    }]
+
+    expect(formatQuestionDialogueLine(question, null, { plans })).toEqual({
+      text: legacy,
+      expression: 'thinking',
+    })
+  })
+
+  it('does not change question selection while formatting acknowledgement and lead-in', () => {
+    const state = createRecommendationState()
+    const pool = filterCocktailsByRecommendationState(getAllCocktailData(), state)
+    const before = selectNextQuestion(pool, state)
+
+    expect(before).not.toBeNull()
+    formatQuestionDialogueLine(before!, null)
+    const after = selectNextQuestion(pool, state)
+
+    expect(after?.id).toBe(before?.id)
+  })
+
+  it('does not change slot filling while formatting acknowledgement and lead-in', () => {
+    const question = getQuestionById('base-spirit')!
+    const applied = applyQuestionAnswer(createRecommendationState(), question, question.choices[0].label)
+    const snapshot = structuredClone(applied.state)
+
+    formatQuestionDialogueLine(question, applied.acknowledgement)
+
+    expect(applied.state).toEqual(snapshot)
+  })
+
+  it('keeps unknown answer behavior while question text uses ResponsePlan', () => {
+    const question = getQuestionById('fizz')!
+    const unknown = applyQuestionAnswer(createRecommendationState(), question, '잘 모르겠어요')
+
+    formatQuestionDialogueLine(question, unknown.acknowledgement)
+
+    expect(unknown.finishRecommendation).toBe(false)
+  })
+
+  it('keeps Karua delegation behavior while question text uses ResponsePlan', () => {
+    const question = getQuestionById('fizz')!
+    const delegatedChoice = question.choices.find((choice) => choice.finishRecommendation)!
+    const delegated = applyQuestionAnswer(createRecommendationState(), question, delegatedChoice.label)
+
+    formatQuestionDialogueLine(question, delegated.acknowledgement)
+
+    expect(delegated.finishRecommendation).toBe(true)
+    expect(delegated.state).toEqual(createRecommendationState())
   })
 })
