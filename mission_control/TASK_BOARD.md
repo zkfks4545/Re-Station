@@ -380,7 +380,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | SPR-003 카루아 Sprite Animation | PROPOSED |
 | SPR-004 시에스타 Sprite 표시 | PROPOSED |
 | SPR-005 시에스타 Event Sync | PROPOSED |
-| AUD-001 Audio SFX·Cue·UX 최종 QA | REVIEW |
+| AUD-001 Audio SFX·Cue·UX 최종 QA | REVIEW (자동 QA 완료, 실제 브라우저 QA 잔여) |
 | FLOW-001 환상주점 세션 흐름 사양 | DONE |
 | FLOW-002 XYZ와 Farewell Phase 상태 머신 설계 | DONE |
 | FLOW-003 선택지 이벤트와 자유입력 복귀 정책 구현 | PROPOSED |
@@ -482,11 +482,13 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | REVIEW |
+| 상태 | REVIEW — 자동 QA 완료, 실제 브라우저 QA 잔여 |
 | 목적 | 이미 구현된 Audio Step 2~4를 전용 회귀와 실제 브라우저 검수로 종료 판정 |
 | 구현 확인 | `useSfxManager`의 shake loop·serve one-shot·볼륨·음소거·저장, `useRestationPresentation`의 제조 cue, `useRestationController`의 서빙·초기화·퇴장·오류 중단, `BarMusicTab`의 SFX UI가 연결됨 |
-| 자동 검증 | 중복 shake 방지, serve one-shot 정리, volume clamp·저장 복구, mute/stopAll, Audio API reject 시 무중단, reset/exit/safety의 stop 계약을 테스트 |
-| 수동 검증 | 실제 Chrome에서 shake 시작/종료, serve 1회, 음소거·볼륨 복원, autoplay/파일 실패 시 대화·서빙 유지, 모바일 음악 탭 조작을 확인 |
+| 자동 검증 | 완료. 중복 shake 방지, serve one-shot 정리, volume clamp·저장 복구, mute/stopAll, Audio API reject 후 재시도, UI 상태를 8개 테스트로 고정. 전체 65 files / 834 tests 통과 |
+| 음원 검증 | 개발 서버에서 `shake.mp3` 200 `audio/mpeg` 257,182 bytes, `serve.wav` 200 `audio/wav` 44,144 bytes 확인 |
+| 수동 검증 | 잔여. 실제 Chrome에서 shake 시작/종료, serve 1회, 음소거·볼륨 복원, autoplay/파일 실패 시 대화·서빙 유지, 모바일 음악 탭 조작을 확인해야 함 |
+| 검수 제약 | 브라우저 제어 런타임이 로컬 경로 오류로 시작되지 않아 다른 브라우저 수단으로 우회하지 않고 REVIEW 유지 |
 | 완료 조건 | 자동·수동 검증 결과를 기록하고 Audio Step 2~4를 DONE으로 전환. 실패가 있으면 이 범위 안에서만 보정 |
 
 #### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현

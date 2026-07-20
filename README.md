@@ -32,7 +32,7 @@
 |---|---|
 | Framework | React 19 + Vite 8 |
 | Language | TypeScript 6 |
-| Tests | Vitest (826 tests) |
+| Tests | Vitest (834 tests) |
 | Styling | Tailwind CSS 4 + custom theme |
 | Semantic Analysis | WebLLM (experimental, default OFF) |
 | Package Manager | npm |
@@ -106,7 +106,7 @@ bar_tend/
 |---|---|
 | フレームワーク | React 19 + Vite 8 |
 | 言語 | TypeScript 6 |
-| テスト | Vitest（826 tests） |
+| テスト | Vitest（834 tests） |
 | スタイリング | Tailwind CSS 4 + カスタムテーマ |
 | 意味分析 | WebLLM（実験的、デフォルトOFF） |
 | パッケージ管理 | npm |
@@ -153,7 +153,7 @@ npm run dev
 |---|---|
 | 프레임워크 | React 19 + Vite 8 |
 | 언어 | TypeScript 6 |
-| 테스트 | Vitest (826개 테스트) |
+| 테스트 | Vitest (834개 테스트) |
 | 스타일 | Tailwind CSS 4 + 수동 테마 |
 | 의미 분석 | WebLLM (실험적, 기본 OFF) |
 | 패키지 매니저 | npm |

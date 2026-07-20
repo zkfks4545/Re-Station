@@ -8,8 +8,8 @@
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
 | 단계 | RST-000 MVP + Phase 1~13 및 Phase 15 완료, Phase 14는 **WebLLM 활용 보류 결정에 따라 DEFERRED** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 549.55 kB, gzip 164.64 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 826개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 549.75 kB, gzip 164.81 kB, WebLLM/lib 지연 청크 분리) |
+| 테스트 | **Vitest 834개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -57,8 +57,8 @@
 | 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + 의도된 `talk`=`idle` 공유, 시에스타 라벨만 | SPR-003 애니메이션 정리 후 SPR-004~005 시에스타 화면 연출 검토 |
 | 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
-| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI·DialogueTurn·스프라이트 등 826개 | Audio 전용 회귀와 SPR-003 상태 전환 검증 추가 |
-| 번들 | 메인 JS 549.55 kB, gzip 164.64 kB, WebLLM/lib 지연 청크 분리. 초기 Network ON/OFF 검수 완료 | 기능 추가 시 500 kB 경고 재평가 |
+| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI·DialogueTurn·스프라이트·Audio 등 834개 | SPR-003 상태 전환 검증 추가 |
+| 번들 | 메인 JS 549.75 kB, gzip 164.81 kB, WebLLM/lib 지연 청크 분리. 초기 Network ON/OFF 검수 완료 | 기능 추가 시 500 kB 경고 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-13)
 
@@ -83,7 +83,7 @@
 
 - Step 1에서 BGM 재생·볼륨·음소거·저장과 기본 UI는 완료했다.
 - Step 2는 `useSfxManager`와 shake/serve 음원, Step 3은 제조·서빙·초기화·퇴장·오류 cue 연결, Step 4는 기존 음악 탭의 SFX 볼륨·음소거·저장을 구현했다.
-- 구현은 완료됐지만 Audio 전용 자동 테스트와 실제 브라우저 재생·실패 복구 검수가 없어 Step 2~4는 `REVIEW`다. 다음 종료 작업은 `AUD-001`이 소유한다.
+- Audio 전용 런타임·저장·실패 복구·UI 회귀 8개와 음원 HTTP 계약은 통과했다. 브라우저 제어 런타임 연결 실패로 실제 클릭·청취 검수만 남아 Step 2~4는 `REVIEW`다.
 
 ## 현재 우선순위
 
@@ -93,9 +93,9 @@ P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바�
 2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
 3. **P2 — 사용성 (DONE)**: 375 px 모바일 viewport에서 메뉴 다이얼로그의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 제출을 실측
 4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
-5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.55 kB 경고는 향후 기능 단위 분할 시 재검토
+5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.75 kB 경고는 향후 기능 단위 분할 시 재검토
 6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
-7. **Phase 15 — 최종 캐릭터 QA (DONE)**: 상담가·AI 도우미·고객센터형 표현을 바텐더 화법으로 교체하고, 단일 캐릭터 프로필 기반 전체 발화 회귀를 826개 테스트로 검증
+7. **Phase 15 — 최종 캐릭터 QA (DONE)**: 상담가·AI 도우미·고객센터형 표현을 바텐더 화법으로 교체하고, 단일 캐릭터 프로필 기반 전체 발화 회귀를 검증
 
 다음 순서는 **AUD-001 Audio SFX·Cue·UX 최종 QA(REVIEW 종료)**다. 이후 `SPR-003` 범위를 승인하면 카루아 애니메이션 정리로 진행한다. `SPR-004~005`, `FLOW-003`, WebLLM RST-602~606은 승인·환경 조건 전까지 착수하지 않는다.
 

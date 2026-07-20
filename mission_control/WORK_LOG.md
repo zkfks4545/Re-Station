@@ -1,5 +1,14 @@
 # 작업 이력 (축약)
 
+## 2026-07-20 / Codex / AUD-001 Audio 자동 QA 및 런타임 보강
+
+- SFX 상태를 순수 `sfx-runtime`으로 분리해 shake loop, serve one-shot, volume/mute, stop/stopAll, 저장 복구를 독립 검증할 수 있게 했다.
+- shake 재생 Promise가 거부된 뒤 내부 루프가 남아 재시도를 막던 문제를 수정하고, 활성 serve one-shot에도 볼륨 변경과 stop 정리가 적용되게 했다. localStorage 접근 자체가 거부되는 환경도 세션 기본값으로 복구한다.
+- `BarMusicTab`의 BGM/SFX 분리 라벨, 현재 값, autoplay 차단·음소거·오류 표시 계약을 추가했다.
+- 음원 HTTP 확인: `shake.mp3` 200 `audio/mpeg` 257,182 bytes, `serve.wav` 200 `audio/wav` 44,144 bytes.
+- 검증: Audio 2 files / 8 tests, 전체 65 files / 834 tests, check, lint, build, diff check 통과. 메인 JS 549.75 kB(gzip 164.81 kB).
+- 브라우저 제어 스킬의 런타임이 로컬 경로 오류로 시작되지 않아 실제 클릭·청취 검수는 수행하지 못했다. AUD-001은 REVIEW를 유지한다.
+
 ## 2026-07-20 / Codex / 로드맵 정합성 재검수
 
 - 완료된 Phase 2~15 항목에 남아 있던 `현재 작업` 표기를 제거하고 현재 대화·테스트·번들 상태를 실제 구현과 맞췄다.

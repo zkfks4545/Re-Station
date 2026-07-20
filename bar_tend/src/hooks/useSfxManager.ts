@@ -1,40 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  createSfxRuntime,
+  readSfxSettings,
+  writeSfxSettings,
+  type SfxId,
+  type SfxStorage,
+} from '@/lib/audio/sfx-runtime.js'
 
-type SfxId = 'shake' | 'serve'
-
-const SFX_URLS: Record<SfxId, string> = {
-  shake: '/sfx/shake.mp3',
-  serve: '/sfx/serve.wav',
-}
-
-const SFX_SETTINGS_KEY = 'restation.sfx.settings.v1'
-
-interface StoredSfxSettings {
-  volume: number
-  muted: boolean
-}
-
-function readStoredSfxSettings(): StoredSfxSettings {
-  if (typeof window === 'undefined') return { volume: 0.65, muted: false }
+function getBrowserStorage(): SfxStorage | undefined {
+  if (typeof window === 'undefined') return undefined
   try {
-    const raw = window.localStorage.getItem(SFX_SETTINGS_KEY)
-    if (!raw) return { volume: 0.65, muted: false }
-    const parsed = JSON.parse(raw) as Partial<StoredSfxSettings>
-    return {
-      volume: typeof parsed.volume === 'number' ? Math.min(1, Math.max(0, parsed.volume)) : 0.65,
-      muted: parsed.muted ?? false,
-    }
+    return window.localStorage
   } catch {
-    return { volume: 0.65, muted: false }
-  }
-}
-
-function writeStoredSfxSettings(settings: StoredSfxSettings): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(SFX_SETTINGS_KEY, JSON.stringify(settings))
-  } catch {
-    // Storage unavailable; session-only.
+    return undefined
   }
 }
 
@@ -49,99 +27,40 @@ export interface SfxChannel {
 }
 
 export function useSfxManager(): SfxChannel {
-  const [initialSettings] = useState(readStoredSfxSettings)
+  const [initialSettings] = useState(() => readSfxSettings(getBrowserStorage()))
   const [volume, setVolumeState] = useState(initialSettings.volume)
   const [muted, setMutedState] = useState(initialSettings.muted)
-  const volumeRef = useRef(initialSettings.volume)
-  const mutedRef = useRef(initialSettings.muted)
-  const loopInstancesRef = useRef<Map<SfxId, HTMLAudioElement>>(new Map())
-  const activeOneShotsRef = useRef<Set<HTMLAudioElement>>(new Set())
-
-  const applyAudioSettings = useCallback((audio: HTMLAudioElement) => {
-    audio.volume = volumeRef.current
-    audio.muted = mutedRef.current
-  }, [])
+  const [runtime] = useState(() => createSfxRuntime({
+    createAudio: (url) => new Audio(url),
+    initialSettings,
+  }))
 
   const play = useCallback((id: SfxId) => {
-    if (mutedRef.current) return
-
-    if (id === 'shake') {
-      if (loopInstancesRef.current.has('shake')) return
-      const audio = new Audio(SFX_URLS.shake)
-      audio.loop = true
-      applyAudioSettings(audio)
-      loopInstancesRef.current.set('shake', audio)
-      audio.play().catch(() => {})
-      return
-    }
-
-    if (id === 'serve') {
-      const audio = new Audio(SFX_URLS.serve)
-      applyAudioSettings(audio)
-      activeOneShotsRef.current.add(audio)
-      audio.addEventListener('ended', () => {
-        activeOneShotsRef.current.delete(audio)
-      }, { once: true })
-      audio.play().catch(() => {
-        activeOneShotsRef.current.delete(audio)
-      })
-    }
-  }, [applyAudioSettings])
+    runtime.play(id)
+  }, [runtime])
 
   const stop = useCallback((id: SfxId) => {
-    const audio = loopInstancesRef.current.get(id)
-    if (audio) {
-      audio.pause()
-      audio.src = ''
-      loopInstancesRef.current.delete(id)
-    }
-  }, [])
+    runtime.stop(id)
+  }, [runtime])
 
   const stopAll = useCallback(() => {
-    for (const audio of loopInstancesRef.current.values()) {
-      audio.pause()
-      audio.src = ''
-    }
-    loopInstancesRef.current.clear()
-    for (const audio of activeOneShotsRef.current) {
-      audio.pause()
-    }
-    activeOneShotsRef.current.clear()
-  }, [])
+    runtime.stopAll()
+  }, [runtime])
 
   const setVolume = useCallback((value: number) => {
-    const clamped = Math.min(1, Math.max(0, value))
-    volumeRef.current = clamped
+    const clamped = runtime.setVolume(value)
     setVolumeState(clamped)
-    for (const audio of loopInstancesRef.current.values()) {
-      audio.volume = clamped
-    }
-  }, [])
+  }, [runtime])
 
   const setMuted = useCallback((value: boolean) => {
-    mutedRef.current = value
-    setMutedState(value)
-    if (value) {
-      stopAll()
-    }
-  }, [stopAll])
+    setMutedState(runtime.setMuted(value))
+  }, [runtime])
 
   useEffect(() => {
-    writeStoredSfxSettings({ volume, muted })
+    writeSfxSettings(getBrowserStorage(), { volume, muted })
   }, [volume, muted])
 
-  useEffect(() => () => {
-    for (const audio of loopInstancesRef.current.values()) {
-      audio.pause()
-      audio.src = ''
-    }
-    loopInstancesRef.current.clear()
-    for (const audio of activeOneShotsRef.current) {
-      audio.pause()
-      audio.src = ''
-    }
-    activeOneShotsRef.current.clear()
-  }, [])
+  useEffect(() => () => runtime.dispose(), [runtime])
 
   return useMemo(() => ({
     play,
