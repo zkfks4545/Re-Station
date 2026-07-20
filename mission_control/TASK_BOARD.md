@@ -25,7 +25,7 @@
 | 3 | 애플리케이션 로직 분리 | 완료 |
 | 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
-| 6 | WebLLM 의미 보조 계층 | Semantic Snapshot 격리·관측·계약 테스트 진행 중, ResponsePlan 선택 연결 보류 |
+| 6 | WebLLM 의미 보조 계층 | RST-601/Phase 12 기반 완료, Phase 13 활용 보류 결정에 따라 RST-602~606·Phase 14 연기 |
 | 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
 | 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
@@ -43,7 +43,7 @@
 | 후속 범위 | WebLLM 표현 계층, JSON 중심 대화 계약 확장, 관리자 검증 큐, IBA 우선 검색 파이프라인 |
 | 핵심 경계 | 이름·별칭 검색 우선, 추천 결정은 DB와 규칙 엔진 담당, 대사 소재는 입력 경로가 결정, WebLLM은 표현만 담당, 시에스타는 저빈도 만담 이벤트 |
 | 완료 조건 | 충족. 단계 1~7의 WebLLM 제외 MVP 작업 완료, `PROJECT_VISION.md`의 MVP 성공 기준 통과, RST-411 기능 경계 보완 및 RST-412 문서 정합성 정리 완료 |
-| 남은 결정 | WebLLM RST-601~606 재개 여부 |
+| 남은 결정 | WebLLM RST-602~606 재개 여부 |
 
 ## 완료 작업
 
@@ -286,10 +286,11 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | REVIEW |
+| 상태 | DONE (Phase 12 승인 범위) |
 | 예상 | 3~4일 |
 | 구현 결과 | `@mlc-ai/web-llm` Web Worker, capability 검사, 싱글턴 준비, 기능 플래그, 동적 import, 수동 unload 기반을 추가했다. 실제 대화 출력은 미연결 |
-| 완료 조건 | 브라우저 유휴 시간에 capability 검사 뒤 중복 준비 없이 Worker에서 모델을 준비하며 렌더링과 JSON 대화를 차단하지 않음 |
+| 완료 조건 | 충족. capability 검사·중복 준비 방지·비차단 Worker·기본 OFF·실패 시 세션 비활성화와 JSON/FSM 복구를 계약 테스트와 Phase 12 실측으로 확인 |
+| 후속 경계 | 지원 GPU에서의 모델 다운로드·warm 재사용·속도 비교는 RST-602이며 현재 DEFERRED |
 
 ### RST-602: Qwen 및 Gemma 후보 실행 검증
 
@@ -379,6 +380,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | SPR-003 카루아 Sprite Animation | PROPOSED |
 | SPR-004 시에스타 Sprite 표시 | PROPOSED |
 | SPR-005 시에스타 Event Sync | PROPOSED |
+| AUD-001 Audio SFX·Cue·UX 최종 QA | REVIEW |
 | FLOW-001 환상주점 세션 흐름 사양 | DONE |
 | FLOW-002 XYZ와 Farewell Phase 상태 머신 설계 | DONE |
 | FLOW-003 선택지 이벤트와 자유입력 복귀 정책 구현 | PROPOSED |
@@ -475,6 +477,17 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 주의 | XYZ는 벌칙이나 엔딩 분기가 아니라 오늘의 마지막 드링크다. 사용자는 평가받지 않는다. |
 | 구현 결과 | `src/lib/session/session-flow.ts`에 세션 단계와 도수 한계 기반 XYZ 마감 서빙 정책을 추가하고 `useRestationController`에 연결했다. 웰컴드링크는 누적 도수 계산에서 제외한다. 일반 주문/추천으로 칵테일을 서브한 뒤 누적 도수 별점이 10 이상에 도달하면 XYZ를 마지막 잔으로 이어서 서빙하고, 그 뒤 Farewell Phase로 이행한다. 이 구간에서는 신규 주문·추천과 다시 추천받기를 차단하되 기존 칵테일 정보 대화는 허용하며, 명시적 퇴장 입력으로 귀가한다. |
 | 검증 | `session-flow.test.ts` 기준 서브 이후 도수 한계 XYZ 후속 서빙 테스트 통과 |
+
+#### AUD-001: Audio SFX·Cue·UX 최종 QA
+
+| 항목 | 내용 |
+|---|---|
+| 상태 | REVIEW |
+| 목적 | 이미 구현된 Audio Step 2~4를 전용 회귀와 실제 브라우저 검수로 종료 판정 |
+| 구현 확인 | `useSfxManager`의 shake loop·serve one-shot·볼륨·음소거·저장, `useRestationPresentation`의 제조 cue, `useRestationController`의 서빙·초기화·퇴장·오류 중단, `BarMusicTab`의 SFX UI가 연결됨 |
+| 자동 검증 | 중복 shake 방지, serve one-shot 정리, volume clamp·저장 복구, mute/stopAll, Audio API reject 시 무중단, reset/exit/safety의 stop 계약을 테스트 |
+| 수동 검증 | 실제 Chrome에서 shake 시작/종료, serve 1회, 음소거·볼륨 복원, autoplay/파일 실패 시 대화·서빙 유지, 모바일 음악 탭 조작을 확인 |
+| 완료 조건 | 자동·수동 검증 결과를 기록하고 Audio Step 2~4를 DONE으로 전환. 실패가 있으면 이 범위 안에서만 보정 |
 
 #### FLOW-003: 선택지 이벤트와 자유입력 복귀 정책 구현
 
@@ -750,9 +763,9 @@ Input
 - 대화 영역은 polite live log로, 입장 버튼과 메뉴 버튼은 명확한 접근 가능한 이름으로 노출한다.
 - 타이핑 중인 부분 문자열은 접근성 트리에서 숨기고 완성된 메시지만 live log의 추가 항목으로 노출해 스크린리더 반복 낭독을 막는다.
 
-남은 수동 검수:
+수동 검수 기록과 추가 출시 전 시각 sweep 후보:
 
-- 320px, 375px, 768px viewport에서 입력·전송·하단 작업 버튼과 추천 카드가 겹치지 않는지 확인한다.
+- P2 gate는 375 px·가상 키보드 검수로 종료했다. 320 px와 768 px 전체 화면 sweep은 출시 후보 검수에서 추가할 수 있다.
 - 375 px viewport에서 메뉴 dialog의 Tab 순환, ESC 닫기, 원래 메뉴 트리거 포커스 복귀를 확인했다.
 - 400 px 가상 키보드 높이에서 입력과 전송 버튼이 화면 안에 남는 것을 확인했다.
 - 입력값이 있는 상태에서 Enter 제출 뒤 입력값 초기화와 전송 버튼 비활성화를 확인했다. CocktailCard의 dialog·ESC·focus trap은 UI 회귀 테스트로 검증한다.
@@ -822,8 +835,8 @@ Input
 - 분석 오류, 시간 초과, 검증 실패는 무시하고 JSON/FSM 흐름을 그대로 사용한다.
 - Phase 12에서는 WebLLM 결과를 현재 사용자에게 보이는 출력, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다.
 - 개발 모드 관측은 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
-- 완료 전 남은 수동 검증: 실제 브라우저 preload/prepare, cold start, warm start, timeout, 모델 다운로드 크기와 준비 시간 기록.
-- 수동 검증 체크리스트: preload/prepare 성공, cold start 시간, warm start 시간, 다운로드 크기, timeout 관측, WebLLM ON/OFF 출력 동일성, Recommendation/Action/FSM 동일성.
+- Phase 12 실측 결과: 실제 브라우저에서 prepare를 시도했으나 호환 GPU를 확보하지 못해 약 375 ms에 실패하고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았고 JSON/FSM 흐름은 유지됐다.
+- 지원 GPU에서의 prepare 성공, warm 재사용, 모델 다운로드 크기·속도 비교는 RST-602로 분리해 DEFERRED다. timeout·ON/OFF 격리·Recommendation/Action/FSM 불변은 자동 계약 테스트로 확인했다.
 
 #### Phase 13: Semantic Snapshot 활용 여부 검토
 

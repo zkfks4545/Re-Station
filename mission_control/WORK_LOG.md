@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-20 / Codex / 로드맵 정합성 재검수
+
+- 완료된 Phase 2~15 항목에 남아 있던 `현재 작업` 표기를 제거하고 현재 대화·테스트·번들 상태를 실제 구현과 맞췄다.
+- RST-601은 Phase 12의 Worker·기본 OFF·격리·실패 복구 범위가 종료됐으므로 DONE으로 판정했다. 지원 GPU 모델 실행은 RST-602로 계속 DEFERRED다.
+- Audio Step 2~4는 SFX 채널·제조/서빙 cue·볼륨/음소거 UI가 이미 구현된 것을 확인했다. 전용 자동 테스트와 실제 재생 검수가 없어 DONE이 아닌 `AUD-001 REVIEW`로 통합했다.
+- 다음 종료 작업은 AUD-001이며, 이후 SPR-003을 승인·착수한다. SPR-004~005, FLOW-003, WebLLM RST-602~606은 기존 PROPOSED/DEFERRED 상태를 유지한다.
+- 검증: WebLLM 7개 파일 + 스프라이트 계약 1개 파일, 총 35 tests 통과. 문서 상태 검색과 `git diff --check` 통과.
+
 ## 2026-07-20 / Codex / Phase 15 최종 카루아 캐릭터 QA 완료
 
 - 카루아 금지 표현을 `KARUA_FORBIDDEN_EXPRESSIONS` 단일 계약으로 통합하고, 전체 말투 회귀가 이 프로필을 직접 사용하도록 변경했다.

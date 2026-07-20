@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-20 (Phase 15 최종 카루아 캐릭터 QA 완료)
+> 최종 갱신일: 2026-07-20 (로드맵 정합성 재검수 반영)
 
 ## 상태 요약
 | 항목 | 상태 |
@@ -17,23 +17,23 @@
 |---|---|
 | Phase 1 IntentClassifier 통합 | [`36374a4`] |
 | Phase 1.5 Context + Action Layer | [`0404c58`] |
-| Phase 2 Response Pipeline 완료 (템플릿·데이터 삽입·표정 선택 분리, 추천/스토리/캐릭터 공통 경유) | [`4003932`][`27e8298`][`024c692`] + 현재 작업 |
-| Phase 3 선행 DialogueSessionState 정리 (웰컴 플래그·종료 종류·safetyLocked Hard Stop) | 현재 작업 |
-| Phase 3 DialogueService 분리 (분류·차단·Action·Context 이벤트·응답·턴 검증) | 현재 작업 |
-| Phase 4 Conversation Context 완성 (단일 reducer·참조 우선순위·세션 수명·서빙 완료 전이) | 현재 작업 |
-| Phase 5 Action Layer 완성 (공통 executor·serve/respond 효과·서빙 계획) | 현재 작업 |
-| Reaction Layer 추가 (5개 반응 타입·반응 우선·another-request 기존 추천 Action 연결) | 현재 작업 |
-| Phase 6 Slot Filling 개선 (자유 순서 입력·기입 슬롯 재질문 방지·복합 답변 신호 병합) | 현재 작업 |
-| Conversation Flow 보강 (story/lore/info 선행 반응 + 후속 연결 문장) | 현재 작업 |
-| Talking Points/Lore 1차 확장 (클래식 10종·포인트 10개·참조 20개) | 현재 작업 |
-| Reaction/Conversation Flow 통합 회귀 (negative 재추천 제외·another 새 추천·lore 비반복·반응 우선) | 현재 작업 |
-| Phase 7 Dialogue Quality 완료 (전용 character/story 풀·누락 fallback 5종 보강·27개 출처 계약) | 현재 작업 |
+| Phase 2 Response Pipeline 완료 (템플릿·데이터 삽입·표정 선택 분리, 추천/스토리/캐릭터 공통 경유) | [`4003932`][`27e8298`][`024c692`] + 완료 |
+| Phase 3 선행 DialogueSessionState 정리 (웰컴 플래그·종료 종류·safetyLocked Hard Stop) | 완료 |
+| Phase 3 DialogueService 분리 (분류·차단·Action·Context 이벤트·응답·턴 검증) | 완료 |
+| Phase 4 Conversation Context 완성 (단일 reducer·참조 우선순위·세션 수명·서빙 완료 전이) | 완료 |
+| Phase 5 Action Layer 완성 (공통 executor·serve/respond 효과·서빙 계획) | 완료 |
+| Reaction Layer 추가 (5개 반응 타입·반응 우선·another-request 기존 추천 Action 연결) | 완료 |
+| Phase 6 Slot Filling 개선 (자유 순서 입력·기입 슬롯 재질문 방지·복합 답변 신호 병합) | 완료 |
+| Conversation Flow 보강 (story/lore/info 선행 반응 + 후속 연결 문장) | 완료 |
+| Talking Points/Lore 1차 확장 (클래식 10종·포인트 10개·참조 20개) | 완료 |
+| Reaction/Conversation Flow 통합 회귀 (negative 재추천 제외·another 새 추천·lore 비반복·반응 우선) | 완료 |
+| Phase 7 Dialogue Quality 완료 (전용 character/story 풀·누락 fallback 5종 보강·27개 출처 계약) | 완료 |
 | Phase 8 Talking Points 완료 (대표 클래식 20종 확장·공개 30/49종 structured lore) | [`완료`] |
 | Phase 9 진입 전 경계 보완 (Action 기준 closed 차단·콘텐츠 우선순위·Reaction intent 보호·실제 feedback 제외) | [`완료`] |
 | Phase 9 Character Layer 기반 (persona 참조 프로필·금지/권장 검증·응답 메타데이터·Response Pipeline 연결) | [`완료`] |
 | Phase 9 전체 대사 감사 + 금지 패턴 위반 3건 수정 + 회귀 테스트 7건 보강 | [`완료`] |
 | Phase 9 Hidden RapportState (숨은 정수 축 0~10·초기값 4·distant/normal/warm/close·개발용 Debug UI) | [`완료`] |
-| CocktailCard 버튼 "다시 추천받기" → "주문하기"·"이야기하기" 교체 | 현재 작업 |
+| CocktailCard 버튼 "다시 추천받기" → "주문하기"·"이야기하기" 교체 | 완료 |
 | Phase 10 ResponsePlan 타입·선택·검증·fallback 계약 | [`완료`] |
 | Phase 10 ResponsePlanLine expression 필수 계약 보강 | [`완료`] |
 | Phase 10 이중 읽기 어댑터 + 카테고리 배치 이관 | 완료 (14개 카테고리·108개 문장 완료, 중간검수 보완 통과) |
@@ -41,9 +41,9 @@
 | Phase 10 Welcome Formatter | 완료: welcome-drink 본문 + welcome feedback (formatter plan 27개·template line 109개) |
 | Phase 10 Farewell Formatter | 완료: standard farewell entry + welcome XYZ clarification + regular XYZ body + welcome-farewell XYZ body + farewell conversation/block/return-home (formatter plan 38개·template line 120개) |
 | Phase 11 Dialogue Source Normalization | 완료: ResponsePlan-backed legacy category 삭제, required legacy fallback 의도적 유지, keyword-rule/response-template/story-query/welcome-drink/farewell-replies 표현 소유권 정리, ResponsePlan dialogue/fallbackText Character QA 포함 |
-| WebLLM 의미 보조 (Worker·Semantic Snapshot·허용 목록 검증·세션 태그·비차단 실행·관측 API·격리 계약 테스트, 최종 대사 생성 없음) | 현재 작업 |
-| 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 현재 작업 |
-| 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 현재 작업 |
+| WebLLM 의미 보조 (Worker·Semantic Snapshot·허용 목록 검증·세션 태그·비차단 실행·관측 API·격리 계약 테스트, 최종 대사 생성 없음) | Phase 12 범위 완료 |
+| 정보 요청 최우선 라우팅 + 칵테일별 설명 공개 이력 | 완료 |
+| 시크릿 메뉴 격리·암구호 주문 + 칵테일 DB/이야깃거리 확장 | 완료 |
 | 공통 패턴·셰이크 참조·switch 응답 헬퍼 정리 | [`a73342f`][`c82cbc6`][`4f6c90d`] |
 | 명시적 lore/person/media 참조가 대명사보다 우선 | [`abe0606`] |
 | lore 주문 → 제조·서빙까지 실행 | [`0404c58`] |
@@ -54,11 +54,11 @@
 ## 현재 구현 vs 목표 차이
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + 의도된 `talk`=`idle` 공유, 시에스타 라벨만 | 시에스타 난입 스프라이트 |
-| 대화 | DialogueService + 입력경로별 대사·정보 요청 우선·칵테일별 점진 설명·3블록프리셋 | Context 갱신 정책 완성 + 전체 문단프리셋 이관 |
+| 캐릭터 | 카루아 표정 PNG 연결(`smirk`, `thinking`, `sympathy`, `surprised`, `annoyed`, `stern`, `disappointed`, `embarrassed`) + 의도된 `talk`=`idle` 공유, 시에스타 라벨만 | SPR-003 애니메이션 정리 후 SPR-004~005 시에스타 화면 연출 검토 |
+| 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
-| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI렌더링·DialogueTurn 등 | 스프라이트 검증 추가 |
-| 번들 | 메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리. 초기 카루아 전체 이미지 선로딩 제거 | 브라우저 Network에서 초기 요청량 확인 |
+| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI·DialogueTurn·스프라이트 등 826개 | Audio 전용 회귀와 SPR-003 상태 전환 검증 추가 |
+| 번들 | 메인 JS 549.55 kB, gzip 164.64 kB, WebLLM/lib 지연 청크 분리. 초기 Network ON/OFF 검수 완료 | 기능 추가 시 500 kB 경고 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-13)
 
@@ -79,10 +79,11 @@
 
 ### Audio
 
-`Step 1 완료 → Step 2 SFX → Step 3 Cue → Step 4 Audio UX 보강`
+`Step 1 BGM DONE → Step 2 SFX REVIEW → Step 3 Cue REVIEW → Step 4 Audio UX REVIEW`
 
 - Step 1에서 BGM 재생·볼륨·음소거·저장과 기본 UI는 완료했다.
-- Step 4는 새 기본 UI를 만드는 일이 아니라 SFX 상태·접근성·오류/차단 상태를 기존 UI에 보강하는 단계다.
+- Step 2는 `useSfxManager`와 shake/serve 음원, Step 3은 제조·서빙·초기화·퇴장·오류 cue 연결, Step 4는 기존 음악 탭의 SFX 볼륨·음소거·저장을 구현했다.
+- 구현은 완료됐지만 Audio 전용 자동 테스트와 실제 브라우저 재생·실패 복구 검수가 없어 Step 2~4는 `REVIEW`다. 다음 종료 작업은 `AUD-001`이 소유한다.
 
 ## 현재 우선순위
 
@@ -92,9 +93,11 @@ P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바�
 2. **P1 — 제품 계약 (DONE)**: 핵심 E2E, 추천 카드 정보 책임, 카루아 사용자 노출 명칭, 구현과 제품 계약 대조 완료
 3. **P2 — 사용성 (DONE)**: 375 px 모바일 viewport에서 메뉴 다이얼로그의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 제출을 실측
 4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
-5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 시 재검토
+5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.55 kB 경고는 향후 기능 단위 분할 시 재검토
 6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
 7. **Phase 15 — 최종 캐릭터 QA (DONE)**: 상담가·AI 도우미·고객센터형 표현을 바텐더 화법으로 교체하고, 단일 캐릭터 프로필 기반 전체 발화 회귀를 826개 테스트로 검증
+
+다음 순서는 **AUD-001 Audio SFX·Cue·UX 최종 QA(REVIEW 종료)**다. 이후 `SPR-003` 범위를 승인하면 카루아 애니메이션 정리로 진행한다. `SPR-004~005`, `FLOW-003`, WebLLM RST-602~606은 승인·환경 조건 전까지 착수하지 않는다.
 
 P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 
@@ -129,15 +132,15 @@ WebLLM 분석은 fire-and-forget으로 실행하며 현재 응답을 지연시�
 | ISSUE-004 자동 테스트 부족 | 해결됨 | [`de40d39`] |
 | ISSUE-005 JS 번들 593kB | 해결됨 | [`dcbbda5`] |
 | ISSUE-006 OpenAI/Ollama 잔재 | 해결됨 | [`dcbbda5`] |
-| ISSUE-007 WebLLM 안정성 미검증 | 의미 분석 기본 OFF, scope lock·관측 API·격리 계약 테스트 진행. 실제 장치 prepare/cold/warm/timeout 측정 필요 | 현재 작업 |
+| ISSUE-007 WebLLM 안정성 미검증 | 현재 승인 범위 해결: 기본 OFF·scope lock·관측·격리·실패 복구 확인. 지원 GPU의 모델 실행 성능 검증은 RST-602로 연기 | Phase 12/13 |
 | ISSUE-008 카루아 규칙 계약 | 해결됨 | [`bc23714`] |
 | ISSUE-009 안전 fallback/빈 응답 | 해결됨 | [`2ad13e4`] |
 | ISSUE-010 추천 UI 잔존 | 해결됨 | [`2ad13e4`] |
 | ISSUE-011 미등록 칵테일 오분류 | 해결됨 | [`2aecaf0`] |
 | ISSUE-012 시에스타 일방적 발화 | 해결됨 | [`2aecaf0`] |
 | ISSUE-013 대명사 오해 | 해결됨 | [`0404c58`] |
-| ISSUE-014 정보 요청의 직전 칵테일 재주문 오인 | 해결됨 | 현재 작업 |
-| ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 해결됨 | 현재 작업 |
+| ISSUE-014 정보 요청의 직전 칵테일 재주문 오인 | 해결됨 | 완료 |
+| ISSUE-015 safety 응답 문구와 테스트 계약 불일치 | 해결됨 | 완료 |
 
 ## 향후 방침
 - RapportState는 숨은 상태이며 추천 결과·FSM·Action·SessionState·ResponsePlan 선택에 연결하지 않음
