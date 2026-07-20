@@ -13,7 +13,7 @@
 | 4 | `mission_control/DECISIONS.md` | 변경하면 안 되는 결정 확인 |
 | 5 | `mission_control/WORK_LOG.md` | 최근 작업 이력과 검증 기록 확인 |
 
-대사·말투 작업이면 `CHARACTER_DESIGN.md`, 세션 종료 작업이면 `SESSION_FLOW_SPEC.md`, 구조 작업이면 `ARCHITECTURE.md`와 `EXTERNAL_STRUCTURE_REPORT.md`를 추가로 읽는다.
+대사·말투 작업이면 `CHARACTER_DESIGN.md`, 시에스타 이벤트 작업이면 `SIESTA.md`, 세션 종료 작업이면 `SESSION_FLOW_SPEC.md`, 구조 작업이면 `ARCHITECTURE.md`와 `EXTERNAL_STRUCTURE_REPORT.md`를 추가로 읽는다.
 
 ## 2. 현재 이어받을 위치
 
@@ -27,7 +27,7 @@
 ## 3. 다음 행동
 
 1. `AUD-001`의 자동 QA는 완료됐다. 브라우저 연결이 가능해지면 실제 재생·음소거·볼륨 복원·모바일 음악 탭만 검수한다.
-2. `SPR-003`은 완료됐다. 다음 구현 후보 `SPR-004`는 시에스타 기준 디자인·최소 5개 슬롯 에셋을 승인받은 뒤 착수한다.
+2. `SPR-003`은 완료됐다. 시에스타 이벤트는 데이터가 보존된 런타임 OFF 상태다. `SIESTA.md`의 재활성화 게이트를 먼저 검토하고, `SPR-004`는 시에스타 기준 디자인·최소 5개 슬롯 에셋을 승인받은 뒤 착수한다.
 3. 코드 작업을 시작하기 전에 관련 도메인 문서와 기존 테스트 계약을 확인한다.
 4. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`만 갱신한다.
 5. `SPR-004~005`, `FLOW-003`, WebLLM RST-602~606은 승인 또는 환경 조건 전까지 착수하지 않는다.

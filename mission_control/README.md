@@ -1,6 +1,6 @@
 # mission_control 문서 포털
 
-> 최종 갱신일: 2026-07-09
+> 최종 갱신일: 2026-07-20
 > 목적: `mission_control`의 문서 책임, 읽는 순서, 정보 소유권을 한눈에 안내한다.
 
 ## 1. 원칙
@@ -33,6 +33,7 @@
 |---|---|---|
 | 일반 구현 | `CURRENT_STATE.md`, `TASK_BOARD.md`, `HANDOVER.md` | `ARCHITECTURE.md`, `DECISIONS.md` |
 | 대사·말투·캐릭터 | `CHARACTER_DESIGN.md` | `CONVERGENCE_PRINCIPLES.md`, `PROJECT_VISION.md` |
+| 시에스타 이벤트 | `SIESTA.md` | `CHARACTER_DESIGN.md`, `ARCHITECTURE.md`, `TASK_BOARD.md` |
 | 세션 종료·XYZ·Farewell | `SESSION_FLOW_SPEC.md` | `CURRENT_STATE.md`, `ARCHITECTURE.md` |
 | 추천·대화 구조 | `ARCHITECTURE.md` | `EXTERNAL_STRUCTURE_REPORT.md`, `DECISIONS.md` |
 | 외부 AI 협업 | `EXTERNAL_STRUCTURE_REPORT.md` | `EXTERNAL_STRUCTURE_REPORT_GUIDE.md`, `CONVERGENCE_PRINCIPLES.md` |
@@ -65,6 +66,7 @@
 | `PROJECT_VISION.md` | 제품 철학, MVP 범위, 핵심 가치, 성공 기준 | 현재 진행률, 작업 상세 |
 | `DECISIONS.md` | 되돌리기 어려운 승인 결정과 대체·폐기 이력 | 매 작업의 실행 로그 |
 | `CHARACTER_DESIGN.md` | 카루아·시에스타 말투, 금지 패턴, 관계성, 캐릭터 검수 기준 | 구현 진행 상황, 테스트 수 |
+| `SIESTA.md` | 시에스타 이벤트의 현재 활성 상태, 구현 범위, 미구현 차이, 재활성화 게이트 | 캐릭터 말투 원문, 전체 작업 보드 |
 | `SESSION_FLOW_SPEC.md` | 웰컴, 추천, 주문, XYZ, Farewell, 귀가 흐름의 세션 계약 | 현재 작업 우선순위 |
 | `CONVERGENCE_PRINCIPLES.md` | 대사·캐릭터 수렴 기간의 최상위 품질 원칙 | 일반 작업 로그, 구조 상세 |
 
@@ -94,6 +96,7 @@
 | 장기 제품 방향 | `PROJECT_VISION.md` |
 | 승인된 결정 | `DECISIONS.md` |
 | 캐릭터 말투와 금지 패턴 | `CHARACTER_DESIGN.md` |
+| 시에스타 이벤트 활성 상태와 재활성화 조건 | `SIESTA.md` |
 | 세션 흐름 계약 | `SESSION_FLOW_SPEC.md` |
 | 내부 앱 구조 | `ARCHITECTURE.md` |
 | 외부 협업용 구조 지도 | `EXTERNAL_STRUCTURE_REPORT.md` |
@@ -113,6 +116,7 @@
 | 되돌리기 어려운 방향성 결정 | `DECISIONS.md` |
 | 제품 목표나 MVP 기준 변경 | `PROJECT_VISION.md` |
 | 캐릭터 말투나 금지 패턴 변경 | `CHARACTER_DESIGN.md` |
+| 시에스타 이벤트 플래그, 발생 조건, 연출 또는 재활성화 조건 변경 | `SIESTA.md` |
 | 세션 단계와 종료 정책 변경 | `SESSION_FLOW_SPEC.md` |
 | 내부 모듈 구조나 데이터 흐름 변경 | `ARCHITECTURE.md` |
 | 외부 AI에게 전달할 구조 지도가 변경 | `EXTERNAL_STRUCTURE_REPORT.md` |

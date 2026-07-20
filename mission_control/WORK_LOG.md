@@ -1,5 +1,12 @@
 # 작업 이력 (축약)
 
+## 2026-07-20 / Codex / 시에스타 이벤트 상태 재검수와 기준 문서화
+
+- 시에스타 이벤트가 삭제·주석 처리된 것이 아니라 `SIESTA_EVENTS_ENABLED = false`로 런타임에서 임시 제외된 상태임을 Git 이력과 코드로 확인했다.
+- 이벤트 엔진의 7개 분기, 21개 4발화 세트, 세션당 최대 2회, 6턴 쿨다운, 보호 경로 차단과 컨트롤러 연결이 보존된 것을 확인했다.
+- 과거 Phase 15 기록의 “이미 런타임 활성화” 판정을 오류로 정정하고, 기획·구현·미구현 차이와 재활성화 게이트를 `SIESTA.md`에 단일 기준으로 기록했다.
+- 검증: `siesta-event.test.ts`와 `recommendation-ui.test.tsx` 31 tests 통과. 문서 변경 후 링크·상태 검색과 `git diff --check`를 수행한다.
+
 ## 2026-07-20 / Codex / SPR-003 카루아 Sprite Animation 완료
 
 - `KaruaPresentationCue`로 expression·speaking과 `idle/mixing/serving` action을 분리하고, `BartenderSprite`가 구조화 cue만 소비하도록 변경했다.

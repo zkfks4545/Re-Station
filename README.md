@@ -21,7 +21,7 @@
 
 - **Conversational recommendations** — Natural language input like "I'm tired today" is analyzed across four axes (taste, strength, carbonation, base spirit) through adaptive questions
 - **Karua character** — The bartender responds with distinct lines and expressions based on input route, dialogue state, and emotional state
-- **Siesta banter** — Occasional brief interruptions from fellow bartender Siesta (max 2 per session, 4-turn structure with return of conversation)
+- **Siesta banter (parked)** — The max-2-per-session, 4-turn text event engine is preserved, but runtime events remain disabled until the reactivation gates in `mission_control/SIESTA.md` are satisfied
 - **Result card** — Shows description, recipe, and talking points for each recommended cocktail, with options to **order** or **ask for its story**
 - **Cocktail codex** — Every encountered cocktail is recorded in the sidebar codex
 - **XYZ · Farewell Phase** — When the cumulative alcohol star limit is reached, the final drink (XYZ) is served and the session naturally concludes
@@ -142,7 +142,7 @@ npm run dev
 
 - **대화형 추천** — "오늘 좀 피곤해요" 같은 자연어 입력으로 취향을 파악하고 4축 질문(맛·도수·탄산·베이스)으로 좁혀가며 칵테일을 추천합니다
 - **카루아 캐릭터** — 반존대와 농담을 섞는 바텐더 카루아가 입력 경로·대화 상태·감정 상태에 따라 각기 다른 대사와 표정으로 응답합니다
-- **시에스타 만담** — 가끔 동료 바텐더 시에스타가 난입하는 짧은 이벤트. 세션당 최대 2회, 4발화 구조로 대화권을 반환합니다
+- **시에스타 만담(보류)** — 세션당 최대 2회·4발화 텍스트 이벤트 엔진은 보존되어 있지만, `mission_control/SIESTA.md`의 재활성화 게이트를 통과하기 전까지 런타임 이벤트는 비활성 상태입니다
 - **추천 결과 카드** — 추천받은 칵테일의 설명·레시피·이야깃거리를 카드로 표시하고 **주문하기** 또는 **이야기하기**를 선택할 수 있습니다
 - **도감 시스템** — 만난 칵테일이 도감에 기록되며, 사이드바에서 다시 확인할 수 있습니다
 - **XYZ · Farewell Phase** — 도수 누적 한계에 도달하면 마지막 잔(XYZ)을 서빙하고 Farewell Phase로 자연스럽게 세션을 마무리합니다

@@ -54,7 +54,7 @@
 ## 현재 구현 vs 목표 차이
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| 캐릭터 | 카루아 표정 PNG + 구조화된 `idle/mixing/serving` cue·reduced-motion 연결 완료, 시에스타 라벨만 | SPR-004~005 시에스타 화면 연출 검토 |
+| 캐릭터 | 카루아 표정 PNG + 구조화된 `idle/mixing/serving` cue·reduced-motion 연결 완료. 시에스타 텍스트 이벤트 엔진·라벨은 보존됐지만 런타임 플래그는 OFF | `SIESTA.md` 재활성화 게이트 검토 후 SPR-004~005 화면 연출 결정 |
 | 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | 유지 |
 | 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI·DialogueTurn·스프라이트·Audio 등 841개 | 후속 기능별 계약 추가 |
@@ -97,7 +97,7 @@ P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바�
 6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
 7. **Phase 15 — 최종 캐릭터 QA (DONE)**: 상담가·AI 도우미·고객센터형 표현을 바텐더 화법으로 교체하고, 단일 캐릭터 프로필 기반 전체 발화 회귀를 검증
 
-`SPR-003`은 구조화 cue와 자동·에셋 계약으로 DONE이다. `AUD-001` 실제 브라우저 QA는 연결 가능한 브라우저가 생길 때 종료한다. 다음 구현 후보 `SPR-004`는 시에스타 기준 디자인과 에셋 승인 전까지 PROPOSED이며, `SPR-005`, `FLOW-003`, WebLLM RST-602~606도 승인·환경 조건 전까지 착수하지 않는다.
+`SPR-003`은 구조화 cue와 자동·에셋 계약으로 DONE이다. 시에스타 데이터는 삭제되지 않았지만 `SIESTA_EVENTS_ENABLED = false`라 실제 플레이에는 나오지 않는다. 재활성화 판단은 `SIESTA.md`의 빈도·통합 회귀·입력 정책 게이트를 따른다. `AUD-001` 실제 브라우저 QA는 연결 가능한 브라우저가 생길 때 종료한다. `SPR-004`는 시에스타 기준 디자인과 에셋 승인 전까지 PROPOSED이며, `SPR-005`, `FLOW-003`, WebLLM RST-602~606도 승인·환경 조건 전까지 착수하지 않는다.
 
 P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 
