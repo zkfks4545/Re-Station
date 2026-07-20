@@ -2,6 +2,10 @@
 
 # Re:Station
 
+<img src="./screen.jpg" alt="Re:Station cocktail recommendation interface" width="100%">
+
+<sub>Meet bartender Karua and discover a cocktail tailored to your taste.</sub>
+
 [English](#english) · [日本語](#japanese) · [한국어](#korean)
 
 </div>
