@@ -3,6 +3,10 @@ import type { TimerRegistry } from '@/lib/timing/timer-registry.js'
 import type { CocktailData, Expression, Message } from '@/types.js'
 import type { SfxChannel } from './useSfxManager.js'
 import {
+  KARUA_SERVING_CUE_DURATION_MS,
+  type KaruaPresentationAction,
+} from '@/lib/presentation/karua-presentation.js'
+import {
   COCKTAIL_PREPARATION_DELAY_MS,
   COCKTAIL_PREPARATION_DURATION_MS,
   estimateTypingFallbackDelay,
@@ -29,7 +33,7 @@ export function useRestationPresentation(input: {
   const [interactionStatus, setInteractionStatus] = useState<InteractionStatus>('idle')
   const [servedCocktail, setServedCocktail] = useState<CocktailData | null>(null)
   const [servedCocktailMode, setServedCocktailMode] = useState<ServedCocktailMode>('recommendation')
-  const [isPreparingCocktail, setIsPreparingCocktail] = useState(false)
+  const [karuaPresentationAction, setKaruaPresentationAction] = useState<KaruaPresentationAction>('idle')
   const typingSequenceRef = useRef(0)
   const typingCompleteFnRef = useRef<() => void>(() => {})
   const typingCompletedRef = useRef(false)
@@ -39,12 +43,15 @@ export function useRestationPresentation(input: {
     timerRegistry.current.schedule(() => {
       setInteractionStatus('preparing')
       setExpression('smirk')
-      setIsPreparingCocktail(true)
+      setKaruaPresentationAction('mixing')
       sfx?.play('shake')
       timerRegistry.current.schedule(() => {
-        setIsPreparingCocktail(false)
+        setKaruaPresentationAction('serving')
         sfx?.stop('shake')
         onPrepared()
+        timerRegistry.current.schedule(() => {
+          setKaruaPresentationAction('idle')
+        }, KARUA_SERVING_CUE_DURATION_MS)
       }, COCKTAIL_PREPARATION_DURATION_MS)
     }, COCKTAIL_PREPARATION_DELAY_MS)
   }, [sfx, timerRegistry])
@@ -119,6 +126,10 @@ export function useRestationPresentation(input: {
     typingSequenceRef.current += 1
   }, [])
 
+  const cancelPresentation = useCallback(() => {
+    setKaruaPresentationAction('idle')
+  }, [])
+
   const setTypingCompleteHandler = useCallback((handler: () => void) => {
     typingCompletedRef.current = false
     typingCompleteFnRef.current = handler
@@ -133,8 +144,8 @@ export function useRestationPresentation(input: {
     setServedCocktail,
     servedCocktailMode,
     setServedCocktailMode,
-    isPreparingCocktail,
-    setIsPreparingCocktail,
+    karuaPresentationAction,
+    cancelPresentation,
     bartenderReply,
     onTypingComplete,
     invalidateTyping,

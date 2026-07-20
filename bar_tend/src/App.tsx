@@ -12,6 +12,7 @@ import Sidebar from '@/components/sidebar/Sidebar.jsx'
 import { useAudioManager } from '@/hooks/useAudioManager.js'
 import { useSfxManager } from '@/hooks/useSfxManager.js'
 import { useRestationController } from '@/hooks/useRestationController.js'
+import { createKaruaPresentationCue } from '@/lib/presentation/karua-presentation.js'
 const ExperimentalWebLLMPreparation = import.meta.env.VITE_WEB_LLM_PRELOAD_ENABLED === 'true' || import.meta.env.DEV
   ? lazy(() => import('@/components/system/ExperimentalWebLLMPreparation.jsx'))
   : null
@@ -27,7 +28,7 @@ export default function App() {
     expression,
     isBartenderTyping,
     isProcessing,
-    isPreparingCocktail,
+    karuaPresentationAction,
     activeQuestion,
     actionSessionMode,
     errorMessage,
@@ -107,9 +108,11 @@ export default function App() {
           <div className="flex-1 flex flex-col min-h-0 relative z-20">
             <div className="restation-stage">
               <BartenderSprite
-                expression={expression}
-                isPreparingCocktail={isPreparingCocktail}
-                isBartenderTyping={isBartenderTyping}
+                cue={createKaruaPresentationCue({
+                  action: karuaPresentationAction,
+                  expression,
+                  speaking: isBartenderTyping,
+                })}
               />
               {/*{RapportDebugDisplay && (
                 <Suspense fallback={null}>

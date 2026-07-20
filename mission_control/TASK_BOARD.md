@@ -377,7 +377,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | DLG-809 화자·상태·요청별 문단 프리셋 계약 확장 | DONE (Phase 11 범위) |
 | SPR-001 캐릭터 스프라이트 슬롯 계약 | DONE |
 | SPR-002 카루아 표정 PNG 제작·연결 | DONE |
-| SPR-003 카루아 Sprite Animation | PROPOSED |
+| SPR-003 카루아 Sprite Animation | DONE |
 | SPR-004 시에스타 Sprite 표시 | PROPOSED |
 | SPR-005 시에스타 Event Sync | PROPOSED |
 | AUD-001 Audio SFX·Cue·UX 최종 QA | REVIEW (자동 QA 완료, 실제 브라우저 QA 잔여) |
@@ -523,7 +523,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 시에스타 최소 슬롯 | `idle`, `talk`, `smirk`, `concern`, `exit` |
 | 가이드 | 에셋 파일명은 표정 타입과 1:1로 맞춘다. 예: `karua/idle.png`, `karua/talk.png`, `siesta/idle.png`. 코드에서는 문자열 분기 대신 `Record<Expression, image>` 매핑을 사용한다. |
 | 순서 의존성 | 반드시 먼저 수행한다. `SPR-002~005`는 모두 이 슬롯명과 fallback 규칙을 참조한다. 실제 그림이 없어도 placeholder나 기존 `character.png` fallback으로 계약을 먼저 고정할 수 있다. |
-| 디자인 기준 | 새 카루아 정적 PNG는 `Kaura.png`의 디자인·캔버스 기준을 따른다. `character.png`, `character0.png`는 새 슬롯 기준으로 사용하지 않는다. 시에스타의 키·위치·상대 크기는 `SPR-003`에서 결정한다. |
+| 디자인 기준 | 새 카루아 정적 PNG는 `Kaura.png`의 디자인·캔버스 기준을 따른다. `character.png`, `character0.png`는 새 슬롯 기준으로 사용하지 않는다. 시에스타의 키·위치·상대 크기는 에셋이 필요한 `SPR-004`에서 결정한다. |
 | 표시 기준 | 데스크톱은 높이 180~360px·최대 폭 80vw/360px, 모바일은 120~240px, 480px 이하는 100~180px으로 고정한다. `object-fit: contain`과 bottom-center 정렬로 표정 전환이 레이아웃을 바꾸지 않는다. |
 | 검증 | `sprites.test.ts`가 모든 `Expression`의 이미지와 fallback 슬롯 존재를 확인한다. |
 | 완료 조건 | 완료: 타입, fallback 규칙, 모바일/데스크톱 표시 기준을 문서와 코드·테스트에 고정했다. |
@@ -598,11 +598,13 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | PROPOSED |
+| 상태 | DONE (2026-07-20) |
 | 목적 | PNG 표정 전환과 제조·서빙 연출을 같은 스프라이트 상태 계약으로 정리 |
 | 범위 | 기존 셰이킹·서빙 컷, 정적 표정 전환, 필요 시 짧은 전환 효과를 `BartenderSprite`와 구조화된 presentation cue로 정리 |
 | 경계 | 대화 텍스트로 화면 상태를 추론하지 않는다. 대화의 `expression`과 제조/서빙 cue만 소비하며, 추천·Action·세션 판단은 변경하지 않는다. |
 | 완료 조건 | 표정·셰이킹·서빙 상태가 모바일/데스크톱에서 레이아웃을 흔들지 않고, 각 상태 전환을 테스트하거나 수동 검증한다. |
+| 구현 결과 | `KaruaPresentationCue`의 `idle/mixing/serving` action과 expression·speaking 메타데이터를 분리했다. `BartenderSprite`는 cue만 소비하고 mixing 3프레임, serving finish frame을 선택한다. 초기화·퇴장·safety 공통 중단은 cue를 idle로 복귀시킨다. reduced-motion에서는 JS 프레임 순환도 중단한다. |
+| 검증 | cue 우선순위·프레임 순환·reduced-motion, idle/mixing/serving 렌더링, 제조→서빙→응답 스케줄을 7개 테스트로 고정. 활성 이미지 전부 649×649 캔버스이며 기존 고정 CSS 크기·contain 배치를 공유. 전체 68 files / 841 tests, check, lint, build 통과 |
 
 #### SPR-004: 시에스타 Sprite 표시
 
@@ -869,7 +871,7 @@ Input
 | 상태 | DONE |
 | 목적 | 정적 스프라이트와 프레임 애니메이션을 같은 캐릭터 에셋 체계 아래에서 관리하고, 칵테일 결과 표시 전에 제조 애니메이션을 출력한다. |
 | 완료 내용 | `character.png`, `character0.png`를 `bar_tend/src/assets/characters/karua/static/`으로 이동했다. 셰이킹 프레임 팩을 `bar_tend/src/assets/characters/karua/animations/shaker/`로 이동했다. `sprites.ts`를 추가해 정적 스프라이트와 셰이킹 프레임 배열을 코드 계약으로 묶었다. |
-| 런타임 계약 | `useRestationController`는 칵테일 확정 후 `preparing` 상태를 거쳐 `BartenderSprite`에 `isPreparingCocktail`을 전달한다. 제조 애니메이션이 끝난 뒤 추천 대사와 칵테일 카드가 표시된다. |
+| 런타임 계약 | `useRestationController`는 칵테일 확정 후 presentation action을 `mixing → serving → idle`로 전이해 `BartenderSprite`에 구조화 cue를 전달한다. 제조 애니메이션이 끝난 뒤 추천 대사와 칵테일 카드가 표시된다. |
 | 검증 | `npm.cmd run check`, `npm.cmd run build` 통과 |
 
 ### 향후 스프라이트·이미지 에셋 추가 공정

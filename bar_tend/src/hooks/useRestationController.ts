@@ -93,8 +93,8 @@ export function useRestationController(sfx?: SfxChannel) {
     setServedCocktail,
     servedCocktailMode,
     setServedCocktailMode,
-    isPreparingCocktail,
-    setIsPreparingCocktail,
+    karuaPresentationAction,
+    cancelPresentation,
     bartenderReply,
     onTypingComplete,
     invalidateTyping,
@@ -164,9 +164,9 @@ export function useRestationController(sfx?: SfxChannel) {
     invalidateTyping()
     setInteractionStatus('idle')
     setScreenShake(false)
-    setIsPreparingCocktail(false)
+    cancelPresentation()
     sfxRef.current?.stopAll()
-  }, [invalidateTyping, setInteractionStatus, setIsPreparingCocktail])
+  }, [cancelPresentation, invalidateTyping, setInteractionStatus])
 
   const playScreenShakeCue = useCallback(() => {
     setScreenShake(true)
@@ -210,7 +210,7 @@ export function useRestationController(sfx?: SfxChannel) {
       setMessages([])
       setExpression('idle')
       setInteractionStatus('idle')
-      setIsPreparingCocktail(false)
+      cancelPresentation()
       setSidebarOpen(false)
       setServedCocktail(null)
       setServedCocktailMode('recommendation')
@@ -225,7 +225,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resetSessionFlow,
     setExpression,
     setInteractionStatus,
-    setIsPreparingCocktail,
+    cancelPresentation,
     setServedCocktail,
     setServedCocktailMode,
   ])
@@ -309,7 +309,7 @@ export function useRestationController(sfx?: SfxChannel) {
     setErrorMessage(null)
     setServedCocktail(null)
     setServedCocktailMode('recommendation')
-    setIsPreparingCocktail(false)
+    cancelPresentation()
     clearExcludedCocktailIds()
     resetRecommendation()
     bartenderReply(
@@ -326,7 +326,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resetSessionFlow,
     resetSiestaEventSession,
     setExpression,
-    setIsPreparingCocktail,
+    cancelPresentation,
     setServedCocktail,
     setServedCocktailMode,
   ])
@@ -991,7 +991,7 @@ export function useRestationController(sfx?: SfxChannel) {
     expression,
     isBartenderTyping: interactionStatus === 'typing',
     isProcessing: interactionStatus !== 'idle',
-    isPreparingCocktail,
+    karuaPresentationAction,
     activeQuestion: dialogueSession.safetyLocked
       ? null
       : welcomeDrinkFeedbackPending

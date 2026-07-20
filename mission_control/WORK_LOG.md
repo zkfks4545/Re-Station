@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-20 / Codex / SPR-003 카루아 Sprite Animation 완료
+
+- `KaruaPresentationCue`로 expression·speaking과 `idle/mixing/serving` action을 분리하고, `BartenderSprite`가 구조화 cue만 소비하도록 변경했다.
+- 이전 prop 변화로 서빙 컷을 추론하던 로컬 상태를 제거했다. 제조 종료 시 serving cue를 600 ms 표시하고, 초기화·퇴장·safety의 공통 중단 경로에서는 즉시 idle로 복귀한다.
+- reduced-motion 환경에서는 CSS뿐 아니라 JS 셰이커 프레임 순환도 중단한다. serving 컷에는 짧은 settle 전환을 적용했다.
+- cue·프레임·SSR 렌더링·제조 스케줄 7개 테스트를 추가했다. 활성 표정·셰이커·서빙 PNG는 모두 649×649 캔버스이며 동일 고정 레이아웃을 사용한다.
+- 검증: 전체 68 files / 841 tests, check, lint, build, diff check 통과. 메인 JS 550.28 kB(gzip 165.00 kB).
+
 ## 2026-07-20 / Codex / AUD-001 Audio 자동 QA 및 런타임 보강
 
 - SFX 상태를 순수 `sfx-runtime`으로 분리해 shake loop, serve one-shot, volume/mute, stop/stopAll, 저장 복구를 독립 검증할 수 있게 했다.

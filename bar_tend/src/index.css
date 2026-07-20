@@ -201,8 +201,23 @@ html::before {
   --sprite-eye-offset-y: 0.06%;
 }
 
-.bartender-sprite__image--shaking {
+.bartender-sprite__image--action {
   animation: none;
+}
+
+@keyframes karua-serve-settle {
+  0% {
+    opacity: 0.9;
+    transform: translateY(4px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bartender-sprite--serving .bartender-sprite__image--action {
+  animation: karua-serve-settle 600ms ease-out both;
 }
 
 .session-mode-btn,
