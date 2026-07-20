@@ -1,15 +1,15 @@
 # 프로젝트 현재 상태 (축약)
 
-> 최종 갱신일: 2026-07-14 (P0~P5 재검수 및 Phase 12/13 결정 반영)
+> 최종 갱신일: 2026-07-20 (Phase 15 최종 카루아 캐릭터 QA 완료)
 
 ## 상태 요약
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | RST-000 MVP + Phase 1~12 완료, **Phase 13에서 WebLLM 활용 보류 결정** |
+| 단계 | RST-000 MVP + Phase 1~13 및 Phase 15 완료, Phase 14는 **WebLLM 활용 보류 결정에 따라 DEFERRED** |
 | 기술 | React+Vite+프론트엔드 단독, WebLLM 의미 분석 기본 OFF, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 549.33 kB, gzip 164.52 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 824개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 549.55 kB, gzip 164.64 kB, WebLLM/lib 지연 청크 분리) |
+| 테스트 | **Vitest 826개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -69,6 +69,7 @@
 - Character QA는 Phase 12~14와 병행한다. 최종 전수 확정은 Phase 15가 소유한다.
 - WebLLM 실제 브라우저 측정은 Phase 12 종료 조건으로 완료했다. 실측 환경에서 호환 GPU를 확보하지 못해 준비가 실패했으며, 세션 비활성화와 기존 JSON/FSM 흐름 유지가 확인됐다.
 - Phase 13은 기능 구현이 아니라 활용 여부를 결정하는 gate다. 현재는 활용을 보류하며, Phase 14는 착수하지 않고 기존 규칙 기반 선택을 유지한다.
+- Phase 15는 전체 사용자 노출 대사 출처와 시에스타 만담·Action fallback까지 프로필 기반 자동 감사에 포함해 완료했다.
 
 ### Presentation
 
@@ -93,6 +94,7 @@ P0 대화 연속성과 P1 제품 계약 gate를 닫았다. P2는 실제 모바�
 4. **P3 — 구조 정리 (DONE)**: Controller 모델·요청·관계성·presentation·welcome/farewell·상호작용 대기열·실행 dispatcher·서빙 결정, dialogue/recommendation/session ResponsePlan data와 DB 공개 진입점 분리 및 회귀 검수 완료
 5. **P4 — 성능 (DONE)**: 카루아 이미지 전체 선로딩 제거, 기본 OFF WebLLM 준비 경로 지연 로딩, production Network ON/OFF 격리 검증 완료. 메인 JS 549.33 kB 경고는 향후 기능 단위 분할 시 재검토
 6. **P5 — 문서 동기화 (DONE)**: README, CURRENT_STATE, TASK_BOARD, WORK_LOG의 상태·테스트 수·번들 수치를 2026-07-14 기준으로 동기화
+7. **Phase 15 — 최종 캐릭터 QA (DONE)**: 상담가·AI 도우미·고객센터형 표현을 바텐더 화법으로 교체하고, 단일 캐릭터 프로필 기반 전체 발화 회귀를 826개 테스트로 검증
 
 P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → PendingQuestion → Route → ResponsePlan → Expression → SessionAffect`와 다음 snapshot을 검증하는 회귀 테스트로 충족했다.
 

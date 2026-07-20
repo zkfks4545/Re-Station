@@ -55,8 +55,8 @@ const ROUTE_TO_ACTION: Record<string, DialogueAction> = {
   general: 'reply',
 }
 
-const DEFAULT_REPLY_BY_ACTION: Record<DialogueAction, string> = {
-  reply: '알겠습니다. 조금 더 자세히 말씀해 주시면 이어서 도와드릴게요.',
+export const DEFAULT_REPLY_BY_ACTION: Record<DialogueAction, string> = {
+  reply: '알겠습니다. 조금 더 자세히 말씀해 주시면 거기서 이어가죠.',
   recommend: '좋아요. 지금 말씀을 기준으로 어울리는 칵테일을 찾아볼게요.',
   'ask-question': '취향을 조금만 더 여쭤볼게요.',
   'show-info': '찾으시는 칵테일 정보를 확인해 드릴게요.',
@@ -64,7 +64,7 @@ const DEFAULT_REPLY_BY_ACTION: Record<DialogueAction, string> = {
   exit: '들러주셔서 감사합니다. 조심히 가세요.',
   'safety-redirect': SAFETY_REDIRECT_REPLY,
   reset: '추천 질문은 여기서 멈출게요. 다른 게 필요하면 말씀해 주세요.',
-  'queue-for-review': '아직 확인된 메뉴는 아니어서 추천 후보로 쓰지는 않을게요. 비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 칵테일을 찾아드릴게요.',
+  'queue-for-review': '아직 확인된 메뉴는 아니어서 추천 후보로 쓰지는 않을게요. 비슷한 맛이나 원하시는 종류를 말씀해 주시면 다른 잔을 찾아보죠.',
 }
 
 function routeToRouteTag(route: InputRoute): RecommendationRouteTag {

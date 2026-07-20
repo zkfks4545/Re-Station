@@ -1,5 +1,12 @@
 # 작업 이력 (축약)
 
+## 2026-07-20 / Codex / Phase 15 최종 카루아 캐릭터 QA 완료
+
+- 카루아 금지 표현을 `KARUA_FORBIDDEN_EXPRESSIONS` 단일 계약으로 통합하고, 전체 말투 회귀가 이 프로필을 직접 사용하도록 변경했다.
+- ResponsePlan·대화 JSON·keyword rule·formatter의 상담가/AI 도우미/고객센터형 표현을 관찰과 잔 선택 중심의 바텐더 화법으로 교체했다.
+- 시에스타 만담 속 카루아 발화와 Action 기본 fallback을 자동 감사 범위에 추가했다. 시에스타 이벤트는 이미 런타임에 활성화되어 있어 기존 차단·쿨다운·대화권 반환 계약을 유지한다.
+- 검증: `npm.cmd test -- --run` (63 files, 826 tests), `npm.cmd run check`, `npm.cmd run lint`, `npm.cmd run build`, `git diff --check` 통과. 메인 JS 549.55 kB(gzip 164.64 kB).
+
 ## 2026-07-15 / Codex / SPR-002 화면 검수 완료
 
 - production preview에서 카루아 기본 스프라이트를 확인했다. 데스크톱 1280×800 viewport에서는 360×360px, 모바일 375×812 viewport에서는 180×180px로 표시됐고 두 화면 모두 viewport 안에 완전히 들어왔다.

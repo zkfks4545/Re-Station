@@ -48,7 +48,7 @@ describe('DialogueTurn contract', () => {
   it('uses a small fallback template when reply text is missing', () => {
     const turn = buildDialogueTurn('음', 'general', '', 'idle')
     expect(validateDialogueTurn(turn)).toBe(true)
-    expect(turn.reply).toBe('알겠습니다. 조금 더 자세히 말씀해 주시면 이어서 도와드릴게요.')
+    expect(turn.reply).toBe('알겠습니다. 조금 더 자세히 말씀해 주시면 거기서 이어가죠.')
     expect(turn.facts).toContain(turn.reply)
   })
 

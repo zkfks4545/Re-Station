@@ -44,22 +44,14 @@ import {
 import { createRecommendationDecision, createRecommendationState } from '../recommendation/state.js'
 import { PARAGRAPH_PRESETS } from '../dialogue/text-presets.js'
 import { RESPONSE_PLANS } from '../dialogue/response-plan-catalog.js'
+import { DIALOGUE_POOLS } from '../banter/siesta-event.js'
+import { DEFAULT_REPLY_BY_ACTION } from '../dialogue/turn-builder.js'
+import { KARUA_FORBIDDEN_EXPRESSIONS } from './character-profile.js'
 
-const FORBIDDEN_PHRASES: { pattern: RegExp; reason: string }[] = [
-  { pattern: /힘드셨겠어요/, reason: '직접 위로 금지' },
-  { pattern: /힘내세요/, reason: '직접 응원·격려 금지' },
-  { pattern: /괜찮아질 거예요/, reason: '희망 고정·직접 위로 금지' },
-  { pattern: /괜찮으시면 천천히 말씀해 주세요/, reason: '상담가식 문장 금지' },
-  { pattern: /제가 도와드릴게요/, reason: '해결사형 조력 약속 금지' },
-  { pattern: /해결해 드릴게요/, reason: '해결책 제시 금지' },
-  { pattern: /해결해드릴게요/, reason: '해결책 제시 금지' },
-  { pattern: /좋은 결과가 있을 거예요/, reason: '희망 고정·감동 조언 금지' },
-  { pattern: /마음이 나아질/, reason: '감정 개선 약속·직접 위로 금지' },
-  { pattern: /기분이 좋아질/, reason: '감정 개선 약속 금지' },
-  { pattern: /술\s*마시면\s*괜찮아/, reason: '술을 감정 해결책으로 제시 금지' },
-  { pattern: /한 잔\s*하면\s*괜찮/, reason: '술을 감정 해결책으로 제시 금지' },
-  { pattern: /제가 해결해/, reason: '해결사형 발언 금지' },
-]
+const FORBIDDEN_PHRASES = KARUA_FORBIDDEN_EXPRESSIONS.map(({ pattern, description }) => ({
+  pattern,
+  reason: description,
+}))
 
 function checkText(text: string): { matched: boolean; reason: string; phrase: string } | null {
   for (const { pattern, reason } of FORBIDDEN_PHRASES) {
@@ -238,6 +230,14 @@ function collectResponsePlanTexts(): string[] {
   ])
 }
 
+function collectSiestaEventKaruaTexts(): string[] {
+  return Object.values(DIALOGUE_POOLS)
+    .flatMap((sets) => sets)
+    .flatMap((set) => set)
+    .filter(([speaker]) => speaker === 'karua')
+    .map(([, text]) => text)
+}
+
 function countSentences(text: string): number {
   const normalized = text.trim()
   if (!normalized) return 0
@@ -350,5 +350,17 @@ describe('karua speech contract — recommendation response.ts', () => {
   it('has no forbidden phrases in reply formatters', () => {
     const texts = collectRecommendationTexts()
     checkTexts('recommendation reply formatters', texts)
+  })
+})
+
+describe('karua speech contract — siesta-event.ts', () => {
+  it('has no forbidden phrases in karua lines', () => {
+    checkTexts('siesta-event karua lines', collectSiestaEventKaruaTexts())
+  })
+})
+
+describe('karua speech contract — turn-builder.ts', () => {
+  it('has no forbidden phrases in action fallbacks', () => {
+    checkTexts('turn-builder action fallbacks', Object.values(DEFAULT_REPLY_BY_ACTION))
   })
 })

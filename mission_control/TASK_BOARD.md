@@ -676,7 +676,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 12 | WebLLM 의미 보조 | DONE | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 실제 Chrome에서 WebGPU 호환 GPU 미확보로 cold prepare가 약 375 ms에 실패·세션 비활성화됨. 격리·timeout 계약 테스트 통과 |
 | Phase 13 | Semantic Snapshot 활용 여부 검토 | DONE — 보류 | Phase 12 측정과 품질 기준을 근거로 Snapshot 활용 여부를 결정 | 현 환경의 준비 실패와 가치 대비 비용을 근거로 보류. 기존 규칙 기반 선택 유지, Action·Session 변경 금지 |
 | Phase 14 | ResponsePlan 보조 선택 | DEFERRED | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | Phase 13 보류에 따라 착수하지 않음. 자유문장·사실·재료·효과 생성 금지 |
-| Phase 15 | 최종 캐릭터 QA | 계획 | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 말투 회귀 확대, 상담가·AI 도우미형 표현 제거, 추천·잡담·이야기·배웅·정보 응답 검수, 시에스타 이벤트 재활성화 여부 평가 |
+| Phase 15 | 최종 캐릭터 QA | DONE | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 프로필 기반 말투 회귀를 전체 ResponsePlan·JSON·formatter·시에스타 카루아 대사·Action fallback으로 확대. 상담가·AI 도우미·고객센터형 표현 교체, 시에스타 런타임 활성 상태 유지. 826 tests pass |
 
 ### 현재 실행 우선순위와 Conversation QA gate (2026-07-13)
 
@@ -839,10 +839,13 @@ Input
 
 #### Phase 15: 최종 캐릭터 QA
 
-- 카루아 말투 회귀 테스트를 전체 응답 출처로 확대한다.
-- 상담가·치료자·AI 도우미형 표현을 제거한다.
-- 추천, 잡담, 이야기, 배웅, 정보 응답의 어조 일관성을 함께 검수한다.
-- 카루아 단독 흐름 검수가 끝난 뒤 시에스타 이벤트 재활성화 여부를 평가한다.
+> 상태: **DONE (2026-07-20)** — 전체 자동 회귀 63 files / 826 tests, 타입 검사, 린트, production build 통과.
+
+- 금지 표현 정의를 `KARUA_FORBIDDEN_EXPRESSIONS` 단일 계약으로 통합하고, 말투 회귀가 같은 프로필을 직접 사용하도록 정리했다.
+- `dialogues.json`, `keyword-rules.json`, ResponsePlan, formatter, preset, welcome/farewell/story/recommendation뿐 아니라 시에스타 이벤트의 카루아 대사와 Action fallback도 자동 감사한다.
+- “도와드릴게요”, “충분히 이해해요”, “최선을 다하고”, “제가 더 잘 이해”처럼 상담가·AI 도우미·고객센터로 들리는 표현을 관찰·선택·잔 중심의 바텐더 화법으로 교체했다.
+- 선택권을 허용하는 문맥의 “괜찮아요”가 포괄적 감정 안심으로 오탐되지 않도록 단독 응답만 차단한다.
+- 시에스타 이벤트는 이미 런타임에 활성화되어 있어 재활성화하지 않았다. 안전·퇴장·추천 진행 중 차단과 대화권 반환 계약을 유지하면서 카루아 발화 전수만 최종 감사 범위에 포함했다.
 
 ## 2026-06-23 추가 기록: SPR-006 카루아 에셋 구조와 제조 애니메이션
 
