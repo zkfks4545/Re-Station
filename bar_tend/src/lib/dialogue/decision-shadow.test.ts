@@ -22,6 +22,7 @@ import {
   dialogueActionKey,
   compatibleControlTransitions,
   compatibleTopicTransition,
+  consumePreferenceEvidence,
   evaluateLegacyCocktailSelection,
   evaluateLegacyDialogueAction,
   evaluateLegacyQuestionSelection,
@@ -209,6 +210,86 @@ describe('PreferenceEvidence ledger', () => {
 
     expect(result.taste.fizz).toBe(0.1)
     expect(ledger[1].evidence[0].text).toBe(text)
+  })
+
+  it('consumes a compatible projection and keeps the grounded evidence ledger', () => {
+    const text = '탄산은 별로지만 사이다는 좋아해'
+    const understanding = understand(text)
+    const legacy = extractRecommendationSignals(text)
+    const result = consumePreferenceEvidence(
+      [], createRecommendationState(), understanding.preferenceSignals, legacy, {
+      scope: { type: 'session' },
+      observedAtTurn: 1,
+      context: { includeSession: true },
+      },
+    )
+
+    expect(result.compatibleWithLegacy).toBe(true)
+    expect(result.signals).toEqual(
+      applyRecommendationSignals(createRecommendationState(), legacy).extractedPreferences,
+    )
+    expect(result.ledger).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        field: 'taste.fizz', strength: 0.8, scope: { type: 'session' }, observedAtTurn: 1,
+      }),
+    ]))
+    expect(result.ledger[0]?.evidence[0]).toEqual({ start: 0, end: text.length, text })
+  })
+
+  it('falls back to legacy signals when scoped evidence projects a different value', () => {
+    const previous = preferenceSignal('taste.fizz', 0.8, '탄산이 좋아')
+    const ledger = recordPreferenceEvidence([], [previous], {
+      strength: 1,
+      scope: { type: 'session' },
+      observedAtTurn: 1,
+    })
+    const text = '오늘은 탄산이 별로야'
+    const understanding = understand(text)
+    const legacy = extractRecommendationSignals(text)
+    const result = consumePreferenceEvidence(
+      ledger,
+      applyRecommendationSignals(createRecommendationState(), [{
+        field: 'taste.fizz', value: 0.8, confidence: 1, source: 'rule', evidence: '탄산이 좋아',
+      }]),
+      understanding.preferenceSignals,
+      legacy,
+      {
+      scope: { type: 'session' },
+      observedAtTurn: 2,
+      context: { includeSession: true },
+      },
+    )
+
+    expect(result.compatibleWithLegacy).toBe(false)
+    expect(result.signals).toEqual(legacy)
+    expect(result.ledger).toHaveLength(1 + understanding.preferenceSignals.length)
+  })
+
+  it('compares accumulating fields against the accumulated legacy baseline', () => {
+    const firstSignal = preferenceSignal('preferredIngredients', '럼', '럼이 좋아')
+    const firstLegacy = [{
+      field: 'preferredIngredients', value: '럼', confidence: 0.8, source: 'rule', evidence: '럼이 좋아',
+    }] as const
+    const first = consumePreferenceEvidence(
+      [], createRecommendationState(), [firstSignal], firstLegacy, {
+        scope: { type: 'session' }, observedAtTurn: 1, context: { includeSession: true },
+      },
+    )
+    const secondSignal = preferenceSignal('preferredIngredients', '진', '진도 좋아')
+    const secondLegacy = [{
+      field: 'preferredIngredients', value: '진', confidence: 0.8, source: 'rule', evidence: '진도 좋아',
+    }] as const
+    const second = consumePreferenceEvidence(
+      first.ledger, first.legacyState, [secondSignal], secondLegacy, {
+        scope: { type: 'session' }, observedAtTurn: 2, context: { includeSession: true },
+      },
+    )
+
+    expect(second.compatibleWithLegacy).toBe(true)
+    expect(second.legacyState.preferredIngredients).toEqual(['럼', '진'])
+    expect(second.signals).toEqual([expect.objectContaining({
+      field: 'preferredIngredients', value: '진',
+    })])
   })
 })
 

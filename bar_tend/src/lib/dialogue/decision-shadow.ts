@@ -7,6 +7,7 @@ import type {
 import type { DialogueSessionAction, SessionTopic } from '../session/dialogue-session.js'
 import {
   applyRecommendationSignals,
+  createRecommendationState,
   resolveCocktailsByRecommendationState,
 } from '../recommendation/state.js'
 import { pickFromPool, selectNextQuestion } from '../recommendation/question-engine.js'
@@ -68,6 +69,13 @@ export interface PreferenceEvidence {
 export interface PreferenceProjectionContext {
   includeSession: boolean
   entityId?: string | null
+}
+
+export interface PreferenceEvidenceConsumption {
+  ledger: PreferenceEvidence[]
+  legacyState: RecommendationState
+  signals: RecommendationSignal[]
+  compatibleWithLegacy: boolean
 }
 
 export type DialogueMoveType =
@@ -202,6 +210,51 @@ export function deriveRecommendationStateFromEvidence(
     }))
 
   return applyRecommendationSignals(base, signals)
+}
+
+export function consumePreferenceEvidence(
+  ledger: readonly PreferenceEvidence[],
+  legacyState: RecommendationState,
+  signals: readonly PreferenceSignal[],
+  legacySignals: readonly RecommendationSignal[],
+  options: {
+    scope: PreferenceScope
+    observedAtTurn: number
+    context: PreferenceProjectionContext
+  },
+): PreferenceEvidenceConsumption {
+  const nextLedger = signals.reduce<PreferenceEvidence[]>((current, signal) => (
+    recordPreferenceEvidence(current, [signal], {
+      strength: signal.confidence,
+      scope: options.scope,
+      observedAtTurn: options.observedAtTurn,
+    })
+  ), [...ledger])
+  const projectedState = deriveRecommendationStateFromEvidence(
+    createRecommendationState(),
+    nextLedger,
+    options.context,
+  )
+  const nextLegacyState = applyRecommendationSignals(legacyState, [...legacySignals])
+  const compatibleWithLegacy = samePreferenceSignals(
+    projectedState.extractedPreferences,
+    nextLegacyState.extractedPreferences,
+  )
+  const currentFields = new Set(signals.map(({ field }) => field))
+  const existingValues = new Set(legacyState.extractedPreferences.map(
+    ({ field, value }) => `${field}:${String(value)}`,
+  ))
+  const projectedDelta = projectedState.extractedPreferences.filter(({ field, value }) => (
+    currentFields.has(field)
+    && (!accumulatesValues(field) || !existingValues.has(`${field}:${String(value)}`))
+  ))
+
+  return {
+    ledger: nextLedger,
+    legacyState: nextLegacyState,
+    signals: compatibleWithLegacy ? projectedDelta : [...legacySignals],
+    compatibleWithLegacy,
+  }
 }
 
 export function planShadowDialogueMove(
@@ -340,4 +393,14 @@ function accumulatesValues(field: RecommendationSignal['field']): boolean {
     || field === 'situations'
     || field === 'preferredIngredients'
     || field === 'excludedIngredients'
+}
+
+function samePreferenceSignals(
+  left: readonly RecommendationSignal[],
+  right: readonly RecommendationSignal[],
+): boolean {
+  const normalize = (items: readonly RecommendationSignal[]) => items
+    .map(({ field, value }) => `${field}:${String(value)}`)
+    .sort()
+  return JSON.stringify(normalize(left)) === JSON.stringify(normalize(right))
 }

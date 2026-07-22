@@ -490,7 +490,7 @@ export function useRestationController(sfx?: SfxChannel) {
       }
       if (!options.switchSessionId) {
         if (interruption) {
-          captureExtractedPreferences(text)
+          captureExtractedPreferences(text, dialogueResolution.understanding.preferenceSignals)
           dispatchDialogueSession({ type: 'suspend-question', topic: interruption.topic })
         } else {
           dispatchDialogueSession({ type: 'resume-question' })

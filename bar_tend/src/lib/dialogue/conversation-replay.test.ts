@@ -21,7 +21,13 @@ import {
 } from './conversation-replay.js'
 import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
 import type { DialogueAction } from './action-resolver.js'
-import { compatibleControlTransitions, compatibleTopicTransition } from './decision-shadow.js'
+import {
+  compatibleControlTransitions,
+  compatibleTopicTransition,
+  consumePreferenceEvidence,
+  type PreferenceEvidence,
+} from './decision-shadow.js'
+import { createRecommendationState, extractRecommendationSignals } from '../recommendation/state.js'
 
 const service = new DialogueService(cocktails)
 const mojito = cocktails.find(({ name }) => name === '모히토')
@@ -37,6 +43,8 @@ function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): Conversa
     speechAct: 'statement',
     entityId: null,
     controlIntent: null,
+    preferenceProjection: 'none',
+    preferenceProjectionCompatible: true,
     move: 'respond',
     transitionPlan: 'none',
     blockedBySession: false,
@@ -70,6 +78,8 @@ function transitionKey(action: DialogueSessionAction): string {
 function createDialogueReplayPlayer(initialSession = createDialogueSessionState('conversation')): ConversationReplayPlayer {
   let session: DialogueSessionState = initialSession
   let conversationContext = createConversationContext()
+  let preferenceEvidence: PreferenceEvidence[] = []
+  let legacyPreferenceState = createRecommendationState()
   const messages: Message[] = []
 
   return (input) => {
@@ -94,6 +104,19 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       continuationContext: createConversationContextSnapshot(session, conversationContext),
     }
     const resolution = service.resolve(request)
+    const preferenceConsumption = consumePreferenceEvidence(
+      preferenceEvidence,
+      legacyPreferenceState,
+      resolution.understanding.preferenceSignals,
+      extractRecommendationSignals(input),
+      {
+        scope: { type: 'session' },
+        observedAtTurn: messages.filter(({ role }) => role === 'user').length + 1,
+        context: { includeSession: true },
+      },
+    )
+    preferenceEvidence = preferenceConsumption.ledger
+    legacyPreferenceState = preferenceConsumption.legacyState
     const turn = resolution.blockedBySession
       ? null
       : resolution.directResponse?.turn ?? service.buildMainTurn(request, resolution, {
@@ -145,6 +168,11 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       speechAct: resolution.move.speechAct,
       entityId: resolution.understanding.entities.find(({ type, id }) => type === 'cocktail' && id)?.id ?? null,
       controlIntent: resolution.understanding.controlIntents[0]?.value ?? null,
+      preferenceProjection: preferenceConsumption.signals
+        .map(({ field, value }) => `${field}:${String(value)}`)
+        .sort()
+        .join(',') || 'none',
+      preferenceProjectionCompatible: preferenceConsumption.compatibleWithLegacy,
       move: resolution.move.type,
       transitionPlan: resolution.move.transitions.map(transitionKey).join(',') || 'none',
       blockedBySession: resolution.blockedBySession,
@@ -244,6 +272,27 @@ describe('conversation replay', () => {
 
     expect(first.blockingDifferences).toEqual([])
     expect(second.snapshots.map(stableFields)).toEqual(first.snapshots.map(stableFields))
+  })
+
+  it('replays preference evidence against the legacy projection before consumption', () => {
+    const result = runConversationReplay({
+      id: 'preference-evidence-compatibility',
+      turns: [
+        {
+          input: '탄산은 별로지만 사이다는 좋아해',
+          expected: { preferenceProjectionCompatible: true },
+        },
+        {
+          input: '오늘은 독한 게 당겨',
+          expected: {
+            preferenceProjection: 'alcoholPreference:high,taste.alcohol_strength:0.8',
+            preferenceProjectionCompatible: true,
+          },
+        },
+      ],
+    }, createDialogueReplayPlayer())
+
+    expect(result.blockingDifferences).toEqual([])
   })
 
   it('fails closed when safety interrupts a pending recommendation question', () => {

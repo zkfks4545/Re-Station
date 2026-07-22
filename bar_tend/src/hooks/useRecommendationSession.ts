@@ -38,6 +38,11 @@ import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
 import type { RecommendationDecision, RecommendationQuestion, RecommendationState } from '@/types/recommendation.js'
 import { addExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
+import {
+  consumePreferenceEvidence,
+  type PreferenceEvidence,
+} from '@/lib/dialogue/decision-shadow.js'
+import type { PreferenceSignal } from '@/lib/dialogue/input-understanding.js'
 
 export interface RecommendationResult {
   reply: string
@@ -55,8 +60,14 @@ export function useRecommendationSession() {
   const [excludedCocktailIds, setExcludedCocktailIds] = useState<string[]>([])
   const excludedCocktailIdsRef = useRef<string[]>([])
   const [recentDialogueLineIds, setRecentDialogueLineIds] = useState<string[]>([])
+  const preferenceEvidenceRef = useRef<PreferenceEvidence[]>([])
+  const preferenceEvidenceTurnRef = useRef(0)
+  const legacyPreferenceStateRef = useRef(createRecommendationState())
 
   const resetRecommendation = useCallback(() => {
+    preferenceEvidenceRef.current = []
+    preferenceEvidenceTurnRef.current = 0
+    legacyPreferenceStateRef.current = createRecommendationState()
     setCandidatePool(null)
     setRecommendationState(createRecommendationState())
   }, [])
@@ -66,10 +77,27 @@ export function useRecommendationSession() {
     setExcludedCocktailIds([])
   }, [])
 
-  const captureExtractedPreferences = useCallback((text: string) => {
-    const signals = extractRecommendationSignals(text)
-    if (signals.length > 0) {
-      setRecommendationState((current) => applyRecommendationSignals(current, signals))
+  const captureExtractedPreferences = useCallback((
+    text: string,
+    preferenceSignals: readonly PreferenceSignal[],
+  ) => {
+    const legacySignals = extractRecommendationSignals(text)
+    if (legacySignals.length > 0 || preferenceSignals.length > 0) {
+      preferenceEvidenceTurnRef.current += 1
+      const consumption = consumePreferenceEvidence(
+        preferenceEvidenceRef.current,
+        legacyPreferenceStateRef.current,
+        preferenceSignals,
+        legacySignals,
+        {
+          scope: { type: 'session' },
+          observedAtTurn: preferenceEvidenceTurnRef.current,
+          context: { includeSession: true },
+        },
+      )
+      preferenceEvidenceRef.current = consumption.ledger
+      legacyPreferenceStateRef.current = consumption.legacyState
+      setRecommendationState((current) => applyRecommendationSignals(current, consumption.signals))
     }
   }, [])
 
