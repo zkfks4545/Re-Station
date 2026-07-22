@@ -1,0 +1,263 @@
+import { describe, expect, it } from 'vitest'
+import type { Message } from '../../types.js'
+import { cocktails } from '../cocktails/index.js'
+import {
+  createDialogueSessionState,
+  dialogueSessionReducer,
+  sessionTopicForRoute,
+  type DialogueSessionState,
+} from '../session/dialogue-session.js'
+import { transitionSessionAffect } from '../session/session-affect.js'
+import {
+  createConversationContext,
+  updateConversationContext,
+} from './conversation-context.js'
+import { createConversationContextSnapshot } from './conversation-context-snapshot.js'
+import {
+  runConversationReplay,
+  type ConversationReplayPlayer,
+  type ConversationReplaySnapshot,
+} from './conversation-replay.js'
+import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
+import type { DialogueAction } from './action-resolver.js'
+
+const service = new DialogueService(cocktails)
+
+function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): ConversationReplaySnapshot {
+  return {
+    input: '입력',
+    intent: 'general-chat',
+    route: 'general',
+    action: 'respond',
+    blockedBySession: false,
+    phase: 'conversation',
+    mode: 'conversation',
+    topic: 'smalltalk',
+    pendingQuestion: null,
+    suspendedQuestion: null,
+    safetyLocked: false,
+    selectedCocktailId: null,
+    responsePlanId: null,
+    expression: 'talk',
+    reply: '응답',
+    ...overrides,
+  }
+}
+
+function actionKey(action: DialogueAction): string {
+  if (action.type === 'recommend') return `${action.type}:${action.mode}`
+  if (action.type === 'continueStory') return `${action.type}:${action.topic}:${action.cocktailId ?? 'none'}`
+  if ('cocktailId' in action) return `${action.type}:${action.cocktailId}`
+  return action.type
+}
+
+function createDialogueReplayPlayer(initialSession = createDialogueSessionState('conversation')): ConversationReplayPlayer {
+  let session: DialogueSessionState = initialSession
+  let conversationContext = createConversationContext()
+  const messages: Message[] = []
+
+  return (input) => {
+    const request: DialogueServiceRequest = {
+      text: input,
+      messages: [...messages, { role: 'user', text: input }],
+      conversationContext,
+      session: {
+        phase: session.phase,
+        activeRecommendationSession: session.mode === 'recommendation',
+        allowRecommendationRoutes: session.mode === 'recommendation',
+        welcomeDrinkUsed: true,
+        alcoholStarsTotal: session.order.alcoholStarTotal,
+        totalUserMessages: messages.filter(({ role }) => role === 'user').length + 1,
+        conversationTurnCount: session.dialogue.turnCount,
+        sessionAffect: session.sessionAffect,
+        sessionTopic: session.sessionTopic,
+        topicCocktailId: session.topicCocktailId,
+        pendingQuestion: session.pendingQuestion,
+      },
+      displayedCocktail: null,
+      continuationContext: createConversationContextSnapshot(session, conversationContext),
+    }
+    const resolution = service.resolve(request)
+    const turn = resolution.blockedBySession
+      ? null
+      : resolution.directResponse?.turn ?? service.buildMainTurn(request, resolution, {
+          outcome: null,
+          sessionAffect: session.sessionAffect,
+        })
+
+    if (!resolution.blockedBySession) {
+      for (const event of [...resolution.contextEvents, ...(resolution.directResponse?.contextEvents ?? [])]) {
+        conversationContext = updateConversationContext(conversationContext, event)
+      }
+      session = resolution.routeResult.route === 'safety'
+        ? dialogueSessionReducer(session, { type: 'lock-safety' })
+        : dialogueSessionReducer(session, {
+            type: 'set-topic',
+            topic: sessionTopicForRoute(resolution.routeResult.route),
+            cocktailId: resolution.routeResult.matchedCocktailId ?? null,
+          })
+      if (resolution.routeResult.route !== 'safety') {
+        session = dialogueSessionReducer(session, {
+          type: 'set-session-affect',
+          affect: transitionSessionAffect(session, {
+            candidate: resolution.classifiedIntent.metadata.keywordAffect,
+            route: resolution.routeResult.route,
+            input,
+          }),
+        })
+      }
+    }
+
+    messages.push({ role: 'user', text: input })
+    if (turn) messages.push({ role: 'bartender', text: turn.reply })
+
+    return {
+      input,
+      intent: resolution.classifiedIntent.intent,
+      route: resolution.routeResult.route,
+      action: actionKey(resolution.action),
+      blockedBySession: resolution.blockedBySession,
+      phase: session.phase,
+      mode: session.mode,
+      topic: session.sessionTopic,
+      pendingQuestion: session.pendingQuestion?.kind ?? null,
+      suspendedQuestion: session.suspendedQuestion?.kind ?? null,
+      safetyLocked: session.safetyLocked,
+      selectedCocktailId: resolution.directResponse?.cocktail?.id
+        ?? resolution.routeResult.matchedCocktailId
+        ?? null,
+      responsePlanId: turn?.responsePlanId ?? null,
+      expression: turn?.expression ?? null,
+      reply: turn?.reply ?? null,
+    }
+  }
+}
+
+describe('conversation replay', () => {
+  it('classifies state, decision, presentation, and wording differences by severity', () => {
+    const result = runConversationReplay({
+      id: 'severity-contract',
+      turns: [{
+        input: '입력',
+        expected: {
+          safetyLocked: true,
+          route: 'safety',
+          expression: 'stern',
+          reply: '기준 문장',
+        },
+      }],
+    }, () => snapshot())
+
+    expect(result.differences.map(({ field, severity }) => [field, severity])).toEqual([
+      ['safetyLocked', 'critical'],
+      ['route', 'major'],
+      ['expression', 'review'],
+      ['reply', 'allowed'],
+    ])
+    expect(result.blockingDifferences.map(({ field }) => field)).toEqual([
+      'safetyLocked',
+      'route',
+    ])
+  })
+
+  it('replays smalltalk and character follow-up through the real dialogue service', () => {
+    const scenario = {
+      id: 'smalltalk-character-followup',
+      turns: [
+        {
+          input: '여긴 뭐하는 곳이에요',
+          expected: {
+            intent: 'bar-setting',
+            route: 'general',
+            action: 'respond',
+            phase: 'conversation',
+            mode: 'conversation',
+            topic: 'smalltalk',
+            pendingQuestion: null,
+            responsePlanId: 'karua.small-talk.bar-intro',
+          },
+        },
+        {
+          input: '당신은?',
+          expected: {
+            intent: 'character-query',
+            route: 'character-query',
+            action: 'respond',
+            phase: 'conversation',
+            mode: 'conversation',
+            topic: 'smalltalk',
+            pendingQuestion: null,
+            responsePlanId: 'karua.small-talk.character-query',
+          },
+        },
+      ],
+    } as const
+
+    const first = runConversationReplay(scenario, createDialogueReplayPlayer())
+    const second = runConversationReplay(scenario, createDialogueReplayPlayer())
+    const stableFields = (value: ConversationReplaySnapshot) => Object.fromEntries(
+      Object.entries(value).filter(([field]) => field !== 'reply' && field !== 'expression'),
+    )
+
+    expect(first.blockingDifferences).toEqual([])
+    expect(second.snapshots.map(stableFields)).toEqual(first.snapshots.map(stableFields))
+  })
+
+  it('fails closed when safety interrupts a pending recommendation question', () => {
+    let session = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-mode', mode: 'recommendation',
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-topic', topic: 'recommendation', cocktailId: null,
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-pending-question',
+      question: { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 },
+    })
+
+    const result = runConversationReplay({
+      id: 'recommendation-safety-interruption',
+      turns: [{
+        input: '죽고 싶어요',
+        expected: {
+          route: 'safety',
+          action: 'respond',
+          blockedBySession: false,
+          phase: 'safetyLocked',
+          mode: 'conversation',
+          topic: 'safety',
+          pendingQuestion: null,
+          suspendedQuestion: null,
+          safetyLocked: true,
+          expression: 'stern',
+        },
+      }],
+    }, createDialogueReplayPlayer(session))
+
+    expect(result.blockingDifferences).toEqual([])
+  })
+
+  it('keeps farewell FSM state when recommendation is blocked', () => {
+    const session = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'enter-farewell', entryKind: 'standard',
+    })
+    const result = runConversationReplay({
+      id: 'farewell-blocks-recommendation',
+      turns: [{
+        input: '다른 걸 추천해줘',
+        expected: {
+          route: 'general',
+          action: 'recommend:preference',
+          blockedBySession: true,
+          phase: 'farewell',
+          mode: 'conversation',
+          topic: 'smalltalk',
+          safetyLocked: false,
+          selectedCocktailId: null,
+        },
+      }],
+    }, createDialogueReplayPlayer(session))
+
+    expect(result.blockingDifferences).toEqual([])
+  })
+})
