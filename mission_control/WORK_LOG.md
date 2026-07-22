@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-C PreferenceEvidence 호환 소비
+
+- 구현 커밋: `19d032c` (`feat: consume compatible preference evidence`).
+- 추천 질문을 보존한 잡담에서 `InputUnderstanding.preferenceSignals`를 strength·session scope·evidence span·관측 turn과 함께 원장에 누적한다.
+- evidence projection과 기존 parser의 누적 projection을 매 턴 비교한다. 호환 시 projection delta를 `RecommendationState`에 적용하고, 불일치 시 기존 신호로 fallback한다.
+- Replay snapshot에 `preferenceProjection`, `preferenceProjectionCompatible`을 추가했다. “탄산은 별로지만 사이다는 좋아해”, “오늘은 독한 게 당겨”, 누적 재료 신호, scope 충돌 fallback을 검증한다.
+- PendingQuestion·SuspendedQuestion·질문 답변 경로는 변경하지 않았다.
+- 검증: 표적 4 files / 54 tests, 전체 67 files / 906 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 556.73 kB(gzip 166.45 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 작업은 `PIPE-806-D` Conversation Expansion 소비 경계 정리다.
+
 ## 2026-07-22 / Codex / PIPE-806-B.2 카루아 취향 질문·조사 보정
 
 - 구현 커밋: `a02abe8` (`feat: add Karua preference responses`).
