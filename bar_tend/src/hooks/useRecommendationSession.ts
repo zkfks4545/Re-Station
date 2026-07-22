@@ -68,6 +68,13 @@ export function useRecommendationSession() {
     setExcludedCocktailIds([])
   }, [])
 
+  const captureExtractedPreferences = useCallback((text: string) => {
+    const signals = extractRecommendationSignals(text)
+    if (signals.length > 0) {
+      setRecommendationState((current) => applyRecommendationSignals(current, signals))
+    }
+  }, [])
+
   const excludeCocktailFromRecommendations = useCallback((cocktailId: string) => {
     const next = addExcludedCocktailId(excludedCocktailIdsRef.current, cocktailId)
     excludedCocktailIdsRef.current = next
@@ -272,6 +279,7 @@ export function useRecommendationSession() {
 
   return {
     activeQuestion: getQuestionById(activeQuestionId),
+    captureExtractedPreferences,
     clearExcludedCocktailIds,
     excludeCocktailFromRecommendations,
     excludedCocktailIds,

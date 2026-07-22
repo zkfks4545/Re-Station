@@ -1,6 +1,6 @@
 # mission_control 문서 포털
 
-> 최종 갱신일: 2026-07-20
+> 최종 갱신일: 2026-07-22
 > 목적: `mission_control`의 문서 책임, 읽는 순서, 정보 소유권을 한눈에 안내한다.
 
 ## 1. 원칙
@@ -25,7 +25,7 @@
 | 4 | `TASK_BOARD.md` | 작업 ID, 범위, 완료 조건 확인 |
 | 5 | `DECISIONS.md` | 바꾸면 안 되는 핵심 결정 확인 |
 
-작업이 캐릭터, 세션, 구조, 외부 AI, WebLLM에 닿으면 아래의 상황별 문서를 추가로 읽는다.
+작업이 캐릭터, 세션, 구조, 입력 이해 또는 외부 의미 보조에 닿으면 아래의 상황별 문서를 추가로 읽는다.
 
 ## 3. 상황별 읽기 경로
 
@@ -37,7 +37,8 @@
 | 세션 종료·XYZ·Farewell | `SESSION_FLOW_SPEC.md` | `CURRENT_STATE.md`, `ARCHITECTURE.md` |
 | 추천·대화 구조 | `ARCHITECTURE.md` | `EXTERNAL_STRUCTURE_REPORT.md`, `DECISIONS.md` |
 | 외부 AI 협업 | `EXTERNAL_STRUCTURE_REPORT.md` | `EXTERNAL_STRUCTURE_REPORT_GUIDE.md`, `CONVERGENCE_PRINCIPLES.md` |
-| WebLLM 의미 보조 | `DECISIONS.md` | `ARCHITECTURE.md`, `CURRENT_STATE.md` |
+| Input→Understand→Evaluate→Select→Plan→Present 구조 | `ARCHITECTURE.md`, `DECISIONS.md` | `CURRENT_STATE.md`, `TASK_BOARD.md` |
+| 외부 의미 보조 API | `DECISIONS.md` | `ARCHITECTURE.md`, `EXTERNAL_STRUCTURE_REPORT.md` |
 | 작업 절차·기록 방식 | `AI_WORKFLOW.md` | `WORK_LOG.md`, `TASK_BOARD.md` |
 | 과거 변경 추적 | `WORK_LOG.md` | 관련 커밋 |
 | 제품 방향성 확인 | `PROJECT_VISION.md` | `DECISIONS.md`, `CHARACTER_DESIGN.md` |
@@ -101,7 +102,7 @@
 | 내부 앱 구조 | `ARCHITECTURE.md` |
 | 외부 협업용 구조 지도 | `EXTERNAL_STRUCTURE_REPORT.md` |
 | 구조보고서 작성 규칙 | `EXTERNAL_STRUCTURE_REPORT_GUIDE.md` |
-| WebLLM 의미 보조 계약 | `DECISIONS.md`, `ARCHITECTURE.md` |
+| 통합 상호작용 파이프라인과 외부 의미 보조 계약 | `DECISIONS.md`, `ARCHITECTURE.md` |
 
 중복이 생기면 위 표의 소유 문서를 남기고 다른 문서는 링크나 짧은 참조로 바꾼다.
 

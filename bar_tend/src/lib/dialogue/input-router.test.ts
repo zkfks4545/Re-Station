@@ -265,6 +265,8 @@ describe('user input routing priority', () => {
     expect(r('취소', { recommendationActive: true })).toBe('recommendation-cancel')
     expect(r('그만', { recommendationActive: true })).toBe('recommendation-cancel')
     expect(r('추천 취소', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(r('추천은 됐어', { recommendationActive: true })).toBe('recommendation-cancel')
+    expect(r('추천은 안 받을래', { recommendationActive: true })).toBe('recommendation-cancel')
     expect(r('취소')).toBe('general')
   })
 

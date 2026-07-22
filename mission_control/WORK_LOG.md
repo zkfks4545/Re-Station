@@ -1,5 +1,21 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / 결정론적 상호작용 파이프라인 설계 반영
+
+- 추천, 잡담, 스토리, 세션, 캐릭터 이벤트의 목표 구조를 `Input → Understand → Evaluate → Select → Plan → Present`로 통일하고 DEC-029로 승인 결정을 기록했다.
+- WebLLM 중심 활성 계획을 대체하고 RST-602~606·Phase 14를 SUPERSEDED 처리했다. 현재 남은 실험 코드는 PIPE-802 제거 대상으로 분리했다.
+- PIPE-801~809에 기준선, WebLLM 제거, Replay, InputUnderstanding, Evaluate·Select·DialogueMove·PreferenceEvidence, FSM 점진 적용, 평가 근거, 제한적 API, Present 정리의 범위·테스트·완료 조건을 기록했다.
+- 외부 API는 의미 후보와 evidence span만 제안하며 상태·추천·사실·행동·최종 표현을 결정하지 않는 경계를 문서 전체에 동기화했다.
+- 검증: `git diff --check`, 활성 WebLLM 재개·Phase 14 DEFERRED 상충 검색, DEC-029·PIPE-800 참조 검색.
+
+## 2026-07-22 / Codex / P0.5 Conversation Expansion 완료
+
+- 새 mode 없이 RecommendationState, ConversationTopic, SuspendedQuestion, ExtractedPreferences를 동시 유지하도록 추천 중 대화 중단/복귀를 연결했다.
+- 칵테일 지식, 세계관, 카루아/시에스타, 감정·일상, 범용 지식 질문은 기존 추천 질문을 소비하지 않고 주제별 응답 뒤 같은 질문으로 복귀한다.
+- “탄산은 별로지만 사이다는 좋아해”의 낮은 탄산 선호와 “오늘은 독한 게 당겨”의 높은 도수 선호를 추천 상태에 반영한다.
+- 자연어 추천 거부가 추천 FSM을 종료하고 conversation mode를 유지하며, 기존 추천 시작 경로로 재진입할 수 있게 했다.
+- 검증: 69 files / 856 tests, check, lint, build 통과. 메인 JS 553.16 kB(gzip 166.01 kB). 500 kB 경고는 기존 추적 항목 유지.
+
 ## 2026-07-20 / Codex / 시에스타 이벤트 상태 재검수와 기준 문서화
 
 - 시에스타 이벤트가 삭제·주석 처리된 것이 아니라 `SIESTA_EVENTS_ENABLED = false`로 런타임에서 임시 제외된 상태임을 Git 이력과 코드로 확인했다.

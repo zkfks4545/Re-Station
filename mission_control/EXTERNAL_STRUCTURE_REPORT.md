@@ -20,42 +20,27 @@ Re:Station은 사용자가 가상의 바에 입장해 바텐더 카루아와 대
 
 핵심 구조는 다음과 같다.
 
-- 추천 결과와 추천 근거는 정적 칵테일 DB와 규칙 기반 추천 엔진이 결정한다.
-- 대사 계층은 추천 결과, 입력 경로, 세션 상태를 받아 ResponsePlan과 formatter 중심으로 표현만 담당한다.
+- 추천 결과와 추천 근거는 정적 칵테일 DB와 내부 Evaluate·Select 단계가 결정한다.
+- Plan은 선택 결과를 DialogueMove와 FSM transition으로 바꾸고, Present는 ResponsePlan·Sprite·Audio로 표현한다.
 - 세션은 웰컴드링크, 추천, 주문, 이야기, XYZ, Farewell, 귀가로 닫힌 흐름을 가진다.
-- WebLLM은 최종 대사를 생성하지 않고 topic·stance·block·세션 태그 같은 의미 보조 후보만 제안한다.
+- WebLLM 중심 계획은 폐기됐다. 향후 제한적 API도 의미 후보와 원문 evidence span만 제안할 수 있다.
 - 카루아 말투, 시에스타 역할, 제조·서빙 cue는 추천 판단과 분리된 표현·연출 계층의 문제다.
 
 ## 2. Architecture at a Glance
 
-Re:Station은 사용자 입력을 바로 대사로 바꾸지 않는다. 입력을 이해하고, 도메인 판단을 끝낸 뒤, 표현 계층이 카루아다운 문장과 표정으로 감싼다.
+Re:Station은 사용자 입력을 바로 대사로 바꾸지 않는다. 추천, 잡담, 스토리, 세션, 이벤트가 같은 단계와 책임 경계를 사용한다.
 
 ```text
-User Input
-  ↓
-Input Understanding
-  - intent, route, safety, explicit cocktail/story target
-  - continuation, SessionTopic, PendingQuestion, current subject
-  ↓
-Decision Layer
-  - Recommendation: 후보 필터, 질문 순서, 추천 결과
-  - Session: 웰컴, 주문 가능 여부, XYZ/Farewell, safety lock
-  - Story: 공개할 칵테일 fact와 다음 이야기 대상
-  - Cocktail DB: 재료, 레시피, lore, talking point의 단일 사실 출처
-  ↓
-Expression Layer
-  - ResponsePlan: 입력 경로·상태·요청별 문단과 표정
-  - Formatter: 추천, 웰컴, farewell, story wrapper
-  - Character QA: 카루아 말투와 금지 표현 검증
-  ↓
-Presentation Layer
-  - typing, preparation, serving reveal, screen shake, queued interaction, audio cue
-  ↓
-UI
-  - Dialogue, bartender sprite, cocktail card, sidebar, entrance/interior
+TurnInput + CurrentContext
+→ Understand: InputUnderstanding
+→ Evaluate: 칵테일·질문·스토리·대화 전략·이벤트 후보 평가
+→ Select: 하드 제약과 우선순위에 따른 결정적 선택
+→ Plan: DialogueMove + FSM transition
+→ Present: ResponsePlan + Sprite + Audio
+→ UI effects
 ```
 
-이 지도는 책임의 큰 흐름만 보여준다. 실제 호출 순서와 파일별 책임은 Runtime Architecture와 Major Modules에서 설명한다.
+공통 단계와 불변식만 공유하며 모든 도메인을 하나의 범용 후보 타입이나 평가기로 합치지 않는다. 현재 런타임은 아직 기존 IntentClassifier·router·action 경로를 사용하며 PIPE-800에서 Replay와 shadow 검증 후 점진 전환한다.
 
 ## 3. Core Design Principles
 
@@ -69,8 +54,10 @@ UI
 8. safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선하는 Hard Stop이다.
 9. Character Layer는 표현과 검증만 담당하며 추천·상태·행동·intent를 변경하지 않는다.
 10. Hidden RapportState는 사용자에게 노출하지 않고 추천·게임플레이 결정에 사용하지 않는다.
-11. WebLLM은 자유대사 생성기가 아니며 추천 결과, 세션 상태, Action을 변경하지 않는다.
-12. 외부 기획안은 구조를 바꾸기보다 현재 구조 안에서 대사 품질, 문단 구조, 검수 기준을 보강해야 한다.
+11. Understand, Evaluate, Select는 상태를 변경하지 않고 Plan만 FSM transition을 만든다.
+12. Present는 이미 선택된 결과와 사실을 변경하지 않는다.
+13. 외부 API는 의미 후보와 evidence span만 제안하며 최종 채택은 내부 로직이 수행한다.
+14. 외부 기획안은 구조를 바꾸기보다 현재 구조 안에서 대사 품질, 문단 구조, 검수 기준을 보강해야 한다.
 
 ## 4. Runtime Architecture
 
@@ -100,7 +87,7 @@ App / ChatInput
 - ResponsePlan과 formatter는 이미 결정된 결과의 최종 표현을 렌더링한다.
 - Character Layer는 최종 문구와 표정의 말투 적합성을 검사한다.
 - 안전 입력은 모든 큐와 예약 작업보다 우선한다.
-- WebLLM과 Rapport는 현재 구조에서 최종 대사 선택이나 추천 판단을 직접 바꾸지 않는다.
+- 제거 예정 WebLLM과 Rapport는 현재 구조에서 최종 대사 선택이나 추천 판단을 직접 바꾸지 않는다.
 
 ## 5. Major Modules
 
@@ -137,6 +124,7 @@ App / ChatInput
 | `bar_tend/src/lib/dialogue/input-router.ts` | 원문 입력을 안전, 퇴장, 추천, 주문, 이야기, 정보, 캐릭터, 일반 대화 route로 분류 |
 | `bar_tend/src/lib/dialogue/conversation-context-snapshot.ts` | SessionTopic, SessionAffect, 현재 subject, PendingQuestion, 추천·안전 상태를 한 턴의 입력 해석용 snapshot으로 고정 |
 | `bar_tend/src/lib/dialogue/continuation-resolver.ts` | 짧은 후속 입력을 직전 topic·subject와 결합해 이야기 후속 질문, 캐릭터 질문 같은 연속 의도로 복구 |
+| `bar_tend/src/lib/dialogue/conversation-expansion.ts` | 추천 질문 중 잡담·지식·세계관을 잠시 처리하고 저장 질문으로 복귀 |
 | `bar_tend/src/lib/dialogue/dialogue-service.ts` | 분류와 Action 해석을 오케스트레이션하고 검증된 DialogueTurn 반환 |
 | `bar_tend/src/lib/dialogue/action-resolver.ts` | route/intent와 컨텍스트를 행동 객체로 변환 |
 | `bar_tend/src/lib/dialogue/action-executor.ts` | 행동을 추천·주문·이야기 도메인 포트에 연결 |
@@ -241,9 +229,9 @@ safety-alert는 최상위 Hard Stop이다. 추천 FSM, 주문, 웰컴, XYZ/farew
 
 Character Layer는 문구와 표정을 보존하면서 말투 검증 메타데이터를 만든다. 추천 결과, 세션 상태, Action, intent를 변경하지 않는다.
 
-### 6.6 WebLLM
+### 6.6 제한적 의미 보조
 
-WebLLM은 구조화 의미 분석만 담당한다. 최종 대사, 추천 결과, 칵테일 ID, 추천 이유, 세션 상태, Action을 생성하거나 변경하지 않는다. 허용 목록 검증을 통과한 의미 태그만 낮은 우선순위 힌트로 사용할 수 있으며, 검증 실패 시 기존 규칙 기반 흐름을 유지한다.
+WebLLM 런타임은 제거 대상이다. 향후 `SemanticAssistPort`는 내부 Understand가 확신하지 못한 미등록 은유·복합 발화·암시적 취향에만 사용한다. 출력은 허용된 의미 후보, confidence, 원문 evidence span으로 제한한다. ControlIntent, 상태, 추천 결과, 점수, 사실, DialogueMove, ResponsePlan, 최종 표현은 제안할 수 없다. 검증 실패나 timeout에는 상태를 변경하지 않고 내부 확인 질문 또는 기존 ResponsePlan을 사용한다.
 
 ### 6.7 Rapport
 
@@ -281,9 +269,13 @@ RapportState는 숨은 관계 상태다. controller는 입력 맥락에 따라 �
 2. 이미 채워진 슬롯을 고려해 다음 질문을 고른다.
 3. 정적 칵테일 DB에서 후보를 필터링하고 점수화한다.
 4. 추천 결과와 근거를 결정한다.
-5. 결정된 결과를 ResponsePlan 또는 formatter가 표현한다.
+5. Select가 최종 후보와 evaluation contribution을 확정한다.
+6. Plan이 DialogueMove와 FSM transition을 만든다.
+7. Present가 결정된 결과를 ResponsePlan 또는 formatter로 표현한다.
 
 추천 질문, 질문 순서, 후보 필터, nearest fallback 판단은 추천 도메인이 소유한다. 대사 계층은 질문 문구, acknowledgement, lead-in, 추천 설명 문단을 표현한다.
+
+추천 질문 중 다른 주제가 들어오면 새 mode로 전환하지 않는다. 추천 상태와 질문은 유지하고 ConversationTopic과 SuspendedQuestion을 기록한다. 주제 응답 뒤 같은 질문으로 돌아오며, 대화 속 취향 신호는 ExtractedPreferences로 추천 상태에 누적한다.
 
 ## 9. Session and Context
 
@@ -359,7 +351,7 @@ ResponsePlan은 대사 표현을 구조화하기 위한 계약이다.
 - `state`: 감정·세션·추천 상태
 - `request`: 사용 경로 또는 요청 종류
 - `blocks`: reaction, recommend, explanation, answer 등 문단 단위
-- `fallbackText`: WebLLM 실패나 plan 실패 시 보존할 안전 텍스트
+- `fallbackText`: plan 선택·렌더링 실패 시 보존할 안전 텍스트
 
 ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 line만 둔 block은 허용하지 않는다.
 
@@ -375,7 +367,7 @@ ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 lin
 | 최종 대사 문단과 표정 | ResponsePlan / formatter |
 | 실패 시 안전 문구 | `fallbackText` / required legacy fallback |
 | 말투 검증 | Character Layer |
-| 의미 태그 후보 | WebLLM semantic assistant |
+| 의미 후보와 evidence span | 선택적 SemanticAssistPort, 내부 validator·reconciler |
 
 ## 11. Character and External Collaboration
 
@@ -398,7 +390,7 @@ ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 lin
 - 추천 알고리즘 교체
 - DB에 없는 칵테일 사실 생성
 - 출처 없는 역사·유래·창작자 생성
-- WebLLM이 추천 결과를 정하는 구조
+- 외부 API가 추천 결과나 DialogueMove를 정하는 구조
 - 카루아를 상담가처럼 만드는 위로 대사
 - 시에스타를 상시 대화 캐릭터로 확장하는 설계
 
@@ -411,8 +403,8 @@ ResponsePlanLine은 `text`와 `expression`을 직접 소유한다. 문자열 lin
 - Rapport 활용: 숨은 관계 상태를 표현 variation의 낮은 우선순위 힌트로 사용할지 검토
 - Character QA: ResponsePlan, fallbackText, legacy fallback을 포함한 카루아 말투 검수
 - 시에스타 스프라이트와 이벤트 큐: 허용 구간에서만 짧은 만담 표시
-- WebLLM 의미 보조: 검증된 태그를 낮은 우선순위 ResponsePlan 선택 힌트로 사용할지 검토
+- SemanticAssistPort: 미등록 은유·복합 발화·암시적 취향 후보와 evidence span만 제한적으로 제안
 - 칵테일 DB 확장: IBA 우선, 관리자 검증 큐 기반 승격
 - 캐릭터 연출: 정적 표정 PNG와 제조 애니메이션을 분리한 현재 에셋 계약 위에 전환·시간 정책을 추가
 
-확장 시에도 추천 결과, 세션 상태, safety, 칵테일 사실 선택을 표현 계층이나 WebLLM으로 옮기지 않는다.
+확장 시에도 추천 결과, 세션 상태, safety, 칵테일 사실 선택을 Present나 외부 API로 옮기지 않는다.

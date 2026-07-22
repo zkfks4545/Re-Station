@@ -63,7 +63,7 @@ const TASTE_PATTERNS: Array<[FeatureKey, number, RegExp]> = [
   ['sourness', 0.8, /상큼|새콤|신맛|시트러스|레몬|라임/],
   ['sourness', 0.2, /안\s*신|산미\s*없/],
   ['fizz', 0.8, /탄산|청량|스파클|톡\s*쏘/],
-  ['fizz', 0.1, /탄산(?:은|이)?\s*(?:없|빼|말고|싫)|무탄산|부드럽|스틸/],
+  ['fizz', 0.1, /탄산(?:은|이)?\s*(?:없|빼|말고|싫|별로)|무탄산|부드럽|스틸/],
   ['alcohol_strength', 0.8, /도수.*높|독한|강한|세게|센\s*(거|것|걸|술)?|쎈/],
   ['alcohol_strength', 0.2, /도수.*낮|약한|약하게|순한|순하게|가볍게|주스|쥬스|juice/i],
 ]
@@ -101,6 +101,7 @@ export function createRecommendationState(): RecommendationState {
     excludedIngredients: [],
     questionHistory: [],
     signals: [],
+    extractedPreferences: [],
   }
 }
 
@@ -158,6 +159,7 @@ export function applyRecommendationSignals(
     excludedIngredients: [...state.excludedIngredients],
     questionHistory: [...state.questionHistory],
     signals: [...state.signals],
+    extractedPreferences: [...state.extractedPreferences],
   }
 
   for (const signal of signals) {
@@ -177,6 +179,10 @@ export function applyRecommendationSignals(
       addUnique(next.excludedIngredients, String(signal.value))
     }
     next.signals.push(signal)
+    next.extractedPreferences = next.extractedPreferences.filter(
+      (preference) => preference.field !== signal.field,
+    )
+    next.extractedPreferences.push(signal)
   }
 
   return next

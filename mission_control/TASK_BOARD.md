@@ -11,6 +11,7 @@
 | DONE | 완료 조건과 검증 충족 |
 | DEFERRED | MVP 이후로 연기 |
 | PROPOSED | 논의 중이며 범위와 완료 조건 승인 전 |
+| SUPERSEDED | 후속 결정으로 대체되어 재개하지 않음 |
 
 ## 전체 일정 요약
 
@@ -25,8 +26,9 @@
 | 3 | 애플리케이션 로직 분리 | 완료 |
 | 4 | 카루아 규칙 기반 MVP 완성, 입력 경로 기반 대사 트리거, 시에스타 이벤트 | RST-401/RST-402/RST-404/RST-405/RST-407/RST-408 완료 |
 | 5 | 추천 UX와 화면 개편 | 4~7일, RST-501/RST-503 완료 |
-| 6 | WebLLM 의미 보조 계층 | RST-601/Phase 12 기반 완료, Phase 13 활용 보류 결정에 따라 RST-602~606·Phase 14 연기 |
+| 6 | WebLLM 의미 보조 계층 | 실험 완료 후 DEC-029로 대체. RST-602~606·Phase 14 재개 안 함 |
 | 7 | 테스트와 성능 개선 | RST-701/RST-702 완료 |
+| 8 | 결정론적 상호작용 파이프라인 | PIPE-801~809 승인, 순차 착수 예정 |
 | 전체 합계 | WebLLM 작업을 포함한 과거 원계획 | **51~79일** |
 | 남은 합계 | 승인된 MVP 범위 기준 잔여 계획 | **0일** |
 | 논의 후보 | MVP 이후 PROPOSED/DEFERRED 범위 | 별도 승인 후 산정 |
@@ -37,13 +39,13 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DONE (WebLLM 및 운영 확장은 별도 PROPOSED/DEFERRED) |
+| 상태 | DONE (후속 구조 개편은 PIPE-800 프로그램이 소유) |
 | 목적 | 기존 추천 프로토타입을 카루아 중심 대화형 추천 MVP로 전면 개편 |
 | MVP 범위 | 단일 데이터 계약, 추천 근거 구조화, 입력 경로 기반 대사 트리거, `App.tsx` 분리, 캐릭터·이벤트 계층, 추천 UX, 테스트와 성능 |
-| 후속 범위 | WebLLM 표현 계층, JSON 중심 대화 계약 확장, 관리자 검증 큐, IBA 우선 검색 파이프라인 |
-| 핵심 경계 | 이름·별칭 검색 우선, 추천 결정은 DB와 규칙 엔진 담당, 대사 소재는 입력 경로가 결정, WebLLM은 표현만 담당, 시에스타는 저빈도 만담 이벤트 |
+| 후속 범위 | PIPE-800 결정론적 상호작용 파이프라인, 관리자 검증 큐, IBA 우선 검색 파이프라인 |
+| 핵심 경계 | 이름·별칭 검색 우선, 추천 결정은 DB와 내부 평가·선택 로직 담당, 상태 변경은 Plan/FSM 담당, Present는 표현만 담당, 시에스타는 저빈도 만담 이벤트 |
 | 완료 조건 | 충족. 단계 1~7의 WebLLM 제외 MVP 작업 완료, `PROJECT_VISION.md`의 MVP 성공 기준 통과, RST-411 기능 경계 보완 및 RST-412 문서 정합성 정리 완료 |
-| 남은 결정 | WebLLM RST-602~606 재개 여부 |
+| 남은 결정 | PIPE-808 실제 API 공급자·프록시·예산·개인정보 정책 |
 
 ## 완료 작업
 
@@ -278,25 +280,25 @@
 | 완료 조건 | 모바일 핵심 흐름 완료, 키보드와 포커스 사용 가능. 기존 따뜻한 분위기 유지 + 신비로운 느낌 추가 확인 |
 | 변경 파일 | `src/index.css`, `App.tsx`, `components/entrance/BarExterior.tsx`, `components/bar/BarInterior.tsx`, `components/bar/CocktailCard.tsx`, `components/bar/ChatInput.tsx`, `components/bar/DialogueBox.tsx`, `mission_control/` 관련 문서 일괄 갱신 |
 
-## 단계 6: WebLLM 의미 보조 계층 (실험 기반 재개)
+## 단계 6: WebLLM 의미 보조 계층 (종료된 실험)
 
-DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·규칙 로직이 최종 대사를 만들며, WebLLM은 허용 목록 안의 topic·stance·응답 블록 후보·세션 태그·rapport 힌트만 제안한다. 상태·추천 판단과 실제 대사 생성 책임은 포함하지 않는다.
+이 단계는 Phase 12 측정과 격리 검증까지 완료한 과거 실험이다. DEC-029가 활성 방향을 대체했으며 WebLLM 기반 후속 작업은 재개하지 않는다. 구현·측정 이력은 삭제하지 않고 M1 제거 작업의 기준 자료로만 사용한다.
 
 ### RST-601: WebLLM Worker 기반 구축
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DONE (Phase 12 승인 범위) |
+| 상태 | DONE — 실험 완료, DEC-029로 대체 |
 | 예상 | 3~4일 |
 | 구현 결과 | `@mlc-ai/web-llm` Web Worker, capability 검사, 싱글턴 준비, 기능 플래그, 동적 import, 수동 unload 기반을 추가했다. 실제 대화 출력은 미연결 |
 | 완료 조건 | 충족. capability 검사·중복 준비 방지·비차단 Worker·기본 OFF·실패 시 세션 비활성화와 JSON/FSM 복구를 계약 테스트와 Phase 12 실측으로 확인 |
-| 후속 경계 | 지원 GPU에서의 모델 다운로드·warm 재사용·속도 비교는 RST-602이며 현재 DEFERRED |
+| 후속 경계 | 추가 모델·GPU 검증 없이 PIPE-802에서 런타임과 의존성 제거 |
 
 ### RST-602: Qwen 및 Gemma 후보 실행 검증
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | SUPERSEDED |
 | 예상 | 2~4일 |
 | 완료 조건 | 실제 WebLLM 지원 모델, 다운로드 크기, 메모리, 속도 기록 |
 
@@ -304,7 +306,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | SUPERSEDED |
 | 예상 | 3~5일 |
 | 평가 | `CHARACTER_DESIGN.md` 기반 한국어 자연스러움, 반존대, 농담 우선, 의미 비해설, 안전 경계, 짧은 응답, 추천 불변 |
 | 완료 조건 | 후보별 결과와 최종 기본 모델 결정 기록 |
@@ -313,7 +315,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | SUPERSEDED |
 | 예상 | 2~3일 |
 | 완료 조건 | JSON·규칙 로직이 확정한 원본 답안의 말투만 변환하며 의미·사실·추천 상태를 변경하지 않음 |
 
@@ -321,7 +323,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | SUPERSEDED |
 | 예상 | 2~3일 |
 | 완료 조건 | 진행률, 취소, WebGPU 미지원, 오류, 규칙 응답 복구 처리 |
 
@@ -329,7 +331,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | DEFERRED |
+| 상태 | SUPERSEDED |
 | 예상 | 3~5일 |
 | 목적 | 실제 생성 시간이 남아 있어도 사용자가 기다린다고 느끼는 시간을 최소화 |
 | 구현 | 즉시 규칙 첫 반응, Worker 스트리밍, 추천 카드 선표시, 세션 모델/KV 캐시 유지, 짧은 출력 제한, 시간 예산 및 취소 |
@@ -355,6 +357,37 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 예상 | 2~3일 (실제: 0.5일) |
 | 완료 조건 | 현재 번들 데이터와 부가 패널의 로딩 비용을 측정하고 필요한 항목만 지연 로딩하며 초기 번들 경고를 해결하거나 유지 근거 기록 |
 | 결과 | `RecipeInfoTab`과 `BarMusicTab`을 `React.lazy` 기반 별도 chunk로 분리했다. 빌드 결과 메인 JS는 306.04 kB에서 302.22 kB로 감소했고, `RecipeInfoTab` 3.32 kB, `BarMusicTab` 2.28 kB chunk가 생성됐다. 칵테일 DB 31.57 kB와 추천 질문 JSON 5.71 kB는 초기 추천 흐름에 필요하므로 유지한다. |
+
+## 단계 8: PIPE-800 결정론적 상호작용 파이프라인
+
+> 상태: **TODO**
+> 결정: DEC-029
+> 목표: 추천, 잡담, 스토리, 세션, 캐릭터 이벤트를 `Input → Understand → Evaluate → Select → Plan → Present`로 통일한다.
+
+공통 단계와 불변식만 공유한다. 칵테일, 질문, 스토리 fact, 대화 전략, 캐릭터 이벤트는 각 도메인 후보 타입과 순수 평가기를 유지한다. 구현 중 새 범용 엔진이나 범용 후보 레지스트리를 만들지 않는다.
+
+| 작업 ID | 상태 | 변경 범위 | 테스트 | 완료 조건 |
+|---|---|---|---|---|
+| PIPE-801 기준선 고정 | TODO | P0.5 현재 변경과 대표 상태 snapshot 고정 | 전체 Vitest, check, lint, build, 대표 중단·복귀 trace | 기존 856개 테스트와 P0.5 여섯 계약 통과, 이후 diff 기준 확보 |
+| PIPE-802 WebLLM 제거 | TODO | App/controller의 실험 호출, hook/component, `src/lib/webllm`, 패키지 의존성, 기본 번들 경로 제거 | 전체 회귀, 앱 진입·퇴장·추천, production asset 검사 | `@mlc-ai/web-llm`과 WebLLM 청크 없음, 사용자 동작 불변, 참조는 과거 문서에만 존재 |
+| PIPE-803 Replay 기반 | TODO | 기존 continuity·regression 시나리오를 정적 Replay corpus와 단계별 diff runner로 재사용 | 결정성 반복 실행, 안전·FSM·추천 결과 차이 severity 검사 | safety/Control/FSM/추천 차이는 자동 실패, 운영 원문 영구 수집 없음 |
+| PIPE-804 Understand 계약 | TODO | `TurnInput`, `InputUnderstanding`, 다중 신호, 턴 단위 `ConversationStateCue`, evidence/confidence/span, `SemanticAssistProposal` validator와 fake/no-op adapter | 기존 classifier fixture shadow 비교, 복합 발화, 금지 API 필드, invalid span | 런타임 행동 불변, 모든 신호에 근거 존재, API는 의미 후보만 표현 가능 |
+| PIPE-805 Evaluate·Select·Plan shadow | TODO | 도메인별 `Evaluation`, 결정적 `Selection`, 기존 `DialogueAction`을 확장한 `DialogueMove`, `PreferenceEvidence` 원장과 기존 상태 파생 | 동점 결정성, 하드 제약, 상태 불변, action/move diff, 일반·세션·entity-specific 취향 | Understand/Evaluate/Select 무변경, Plan만 transition 생성, 기존 추천 결과 불변 |
+| PIPE-806 FSM 점진 적용 | TODO | 안전·ControlIntent → topic/speech/entity → preference → Conversation Expansion 순으로 새 결과 소비 | 단계별 Replay gate, Pending/SuspendedQuestion, safety/farewell, 복합 발화 | 단일 intent 의존 제거, 각 소비 단계 독립 검증, P0.5 계약 유지 |
+| PIPE-807 평가 근거 통합 | TODO | `CandidateEvaluation`의 hard constraint와 score contribution에서 추천 이유 파생, 질문 점수에 분리도·문맥·난이도·피로도 반영 | 120개 조합, 최대 3문항, 알려진 질문 회피, 점수 breakdown, 이유-evidence 일치 | 같은 상태에서 같은 질문·후보, 추천 이유와 실제 점수 근거 일치 |
+| PIPE-808 제한적 API | PROPOSED | same-origin 프록시 기반 실제 `SemanticAssistPort`; 공급자 중립 계약 유지 | no-call 범위, timeout/error/schema 위반, 명시 근거 충돌, 클라이언트 secret 검사 | 공급자·예산·개인정보 정책 승인 후 착수, API OFF 전체 동작, 실패 시 상태 불변 |
+| PIPE-809 Present 정리 | DEFERRED | 기존 ResponsePlan + Sprite + Audio cue를 공통 Present 출력으로 연결. `ResponseFragment`는 반복 문제가 입증될 때만 추가 | 문구 의미·expression·sprite·audio 회귀, 빈 응답 fallback | Present가 도메인 판단을 변경하지 않음. fragment registry는 측정 근거 전 도입 금지 |
+
+### PIPE-800 단계 불변식
+
+1. Input은 사용자 문장과 세션·캐릭터·시스템 이벤트, 현재 읽기 전용 문맥을 포함한다.
+2. Understand는 신호만 구조화하고 상태를 변경하지 않는다.
+3. Evaluate는 후보별 `eligible`, score, constraint, contribution을 반환한다.
+4. Select는 결정적이며 상태를 변경하지 않는다.
+5. Plan만 `DialogueMove`와 FSM transition을 만든다.
+6. Present는 ResponsePlan·Sprite·Audio로 표현하며 선택 결과와 사실을 바꾸지 않는다.
+7. API는 의미 후보와 evidence span만 제안하고 최종 채택은 내부 로직이 수행한다.
+8. 각 소비 전환은 Replay와 shadow diff를 통과한 뒤 독립 변경으로 적용한다.
 
 ## MVP 이후 연기
 
@@ -633,9 +666,9 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 상태 | DONE |
 | 목적 | LLM 사용 여부와 관계없이 대화의 의미, 상태 변경, 다음 행동을 검증 가능한 JSON으로 관리 |
 | 범위 | `intent`, `entities`, `route`, `routeTags`, `statePatch`, `action`, `responseGoal`, `facts`, `forbidden`, `confidence` 최소 계약과 스키마 검증, 규칙 엔진 복구 경로 |
-| JSON 통제 | 대사 전문을 JSON에 저장하지 않고 입력 경로 태그, 공통 의미 계약과 소수 기본 템플릿만 유지. 전체 대화 대신 상태 요약만 WebLLM에 전달 |
-| 역할 경계 | 검색 API는 사실 수집, 코드는 상태·행동 결정과 대사 풀 선택, WebLLM은 구조화 의미 후보만 제안 |
-| 완료 조건 | 규칙 엔진과 선택적 LLM이 동일 계약을 사용하고, 잘못된 JSON은 상태를 변경하지 않으며, WebLLM 없이 기본 템플릿만으로 핵심 흐름을 완료 |
+| JSON 통제 | 대사 전문을 JSON에 저장하지 않고 입력 경로 태그, 공통 의미 계약과 소수 기본 템플릿만 유지 |
+| 역할 경계 | 검색 API는 사실 수집, 내부 코드는 Understand·Evaluate·Select·Plan 결정, Present는 대사·연출 표현 |
+| 완료 조건 | 잘못된 구조화 입력은 상태를 변경하지 않으며 외부 API 없이 기본 템플릿만으로 핵심 흐름을 완료 |
 | 구현 결과 | `validateDialogueTurn`이 intent/action/route/routeTags/statePatch/expression enum, confidence 범위, 필수 문자열과 배열을 검증한다. `buildDialogueTurn`은 응답이 비어도 action별 기본 템플릿으로 복구하며, 안전·퇴장·추천 취소·미등록 칵테일 흐름은 상태 변경 전에 계약 검증을 통과해야 한다. |
 
 #### DATA-801: 관리자 검증 큐와 미확정 칵테일 처리
@@ -692,7 +725,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | Phase 11 | 대사 출처 정상화 | DONE | 결정 로직과 표현 로직을 분리하고 중복 대사 출처 제거 | ResponsePlan-backed legacy dialogue category를 삭제하고 required legacy fallback은 의도적으로 유지한다. keyword-rule, response-template, story-query, welcome-drink, farewell-replies 표현 소유권과 Character QA 범위를 정리했다. Interaction Timeline, Rapport, WebLLM 런타임 통합은 후속 범위다. |
 | Phase 12 | WebLLM 의미 보조 | DONE | 자유대사 생성 없이 topic·stance·block·세션 태그를 구조화 제안 | 실제 Chrome에서 WebGPU 호환 GPU 미확보로 cold prepare가 약 375 ms에 실패·세션 비활성화됨. 격리·timeout 계약 테스트 통과 |
 | Phase 13 | Semantic Snapshot 활용 여부 검토 | DONE — 보류 | Phase 12 측정과 품질 기준을 근거로 Snapshot 활용 여부를 결정 | 현 환경의 준비 실패와 가치 대비 비용을 근거로 보류. 기존 규칙 기반 선택 유지, Action·Session 변경 금지 |
-| Phase 14 | ResponsePlan 보조 선택 | DEFERRED | 승인된 Snapshot hint로 기존 ResponsePlan 블록 조합을 보조 선택 | Phase 13 보류에 따라 착수하지 않음. 자유문장·사실·재료·효과 생성 금지 |
+| Phase 14 | ResponsePlan 보조 선택 | SUPERSEDED | 과거 Snapshot hint 계획 | DEC-029로 대체. 재개하지 않음 |
 | Phase 15 | 최종 캐릭터 QA | DONE | 전체 응답 경로의 카루아 말투와 캐릭터 일관성 확정 | 프로필 기반 말투 회귀를 전체 ResponsePlan·JSON·formatter·시에스타 카루아 대사·Action fallback으로 확대. 상담가·AI 도우미·고객센터형 표현 교체, 시에스타 런타임 활성 상태 유지. 826 tests pass |
 
 ### 현재 실행 우선순위와 Conversation QA gate (2026-07-13)
@@ -700,6 +733,7 @@ DEC-027에 따라 WebLLM은 구조화 의미 분석만 담당한다. JSON·DB·�
 | 우선순위 | 범위 | 완료 조건 |
 |---|---|---|
 | P0 — DONE | 대화 연속성 FSM, ContinuationResolver, 추천 문맥, PendingQuestion, SessionTopic | 실제 플레이 로그를 턴 배열로 실행해 Intent, Topic, PendingQuestion, Route, ResponsePlan, Expression, SessionAffect와 다음 snapshot을 모두 검증 |
+| P0.5 — DONE | Conversation Interruption/Resume, 질문 보존, 잡담 속 취향 추출, 주제별 응답, 추천 거부 후 대화 지속 | 새 모드 없이 추천 상태·대화 주제·중단 질문·추출 취향을 동시 유지하고 69 files / 856 tests, check, lint, build 통과 |
 | P1 — DONE | 제품 계약, 핵심 E2E, 추천 카드 계약, 카루아 명칭 | 기능 안정화 뒤 대표 사용자 흐름과 문서 계약이 일치하고 명칭·정보 책임이 단일화됨 |
 | P2 — DONE | 접근성, 모바일 UX, 모달, 전송 버튼 | 375 px 모바일에서 메뉴 dialog의 ESC 닫기·트리거 포커스 복귀·Tab 순환, 400 px 가상 키보드 높이에서 입력·전송 버튼 노출, Enter 전송을 실측 |
 | P3 — DONE | Controller, ResponsePlan data, DB 진입점 | 동작 계약을 유지하면서 책임 경계를 분리하고 전체 회귀 통과 |
@@ -744,6 +778,17 @@ Input
 - `SessionTopic`과 cocktail subject가 후속 이야기·정보 요청 동안 유지되고 명시적 새 대상에서 교체된다.
 - ResponsePlan 변경이 Intent, Route, 추천 결과, 세션 전이를 바꾸지 않는다는 회귀를 고정한다.
 - 실패 출력은 턴 번호와 각 단계의 기대값·실제값을 보여 문맥이 끊긴 경계를 바로 찾을 수 있어야 한다.
+
+#### P0.5 Conversation Expansion 완료 계약
+
+> 상태: **DONE (2026-07-22)** — conversation-expansion.test.ts와 세션·추천·라우터 회귀가 추천 중 대화 중단/복귀를 검증한다.
+
+- 칵테일 지식, 세계관, 카루아/시에스타, 감정·일상, 범용 지식 질문은 활성 추천 질문을 소비하지 않는다.
+- PendingQuestion은 유지하고 같은 값을 SuspendedQuestion으로 표시한다. 응답 뒤 저장된 질문 문구로 복귀한다.
+- “탄산은 별로지만 사이다는 좋아해”, “오늘은 독한 게 당겨” 같은 자유 입력 신호는 RecommendationState.extractedPreferences에 남아 후보 계산에 반영된다.
+- 범용 지식·세계관은 주제 전용 짧은 계약 응답을 사용해 무작위 잡담 fallback 의존을 줄인다.
+- “추천은 됐어”, “추천은 안 받을래”는 추천 FSM을 끝내고 conversation mode를 유지한다. 이후 추천받기로 새 추천에 재진입할 수 있다.
+- safety, farewell, 명시적 추천 답변과 질문 도움말·반복·건너뛰기·위임 우선순위는 기존 P0 계약을 유지한다.
 
 #### P1 제품 계약 완료 결과
 
@@ -808,7 +853,7 @@ Input
 - `text-presets.ts`와 `dialogues.json`을 완성 대사 저장소에서 ResponsePlan 저장소로 전환한다.
 - ResponsePlan은 `intent`, `speaker`, `state`, `request`, `block` 기준으로 조회할 수 있어야 한다.
 - 모든 `ResponsePlanLine`은 `text`와 `expression`을 직접 소유하며 문자열 line은 허용하지 않는다.
-- WebLLM 미지원·미준비·실패 시 사용할 `fallbackText`를 반드시 보존한다.
+- plan 선택·렌더링 실패 시 사용할 `fallbackText`를 반드시 보존한다.
 - Phase 10 완료 후에도 현재 규칙 기반 런타임만으로 전체 핵심 흐름이 동작해야 한다.
 - ResponsePlan 우선, 미이관 legacy fallback, JSON 제거 독립성을 슬라이스마다 검증한다.
 - 추천 결과·Action·SessionState·ConversationContext·story/lore 사실 선택은 ResponsePlan이 결정하지 않는다.
@@ -832,7 +877,7 @@ Input
 - 동일 의미의 완성 대사가 여러 출처에 중복 저장되지 않게 한다.
 - 모든 대사를 카루아 금지·권장 말투 계약으로 다시 검수한다.
 
-#### Phase 12: WebLLM 의미 보조
+#### Phase 12: WebLLM 의미 보조 — 과거 실험 기록
 
 - WebLLM은 topic·stance·ResponsePlan block 후보·세션 태그·rapport 힌트를 구조화 JSON으로만 제안한다.
 - 최종 문장을 생성하지 않으며 추천 결과, 칵테일 ID, 추천 이유, Action, 세션 상태를 변경할 수 없다.
@@ -840,19 +885,17 @@ Input
 - Phase 12에서는 WebLLM 결과를 현재 사용자에게 보이는 출력, ResponsePlan 선택, Recommendation, Action, FSM에 연결하지 않는다.
 - 개발 모드 관측은 `window.__RESTATION_WEBLLM__.snapshot()`으로 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 확인한다.
 - Phase 12 실측 결과: 실제 브라우저에서 prepare를 시도했으나 호환 GPU를 확보하지 못해 약 375 ms에 실패하고 세션이 비활성화됐다. 모델 다운로드는 시작되지 않았고 JSON/FSM 흐름은 유지됐다.
-- 지원 GPU에서의 prepare 성공, warm 재사용, 모델 다운로드 크기·속도 비교는 RST-602로 분리해 DEFERRED다. timeout·ON/OFF 격리·Recommendation/Action/FSM 불변은 자동 계약 테스트로 확인했다.
+- 지원 GPU 후속 측정은 DEC-029로 취소됐다. timeout·ON/OFF 격리·Recommendation/Action/FSM 불변은 당시 자동 계약 테스트로 확인했다.
 
-#### Phase 13: Semantic Snapshot 활용 여부 검토
+#### Phase 13: Semantic Snapshot 활용 여부 검토 — 과거 결정 기록
 
 - Phase 12 실측값, timeout·복구 결과, 의미 태그 품질을 근거로 Snapshot을 Phase 14에 연결할지 결정한다.
 - 이 단계에서는 현재 사용자 출력이나 ResponsePlan 선택을 변경하지 않는다.
 - 보류하면 이후 단계 없이 기존 JSON·규칙 선택을 유지한다.
 
-#### Phase 14: ResponsePlan 보조 선택
+#### Phase 14: ResponsePlan 보조 선택 — SUPERSEDED
 
-- 승인된 세션 태그와 block 후보만 이후 턴의 ResponsePlan 선택 힌트로 사용한다.
-- 힌트가 없거나 규칙과 충돌하면 기존 JSON 선택을 유지하고, WebLLM 분석 때문에 현재 응답을 기다리게 하지 않는다.
-- 내부 칵테일 DB를 단일 사실 출처로 유지하며, lore·재료·효과·레시피·최종 문장 생성은 금지한다.
+- DEC-029와 PIPE-800이 이 계획을 대체했다. 구현하거나 재개하지 않는다.
 
 #### Phase 15: 최종 캐릭터 QA
 

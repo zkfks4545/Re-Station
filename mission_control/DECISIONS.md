@@ -7,17 +7,17 @@
 | DEC-001 | 06-11 | 승인 | `mission_control/` 작업 운영 기준 | `8b99390` |
 | DEC-002 | 06-11 | 승인 | 카루아 중심 MVP, 시에스타 만담 이벤트 | `c83fa4b` |
 | DEC-003 | 06-11 | 승인 | 추천 결과·근거 = DB·규칙 엔진 결정 | `bc23714` |
-| DEC-004 | 06-11 | 보류 | WebLLM = Web Worker, 백엔드 없음 | `aa790b2` |
-| DEC-005 | 06-11 | 보류 | WebLLM 말투 포장 품질 기준 모델 평가 | `aa790b2` |
-| DEC-006 | 06-11 | 보류 | WebLLM 실패 시 확정 원본 답안 유지 | `aa790b2` |
+| DEC-004 | 06-11 | 대체 | WebLLM = Web Worker, 백엔드 없음 | DEC-029로 대체 |
+| DEC-005 | 06-11 | 대체 | WebLLM 말투 포장 품질 기준 모델 평가 | DEC-029로 대체 |
+| DEC-006 | 06-11 | 대체 | WebLLM 실패 시 확정 원본 답안 유지 | DEC-029로 대체 |
 | DEC-007 | 06-11 | 승인 | 시에스타 상시대화·캐릭터선택·게임 = MVP 이후 | `c83fa4b` |
 | DEC-008 | 06-11 | 승인 | `CHARACTER_DESIGN.md` 단일 기준 | `c83fa4b` |
 | DEC-009 | 06-11 | 승인 | 단일 `CocktailData` 컬렉션 | `dcbbda5` |
 | DEC-010 | 06-11 | 승인 | 이름 검색 → 취향 추천보다 우선 | `dcbbda5` |
-| DEC-011 | 06-11 | 보류 | WebLLM 말투 포장 + 지연 비용만 검증 | `aa790b2` |
+| DEC-011 | 06-11 | 대체 | WebLLM 말투 포장 + 지연 비용만 검증 | DEC-029로 대체 |
 | DEC-012 | 06-11 | 승인 | 시에스타 = 저빈도 만담 이벤트 | `c83fa4b` |
 | DEC-013 | 06-12 | 대체 | DEC-015로 폐기 | `aa790b2` |
-| DEC-015 | 06-13 | 승인 | WebLLM = 확정 답안 말투 포장 전용, 잠정 보류 | `aa790b2` |
+| DEC-015 | 06-13 | 대체 | WebLLM = 확정 답안 말투 포장 전용, 잠정 보류 | DEC-029로 대체 |
 | DEC-016 | 06-13 | 승인 | IBA 공식 레시피 URL+분류 기록 | `9393bf9` |
 | DEC-017 | 06-13 | 승인 | 추천 카드=중립문구, 대화창에만 카루아 멘트 | `003a5cd` |
 | DEC-018 | 06-13 | 승인 | 추천 4축(맛·도수·탄산·베이스), 롱숏 제외 | `c30ca49` |
@@ -27,10 +27,56 @@
 | DEC-022 | 06-22 | 승인 | DLG-807~809 전 신규기능 보류, 대사 수렴 우선 | `a8b42c1` |
 | DEC-023 | 06-23 | 승인 | 닫힌 세션(웰컴→추천→XYZ→Farewell→귀가) | `ced5870` |
 | DEC-024 | 06-24 | 승인 | 표시용 맛 스테이터스 감칠맛 제거 | `8c94c3b` |
-| DEC-025 | 07-02 | 승인 | WebLLM 실험 인프라 재연결, 준비·응답 기본 OFF, JSON 대화 우선 | 현재 작업 |
+| DEC-025 | 07-02 | 대체 | WebLLM 실험 인프라 재연결, 준비·응답 기본 OFF, JSON 대화 우선 | DEC-029로 대체 |
 | DEC-026 | 07-02 | 대체 | WebLLM 준비 기본 ON, 접속 직후 자동 다운로드 | DEC-027로 대체 |
-| DEC-027 | 07-02 | 승인 | WebLLM은 자유대사 생성 금지, 구조화 의미 분석과 세션 태그 제안만 담당 | 현재 작업 |
+| DEC-027 | 07-02 | 대체 | WebLLM은 자유대사 생성 금지, 구조화 의미 분석과 세션 태그 제안만 담당 | DEC-029로 대체 |
+| DEC-028 | 07-22 | 승인 | 추천 중 대화 확장은 새 모드가 아니라 추천 상태·대화 주제·중단 질문·추출 취향의 동시 유지로 구현 | 현재 작업 |
+| DEC-029 | 07-22 | 승인 | 전체 상호작용을 Input → Understand → Evaluate → Select → Plan → Present로 통일하고 WebLLM 중심 계획을 폐기 | 현재 작업 |
 | DISC-001 | 06-13 | 논의중 | JSON 대화 계약 (DLG-801/DATA-801/802 완료) | `eef6fd6` |
+
+---
+
+## DEC-029: 결정론적 상호작용 파이프라인
+
+Re:Station의 추천, 잡담, 스토리, 세션, 캐릭터 이벤트를 다음 단일 패턴으로 통일한다.
+
+```text
+Input
+→ Understand
+→ Evaluate
+→ Select
+→ Plan
+→ Present
+```
+
+- **Input**: 사용자 문장뿐 아니라 세션·캐릭터·시스템 이벤트와 현재 읽기 전용 문맥을 포함한다.
+- **Understand**: `InputUnderstanding`이 `PrimaryTopic`, `SpeechAct`, `PreferenceSignal`, `Entity`, `ControlIntent`, 턴 단위 `ConversationStateCue`를 근거와 confidence와 함께 구조화한다.
+- **Evaluate**: 칵테일, 다음 질문, 스토리 fact, 대화 전략, 캐릭터 이벤트 후보를 도메인별 순수 평가기로 평가한다. 공통 단계는 공유하지만 모든 도메인을 하나의 범용 후보 타입이나 평가기로 합치지 않는다.
+- **Select**: 하드 제약과 우선순위를 적용해 최종 후보를 결정적으로 선택하고 평가 근거를 보존한다.
+- **Plan**: 선택 결과를 `DialogueMove`와 FSM transition으로 변환한다. 상태 변경은 이 단계가 만든 transition을 reducer가 적용할 때만 발생한다.
+- **Present**: `ResponsePlan`이 이미 결정된 사실과 행동을 문장·표정으로 표현하고 Sprite·Audio cue를 구성한다. 추천, 상태, 사실을 다시 결정하지 않는다.
+
+단계 불변식:
+
+1. Understand, Evaluate, Select는 상태를 변경하지 않는다.
+2. Plan만 상태 transition을 만든다.
+3. Present는 결정된 결과를 표현하며 도메인 판단을 변경하지 않는다.
+4. 안전과 `ControlIntent`는 모든 일반 후보보다 우선한다.
+5. 동일 입력과 상태는 동일 평가·선택·계획을 만든다. 의도적 변이는 주입된 seed나 Present 내부 정책으로 제한한다.
+6. 후보 점수와 추천 이유는 같은 평가 contribution에서 파생한다.
+7. FSM 현재 상태는 Input 문맥으로 읽되 FSM 변경은 Plan 전까지 금지한다.
+
+WebLLM 중심 계획은 폐기한다. 현재 WebLLM 코드는 단계적으로 기본 번들·실행 경로에서 제거하며 과거 실험 기록만 보존한다. 외부 API는 미등록 은유·복합 발화·암시적 취향을 `SemanticCandidate`와 원문 evidence span으로 제안하는 선택적 보조 수단만 허용한다. API는 `ControlIntent`, FSM, 추천 결과, 후보 점수, 세계관·캐릭터 사실, `DialogueMove`, `ResponsePlan`, 최종 문장·표정·행동을 생성하거나 변경할 수 없다. 실패·시간 초과·검증 실패 시 상태를 바꾸지 않고 내부 확인 질문이나 기존 ResponsePlan으로 복구한다.
+
+마이그레이션은 전면 교체하지 않는다. 현재 P0.5를 기준선으로 보존하고 WebLLM 제거, Replay, InputUnderstanding shadow, Evaluate/Select, DialogueMove·FSM, 도메인별 점진 적용, 제한적 API 순서로 진행한다. `ResponseFragment`는 문장 증가와 반복 문제가 확인될 때까지 도입하지 않는다.
+
+DEC-004~006, DEC-011, DEC-015, DEC-025~027의 활성 WebLLM 방향을 이 결정으로 대체한다. DEC-028의 추천 중 대화 중단·복귀 계약은 유지한다.
+
+---
+
+## DEC-028: 추천 중 대화 중단과 복귀
+
+추천 질문 중 잡담·칵테일 지식·세계관·캐릭터·감정/일상 질문이 들어와도 별도 대화 모드를 만들지 않는다. RecommendationState와 기존 PendingQuestion을 보존하고, 현재 ConversationTopic, SuspendedQuestion, ExtractedPreferences를 함께 유지한다. 주제 응답 뒤 저장된 질문으로 복귀한다. 추천 거부는 FSM을 종료하되 일반 대화와 이후 새 추천 진입은 허용한다. safety와 farewell 우선순위는 바꾸지 않는다.
 
 ---
 

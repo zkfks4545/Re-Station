@@ -12,6 +12,10 @@ import { executeDialogueAction } from '@/lib/dialogue/action-executor.js'
 import { getFeedbackExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogue-service.js'
 import {
+  appendRecommendationResume,
+  classifyRecommendationInterruption,
+} from '@/lib/dialogue/conversation-expansion.js'
+import {
   formatWelcomeDrinkFeedbackReply,
   shouldHandleWelcomeDrinkFeedback,
   WELCOME_DRINK_FEEDBACK_QUESTION,
@@ -138,6 +142,7 @@ export function useRestationController(sfx?: SfxChannel) {
   } = useGuestPreferenceSession()
   const {
     activeQuestion,
+    captureExtractedPreferences,
     clearExcludedCocktailIds,
     excludeCocktailFromRecommendations,
     resetRecommendation,
@@ -443,16 +448,29 @@ export function useRestationController(sfx?: SfxChannel) {
       userMessageCountRef.current += 1
 
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
-      const dialogueResolution = resolveDialogueInput(text, nextMessages, forcedSessionMode)
+      const interruption = activeQuestion
+        ? classifyRecommendationInterruption(text, activeQuestion)
+        : null
+      const dialogueResolution = resolveDialogueInput(
+        text,
+        nextMessages,
+        interruption ? 'conversation' : forcedSessionMode,
+      )
       const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
-      const nextTopic = sessionTopicForRoute(routeResult.route)
+      const nextTopic = interruption?.topic ?? sessionTopicForRoute(routeResult.route)
       const recommendationQuestionInput = activeQuestion
         ? classifyRecommendationQuestionInput(text)
         : null
       if (!dialogueResolution.blockedBySession) {
         dispatchDialogueSession({ type: 'set-topic', topic: nextTopic, cocktailId: routeResult.matchedCocktailId ?? null })
       }
-      if (!preservesPendingRecommendationQuestion(recommendationQuestionInput)) {
+      if (interruption) {
+        captureExtractedPreferences(text)
+        dispatchDialogueSession({ type: 'suspend-question', topic: interruption.topic })
+      } else {
+        dispatchDialogueSession({ type: 'resume-question' })
+      }
+      if (!interruption && !preservesPendingRecommendationQuestion(recommendationQuestionInput)) {
         dispatchDialogueSession({ type: 'set-pending-question', question: null })
       }
       dispatchDialogueSession({
@@ -530,6 +548,14 @@ export function useRestationController(sfx?: SfxChannel) {
           bartenderReply(activeQuestion.prompt, 'thinking')
           return
         }
+      }
+
+      if (interruption?.contractReply && activeQuestion) {
+        bartenderReply(
+          appendRecommendationResume(interruption.contractReply, activeQuestion),
+          interruption.topic === 'worldview' ? 'smirk' : 'thinking',
+        )
+        return
       }
 
       // --- 세션 마감 처리(Farewell phase) ---
@@ -610,7 +636,12 @@ export function useRestationController(sfx?: SfxChannel) {
             phase: nextPhaseAfterRoute(routeResult.route, sessionPhase),
           })
         }
-        bartenderReply(directResponse.turn.reply, directResponse.turn.expression)
+        bartenderReply(
+          interruption && activeQuestion
+            ? appendRecommendationResume(directResponse.turn.reply, activeQuestion)
+            : directResponse.turn.reply,
+          directResponse.turn.expression,
+        )
         return
       }
 
@@ -723,7 +754,16 @@ export function useRestationController(sfx?: SfxChannel) {
             siestaCooldownRef.current -= 1
           }
 
-          bartenderReply(turn.reply, turn.expression, cocktail, 'idle', afterMessages, afterCocktailRevealed)
+          bartenderReply(
+            interruption && activeQuestion
+              ? appendRecommendationResume(turn.reply, activeQuestion)
+              : turn.reply,
+            turn.expression,
+            cocktail,
+            'idle',
+            afterMessages,
+            afterCocktailRevealed,
+          )
         } catch {
           sfx?.stopAll()
           setExpression('idle')
@@ -740,6 +780,7 @@ export function useRestationController(sfx?: SfxChannel) {
       bartenderReply,
       beginFarewell,
       clearPendingWork,
+      captureExtractedPreferences,
       conversationContext,
       dialogueSession,
       excludeCocktailFromRecommendations,

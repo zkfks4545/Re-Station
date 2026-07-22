@@ -22,6 +22,19 @@ describe('recommendation state', () => {
     expect(state.situations).toContain('after-work')
     expect(state.taste.sweetness).toBe(0.8)
     expect(state.alcoholPreference).toBe('low')
+    expect(state.extractedPreferences).toEqual(state.signals)
+  })
+
+  it.each([
+    ['탄산은 별로지만 사이다는 좋아해', 'taste.fizz', 0.1],
+    ['오늘은 독한 게 당겨', 'alcoholPreference', 'high'],
+  ])('reflects conversational preference %s in recommendation state', (input, field, value) => {
+    const state = applyRecommendationSignals(
+      createRecommendationState(),
+      extractRecommendationSignals(input),
+    )
+
+    expect(state.extractedPreferences).toContainEqual(expect.objectContaining({ field, value }))
   })
 
   it('filters excluded ingredients and returns evidence-based reasons', () => {

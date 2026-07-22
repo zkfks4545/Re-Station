@@ -16,7 +16,7 @@ export type FarewellEntryKind =
   | 'welcome-farewell-xyz'
   | 'standard'
 
-export type SessionTopic =
+export type ConversationTopic =
   | 'none'
   | 'recommendation'
   | 'cocktail-story'
@@ -24,7 +24,14 @@ export type SessionTopic =
   | 'ingredient'
   | 'recipe'
   | 'smalltalk'
+  | 'world-building'
+  | 'character'
+  | 'daily-life'
+  | 'worldview'
+  | 'knowledge'
   | 'safety'
+
+export type SessionTopic = ConversationTopic
 
 export interface PendingQuestion {
   kind: 'recommendation-flavor' | 'recommendation-strength' | 'recommendation-base' | 'recommendation-carbonation' | 'clarification'
@@ -32,6 +39,8 @@ export interface PendingQuestion {
   askedAtTurn: number
   sourcePlanId?: string
 }
+
+export type SuspendedQuestion = PendingQuestion
 
 export interface DialogueSessionState {
   phase: SessionPhase
@@ -42,6 +51,7 @@ export interface DialogueSessionState {
   sessionTopic: SessionTopic
   topicCocktailId: string | null
   pendingQuestion: PendingQuestion | null
+  suspendedQuestion: SuspendedQuestion | null
   safetyLocked: boolean
   dialogue: {
     turnCount: number
@@ -67,6 +77,8 @@ export type DialogueSessionAction =
   | { type: 'set-session-affect'; affect: SessionAffectSnapshot }
   | { type: 'set-topic'; topic: SessionTopic; cocktailId?: string | null }
   | { type: 'set-pending-question'; question: PendingQuestion | null }
+  | { type: 'suspend-question'; topic: Exclude<ConversationTopic, 'none' | 'recommendation' | 'safety'> }
+  | { type: 'resume-question' }
   | { type: 'record-conversation-turn'; recommendationPrompted: boolean }
   | { type: 'reset-conversation-progress' }
   | { type: 'welcome-served' }
@@ -87,6 +99,7 @@ export function createDialogueSessionState(
     sessionTopic: 'none',
     topicCocktailId: null,
     pendingQuestion: null,
+    suspendedQuestion: null,
     safetyLocked: false,
     dialogue: {
       turnCount: 0,
@@ -122,6 +135,7 @@ export function dialogueSessionReducer(
         ...state,
         mode: action.mode,
         pendingQuestion: action.mode === 'conversation' ? null : state.pendingQuestion,
+        suspendedQuestion: action.mode === 'conversation' ? null : state.suspendedQuestion,
       }
     case 'set-session-affect':
       return { ...state, ...action.affect }
@@ -132,7 +146,23 @@ export function dialogueSessionReducer(
         topicCocktailId: action.cocktailId === undefined ? state.topicCocktailId : action.cocktailId,
       }
     case 'set-pending-question':
-      return { ...state, pendingQuestion: action.question }
+      return {
+        ...state,
+        pendingQuestion: action.question,
+        suspendedQuestion: action.question === null ? null : state.suspendedQuestion,
+      }
+    case 'suspend-question':
+      return {
+        ...state,
+        sessionTopic: action.topic,
+        suspendedQuestion: state.pendingQuestion,
+      }
+    case 'resume-question':
+      return {
+        ...state,
+        sessionTopic: state.pendingQuestion ? 'recommendation' : state.sessionTopic,
+        suspendedQuestion: null,
+      }
     case 'record-conversation-turn':
       return {
         ...state,
@@ -164,6 +194,7 @@ export function dialogueSessionReducer(
         sessionTopic: action.cocktailId ? 'cocktail-info' : state.sessionTopic,
         topicCocktailId: action.cocktailId ?? state.topicCocktailId,
         pendingQuestion: null,
+        suspendedQuestion: null,
       }
     case 'set-alcohol-total':
       return {
@@ -179,6 +210,7 @@ export function dialogueSessionReducer(
         sessionTopic: 'safety',
         topicCocktailId: null,
         pendingQuestion: null,
+        suspendedQuestion: null,
         safetyLocked: true,
         welcomeDrink: { ...state.welcomeDrink, resolved: true },
         farewell: { entryKind: 'none', turnCount: 0 },
@@ -193,6 +225,7 @@ export function dialogueSessionReducer(
         sessionTopic: 'smalltalk',
         topicCocktailId: null,
         pendingQuestion: null,
+        suspendedQuestion: null,
         welcomeDrink: {
           ...state.welcomeDrink,
           resolved: true,

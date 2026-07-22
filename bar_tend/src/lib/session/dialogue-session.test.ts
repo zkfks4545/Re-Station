@@ -119,6 +119,41 @@ describe('DialogueSessionState', () => {
     expect(state.topicCocktailId).toBeNull()
   })
 
+  it('keeps the pending question while a conversation topic temporarily suspends it', () => {
+    const question = { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 } as const
+    let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-mode', mode: 'recommendation',
+    })
+    state = dialogueSessionReducer(state, { type: 'set-pending-question', question })
+    state = dialogueSessionReducer(state, { type: 'suspend-question', topic: 'worldview' })
+
+    expect(state).toMatchObject({
+      mode: 'recommendation', sessionTopic: 'worldview',
+      pendingQuestion: question, suspendedQuestion: question,
+    })
+
+    state = dialogueSessionReducer(state, { type: 'resume-question' })
+    expect(state).toMatchObject({
+      mode: 'recommendation', sessionTopic: 'recommendation',
+      pendingQuestion: question, suspendedQuestion: null,
+    })
+  })
+
+  it('can re-enter recommendation after a refusal closes the previous question', () => {
+    let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-mode', mode: 'recommendation',
+    })
+    state = dialogueSessionReducer(state, {
+      type: 'set-pending-question',
+      question: { kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1 },
+    })
+    state = dialogueSessionReducer(state, { type: 'set-mode', mode: 'conversation' })
+    expect(state).toMatchObject({ mode: 'conversation', pendingQuestion: null })
+
+    state = dialogueSessionReducer(state, { type: 'set-mode', mode: 'recommendation' })
+    expect(state.mode).toBe('recommendation')
+  })
+
   it('moves the session subject to the served cocktail for follow-up questions', () => {
     const served = dialogueSessionReducer(createDialogueSessionState('recommending'), {
       type: 'cocktail-served', cocktailId: 'paloma',

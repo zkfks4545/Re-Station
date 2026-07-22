@@ -80,6 +80,7 @@ export interface RecommendationState {
   excludedIngredients: string[]
   questionHistory: QuestionHistoryEntry[]
   signals: RecommendationSignal[]
+  extractedPreferences: RecommendationSignal[]
 }
 
 export type RecommendationRoute =

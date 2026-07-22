@@ -1,6 +1,6 @@
 # 인수인계
 
-> 최종 갱신일: 2026-07-20
+> 최종 갱신일: 2026-07-22
 > 목적: 다음 작업자가 추가 질문 없이 바로 이어받을 수 있는 행동 맥락만 남긴다.
 
 ## 1. 먼저 읽을 문서
@@ -26,22 +26,26 @@
 
 ## 3. 다음 행동
 
-1. `AUD-001`의 자동 QA는 완료됐다. 브라우저 연결이 가능해지면 실제 재생·음소거·볼륨 복원·모바일 음악 탭만 검수한다.
-2. `SPR-003`은 완료됐다. 시에스타 이벤트는 데이터가 보존된 런타임 OFF 상태다. `SIESTA.md`의 재활성화 게이트를 먼저 검토하고, `SPR-004`는 시에스타 기준 디자인·최소 5개 슬롯 에셋을 승인받은 뒤 착수한다.
-3. 코드 작업을 시작하기 전에 관련 도메인 문서와 기존 테스트 계약을 확인한다.
-4. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`만 갱신한다.
-5. `SPR-004~005`, `FLOW-003`, WebLLM RST-602~606은 승인 또는 환경 조건 전까지 착수하지 않는다.
+1. 다음 구조 작업은 `PIPE-801` 기준선 고정부터 시작한다. P0.5 현재 변경과 전체 회귀를 먼저 보존한다.
+2. `PIPE-802`에서 WebLLM 런타임과 의존성을 제거한 뒤 멈추고 전체 테스트·빌드·asset 차이를 검증한다. classifier 개편을 같은 변경에 섞지 않는다.
+3. `PIPE-803` Replay를 만든 뒤 `PIPE-804` InputUnderstanding을 shadow로 실행한다. Replay 승인 전 FSM 소비자를 전환하지 않는다.
+4. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
+5. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.
+6. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`를 갱신한다.
 
 ## 4. 주의사항
 
 - 카루아 대사는 상담원식 위로가 아니라 관찰, 짧은 농담, 한 잔 권유의 흐름을 유지한다.
 - `persona.ts`를 JSON 어댑터로 대체하지 않는다.
-- WebLLM은 최종 대사, 추천 결과, 세션 상태, Action을 생성하거나 변경하지 않는다.
-- WebLLM 의미 태그는 현재 ResponsePlan 선택과 사용자 출력에 연결되지 않는다. 향후 승인되더라도 검증된 낮은 우선순위 힌트로만 사용할 수 있다.
+- DEC-029가 DEC-004~006, DEC-011, DEC-015, DEC-025~027의 활성 WebLLM 방향을 대체한다. RST-602~606과 Phase 14를 재개하지 않는다.
+- 공통 구조는 `Input → Understand → Evaluate → Select → Plan → Present`다. 공통 단계만 공유하고 도메인 후보 타입과 평가기를 하나로 합치지 않는다.
+- Understand, Evaluate, Select는 상태를 변경하지 않는다. Plan만 DialogueMove와 FSM transition을 만들며 Present는 ResponsePlan·Sprite·Audio로 표현만 담당한다.
+- 외부 API는 의미 후보와 evidence span만 제안할 수 있고 상태·추천·사실·행동·최종 표현을 결정할 수 없다.
 - safety-alert는 추천, 주문, 웰컴, farewell, 농담, 캐릭터 대사보다 우선한다.
 - `ResponsePlanLine`은 `text`와 `expression`을 직접 소유해야 한다.
 - Farewell 이후 신규 주문·추천은 차단하고, 귀가 흐름은 세션 도메인의 정책을 따른다.
 - 기존 사용자의 변경이나 미커밋 변경을 임의로 되돌리지 않는다.
+- 추천 중 잡담을 처리할 때 mode를 추가하거나 PendingQuestion을 지우지 않는다. 취소·추천 완료·safety·farewell만 질문 문맥을 닫는다.
 
 ## 5. 검증 기준
 

@@ -1,6 +1,6 @@
 # 프로젝트 구조
 
-> 최종 갱신일: 2026-06-30
+> 최종 갱신일: 2026-07-22
 > 실제 애플리케이션 경로: `bar_tend/`
 
 ## 프로젝트 개요
@@ -18,7 +18,7 @@ Re:Station은 브라우저에서 실행되는 단일 페이지 웹 애플리케�
 | 정적 데이터 | JSON, TypeScript 모듈 |
 | 브라우저 저장소 | `localStorage` |
 | 린트 | ESLint 10, typescript-eslint |
-| 외부 연동 후보 | TheCocktailDB, WebLLM |
+| 외부 연동 후보 | TheCocktailDB, 제한적 same-origin 의미 보조 API |
 | 테스트 | Vitest, 데이터 계약 및 검색 우선순위 회귀 테스트 |
 
 ## 폴더 구조
@@ -64,6 +64,7 @@ prac/
 | 대화 엔진 | 키워드 규칙과 대화 문맥 기반 응답 생성 | `src/lib/bartender/engine.ts`, `conversation.ts`, `keywords.ts` |
 | 만담 이벤트 엔진 | 안전한 구간에서 시에스타 이벤트 발생 여부와 짧은 발화 시퀀스 결정 | 목표: `src/domain/character/events/` |
 | 추천 세션 | 후보군, 질문 진행, 최종 선택 흐름 연결 | `src/hooks/useRecommendationSession.ts` |
+| 추천 중 대화 확장 | 활성 추천 질문 중 주제 전환, 질문 보존, 주제 응답 뒤 복귀 | `src/lib/dialogue/conversation-expansion.ts` |
 | 추천 상태와 근거 | 기분, 상황, 취향, 제약, 질문 이력, 구조화 근거 관리 | `src/lib/recommendation/state.ts`, `src/types/recommendation.ts` |
 | 추천 질문 엔진 | JSON 질문 정의, 취향 신호 수집, 상태·이력·후보 분별력 기반 다음 질문, 최종 선택 | `src/data/recommendation-questions.json`, `src/lib/recommendation/question-engine.ts` |
 | 칵테일 데이터 계층 | JSON 데이터 접근, 단일 `CocktailData` 구성, 검색과 순위화 | `src/lib/cocktails/database.ts`, `cocktail-db.ts` |
@@ -80,11 +81,12 @@ prac/
 4. 명시적 lore/person/media 단서가 있으면 lore 참조 검색이 DB 근거로 대상 칵테일을 먼저 확정한다. 결과가 있는 주문은 `lore-based-order`가 되며 대명사 컨텍스트보다 우선한다.
 5. Conversation Context가 직전 논의·추천·서빙·주문 후보 칵테일을 제공하고, 서비스 내부 Action Resolver가 통합 분류 결과를 `order`, `loreBasedOrder`, `recommend`, `continueStory`, `discuss`, `respond` 행동으로 변환한다. 서비스는 세션 차단을 먼저 판정하며, 허용된 행동에만 Context 이벤트와 직접 응답 턴을 반환한다.
 6. 안전 입력은 퇴장과 추천보다 먼저 규칙 기반 안전 응답으로 전달한다.
-7. 이름 검색 결과가 없고 추천 의도이면 `recommendation/question-engine.ts`가 현재 후보군을 필터링하고 다음 질문 또는 결과를 정한다.
-8. 추천 엔진과 UI는 초기 로딩 시 구성된 동일한 `CocktailData` 객체를 사용한다.
-9. 대사 트리거 계층은 확정된 추천 결과, 입력 경로 태그, 현재 FSM 상태, 감정 상태를 받아 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 선택한다. 칵테일 ID는 제조·서빙 문장의 변수로 결합하며 추천 결과를 다시 계산하지 않는다.
-10. 추천 엔진이 계산한 결과는 `DialogueService.buildMainTurn()`에서 최종 DialogueTurn으로 조립·검증한 뒤 메시지에 표시한다. `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시하고 도감 해제 ID도 저장한다.
-11. 추천 질문과 안전 흐름이 아닌 구간에는 이벤트 엔진이 시에스타 만담 이벤트 발생 여부를 판단할 수 있다.
+7. 활성 추천 질문 중 잡담·지식·세계관·캐릭터·감정/일상 질문은 추천 답변으로 소비하지 않는다. RecommendationState와 PendingQuestion을 유지하고 ConversationTopic과 SuspendedQuestion을 기록한 뒤, 주제 응답 마지막에 저장 질문으로 복귀한다.
+8. 이름 검색 결과가 없고 추천 의도이면 `recommendation/question-engine.ts`가 현재 후보군을 필터링하고 다음 질문 또는 결과를 정한다.
+9. 추천 엔진과 UI는 초기 로딩 시 구성된 동일한 `CocktailData` 객체를 사용한다.
+10. 대사 트리거 계층은 확정된 추천 결과, 입력 경로 태그, 현재 FSM 상태, 감정 상태를 받아 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 선택한다. 칵테일 ID는 제조·서빙 문장의 변수로 결합하며 추천 결과를 다시 계산하지 않는다.
+11. 추천 엔진이 계산한 결과는 `DialogueService.buildMainTurn()`에서 최종 DialogueTurn으로 조립·검증한 뒤 메시지에 표시한다. `CocktailCard`는 DB 기반 중립 설명과 기존 상세 정보를 표시하고 도감 해제 ID도 저장한다.
+12. 추천 질문과 안전 흐름이 아닌 구간에는 이벤트 엔진이 시에스타 만담 이벤트 발생 여부를 판단할 수 있다.
 
 ### 시에스타 이벤트 상태 흐름
 
@@ -134,7 +136,8 @@ IDLE
 | React 및 React DOM | 주 실행 경로에서 사용 |
 | TheCocktailDB | 과거 정적 데이터 생성·보강 출처. 현재 런타임 API 모듈은 제거됨 |
 | IBA 공식 칵테일 목록 | 클래식 칵테일 레시피 수치와 공식 분류 출처. URL을 정적 데이터에 기록 |
-| WebLLM | idle 시 Worker 준비, 구조화 의미 분석 기본 OFF, Semantic Snapshot 전용, 최종 대사 생성 금지 |
+| WebLLM | 현재 기본 OFF 실험 코드가 남아 있으나 DEC-029에 따라 제거 예정 |
+| 제한적 의미 보조 API | 아직 미구현. 향후 의미 후보와 evidence span만 제안 가능 |
 | 외부 이미지 URL | 일부 칵테일 이미지에 사용 |
 | 지도 링크 | 시그니처 칵테일의 제휴 바 위치에 사용 |
 
@@ -143,7 +146,8 @@ IDLE
 | 위험 | 근거 | 영향 |
 |---|---|---|
 | 컨트롤러 통합 검증 한계 | 도메인·서비스 단위 테스트는 확장됐지만 React 컨트롤러 전체 흐름은 주로 하위 계약 테스트에 의존 | 세션 reducer와 UI 부수효과 연결의 통합 회귀 위험 |
-| WebLLM 실제 대화 미연결 | 준비·검증·폴백·관측 인프라는 있으나 DialogueService 출력, ResponsePlan 선택, Recommendation, Action, FSM에는 연결하지 않음 | JSON 대화는 동일하게 유지되며 생성형 표현은 실험 API로만 검증 가능 |
+| 분산된 입력 판단 | IntentClassifier, router, recommendation, reaction, continuation, conversation expansion이 일부 판정을 중복 소유 | 복합 발화 충돌과 단계별 회귀 원인 추적이 어려움 |
+| WebLLM 실험 코드 잔존 | 결정 경로에는 미연결이나 런타임·의존성·빌드 청크가 남아 있음 | PIPE-802에서 제거 필요 |
 
 `useRestationController`의 응답 준비, 타이핑, 추천 카드, 화면 흔들림, 퇴장 지연 작업은 관리형 타이머 레지스트리를 사용한다. 퇴장, 초기화, 컴포넌트 언마운트 시 남은 작업을 모두 취소하며, 처리 상태는 `idle`, `processing`, `typing`, `exiting` 중 하나로 유지한다.
 
@@ -151,7 +155,7 @@ IDLE
 
 - [ ] 배포 환경과 실제 운영 URL
 - [ ] 지원 브라우저와 최소 화면 크기
-- [ ] 실제 WebLLM 지원 Qwen 및 Gemma 후보와 배포 모델 아티팩트
+- [ ] 제한적 의미 보조 API의 공급자, same-origin 프록시, 예산, 개인정보 정책
 - [ ] TheCocktailDB 데이터를 갱신하는 운영 절차
 - [ ] IBA 공식 목록 변경 시 기존 레시피를 재검수하는 운영 절차
 - [ ] 사용자 분석, 오류 추적, 성능 측정 도구
@@ -159,37 +163,37 @@ IDLE
 
 ## 목표 구조
 
-현재 구조는 분석 당시의 실제 구현을 설명한다. 향후 개편 목표는 아래와 같다.
+현재 구조는 위의 실제 구현을 설명한다. 승인된 목표 구조는 모든 상호작용이 같은 단계와 불변식을 공유하는 결정론적 파이프라인이다.
 
 ```text
-src/
-├─ domain/
-│  ├─ character/          # 캐릭터 계약, 발화 정책, 규칙 응답
-│  ├─ cocktails/          # 단일 칵테일 데이터 계약
-│  ├─ dialogue/           # 입력 경로 태그, 대사 풀 트리거, 반복 방지
-│  └─ recommendation/     # 입력 구조화, 후보 계산, 추천 근거
-├─ services/
-│  └─ dialogue/
-│     ├─ rule-engine/     # 항상 사용 가능한 복구 경로
-│     └─ webllm/          # Web Worker 기반 표현 계층
-├─ hooks/
-│  ├─ useDialogueSession
-│  ├─ useRecommendationSession
-│  └─ useCocktailCollection
-└─ components/
-   ├─ chat/
-   └─ recommendation/
+TurnInput + CurrentContext
+→ Understand: InputUnderstanding
+→ Evaluate: 도메인 후보 평가
+→ Select: 결정적 최종 선택
+→ Plan: DialogueMove + FSM transition
+→ Present: ResponsePlan + Sprite + Audio
 ```
 
 ### 목표 데이터 흐름
 
-1. 사용자 입력에서 기분, 상황, 취향 신호를 구조화한다.
-2. 입력 라우터가 주문 방식과 도달 경로를 `route`와 `routeTags`로 저장한다.
-3. 추천 엔진이 현재 추천 상태와 질문 이력을 바탕으로 일반적으로 2~3개의 추가 질문 주제를 결정한다.
-4. 추천 엔진이 DB에서 칵테일과 추천 근거를 결정한다.
-5. 대사 트리거 계층이 `route`, `routeTags`, `dialogueState`, `affectState`, 최근 사용 대사 이력을 기준으로 대사 풀, 말투, 표정 스프라이트, 애니메이션 클립을 고른다.
-6. 규칙 엔진이 선택된 대사 템플릿에 칵테일명, 재료, 맛 태그, 추천 근거를 치환해 표현한다.
-7. UI가 경로 기반 추천 대사, 감정 스프라이트, 애니메이션 상태, 상세 정보 카드를 분리해 표시한다.
+1. Input은 사용자 문장과 세션·캐릭터·시스템 이벤트, 현재 읽기 전용 문맥을 정규화한다.
+2. Understand는 `PrimaryTopic`, `SpeechAct`, `PreferenceSignal`, `Entity`, `ControlIntent`, `ConversationStateCue`를 evidence와 confidence와 함께 반환한다.
+3. Evaluate는 칵테일, 질문, 스토리 fact, 대화 전략, 이벤트 후보별 `eligible`, score, hard constraint, contribution을 계산한다.
+4. Select는 안전·ControlIntent·하드 제약을 우선해 최종 후보를 결정적으로 선택한다.
+5. Plan은 선택 결과를 `DialogueMove`와 FSM transition으로 변환한다. reducer가 transition을 적용하기 전까지 상태를 변경하지 않는다.
+6. Present는 ResponsePlan으로 문장과 expression을 정하고 Sprite와 Audio cue를 구성한다. 이미 선택된 결과와 사실을 바꾸지 않는다.
+
+공통 파이프라인은 단계의 순서, 입출력 경계, 불변식만 공유한다. 칵테일, 질문, 스토리 fact, 대화 전략, 캐릭터 이벤트를 하나의 범용 후보 타입이나 범용 평가기에 합치지 않는다.
+
+### 단계 불변식
+
+- Understand, Evaluate, Select는 읽기 전용이며 상태를 변경하지 않는다.
+- Plan만 상태 transition을 만든다.
+- Present는 표현만 담당한다.
+- 후보 점수와 추천 이유는 같은 evaluation contribution에서 파생한다.
+- 동일 입력과 상태는 동일한 평가·선택·계획을 만든다.
+- 의도적 문장 변이는 Present 내부에서만 다루며 도메인 선택을 바꾸지 않는다.
+- 각 단계 출력은 Replay에서 독립 비교할 수 있어야 한다.
 
 ### 대사·스프라이트 상태 축
 
@@ -207,12 +211,14 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 
 ### 단계적 질문 구조
 
+추천 중 대화 확장은 새 session mode를 만들지 않는다. RecommendationState + ExtractedPreferences, ConversationTopic, PendingQuestion + SuspendedQuestion을 동시에 유지한다. 범용 지식·세계관은 제한된 전용 계약 응답을 사용하고, 칵테일 지식·캐릭터·감정/일상은 기존 DB/ResponsePlan 경로를 우선한다. 추천 취소만 FSM을 닫고 일반 대화로 돌아가며 이후 재진입을 허용한다.
+
 ```text
 추천 상태 + 질문 이력
 └─ 추천 엔진: 다음 질문 주제 결정
-   ├─ WebLLM 도입 전: JSON 질문의 카루아식 문구와 선택지 표시
-   └─ WebLLM 재개 후: topic·stance·block·세션 태그만 구조화 제안
-      └─ 추천 엔진이 허용 값, 신뢰도, 충돌을 검증한 뒤 상태 반영
+   ├─ Evaluate: 후보 분리도·답변 난이도·문맥 연속성·질문 피로도 평가
+   ├─ Select: 결정적 다음 질문 선택
+   └─ Plan: PendingQuestion 또는 최종 추천 transition 생성
 ```
 
 - 질문 JSON은 주제, 카루아식 반응, 질문 문구, 선택지, 상태 갱신 규칙을 포함한다.
@@ -229,7 +235,7 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 - 질문 상태 계약, 자유 입력 해석, 추천 결정권은 규칙 엔진에 남는다.
 - 추천 질문 JSON은 중립적인 질문·선택 확인 문장과 구조화 신호만 보관하며 캐릭터 말투를 포함하지 않는다.
 - 런타임 기본 응답은 실제 직원이 짧게 응대하는 자연스러운 존댓말을 사용하며 내부 상태, 처리 과정, 콜센터식 문구를 반복하지 않는다. 캐릭터 프롬프트와 예문은 출력하지 않고 JSON 대사 블록과 ResponsePlan 자산으로 보존한다.
-- WebLLM은 `RecommendationSignal` 후보를 만들거나 `RecommendationState`를 변경하지 않는다.
+- 외부 API는 검증 전 `PreferenceSignal` 후보와 evidence span만 제안할 수 있으며 `RecommendationState`를 직접 변경하지 않는다.
 - 추천 결과는 `RecommendationDecision`으로 칵테일, 검증된 상태, 데이터 기반 근거를 함께 반환한다.
 - 대화 소재는 추천된 칵테일 ID가 아니라 입력 경로가 결정한다. 같은 칵테일도 직접 이름 주문, 감정·무드 주문, 취향 추론, 재료·베이스 언급, 랜덤 추천에 따라 다른 대사 풀을 사용한다.
 - FSM 상태는 대사 소재가 아니라 말투, 발화 리듬, 애니메이션 클립을 결정한다. 감정 상태는 표정 스프라이트와 세부 어조를 결정한다.
@@ -242,30 +248,28 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 
 | 영역 | 원칙 |
 |---|---|
-| 백엔드 | MVP에서 사용하지 않음 |
-| WebLLM | 실험 의미 보조만 재개. 준비 기본 ON·분석 기본 OFF, 자유대사 생성 금지 |
-| 추천 엔진 | WebLLM과 독립적으로 동작 |
-| 모델 후보 | Qwen 및 Gemma를 평가 후 선택 |
-| 복구 경로 | WebGPU 미지원, 모델 미준비, 오류 시 규칙 엔진 |
-| 지연 로딩 | 측정 결과에 따라 WebLLM, 현재 번들 데이터, 부가 패널에 선택 적용 |
+| 내부 엔진 | Understand 이후 모든 Evaluate·Select·Plan 결정을 소유 |
+| 상태 변경 | Plan이 만든 transition을 reducer가 적용할 때만 허용 |
+| Present | ResponsePlan + Sprite + Audio. 결정된 결과를 변경하지 않음 |
+| WebLLM | 실행 경로와 의존성 제거, 과거 실험 기록만 보존 |
+| 외부 API | 실제 연결 시 same-origin 프록시 사용. 의미 후보와 evidence span만 제안 |
+| 복구 경로 | API 미사용·오류·시간 초과·검증 실패 시 상태 불변, 내부 확인 질문 또는 기존 ResponsePlan |
 
-### WebLLM 체감 지연 구조
+### 제한적 의미 보조 경계
 
 ```text
-사용자 입력
-├─ 즉시: 표정/타이핑 상태 + 규칙 엔진 첫 반응
-├─ 즉시: 추천 엔진 결과 및 카드 표시
-└─ Worker: WebLLM 구조화 의미 분석
-   ├─ 성공: 검증된 태그를 이후 ResponsePlan 선택 힌트로 저장
-   └─ 시간 초과/오류: 결과 폐기, 규칙 응답 유지
+내부 Understand가 낮은 confidence의 미등록 은유·복합 발화·암시적 취향 감지
+└─ SemanticAssistPort
+   ├─ 성공: SemanticCandidate + confidence + 원문 evidence span
+   │  └─ Validator와 내부 reconciler가 채택 여부 결정
+   └─ 시간 초과/오류/검증 실패: 결과 폐기, 상태 불변, 내부 fallback
 ```
 
-- OpenAI API와 Ollama 런타임은 사용하지 않는다.
-- 모델 초기화와 KV 캐시는 세션 동안 유지한다.
-- 프롬프트와 출력 토큰을 제한하고, 요청별 시간 예산과 취소를 지원한다.
-- 초기 렌더 뒤 capability 검사를 통과하면 WebLLM 패키지를 동적으로 불러와 Worker 준비를 시작한다. 준비 작업은 렌더링과 JSON 대화를 차단하지 않는다.
-- WebLLM 출력은 허용 목록으로 검증된 topic, stance, response block, session tag, rapport hint, confidence만 사용할 수 있다. 자유문장, 잘못된 JSON, 알 수 없는 태그는 폐기한다.
-- 개발 모드 관측 API는 `window.__RESTATION_WEBLLM__.snapshot()`이며 enabled, prepared, sessionTags, lastResult, lastFailure, statistics를 노출한다.
+- API는 safety, ControlIntent, FSM, 추천 결과, 후보 점수, 세계관·캐릭터 사실, DialogueMove, ResponsePlan, 최종 문장·표정·행동을 제안할 수 없다.
+- 명시 취향, 알려진 엔티티, 정상 추천 질문 응답에는 API를 호출하지 않는다.
+- API 제안은 내부 명시 근거보다 낮은 우선순위다.
+- 실제 공급자 연결 전에는 validator, fake/no-op adapter, 호출 자격 판정만 구현한다.
+- 브라우저 번들에 공급자 secret을 포함하지 않는다.
 
 ### 캐릭터 대화 구조 목표
 
@@ -275,7 +279,7 @@ character/
 ├─ rule-engine/           # 의도와 상황을 캐릭터 대사로 변환
 ├─ dialogue-triggers/     # 입력 경로 기반 대사 풀, FSM 말투, 감정 스프라이트, 반복 방지
 ├─ events/                # 시에스타 난입, 만담, 업무복귀 퇴장, 쿨다운
-├─ prompts/               # WebLLM 시스템 프롬프트 구성
+├─ presentation/          # ResponsePlan, expression, Sprite, Audio cue
 └─ evaluation/            # 캐릭터별 대표 상황과 실패 판정
 ```
 
