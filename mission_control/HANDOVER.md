@@ -32,7 +32,7 @@
 4. `PIPE-804` Understand 계약은 구현 커밋 `daae94c`로 완료됐다. shadow 계약만 존재하며 843 tests, check, lint, build가 통과했다.
 5. `PIPE-805` Evaluate·Select·Plan shadow는 구현 커밋 `a6129f7`로 완료됐다. legacy 선택을 감싼 비소비 계약이며 859 tests, check, lint, build가 통과했다.
 6. `PIPE-806-A` safety·ControlIntent 소비는 구현 커밋 `f691adf`로 완료됐다. route/Move 일치 gate와 fallback을 유지하며 861 tests, check, lint, build가 통과했다.
-7. `PIPE-806-B` topic·speech·entity 소비는 `507abfc`, story→recommendation active session 소유권 수정은 `ea3527c`로 완료됐다. 첫 질문 원자 전환과 stale payload 거부를 포함해 868 tests, check, lint, build가 통과했다.
+7. `PIPE-806-B` topic·speech·entity 소비는 `507abfc`, active session 수정은 `ea3527c`, 카루아 취향 질문·조사 보정은 `a02abe8`로 완료됐다. 24개 질문 fixture를 포함해 902 tests, check, lint, build가 통과했다.
 8. 다음 작업은 `PIPE-806-C` PreferenceEvidence 소비다. 기존 `captureExtractedPreferences` 결과와 projection을 Replay로 비교하고 Pending/SuspendedQuestion 계약은 동시에 바꾸지 않는다.
 9. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
 10. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.

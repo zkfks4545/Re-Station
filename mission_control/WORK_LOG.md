@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-B.2 카루아 취향 질문·조사 보정
+
+- 구현 커밋: `a02abe8` (`feat: add Karua preference responses`).
+- 카루아에게 묻는 취향 질문 24개 fixture를 character route로 우선 분류한다. Understand는 `SpeechAct=ask-character-preference`, `TargetEntity=character:kahlua`, `Topic=drink|general`을 근거 span과 함께 반환한다.
+- drink는 커피 리큐르 취향, general은 조용한 시간·꼬이지 않는 주문이라는 고정 캐릭터 사실을 두 전용 ResponsePlan에서 반환한다. 기존 identity·시에스타·범용 잡담 응답은 유지한다.
+- text preset의 `을/를`, `으로/로`를 종성에 맞게 결합하고 `ㄹ + 로` 예외를 포함했다. `취향로`, `도수을`, `조건로` 형태를 방지한다.
+- 검증: 표적 7 files / 217 tests, 전체 67 files / 902 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 554.61 kB(gzip 165.58 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 작업은 원래 계획대로 PIPE-806-C PreferenceEvidence 소비다.
+
 ## 2026-07-22 / Codex / PIPE-806-B.1 active session 소유권 수정
 
 - 구현 커밋: `ea3527c` (`fix: transfer story ownership to recommendation`).
