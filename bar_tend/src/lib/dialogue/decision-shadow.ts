@@ -4,7 +4,7 @@ import type {
   RecommendationSignal,
   RecommendationState,
 } from '../../types/recommendation.js'
-import type { DialogueSessionAction } from '../session/dialogue-session.js'
+import type { DialogueSessionAction, SessionTopic } from '../session/dialogue-session.js'
 import {
   applyRecommendationSignals,
   resolveCocktailsByRecommendationState,
@@ -17,6 +17,7 @@ import type {
   InputUnderstanding,
   PreferenceSignal,
   SignalSource,
+  SpeechAct,
 } from './input-understanding.js'
 
 export interface EvaluationContribution {
@@ -82,6 +83,7 @@ export type DialogueMoveType =
 export interface DialogueMove {
   type: DialogueMoveType
   action: DialogueAction
+  speechAct: SpeechAct
   transitions: readonly DialogueSessionAction[]
 }
 
@@ -206,18 +208,20 @@ export function planShadowDialogueMove(
   action: DialogueAction,
   understanding: InputUnderstanding,
 ): DialogueMove {
+  const speechAct = understanding.speechActs[0]?.value ?? 'statement'
   const controls = new Set(understanding.controlIntents.map(({ value }) => value))
   if (controls.has('safety')) {
-    return { type: 'safety', action, transitions: [{ type: 'lock-safety' }] }
+    return { type: 'safety', action, speechAct, transitions: [{ type: 'lock-safety' }] }
   }
   if (controls.has('cancel-recommendation')) {
     return {
       type: 'cancel-recommendation',
       action,
+      speechAct,
       transitions: [{ type: 'set-mode', mode: 'conversation' }],
     }
   }
-  if (controls.has('exit')) return { type: 'exit', action, transitions: [] }
+  if (controls.has('exit')) return { type: 'exit', action, speechAct, transitions: [] }
 
   const type: DialogueMoveType = action.type === 'recommend'
     ? 'recommend'
@@ -228,7 +232,7 @@ export function planShadowDialogueMove(
         : action.type === 'discuss'
           ? 'discuss'
           : 'respond'
-  return { type, action, transitions: [] }
+  return { type, action, speechAct, transitions: [topicTransitionFor(action, understanding)] }
 }
 
 export function dialogueActionKey(action: DialogueAction): string {
@@ -256,6 +260,51 @@ export function compatibleControlTransitions(
     && move.transitions[0].mode === 'conversation'
   ) return move.transitions
   return null
+}
+
+export function compatibleTopicTransition(
+  move: DialogueMove,
+  understanding: InputUnderstanding,
+): DialogueSessionAction | null {
+  if (understanding.controlIntents.length > 0 || move.transitions.length !== 1) return null
+  const actual = move.transitions[0]
+  const expected = topicTransitionFor(move.action, understanding)
+  return actual.type === 'set-topic'
+    && actual.topic === expected.topic
+    && (actual.cocktailId ?? null) === (expected.cocktailId ?? null)
+    ? actual
+    : null
+}
+
+function topicTransitionFor(
+  action: DialogueAction,
+  understanding: InputUnderstanding,
+): Extract<DialogueSessionAction, { type: 'set-topic' }> {
+  const topic = sessionTopicForUnderstanding(understanding)
+  const understoodCocktailId = understanding.entities.find(
+    (entity) => entity.type === 'cocktail' && entity.id,
+  )?.id
+  const actionCocktailId = 'cocktailId' in action ? action.cocktailId : null
+  const cocktailId = topic === 'cocktail-story' || topic === 'cocktail-info'
+    ? understoodCocktailId ?? actionCocktailId
+    : null
+  return { type: 'set-topic', topic, cocktailId }
+}
+
+function sessionTopicForUnderstanding(understanding: InputUnderstanding): SessionTopic {
+  const topic: Record<InputUnderstanding['primaryTopic']['value'], SessionTopic> = {
+    safety: 'safety',
+    session: 'smalltalk',
+    recommendation: 'recommendation',
+    cocktail: 'cocktail-info',
+    story: 'cocktail-story',
+    character: 'character',
+    'world-building': 'world-building',
+    'daily-life': 'daily-life',
+    knowledge: 'knowledge',
+    smalltalk: 'smalltalk',
+  }
+  return topic[understanding.primaryTopic.value]
 }
 
 function scopeApplies(scope: PreferenceScope, context: PreferenceProjectionContext): boolean {

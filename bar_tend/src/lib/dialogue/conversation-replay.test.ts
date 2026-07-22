@@ -21,9 +21,11 @@ import {
 } from './conversation-replay.js'
 import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
 import type { DialogueAction } from './action-resolver.js'
-import { compatibleControlTransitions } from './decision-shadow.js'
+import { compatibleControlTransitions, compatibleTopicTransition } from './decision-shadow.js'
 
 const service = new DialogueService(cocktails)
+const mojito = cocktails.find(({ name }) => name === '모히토')
+if (!mojito) throw new Error('모히토 fixture is missing')
 
 function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): ConversationReplaySnapshot {
   return {
@@ -31,6 +33,9 @@ function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): Conversa
     intent: 'general-chat',
     route: 'general',
     action: 'respond',
+    primaryTopic: 'smalltalk',
+    speechAct: 'statement',
+    entityId: null,
     controlIntent: null,
     move: 'respond',
     transitionPlan: 'none',
@@ -58,6 +63,7 @@ function actionKey(action: DialogueAction): string {
 
 function transitionKey(action: DialogueSessionAction): string {
   if (action.type === 'set-mode') return `${action.type}:${action.mode}`
+  if (action.type === 'set-topic') return `${action.type}:${action.topic}:${action.cocktailId ?? 'none'}`
   return action.type
 }
 
@@ -103,11 +109,13 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
         resolution.routeResult.route,
         resolution.move,
       )
-      session = dialogueSessionReducer(session, {
-        type: 'set-topic',
-        topic: sessionTopicForRoute(resolution.routeResult.route),
-        cocktailId: resolution.routeResult.matchedCocktailId ?? null,
-      })
+      const topicTransition = compatibleTopicTransition(resolution.move, resolution.understanding)
+        ?? {
+          type: 'set-topic' as const,
+          topic: sessionTopicForRoute(resolution.routeResult.route),
+          cocktailId: resolution.routeResult.matchedCocktailId ?? null,
+        }
+      session = dialogueSessionReducer(session, topicTransition)
       if (controlTransitions) {
         for (const transition of controlTransitions) {
           session = dialogueSessionReducer(session, transition)
@@ -133,6 +141,9 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       intent: resolution.classifiedIntent.intent,
       route: resolution.routeResult.route,
       action: actionKey(resolution.action),
+      primaryTopic: resolution.understanding.primaryTopic.value,
+      speechAct: resolution.move.speechAct,
+      entityId: resolution.understanding.entities.find(({ type, id }) => type === 'cocktail' && id)?.id ?? null,
       controlIntent: resolution.understanding.controlIntents[0]?.value ?? null,
       move: resolution.move.type,
       transitionPlan: resolution.move.transitions.map(transitionKey).join(',') || 'none',
@@ -190,12 +201,15 @@ describe('conversation replay', () => {
             intent: 'bar-setting',
             route: 'general',
             action: 'respond',
+            primaryTopic: 'world-building',
+            speechAct: 'question',
+            entityId: null,
             controlIntent: null,
             move: 'respond',
-            transitionPlan: 'none',
+            transitionPlan: 'set-topic:world-building:none',
             phase: 'conversation',
             mode: 'conversation',
-            topic: 'smalltalk',
+            topic: 'world-building',
             pendingQuestion: null,
             responsePlanId: 'karua.small-talk.bar-intro',
           },
@@ -206,12 +220,15 @@ describe('conversation replay', () => {
             intent: 'character-query',
             route: 'character-query',
             action: 'respond',
+            primaryTopic: 'character',
+            speechAct: 'question',
+            entityId: null,
             controlIntent: null,
             move: 'respond',
-            transitionPlan: 'none',
+            transitionPlan: 'set-topic:character:none',
             phase: 'conversation',
             mode: 'conversation',
-            topic: 'smalltalk',
+            topic: 'character',
             pendingQuestion: null,
             responsePlanId: 'karua.small-talk.character-query',
           },
@@ -248,6 +265,9 @@ describe('conversation replay', () => {
         expected: {
           route: 'safety',
           action: 'respond',
+          primaryTopic: 'safety',
+          speechAct: 'safety-disclosure',
+          entityId: null,
           controlIntent: 'safety',
           move: 'safety',
           transitionPlan: 'lock-safety',
@@ -277,9 +297,12 @@ describe('conversation replay', () => {
         expected: {
           route: 'general',
           action: 'recommend:preference',
+          primaryTopic: 'recommendation',
+          speechAct: 'request',
+          entityId: null,
           controlIntent: null,
           move: 'recommend',
-          transitionPlan: 'none',
+          transitionPlan: 'set-topic:recommendation:none',
           blockedBySession: true,
           phase: 'farewell',
           mode: 'conversation',
@@ -311,6 +334,9 @@ describe('conversation replay', () => {
         expected: {
           route: 'recommendation-cancel',
           action: 'respond',
+          primaryTopic: 'session',
+          speechAct: 'cancel',
+          entityId: null,
           controlIntent: 'cancel-recommendation',
           move: 'cancel-recommendation',
           transitionPlan: 'set-mode:conversation',
@@ -324,6 +350,32 @@ describe('conversation replay', () => {
         },
       }],
     }, createDialogueReplayPlayer(session))
+
+    expect(result.blockingDifferences).toEqual([])
+  })
+
+  it('consumes story topic and cocktail entity from the planned transition', () => {
+    const result = runConversationReplay({
+      id: 'story-topic-entity-transition',
+      turns: [{
+        input: '모히토 유래 알려줘',
+        expected: {
+          route: 'story-query',
+          action: `continueStory:story:${mojito.id}`,
+          primaryTopic: 'story',
+          speechAct: 'question',
+          entityId: mojito.id,
+          controlIntent: null,
+          move: 'continue-story',
+          transitionPlan: `set-topic:cocktail-story:${mojito.id}`,
+          blockedBySession: false,
+          phase: 'conversation',
+          mode: 'conversation',
+          topic: 'cocktail-story',
+          safetyLocked: false,
+        },
+      }],
+    }, createDialogueReplayPlayer())
 
     expect(result.blockingDifferences).toEqual([])
   })

@@ -9,7 +9,10 @@ import {
   type ConversationContextEvent,
 } from '@/lib/dialogue/conversation-context.js'
 import { executeDialogueAction } from '@/lib/dialogue/action-executor.js'
-import { compatibleControlTransitions } from '@/lib/dialogue/decision-shadow.js'
+import {
+  compatibleControlTransitions,
+  compatibleTopicTransition,
+} from '@/lib/dialogue/decision-shadow.js'
 import { getFeedbackExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogue-service.js'
 import {
@@ -458,7 +461,12 @@ export function useRestationController(sfx?: SfxChannel) {
         ? classifyRecommendationQuestionInput(text)
         : null
       if (!dialogueResolution.blockedBySession) {
-        dispatchDialogueSession({ type: 'set-topic', topic: nextTopic, cocktailId: routeResult.matchedCocktailId ?? null })
+        const topicTransition = interruption
+          ? null
+          : compatibleTopicTransition(dialogueResolution.move, dialogueResolution.understanding)
+        dispatchDialogueSession(topicTransition ?? {
+          type: 'set-topic', topic: nextTopic, cocktailId: routeResult.matchedCocktailId ?? null,
+        })
       }
       if (interruption) {
         captureExtractedPreferences(text)
@@ -488,7 +496,9 @@ export function useRestationController(sfx?: SfxChannel) {
       const deferRapportUntilServe = rapportContext === 'cocktail-order'
         || routeResult.secretPassphrase !== undefined
       if (!deferRapportUntilServe) applyRapportUpdate(rapportContext)
-      const isConversationFreeTurn = effectiveActionSessionMode === 'conversation' && routeResult.route === 'general'
+      const isConversationFreeTurn = effectiveActionSessionMode === 'conversation'
+        && routeResult.route === 'general'
+        && dialogueResolution.move.speechAct !== 'answer'
       let shouldInviteRecommendationFromConversation = false
       if (isConversationFreeTurn) {
         const nextConversationTurnCount = dialogueSession.dialogue.turnCount + 1

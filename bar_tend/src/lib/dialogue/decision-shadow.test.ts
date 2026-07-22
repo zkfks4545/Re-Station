@@ -21,6 +21,7 @@ import {
   deriveRecommendationStateFromEvidence,
   dialogueActionKey,
   compatibleControlTransitions,
+  compatibleTopicTransition,
   evaluateLegacyCocktailSelection,
   evaluateLegacyDialogueAction,
   evaluateLegacyQuestionSelection,
@@ -256,7 +257,21 @@ describe('DialogueMove shadow plan', () => {
 
     expect(compatibleControlTransitions('recommendation-cancel', safetyMove)).toBeNull()
     expect(compatibleControlTransitions('safety', {
-      type: 'safety', action: { type: 'respond' }, transitions: [],
+      type: 'safety', action: { type: 'respond' }, speechAct: 'safety-disclosure', transitions: [],
     })).toBeNull()
+  })
+
+  it('plans topic and cocktail entity as a compatible state transition', () => {
+    const result = understand('모히토 유래 알려줘')
+    const move = planShadowDialogueMove(
+      { type: 'continueStory', topic: 'story', cocktailId: 'cocktail_classic_014' },
+      result,
+    )
+    const transition = compatibleTopicTransition(move, result)
+
+    expect(move.speechAct).toBe('question')
+    expect(transition).toMatchObject({
+      type: 'set-topic', topic: 'cocktail-story', cocktailId: result.entities[0].id,
+    })
   })
 })

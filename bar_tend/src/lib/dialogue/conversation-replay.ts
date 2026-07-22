@@ -5,6 +5,9 @@ export interface ConversationReplaySnapshot {
   intent: string
   route: string
   action: string
+  primaryTopic: string
+  speechAct: string
+  entityId: string | null
   controlIntent: string | null
   move: string
   transitionPlan: string
@@ -59,6 +62,9 @@ export const REPLAY_FIELD_SEVERITY: Record<ConversationReplayField, ReplayDiffer
   intent: 'major',
   route: 'major',
   action: 'major',
+  primaryTopic: 'major',
+  speechAct: 'major',
+  entityId: 'critical',
   controlIntent: 'critical',
   move: 'critical',
   transitionPlan: 'critical',

@@ -201,8 +201,9 @@ function speechActFor(input: TurnInput, classified: ClassifiedIntent): SpeechAct
   if (route === 'explicit-cocktail' || route === 'lore-based-order') return 'order'
   if (route === 'recommendation' || route === 'random-recommendation') return 'request'
   if (input.context.pendingQuestion !== null && classified.metadata.answersPendingQuestion) return 'answer'
+  if (['cocktail-query', 'recommendation-query', 'random-request'].includes(classified.intent)) return 'request'
   if (['rude-talk'].includes(classified.intent) || /별로|마음에\s*안\s*들|좋았|맛있/.test(text)) return 'feedback'
-  if (/[?？]/.test(text) || isQueryIntent(classified.intent)) return 'question'
+  if (/[?？]|뭐|누구|어디|왜|어떻게|얼마|무슨/.test(text) || isQueryIntent(classified.intent)) return 'question'
   return 'statement'
 }
 

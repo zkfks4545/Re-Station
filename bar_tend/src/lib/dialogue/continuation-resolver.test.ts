@@ -15,4 +15,11 @@ describe('continuation resolver', () => {
       subject: { type: 'none', id: null }, recommendationActive: false, safetyLocked: false,
     })).toBeNull()
   })
+
+  it('restores a character follow-up after world-building talk', () => {
+    expect(resolveContinuation('당신은?', {
+      topic: 'world-building', affect: 'neutral', pendingQuestion: null,
+      subject: { type: 'none', id: null }, recommendationActive: false, safetyLocked: false,
+    })).toBe('character-query')
+  })
 })
