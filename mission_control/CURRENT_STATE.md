@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | PIPE-801~804 완료, 다음 PIPE-805 Evaluate·Select·Plan shadow |
+| 단계 | PIPE-801~805 완료, 다음 PIPE-806 FSM 점진 적용 |
 | 기술 | React+Vite+프론트엔드 단독, 내부 결정론적 대화·추천 엔진, **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/check | 통과 (메인 JS 543.44 kB, gzip 162.32 kB, WebLLM 청크 없음) |
-| 테스트 | **Vitest 843개 전체 통과** |
+| 테스트 | **Vitest 859개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -57,10 +57,10 @@
 |---|---|---|
 | 캐릭터 | 카루아 표정 PNG + 구조화된 `idle/mixing/serving` cue·reduced-motion 연결 완료. 시에스타 텍스트 이벤트 엔진·라벨은 보존됐지만 런타임 플래그는 OFF | `SIESTA.md` 재활성화 게이트 검토 후 SPR-004~005 화면 연출 결정 |
 | 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
-| 입력·결정 구조 | 기존 IntentClassifier 런타임 유지 + 비소비 `InputUnderstanding` shadow 계약 추가 | `Input → Understand → Evaluate → Select → Plan → Present`로 점진 통일 |
-| 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | PreferenceEvidence, 공통 후보 평가 contribution, 문맥 기반 질문 점수로 점진 전환 |
+| 입력·결정 구조 | 기존 런타임 유지 + 비소비 Understand·Evaluate·Select·DialogueMove shadow 계약 추가 | `Input → Understand → Evaluate → Select → Plan → Present`로 점진 통일 |
+| 추천 | 43+2종, 4축, dialogueFlow, 평문재료 + 비소비 `PreferenceEvidence` 원장·legacy projection | 평가 contribution과 문맥 기반 질문 점수로 점진 전환 |
 | 외부 의미 보조 | 공급자 중립 `SemanticAssistPort`, 엄격 proposal validator, fake/no-op만 존재. 실제 API 없음 | 실제 API는 PIPE-808 승인 전까지 미연결 |
-| 테스트 | Replay·InputUnderstanding shadow 포함 데이터·서비스·라우팅·세션·UI 등 64 files / 843 tests | 후속 기능별 계약 추가 |
+| 테스트 | Replay·Understand·Decision shadow 포함 데이터·서비스·라우팅·세션·UI 등 65 files / 859 tests | 후속 기능별 계약 추가 |
 | 번들 | 메인 JS 543.44 kB, gzip 162.32 kB. WebLLM worker/lib 청크 제거 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-22)
@@ -80,6 +80,7 @@
 - PIPE-802 구현 커밋은 `0b29a0e`다. WebLLM 전용 7 test files를 제거한 뒤 62 files / 823 tests, check, lint, build와 대표 20 tests가 통과했다. main은 543.44 kB(gzip 162.32 kB)이며 worker/lib 청크는 없다.
 - PIPE-803 구현 커밋은 `d5d086c`다. 정규화 Replay snapshot과 severity diff runner를 추가하고 smalltalk→character, 추천 중 safety, farewell 추천 차단 corpus를 실제 `DialogueService`로 재생한다. 63 files / 827 tests, check, lint, build가 통과했다.
 - PIPE-804 구현 커밋은 `daae94c`다. `TurnInput`, 근거 span 기반 다중 신호 `InputUnderstanding`, 낮은 confidence 호출 자격, 공급자 중립 `SemanticAssistPort`와 엄격 validator·fake/no-op를 shadow로 추가했다. 64 files / 843 tests, check, lint, build가 통과했고 런타임 소비자는 없다.
+- PIPE-805 구현 커밋은 `a6129f7`이다. 칵테일·질문·대화 legacy 결과를 감싸는 domain evaluation, hard constraint 우선의 결정적 selection, `DialogueMove` transition plan, 강도·범위·근거 기반 `PreferenceEvidence` 원장과 기존 상태 projection을 shadow로 추가했다. 65 files / 859 tests, check, lint, build가 통과했고 기존 추천·FSM 소비는 없다.
 
 ### Dialogue 과거 완료 기록
 

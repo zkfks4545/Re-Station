@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-805 Evaluate·Select·Plan shadow
+
+- 구현 커밋: `a6129f7` (`feat: add deterministic decision shadow`).
+- 칵테일·질문·대화별 `Evaluation`을 분리하고 공통 Select 불변식만 공유했다. legacy 추천 후보·다음 질문·DialogueAction 결과를 shadow envelope로 감싸 기존 결과를 변경하지 않는다.
+- Select는 hard constraint를 점수보다 우선하고 동점은 안정적인 candidate ID 순서로 결정한다. 입력 evaluation과 기존 추천 상태를 변경하지 않는다.
+- `DialogueMove`는 legacy action 정체성을 보존하며 safety 잠금과 추천 취소의 FSM transition을 생성만 한다. reducer 적용과 런타임 소비는 추가하지 않았다.
+- `PreferenceEvidence`는 강도, general/session/entity scope, source, 원문 span, 관측 turn을 누적한다. scope·강도·최신성 순으로 기존 `RecommendationState`를 순수 projection한다.
+- 검증: Decision shadow·InputUnderstanding·Replay 3 files / 36 tests, 전체 65 files / 859 tests, TypeScript check, ESLint, production build 통과. main 543.44 kB(gzip 162.32 kB), 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-806 FSM 점진 적용이며 safety·ControlIntent 소비부터 독립 변경으로 시작한다.
+
 ## 2026-07-22 / Codex / PIPE-804 Understand 계약
 
 - 구현 커밋: `daae94c` (`feat: define input understanding shadow contract`).
