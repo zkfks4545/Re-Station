@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | PIPE-801~805·PIPE-806-A/B/C 완료, 다음 PIPE-806-D Conversation Expansion 적용 |
+| 단계 | PIPE-801~806 완료, 다음 PIPE-807 평가 근거 통합 |
 | 기술 | React+Vite+프론트엔드 단독, 내부 결정론적 대화·추천 엔진, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 556.73 kB, gzip 166.45 kB, WebLLM 청크 없음) |
-| 테스트 | **Vitest 906개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 557.30 kB, gzip 166.63 kB, WebLLM 청크 없음) |
+| 테스트 | **Vitest 914개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -57,11 +57,11 @@
 |---|---|---|
 | 캐릭터 | 카루아 표정·연출과 캐릭터 취향 질문 24개 fixture, `ask-character-preference + kahlua + drink/general` 전용 ResponsePlan 완료. 시에스타 런타임 플래그는 OFF | 현재 상태 질문 → 가게·시에스타 질문 → 사용자 되묻기 순으로 제한 확장 |
 | 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
-| 입력·결정 구조 | `DialogueService`가 Understand·DialogueMove를 생성하고 control, topic·speech·entity, 호환 PreferenceEvidence를 controller가 gate 후 소비 | Conversation Expansion 점진 소비 |
+| 입력·결정 구조 | control, topic·speech·entity, PreferenceEvidence, Conversation Expansion을 Understand/Plan 호환 gate 후 소비. 불일치 시 legacy fallback | PIPE-807에서 후보 contribution과 설명 근거 연결 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 + session scope `PreferenceEvidence` 원장·legacy projection fallback | 평가 contribution과 문맥 기반 질문 점수로 점진 전환 |
 | 외부 의미 보조 | 공급자 중립 `SemanticAssistPort`, 엄격 proposal validator, fake/no-op만 존재. 실제 API 없음 | 실제 API는 PIPE-808 승인 전까지 미연결 |
-| 테스트 | 캐릭터 취향·PreferenceEvidence Replay 포함 데이터·서비스·라우팅·세션·UI 등 67 files / 906 tests | 후속 소비 단계별 Replay gate 추가 |
-| 번들 | 메인 JS 556.73 kB, gzip 166.45 kB. Understand·Plan runtime 포함, WebLLM 청크 없음 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
+| 테스트 | 캐릭터 취향·PreferenceEvidence·Conversation Expansion Replay 포함 67 files / 914 tests | 후속 평가 단계별 Replay gate 추가 |
+| 번들 | 메인 JS 557.30 kB, gzip 166.63 kB. Understand·Plan runtime 포함, WebLLM 청크 없음 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-22)
 
@@ -86,6 +86,7 @@
 - PIPE-806-B.1 세션 소유권 수정 커밋은 `ea3527c`다. story에서 `추천받기` 선택 시 첫 질문과 함께 recommendation active session으로 원자 전환하며, sessionId·questionId가 다른 오래된 선택과 story action을 거부한다. 65 files / 868 tests, check, lint, build가 통과했다.
 - PIPE-806-B.2 캐릭터 취향 응답 커밋은 `a02abe8`이다. 24개 질문 fixture를 `ask-character-preference + character:kahlua + drink/general`로 이해하고 두 고정 ResponsePlan으로 응답한다. 조사 `을/를`, `으로/로` 결합도 공통 preset에서 보정했다. 67 files / 902 tests, check, lint, build가 통과했다.
 - PIPE-806-C 구현 커밋은 `19d032c`다. 추천 중 잡담에서 Understand의 취향 신호를 session scope evidence로 누적하고, 전체 legacy projection과 일치할 때만 소비한다. 불일치 시 legacy 신호로 fallback하며 Pending/SuspendedQuestion은 바꾸지 않는다. Replay에 projection·호환 필드를 추가했고 67 files / 906 tests, check, lint, build가 통과했다.
+- PIPE-806-D 구현 커밋은 `7a7c088`이다. 기존 conversation interruption을 후보로 유지하고 Understand topic·control과 DialogueMove가 호환될 때 `suspend-question` Plan을 소비한다. 불일치하는 범용 지식 오분류는 legacy fallback하며 같은 PendingQuestion 복귀 문구를 유지한다. 67 files / 914 tests, check, lint, build가 통과했다.
 
 ### Dialogue 과거 완료 기록
 

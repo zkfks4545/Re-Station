@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-D Conversation Expansion Plan 소비
+
+- 구현 커밋: `7a7c088` (`feat: consume conversation interruption plans`).
+- 기존 conversation interruption regex는 DialogueService 호출 전 필요한 후보 생성기로 유지한다. 이후 `InputUnderstanding.primaryTopic`, ControlIntent, `DialogueMove`를 대조해 호환 후보만 `suspend-question` Plan transition으로 소비한다.
+- character, world-building, worldview, cocktail-info, daily-life의 호환 Plan을 검증했다. “양자역학이 뭐야?”는 현재 Understand가 cocktail로 오분류하므로 knowledge 계약과 기존 transition을 fallback으로 유지한다.
+- Replay snapshot에 `interruptionTopic`, `interruptionPlanCompatible`을 추가했다. Plan 소비와 fallback 모두 recommendation session, PendingQuestion, SuspendedQuestion, 동일 질문 복귀 문구를 보존한다.
+- 검증: 표적 2 files / 26 tests, 전체 67 files / 914 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 557.30 kB(gzip 166.63 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- `PIPE-806` 완료. 다음 작업은 `PIPE-807` 평가 근거 통합이다.
+
 ## 2026-07-22 / Codex / PIPE-806-C PreferenceEvidence 호환 소비
 
 - 구현 커밋: `19d032c` (`feat: consume compatible preference evidence`).
