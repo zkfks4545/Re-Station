@@ -47,8 +47,6 @@ import {
 } from '@/lib/session/farewell-replies.js'
 import type { SessionPhase } from '@/lib/session/session-flow.js'
 import { unlockCocktailId } from '@/lib/storage/cocktail-unlocks.js'
-import { experimentalSemanticAssistant } from '@/lib/webllm/service.js'
-import { semanticSessionTags } from '@/lib/webllm/session-tags.js'
 import { createTimerRegistry } from '@/lib/timing/timer-registry.js'
 import type { CocktailData, Message } from '@/types.js'
 import { useGuestPreferenceSession } from './useGuestPreferenceSession.js'
@@ -222,7 +220,6 @@ export function useRestationController(sfx?: SfxChannel) {
       clearExcludedCocktailIds()
       resetRecommendation()
       resetSessionFlow('entry')
-      semanticSessionTags.reset()
     }, delayMs)
   }, [
     clearExcludedCocktailIds,
@@ -238,7 +235,6 @@ export function useRestationController(sfx?: SfxChannel) {
   const handleEnter = useCallback(() => {
     clearPendingWork()
     resetSiestaEventSession()
-    semanticSessionTags.reset()
     resetSessionFlow('conversation')
     resetRapport()
     setErrorMessage(null)
@@ -306,7 +302,6 @@ export function useRestationController(sfx?: SfxChannel) {
     clearPendingWork()
     resetSiestaEventSession()
     resetNight()
-    semanticSessionTags.reset()
     resetSessionFlow('conversation')
     resetRapport()
     setMessages([])
@@ -492,11 +487,6 @@ export function useRestationController(sfx?: SfxChannel) {
       const deferRapportUntilServe = rapportContext === 'cocktail-order'
         || routeResult.secretPassphrase !== undefined
       if (!deferRapportUntilServe) applyRapportUpdate(rapportContext)
-      void experimentalSemanticAssistant.analyze({
-        input: text,
-        route: classifiedIntent.intent,
-        history: messages,
-      })
       const isConversationFreeTurn = effectiveActionSessionMode === 'conversation' && routeResult.route === 'general'
       let shouldInviteRecommendationFromConversation = false
       if (isConversationFreeTurn) {

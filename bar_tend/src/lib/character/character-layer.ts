@@ -29,7 +29,7 @@ export function applyCharacterLayer(input: CharacterLayerInput): BartenderRespon
   }
 }
 
-// 의미를 바꾸는 재작성은 하지 않는다. WebLLM 의미 보조도 이 텍스트를 생성하거나 교체하지 않는다.
+// 의미를 바꾸는 재작성은 하지 않는다. 외부 의미 보조도 이 텍스트를 생성하거나 교체하지 않는다.
 function normalizePresentation(text: string): string {
   return text
     .split('\n')

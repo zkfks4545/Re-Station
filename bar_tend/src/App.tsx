@@ -1,5 +1,4 @@
 ﻿import { useRef } from 'react'
-import { lazy, Suspense } from 'react'
 import BarExterior from '@/components/entrance/BarExterior.jsx'
 import BarInterior from '@/components/bar/BarInterior.jsx'
 import BartenderSprite from '@/components/bar/BartenderSprite.jsx'
@@ -13,11 +12,6 @@ import { useAudioManager } from '@/hooks/useAudioManager.js'
 import { useSfxManager } from '@/hooks/useSfxManager.js'
 import { useRestationController } from '@/hooks/useRestationController.js'
 import { createKaruaPresentationCue } from '@/lib/presentation/karua-presentation.js'
-const ExperimentalWebLLMPreparation = import.meta.env.VITE_WEB_LLM_PRELOAD_ENABLED === 'true' || import.meta.env.DEV
-  ? lazy(() => import('@/components/system/ExperimentalWebLLMPreparation.jsx'))
-  : null
-
-
 export default function App() {
   const playerHostRef = useRef<HTMLDivElement | null>(null)
   const sfx = useSfxManager()
@@ -56,11 +50,6 @@ export default function App() {
 
   return (
     <>
-      {ExperimentalWebLLMPreparation && (
-        <Suspense fallback={null}>
-          <ExperimentalWebLLMPreparation />
-        </Suspense>
-      )}
       <div ref={playerHostRef} className="music-player-host" aria-hidden />
       {scene === 'outside' ? (
         <BarExterior onEnter={handleEnter} />
