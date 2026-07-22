@@ -37,6 +37,16 @@ const CATEGORY_QUERIES = {
     intent: 'small_talk',
     request: 'character-query',
   },
+  'character-preference-drink': {
+    speaker: 'karua',
+    intent: 'small_talk',
+    request: 'character-preference-drink',
+  },
+  'character-preference-general': {
+    speaker: 'karua',
+    intent: 'small_talk',
+    request: 'character-preference-general',
+  },
   'story-request': {
     speaker: 'karua',
     intent: 'explain',

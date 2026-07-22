@@ -17,6 +17,10 @@ const NAMED_COCKTAIL_FOLLOWUP = /(?:에\s*)?(?:대해|관해)|관련(?:해서|�
 const INFORMATION_REQUEST = /설명|자세히|이야기|얘기|일화|유래|스토리|레시피|재료|맛|도수|오마주|왜\s*[?？]?|어떻게\s*[?？]?|알려\s*줘|말해\s*줘/
 const NARRATIVE_INFORMATION_REQUEST = /이야기|얘기|일화|유래|스토리|오마주|왜\s*[?？]?/
 const CHARACTER_QUERY = /당신은\s*(?:그럼|누구|뭐|뭘)|넌\s*(?:뭐|누구)|너는\s*(?:누구|뭐)|바텐더(?:야|니|예요|인가)|네가\s*(?:누구|뭐|뭔데)/
+const CHARACTER_PREFERENCE_TARGET = /당신|너는|넌|카루아|칼루아|바텐더/
+const CHARACTER_PREFERENCE_ASK = /좋아(?:하|하는|해|하나요|하세요|합니까)|선호|취향|취미|즐겨|아끼는|마시고\s*싶/
+const CHARACTER_DRINK_TOPIC = /음료|술|칵테일|리큐르|커피|마시는|마셔|잔/
+const CHARACTER_GENERAL_TOPIC = /뭘|뭐를|무엇을|어떤\s*(?:걸|것|시간|밤|순간)|(?:좋아하|아끼)는\s*(?:것|게)|취미|취향|조용한\s*(?:시간|밤)/
 const PRONOUN_REFERENCE = /이거|그거|그걸로|이\s*칵테일|방금\s*그거|저거/
 const ORDER_VERB = /(?:주세요|주세여|줘|부탁|시켜줘|시켜|한\s*잔)/
 const LORE_ORDER = /(?:주세요|주세여|부탁|주문|시켜(?:줘)?|한\s*잔|한잔|다음\s*잔|걸로\s*줘|마실래(?:요)?|먹을래(?:요)?|그걸로(?:요)?\s*[.!?]*$)/
@@ -82,7 +86,17 @@ function detectInformationRequest(input: string): boolean {
 }
 
 export function detectCharacterQuery(input: string): boolean {
-  return CHARACTER_QUERY.test(input.trim().toLowerCase())
+  const normalized = input.trim().toLowerCase()
+  return CHARACTER_QUERY.test(normalized) || detectCharacterPreferenceTopic(normalized) !== null
+}
+
+export type CharacterPreferenceTopic = 'drink' | 'general'
+
+export function detectCharacterPreferenceTopic(input: string): CharacterPreferenceTopic | null {
+  const normalized = input.trim().toLowerCase()
+  if (!CHARACTER_PREFERENCE_TARGET.test(normalized) || !CHARACTER_PREFERENCE_ASK.test(normalized)) return null
+  if (CHARACTER_DRINK_TOPIC.test(normalized)) return 'drink'
+  return CHARACTER_GENERAL_TOPIC.test(normalized) ? 'general' : null
 }
 
 export function detectUnknownCocktailQuery(input: string): string | null {
@@ -118,6 +132,9 @@ export function routeUserInput(
     return { route: 'recommendation-cancel', confidence: 0.9 }
   }
   if (detectExitIntent(input)) return { route: 'exit', confidence: 0.85 }
+  if (detectCharacterPreferenceTopic(input)) {
+    return { route: 'character-query', confidence: 0.95 }
+  }
   const matched = findCocktailByName(input)
   const storyQuery = detectStoryQuery(input)
   const loreQuery = detectLoreQuery(input)

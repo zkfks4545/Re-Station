@@ -12,6 +12,8 @@ const deletedJsonFallbackCases = [
   { category: 'general-chat' as const, planId: 'karua.small-talk.general-chat' },
   { category: 'bar-intro' as const, planId: 'karua.small-talk.bar-intro' },
   { category: 'character-query' as const, planId: 'karua.small-talk.character-query' },
+  { category: 'character-preference-drink' as const, planId: 'karua.small-talk.character-preference-drink' },
+  { category: 'character-preference-general' as const, planId: 'karua.small-talk.character-preference-general' },
   { category: 'bar-atmosphere' as const, planId: 'karua.small-talk.bar-atmosphere' },
   { category: 'small-talk-weather' as const, planId: 'karua.small-talk.small-talk-weather' },
   { category: 'guest-uncertain' as const, planId: 'karua.small-talk.guest-uncertain' },
@@ -94,8 +96,8 @@ describe('ResponsePlan dual-read adapter', () => {
     const dialoguePlans = RESPONSE_PLANS.filter((plan) => !formatterPlans.includes(plan))
     const answerLines = dialoguePlans.flatMap((plan) => plan.blocks.answer ?? [])
 
-    expect(dialoguePlans).toHaveLength(27)
-    expect(answerLines).toHaveLength(226)
+    expect(dialoguePlans).toHaveLength(29)
+    expect(answerLines).toHaveLength(232)
     expect(RESPONSE_PLANS.every((plan) => validateResponsePlan(plan).valid)).toBe(true)
     expect(answerLines.every((line) => line.text.trim() && line.expression)).toBe(true)
     expect(formatterPlans.filter((plan) => plan.request === 'random-pick-body')).toHaveLength(1)

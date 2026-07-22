@@ -15,6 +15,8 @@ describe('Phase 11 dialogue source inventory', () => {
   const responsePlanOnlyReadyCategories = [
     'bar-atmosphere',
     'bar-intro',
+    'character-preference-drink',
+    'character-preference-general',
     'character-query',
     'cocktail-request',
     'general-chat',
@@ -50,6 +52,8 @@ describe('Phase 11 dialogue source inventory', () => {
   const deletedJsonFallbackCategories = [
     'bar-atmosphere',
     'bar-intro',
+    'character-preference-drink',
+    'character-preference-general',
     'character-query',
     'cocktail-request',
     'general-chat',

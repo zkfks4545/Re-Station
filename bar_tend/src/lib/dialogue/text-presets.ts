@@ -54,9 +54,10 @@ const TEXT_PRESETS: Record<TextPresetId, TextPresetRenderer> = {
   'question.preference.select': ({ target }) => `선호하는 ${withObjectParticle(target)} 선택해 주세요.`,
   'question.flow.leadIn': ({ text }) => text,
   'question.flow.continuation': ({ text }) => text,
-  'answer.preference.applied': ({ value, target }) => `${value}을 ${target}로 반영했습니다.`,
+  'answer.preference.applied': ({ value, target }) =>
+    `${withObjectParticle(value)} ${withDirectionalParticle(target)} 반영했습니다.`,
   'answer.preference.appliedWithCaution': ({ value, target, caution }) =>
-    `${value}을 ${target}로 반영했습니다. ${caution}`,
+    `${withObjectParticle(value)} ${withDirectionalParticle(target)} 반영했습니다. ${caution}`,
   'answer.delegated': () => '현재까지의 응답을 기준으로 추천합니다.',
   'answer.freeTextApplied': () => '말씀해 주신 내용을 함께 볼게요.',
 }
@@ -221,11 +222,20 @@ function withObjectParticle(value = ''): string {
   return `${value}${hasFinalConsonant(value) ? '을' : '를'}`
 }
 
+function withDirectionalParticle(value = ''): string {
+  const finalConsonant = getFinalConsonantIndex(value)
+  return `${value}${finalConsonant !== 0 && finalConsonant !== 8 ? '으로' : '로'}`
+}
+
 function hasFinalConsonant(value: string): boolean {
+  return getFinalConsonantIndex(value) !== 0
+}
+
+function getFinalConsonantIndex(value: string): number {
   const chars = [...value.trim()]
   const last = chars[chars.length - 1]
-  if (!last) return false
+  if (!last) return 0
   const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return false
-  return (code - 0xac00) % 28 !== 0
+  if (code < 0xac00 || code > 0xd7a3) return 0
+  return (code - 0xac00) % 28
 }

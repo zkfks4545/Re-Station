@@ -1,6 +1,10 @@
 import type { RecommendationSignal } from '../../types/recommendation.js'
 import type { ClassifiedIntent, IntentType } from '../bartender/intent-classifier.js'
-import type { InputRoute } from './input-router.js'
+import {
+  detectCharacterPreferenceTopic,
+  type CharacterPreferenceTopic,
+  type InputRoute,
+} from './input-router.js'
 import type { ConversationContextSnapshot } from './conversation-context-snapshot.js'
 import { extractRecommendationSignals } from '../recommendation/state.js'
 
@@ -46,6 +50,7 @@ export type SpeechAct =
   | 'answer'
   | 'feedback'
   | 'statement'
+  | 'ask-character-preference'
 
 export type ControlIntent = 'safety' | 'exit' | 'cancel-recommendation'
 
@@ -56,7 +61,7 @@ export type ConversationStateCue =
   | 'exclamation'
   | 'confusion'
 
-export type EntityType = 'cocktail' | 'ingredient' | 'base-spirit' | 'unknown-cocktail'
+export type EntityType = 'cocktail' | 'ingredient' | 'base-spirit' | 'unknown-cocktail' | 'character'
 
 export interface PreferenceSignal extends GroundedSignal<RecommendationSignal['value']> {
   field: RecommendationSignal['field']
@@ -72,6 +77,7 @@ export interface InputUnderstanding {
   speechActs: readonly GroundedSignal<SpeechAct>[]
   preferenceSignals: readonly PreferenceSignal[]
   entities: readonly EntitySignal[]
+  characterPreferenceTopic: GroundedSignal<CharacterPreferenceTopic> | null
   controlIntents: readonly GroundedSignal<ControlIntent>[]
   conversationStateCues: readonly GroundedSignal<ConversationStateCue>[]
 }
@@ -125,6 +131,7 @@ export function createShadowUnderstanding(
       source: 'rule',
     })),
     entities: entitySignalsFor(input.text, classified),
+    characterPreferenceTopic: characterPreferenceTopicFor(input.text, wholeInput),
     controlIntents: controlIntentFor(classified.route.route).map((value) => (
       grounded(value, classified.route.confidence, wholeInput)
     )),
@@ -158,12 +165,13 @@ const PRIMARY_TOPICS: readonly PrimaryTopic[] = [
 const SPEECH_ACTS: readonly SpeechAct[] = [
   'safety-disclosure', 'exit', 'cancel', 'order', 'request', 'question',
   'answer', 'feedback', 'statement',
+  'ask-character-preference',
 ]
 const CONVERSATION_STATE_CUES: readonly ConversationStateCue[] = [
   'hesitation', 'joke', 'complaint', 'exclamation', 'confusion',
 ]
 const ENTITY_TYPES: readonly EntityType[] = [
-  'cocktail', 'ingredient', 'base-spirit', 'unknown-cocktail',
+  'cocktail', 'ingredient', 'base-spirit', 'unknown-cocktail', 'character',
 ]
 const PREFERENCE_FIELDS: readonly RecommendationSignal['field'][] = [
   'taste.sweetness', 'taste.alcohol_strength', 'taste.fizz', 'taste.sourness',
@@ -198,6 +206,7 @@ function speechActFor(input: TurnInput, classified: ClassifiedIntent): SpeechAct
   if (route === 'safety') return 'safety-disclosure'
   if (route === 'exit') return 'exit'
   if (route === 'recommendation-cancel') return 'cancel'
+  if (detectCharacterPreferenceTopic(text)) return 'ask-character-preference'
   if (route === 'explicit-cocktail' || route === 'lore-based-order') return 'order'
   if (route === 'recommendation' || route === 'random-recommendation') return 'request'
   if (input.context.pendingQuestion !== null && classified.metadata.answersPendingQuestion) return 'answer'
@@ -225,6 +234,13 @@ function controlIntentFor(route: InputRoute): ControlIntent[] {
 function entitySignalsFor(text: string, classified: ClassifiedIntent): EntitySignal[] {
   const signals: EntitySignal[] = []
   const { entities, route } = classified
+  if (detectCharacterPreferenceTopic(text)) {
+    signals.push({
+      type: 'character',
+      id: 'kahlua',
+      ...grounded('카루아', classified.confidence, wholeInputEvidence(text)),
+    })
+  }
   if (entities.cocktailName) {
     signals.push({
       type: 'cocktail',
@@ -250,6 +266,14 @@ function entitySignalsFor(text: string, classified: ClassifiedIntent): EntitySig
     })
   }
   return signals
+}
+
+function characterPreferenceTopicFor(
+  text: string,
+  evidence: EvidenceSpan,
+): GroundedSignal<CharacterPreferenceTopic> | null {
+  const topic = detectCharacterPreferenceTopic(text)
+  return topic ? grounded(topic, 0.95, evidence) : null
 }
 
 function conversationStateCuesFor(text: string): GroundedSignal<ConversationStateCue>[] {

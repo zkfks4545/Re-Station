@@ -43,6 +43,7 @@ import type { ConversationContextSnapshot } from './conversation-context-snapsho
 import { resolveContinuation } from './continuation-resolver.js'
 import { createShadowUnderstanding, type InputUnderstanding } from './input-understanding.js'
 import { planShadowDialogueMove, type DialogueMove } from './decision-shadow.js'
+import { pickDialogue } from './dialogue-loader.js'
 
 export interface DialogueServiceSessionSnapshot {
   phase: SessionPhase
@@ -144,7 +145,7 @@ export class DialogueService {
       : this.resolveActionContextEvents(action)
     const directResponse = reaction
       ? null
-      : this.resolveDirectResponse(request, classifiedIntent, action)
+      : this.resolveDirectResponse(request, classifiedIntent, action, understanding)
     const responseAffect = routeResult.route === 'safety'
       ? 'firm'
       : request.session.sessionAffect ?? 'neutral'
@@ -295,6 +296,7 @@ export class DialogueService {
     request: DialogueServiceRequest,
     classifiedIntent: ClassifiedIntent,
     action: DialogueAction,
+    understanding: InputUnderstanding,
   ): DirectDialogueResponse | null {
     const { route } = classifiedIntent.route
 
@@ -330,7 +332,23 @@ export class DialogueService {
     }
 
     if (route === 'character-query') {
-      const response = getCocktailResponseFromClassified(request.text, request.messages, classifiedIntent)
+      const characterPreferenceTopic = understanding.speechActs.some(
+        ({ value }) => value === 'ask-character-preference',
+      ) && understanding.entities.some(
+        ({ type, id }) => type === 'character' && id === 'kahlua',
+      )
+        ? understanding.characterPreferenceTopic?.value ?? null
+        : null
+      const preferenceLine = characterPreferenceTopic
+        ? pickDialogue(`character-preference-${characterPreferenceTopic}`)
+        : null
+      const response = preferenceLine
+        ? assembleResponse({
+            text: preferenceLine.text,
+            preferredExpression: preferenceLine.expression,
+            responsePlanId: preferenceLine.responsePlanId,
+          })
+        : getCocktailResponseFromClassified(request.text, request.messages, classifiedIntent)
       const turn = this.createTurn(
         request.text,
         route,

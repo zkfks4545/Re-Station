@@ -150,6 +150,34 @@ export const RAW_RESPONSE_PLANS: readonly ResponsePlan[] = [
     fallbackText: '저는 Re:Station의 바텐더 카루아예요.',
   },
   {
+    id: 'karua.small-talk.character-preference-drink',
+    speaker: 'karua',
+    intent: 'small_talk',
+    request: 'character-preference-drink',
+    blocks: {
+      answer: [
+        line('저는 커피 리큐르가 들어간 잔을 좋아해요.\n이름 때문만은 아니고요.', 'smirk'),
+        line('커피 리큐르가 들어간 잔이요.\n익숙한 향이 있으면 주문이 조금 꼬여도 버틸 만하거든요.', 'smirk'),
+        line('고르라면 커피 리큐르가 들어간 쪽이에요.\n이름과 취향이 겹친 건 우연으로 해둘게요.', 'talk'),
+      ],
+    },
+    fallbackText: '저는 커피 리큐르가 들어간 잔을 좋아해요.',
+  },
+  {
+    id: 'karua.small-talk.character-preference-general',
+    speaker: 'karua',
+    intent: 'small_talk',
+    request: 'character-preference-general',
+    blocks: {
+      answer: [
+        line('조용한 시간하고, 주문이 꼬이지 않는 밤이요.\n둘 다 자주 있는 건 아니지만요.', 'smirk'),
+        line('정돈된 바와 조용한 시간이요.\n이곳에선 어느 쪽도 오래 가진 못하더라고요.', 'talk'),
+        line('손님이 자기 취향을 정확히 찾는 순간은 좋아해요.\n그 직전까지 주문이 안 꼬이면 더 좋고요.', 'smirk'),
+      ],
+    },
+    fallbackText: '조용한 시간하고, 주문이 꼬이지 않는 밤을 좋아해요.',
+  },
+  {
     id: 'karua.explain.story-request',
     speaker: 'karua',
     intent: 'explain',
