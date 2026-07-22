@@ -360,7 +360,7 @@
 
 ## 단계 8: PIPE-800 결정론적 상호작용 파이프라인
 
-> 상태: **TODO**
+> 상태: **DOING**
 > 결정: DEC-029
 > 목표: 추천, 잡담, 스토리, 세션, 캐릭터 이벤트를 `Input → Understand → Evaluate → Select → Plan → Present`로 통일한다.
 
@@ -368,7 +368,7 @@
 
 | 작업 ID | 상태 | 변경 범위 | 테스트 | 완료 조건 |
 |---|---|---|---|---|
-| PIPE-801 기준선 고정 | TODO | P0.5 현재 변경과 대표 상태 snapshot 고정 | 전체 Vitest, check, lint, build, 대표 중단·복귀 trace | 기존 856개 테스트와 P0.5 여섯 계약 통과, 이후 diff 기준 확보 |
+| PIPE-801 기준선 고정 | DONE | P0.5 현재 변경과 대표 상태 snapshot 고정 | 69 files / 856 tests, check, lint, build, Conversation Expansion·Continuity 2 files / 20 tests | 기준 커밋 `ad058ed`. main 553.16 kB(gzip 166.01 kB), WebLLM worker 6,029.70 kB, lib 5,895.35 kB 비교 기준 확보 |
 | PIPE-802 WebLLM 제거 | TODO | App/controller의 실험 호출, hook/component, `src/lib/webllm`, 패키지 의존성, 기본 번들 경로 제거 | 전체 회귀, 앱 진입·퇴장·추천, production asset 검사 | `@mlc-ai/web-llm`과 WebLLM 청크 없음, 사용자 동작 불변, 참조는 과거 문서에만 존재 |
 | PIPE-803 Replay 기반 | TODO | 기존 continuity·regression 시나리오를 정적 Replay corpus와 단계별 diff runner로 재사용 | 결정성 반복 실행, 안전·FSM·추천 결과 차이 severity 검사 | safety/Control/FSM/추천 차이는 자동 실패, 운영 원문 영구 수집 없음 |
 | PIPE-804 Understand 계약 | TODO | `TurnInput`, `InputUnderstanding`, 다중 신호, 턴 단위 `ConversationStateCue`, evidence/confidence/span, `SemanticAssistProposal` validator와 fake/no-op adapter | 기존 classifier fixture shadow 비교, 복합 발화, 금지 API 필드, invalid span | 런타임 행동 불변, 모든 신호에 근거 존재, API는 의미 후보만 표현 가능 |

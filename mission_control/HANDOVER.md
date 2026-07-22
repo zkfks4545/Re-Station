@@ -26,8 +26,8 @@
 
 ## 3. 다음 행동
 
-1. 다음 구조 작업은 `PIPE-801` 기준선 고정부터 시작한다. P0.5 현재 변경과 전체 회귀를 먼저 보존한다.
-2. `PIPE-802`에서 WebLLM 런타임과 의존성을 제거한 뒤 멈추고 전체 테스트·빌드·asset 차이를 검증한다. classifier 개편을 같은 변경에 섞지 않는다.
+1. `PIPE-801` 기준선 고정은 완료됐다. 기준 커밋은 `ad058ed`이며 856 tests, check, lint, build와 대표 20 tests가 통과했다.
+2. 다음 작업은 `PIPE-802`다. WebLLM 런타임과 의존성을 제거한 뒤 멈추고 전체 테스트·빌드·asset 차이를 검증한다. classifier 개편을 같은 변경에 섞지 않는다.
 3. `PIPE-803` Replay를 만든 뒤 `PIPE-804` InputUnderstanding을 shadow로 실행한다. Replay 승인 전 FSM 소비자를 전환하지 않는다.
 4. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
 5. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.

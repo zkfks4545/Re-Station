@@ -1,5 +1,13 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-801 기준선 고정
+
+- 기준 커밋 `ad058ed`의 P0.5 Conversation Expansion과 결정론적 파이프라인 문서 상태를 migration baseline으로 고정했다.
+- 전체 검증: 69 files / 856 tests, TypeScript check, ESLint, production build 통과.
+- 대표 대화 검증: `conversation-expansion.test.ts`와 `conversation-continuity.test.ts` 2 files / 20 tests 통과.
+- 번들 기준: main 553.16 kB(gzip 166.01 kB), WebLLM worker 6,029.70 kB, lib 5,895.35 kB. 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-802 WebLLM 런타임·의존성 제거이며 classifier·FSM 개편은 포함하지 않는다.
+
 ## 2026-07-22 / Codex / 결정론적 상호작용 파이프라인 설계 반영
 
 - 추천, 잡담, 스토리, 세션, 캐릭터 이벤트의 목표 구조를 `Input → Understand → Evaluate → Select → Plan → Present`로 통일하고 DEC-029로 승인 결정을 기록했다.

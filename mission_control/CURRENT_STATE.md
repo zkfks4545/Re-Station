@@ -6,7 +6,7 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | 기존 MVP와 P0.5 완료. DEC-029 통합 파이프라인 마이그레이션은 승인·미착수 |
+| 단계 | 기존 MVP와 P0.5 완료. PIPE-801 기준선 고정 완료, 다음 PIPE-802 WebLLM 제거 |
 | 기술 | React+Vite+프론트엔드 단독. WebLLM 실험 경로는 아직 존재하지만 제거 결정. **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/check | 통과 (메인 JS 553.16 kB, gzip 166.01 kB, WebLLM/lib 지연 청크 분리) |
 | 테스트 | **Vitest 856개 전체 통과** |
@@ -75,6 +75,8 @@
 - 현재 FSM 상태는 입력 문맥으로 읽지만 상태 변경은 Plan이 만든 transition에만 허용한다.
 - Present는 기존 ResponsePlan, Sprite, Audio 계약을 재사용한다. ResponseFragment는 반복 문제가 측정될 때까지 연기한다.
 - 상세 범위와 완료 조건은 `TASK_BOARD.md`, 불변식과 API 금지 경계는 DEC-029가 소유한다.
+- PIPE-801 기준 커밋은 `ad058ed`다. 69 files / 856 tests, check, lint, build와 Conversation Expansion·Continuity 2 files / 20 tests가 통과했다.
+- PIPE-802 비교 기준 번들은 main 553.16 kB(gzip 166.01 kB), WebLLM worker 6,029.70 kB, lib 5,895.35 kB다.
 
 ### Dialogue 과거 완료 기록
 
