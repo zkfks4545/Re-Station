@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-807 평가 근거 통합
+
+- 구현 커밋: `3529cff` (`feat: integrate recommendation evaluations`).
+- 질문·칵테일·대화 평가가 재사용하는 `CandidateEvaluation<T>` 공통 계약을 타입 계층에 추가했다.
+- 질문 평가는 후보 분리도, JSON `dialogueFlow.goal` 기반 문맥 연속성, 선택지 수 기반 답변 난이도, 누적 질문 피로도를 contribution으로 반환한다. known/asked topic, 결정된 후보군, 최대 3문항은 hard constraint다.
+- 칵테일 선택은 기존 taste-distance와 tie-break 결과를 유지하면서 hard constraint·score·근거 contribution을 함께 반환한다. 런타임 추천은 선택 evaluation을 `RecommendationDecision`에 보존한다.
+- 추천 이유의 별도 계산을 제거하고 선택 evaluation contribution의 reason·evidence에서만 생성한다.
+- 검증: 120개 전체 조합에서 기존 선택과 evaluation 선택 일치, 동일 상태 질문 결정성, 점수 합, known/asked 회피, 이유-evidence 동일성. 표적 5 files / 130 tests, 전체 67 files / 918 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 559.23 kB(gzip 167.45 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 `PIPE-808`은 공급자·예산·개인정보·프록시 운영 정책 승인 전 착수하지 않는다.
+
 ## 2026-07-22 / Codex / PIPE-806-D Conversation Expansion Plan 소비
 
 - 구현 커밋: `7a7c088` (`feat: consume conversation interruption plans`).

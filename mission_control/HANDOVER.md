@@ -35,10 +35,11 @@
 7. `PIPE-806-B` topic·speech·entity 소비는 `507abfc`, active session 수정은 `ea3527c`, 카루아 취향 질문·조사 보정은 `a02abe8`로 완료됐다.
 8. `PIPE-806-C` PreferenceEvidence 소비는 `19d032c`로 완료됐다. session scope 원장과 legacy 누적 projection을 Replay로 비교하며, 호환 시에만 projection delta를 소비하고 불일치 시 legacy로 fallback한다. Pending/SuspendedQuestion 계약은 유지했고 906 tests, check, lint, build가 통과했다.
 9. `PIPE-806-D` Conversation Expansion Plan 소비는 `7a7c088`로 완료됐다. 호환 topic·move는 `suspend-question` Plan을 소비하고, knowledge 오분류는 legacy fallback한다. Pending/SuspendedQuestion과 동일 질문 복귀를 포함해 914 tests, check, lint, build가 통과했다.
-10. 다음 작업은 `PIPE-807` 평가 근거 통합이다. 후보 점수 contribution에서 추천 이유를 파생하고 질문 점수에 분리도·문맥·답변 난이도·피로도를 추가하되, 기존 최대 3문항과 결정 결과를 Replay로 먼저 고정한다.
-11. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
-12. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.
-13. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`를 갱신한다.
+10. `PIPE-807` 평가 근거 통합은 `3529cff`로 완료됐다. 공통 `CandidateEvaluation<T>`, 네 질문 contribution, 칵테일 hard constraint·taste score, contribution 기반 추천 이유를 적용했다. 120개 조합 기존 선택 일치와 918 tests, check, lint, build가 통과했다.
+11. 다음 `PIPE-808`은 제한적 API 승인 게이트다. 공급자·예산·개인정보·프록시 운영 정책 승인 전 실제 adapter를 연결하지 않는다. 승인 시에도 API는 의미 후보와 근거 span만 반환하며 상태·추천·세계관·최종 행동을 결정하지 않는다.
+12. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
+13. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.
+14. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`를 갱신한다.
 
 ## 4. 주의사항
 
