@@ -1,5 +1,14 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-803 Replay 기반
+
+- 구현 커밋: `d5d086c` (`test: add deterministic conversation replay gate`).
+- 정규화된 대화 snapshot과 필드별 severity diff runner를 추가했다. safety/FSM/추천 선택과 route/action/ResponsePlan 차이는 자동 실패하고 topic/expression은 검토, 최종 문구 차이는 허용으로 분리했다.
+- 기존 `DialogueService`를 직접 재생하는 정적 corpus로 smalltalk→character 후속 대화, 추천 질문 중 safety 잠금, farewell 중 추천 action 차단을 고정했다.
+- 문장과 표정 variant는 기존 의도적 랜덤성을 유지하므로 반복 결정성 검사는 상태·분류·선택·계획 필드에 적용한다. 운영 대화 원문 저장, InputUnderstanding, FSM 신규 소비자는 추가하지 않았다.
+- 검증: Replay·Continuity·Regression 3 files / 18 tests, 전체 63 files / 827 tests, TypeScript check, ESLint, production build 통과. main 543.44 kB(gzip 162.32 kB), 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-804 Understand 계약이며 실제 API 연결과 런타임 행동 전환은 포함하지 않는다.
+
 ## 2026-07-22 / Codex / PIPE-802 WebLLM 제거
 
 - 구현 커밋: `0b29a0e` (`refactor: remove WebLLM runtime`).

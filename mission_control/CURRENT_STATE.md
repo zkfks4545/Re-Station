@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | PIPE-801 기준선·PIPE-802 WebLLM 제거 완료, 다음 PIPE-803 Replay 기반 |
+| 단계 | PIPE-801~803 완료, 다음 PIPE-804 Understand 계약 |
 | 기술 | React+Vite+프론트엔드 단독, 내부 결정론적 대화·추천 엔진, **Hidden Relationship State** 탑재 (JSON 기반) |
 | 빌드/check | 통과 (메인 JS 543.44 kB, gzip 162.32 kB, WebLLM 청크 없음) |
-| 테스트 | **Vitest 823개 전체 통과** |
+| 테스트 | **Vitest 827개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -60,7 +60,7 @@
 | 입력·결정 구조 | 단일 IntentClassifier, 라우터, 추천·스토리·세션별 분산 판단 | `Input → Understand → Evaluate → Select → Plan → Present`로 점진 통일 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | PreferenceEvidence, 공통 후보 평가 contribution, 문맥 기반 질문 점수로 점진 전환 |
 | 외부 의미 보조 | WebLLM 런타임·의존성 제거 완료. 외부 의미 보조 없음 | PIPE-804에서 공급자 중립 계약만 정의. 실제 API는 PIPE-808 전까지 미연결 |
-| 테스트 | WebLLM 전용 7 files 제거 후 데이터·서비스·라우팅·세션·UI·Conversation Expansion 등 62 files / 823 tests | 후속 기능별 계약 추가 |
+| 테스트 | 정적 Replay corpus 포함 데이터·서비스·라우팅·세션·UI·Conversation Expansion 등 63 files / 827 tests | 후속 기능별 계약 추가 |
 | 번들 | 메인 JS 543.44 kB, gzip 162.32 kB. WebLLM worker/lib 청크 제거 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-22)
@@ -78,6 +78,7 @@
 - PIPE-801 기준 커밋은 `ad058ed`다. 69 files / 856 tests, check, lint, build와 Conversation Expansion·Continuity 2 files / 20 tests가 통과했다.
 - PIPE-802 비교 기준 번들은 main 553.16 kB(gzip 166.01 kB), WebLLM worker 6,029.70 kB, lib 5,895.35 kB다.
 - PIPE-802 구현 커밋은 `0b29a0e`다. WebLLM 전용 7 test files를 제거한 뒤 62 files / 823 tests, check, lint, build와 대표 20 tests가 통과했다. main은 543.44 kB(gzip 162.32 kB)이며 worker/lib 청크는 없다.
+- PIPE-803 구현 커밋은 `d5d086c`다. 정규화 Replay snapshot과 severity diff runner를 추가하고 smalltalk→character, 추천 중 safety, farewell 추천 차단 corpus를 실제 `DialogueService`로 재생한다. 63 files / 827 tests, check, lint, build가 통과했다.
 
 ### Dialogue 과거 완료 기록
 
