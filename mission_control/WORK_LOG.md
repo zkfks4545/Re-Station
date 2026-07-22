@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-B topic·speech·entity 점진 적용
+
+- 구현 커밋: `507abfc` (`refactor: consume planned topic and speech signals`).
+- `DialogueMove`가 `SpeechAct`와 단일 topic transition을 소유하고, controller는 `InputUnderstanding`과 계획이 정확히 일치할 때만 이를 소비한다. 불일치·대화 중단 시 기존 topic transition으로 fallback한다.
+- `PrimaryTopic`을 세션 topic으로 결정적으로 매핑하고 칵테일 지식·스토리의 entity ID를 subject에 전달한다. 질문·답변 SpeechAct는 일반 대화 초대 여부에도 반영했다.
+- 풍부해진 `world-building` 문맥에서도 `당신은?` 후속 발화를 character 질의로 복구하도록 기존 ContinuationResolver 계약을 확장했다.
+- Replay snapshot에 `primaryTopic`, `speechAct`, `entityId`를 추가하고 topic transition 및 칵테일 story entity 연속성을 검증했다.
+- 검증: 표적 5 files / 52 tests, 전체 65 files / 864 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 549.33 kB(gzip 164.01 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-806-C PreferenceEvidence 소비다.
+
 ## 2026-07-22 / Codex / PIPE-806-A safety·ControlIntent 점진 적용
 
 - 구현 커밋: `f691adf` (`refactor: consume planned control transitions`).
