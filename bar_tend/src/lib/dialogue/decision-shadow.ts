@@ -11,6 +11,7 @@ import {
 } from '../recommendation/state.js'
 import { pickFromPool, selectNextQuestion } from '../recommendation/question-engine.js'
 import type { DialogueAction } from './action-resolver.js'
+import type { InputRoute } from './input-router.js'
 import type {
   EvidenceSpan,
   InputUnderstanding,
@@ -235,6 +236,26 @@ export function dialogueActionKey(action: DialogueAction): string {
   if (action.type === 'continueStory') return `${action.type}:${action.topic}:${action.cocktailId ?? 'none'}`
   if ('cocktailId' in action) return `${action.type}:${action.cocktailId}`
   return action.type
+}
+
+export function compatibleControlTransitions(
+  route: InputRoute,
+  move: DialogueMove,
+): readonly DialogueSessionAction[] | null {
+  if (
+    route === 'safety'
+    && move.type === 'safety'
+    && move.transitions.length === 1
+    && move.transitions[0].type === 'lock-safety'
+  ) return move.transitions
+  if (
+    route === 'recommendation-cancel'
+    && move.type === 'cancel-recommendation'
+    && move.transitions.length === 1
+    && move.transitions[0].type === 'set-mode'
+    && move.transitions[0].mode === 'conversation'
+  ) return move.transitions
+  return null
 }
 
 function scopeApplies(scope: PreferenceScope, context: PreferenceProjectionContext): boolean {

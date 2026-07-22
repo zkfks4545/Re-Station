@@ -41,6 +41,8 @@ import { expressionForSessionAffect, type SessionAffect } from '../session/sessi
 import type { PendingQuestion, SessionTopic } from '../session/dialogue-session.js'
 import type { ConversationContextSnapshot } from './conversation-context-snapshot.js'
 import { resolveContinuation } from './continuation-resolver.js'
+import { createShadowUnderstanding, type InputUnderstanding } from './input-understanding.js'
+import { planShadowDialogueMove, type DialogueMove } from './decision-shadow.js'
 
 export interface DialogueServiceSessionSnapshot {
   phase: SessionPhase
@@ -90,6 +92,8 @@ export interface DialogueResolution {
   blockedBySession: boolean
   contextEvents: ConversationContextEvent[]
   directResponse: DirectDialogueResponse | null
+  understanding: InputUnderstanding
+  move: DialogueMove
 }
 
 export interface MainTurnOptions {
@@ -117,6 +121,22 @@ export class DialogueService {
     const routeResult = classifiedIntent.route
     const reaction = this.resolveReaction(request.text, classifiedIntent)
     const action = resolveDialogueAction(classifiedIntent, request.conversationContext, reaction)
+    const understanding = createShadowUnderstanding({
+      text: request.text,
+      context: request.continuationContext ?? {
+        topic: request.session.sessionTopic ?? 'none',
+        affect: request.session.sessionAffect ?? 'neutral',
+        subject: request.session.sessionTopic === 'recommendation'
+          ? { type: 'recommendation', id: null }
+          : request.session.topicCocktailId
+            ? { type: 'cocktail', id: request.session.topicCocktailId }
+            : { type: 'none', id: null },
+        pendingQuestion: request.session.pendingQuestion ?? null,
+        recommendationActive: request.session.activeRecommendationSession,
+        safetyLocked: request.session.phase === 'safetyLocked',
+      },
+    }, classifiedIntent)
+    const move = planShadowDialogueMove(action, understanding)
     const blockedBySession = isRecommendationBlockedInPhase(request.session.phase, routeResult.route)
       || isDialogueActionBlockedInPhase(request.session.phase, action)
     const contextEvents = blockedBySession
@@ -136,6 +156,8 @@ export class DialogueService {
       action,
       blockedBySession,
       contextEvents,
+      understanding,
+      move,
     directResponse: directResponse
         ? { ...directResponse, turn: this.constrainTurnExpression(directResponse.turn, responseAffect) }
         : null,

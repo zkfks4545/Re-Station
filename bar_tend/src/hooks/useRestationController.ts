@@ -9,6 +9,7 @@ import {
   type ConversationContextEvent,
 } from '@/lib/dialogue/conversation-context.js'
 import { executeDialogueAction } from '@/lib/dialogue/action-executor.js'
+import { compatibleControlTransitions } from '@/lib/dialogue/decision-shadow.js'
 import { getFeedbackExcludedCocktailId } from '@/lib/recommendation/feedback-exclusion.js'
 import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogue-service.js'
 import {
@@ -522,7 +523,9 @@ export function useRestationController(sfx?: SfxChannel) {
         if (!directResponse) return handleInvalidTurn()
         clearPendingWork()
         resetRecommendation()
-        dispatchDialogueSession({ type: 'lock-safety' })
+        const transitions = compatibleControlTransitions(routeResult.route, dialogueResolution.move)
+          ?? [{ type: 'lock-safety' } as const]
+        transitions.forEach(dispatchDialogueSession)
         setServedCocktail(null)
         setSidebarOpen(false)
         bartenderReply(directResponse.turn.reply, directResponse.turn.expression, null, 'exiting')
@@ -589,7 +592,9 @@ export function useRestationController(sfx?: SfxChannel) {
         const directResponse = dialogueResolution.directResponse
         if (!directResponse) return handleInvalidTurn()
         resetRecommendation()
-        dispatchDialogueSession({ type: 'set-mode', mode: 'conversation' })
+        const transitions = compatibleControlTransitions(routeResult.route, dialogueResolution.move)
+          ?? [{ type: 'set-mode', mode: 'conversation' } as const]
+        transitions.forEach(dispatchDialogueSession)
         bartenderReply(directResponse.turn.reply, directResponse.turn.expression)
         return
       }

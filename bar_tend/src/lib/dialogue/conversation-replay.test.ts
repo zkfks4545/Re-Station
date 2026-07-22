@@ -5,6 +5,7 @@ import {
   createDialogueSessionState,
   dialogueSessionReducer,
   sessionTopicForRoute,
+  type DialogueSessionAction,
   type DialogueSessionState,
 } from '../session/dialogue-session.js'
 import { transitionSessionAffect } from '../session/session-affect.js'
@@ -20,6 +21,7 @@ import {
 } from './conversation-replay.js'
 import { DialogueService, type DialogueServiceRequest } from './dialogue-service.js'
 import type { DialogueAction } from './action-resolver.js'
+import { compatibleControlTransitions } from './decision-shadow.js'
 
 const service = new DialogueService(cocktails)
 
@@ -29,6 +31,9 @@ function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): Conversa
     intent: 'general-chat',
     route: 'general',
     action: 'respond',
+    controlIntent: null,
+    move: 'respond',
+    transitionPlan: 'none',
     blockedBySession: false,
     phase: 'conversation',
     mode: 'conversation',
@@ -48,6 +53,11 @@ function actionKey(action: DialogueAction): string {
   if (action.type === 'recommend') return `${action.type}:${action.mode}`
   if (action.type === 'continueStory') return `${action.type}:${action.topic}:${action.cocktailId ?? 'none'}`
   if ('cocktailId' in action) return `${action.type}:${action.cocktailId}`
+  return action.type
+}
+
+function transitionKey(action: DialogueSessionAction): string {
+  if (action.type === 'set-mode') return `${action.type}:${action.mode}`
   return action.type
 }
 
@@ -89,13 +99,20 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       for (const event of [...resolution.contextEvents, ...(resolution.directResponse?.contextEvents ?? [])]) {
         conversationContext = updateConversationContext(conversationContext, event)
       }
-      session = resolution.routeResult.route === 'safety'
-        ? dialogueSessionReducer(session, { type: 'lock-safety' })
-        : dialogueSessionReducer(session, {
-            type: 'set-topic',
-            topic: sessionTopicForRoute(resolution.routeResult.route),
-            cocktailId: resolution.routeResult.matchedCocktailId ?? null,
-          })
+      const controlTransitions = compatibleControlTransitions(
+        resolution.routeResult.route,
+        resolution.move,
+      )
+      session = dialogueSessionReducer(session, {
+        type: 'set-topic',
+        topic: sessionTopicForRoute(resolution.routeResult.route),
+        cocktailId: resolution.routeResult.matchedCocktailId ?? null,
+      })
+      if (controlTransitions) {
+        for (const transition of controlTransitions) {
+          session = dialogueSessionReducer(session, transition)
+        }
+      }
       if (resolution.routeResult.route !== 'safety') {
         session = dialogueSessionReducer(session, {
           type: 'set-session-affect',
@@ -116,6 +133,9 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       intent: resolution.classifiedIntent.intent,
       route: resolution.routeResult.route,
       action: actionKey(resolution.action),
+      controlIntent: resolution.understanding.controlIntents[0]?.value ?? null,
+      move: resolution.move.type,
+      transitionPlan: resolution.move.transitions.map(transitionKey).join(',') || 'none',
       blockedBySession: resolution.blockedBySession,
       phase: session.phase,
       mode: session.mode,
@@ -170,6 +190,9 @@ describe('conversation replay', () => {
             intent: 'bar-setting',
             route: 'general',
             action: 'respond',
+            controlIntent: null,
+            move: 'respond',
+            transitionPlan: 'none',
             phase: 'conversation',
             mode: 'conversation',
             topic: 'smalltalk',
@@ -183,6 +206,9 @@ describe('conversation replay', () => {
             intent: 'character-query',
             route: 'character-query',
             action: 'respond',
+            controlIntent: null,
+            move: 'respond',
+            transitionPlan: 'none',
             phase: 'conversation',
             mode: 'conversation',
             topic: 'smalltalk',
@@ -222,6 +248,9 @@ describe('conversation replay', () => {
         expected: {
           route: 'safety',
           action: 'respond',
+          controlIntent: 'safety',
+          move: 'safety',
+          transitionPlan: 'lock-safety',
           blockedBySession: false,
           phase: 'safetyLocked',
           mode: 'conversation',
@@ -248,12 +277,50 @@ describe('conversation replay', () => {
         expected: {
           route: 'general',
           action: 'recommend:preference',
+          controlIntent: null,
+          move: 'recommend',
+          transitionPlan: 'none',
           blockedBySession: true,
           phase: 'farewell',
           mode: 'conversation',
           topic: 'smalltalk',
           safetyLocked: false,
           selectedCocktailId: null,
+        },
+      }],
+    }, createDialogueReplayPlayer(session))
+
+    expect(result.blockingDifferences).toEqual([])
+  })
+
+  it('consumes a compatible recommendation-cancel transition plan', () => {
+    let session = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-mode', mode: 'recommendation',
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-topic', topic: 'recommendation', cocktailId: null,
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-pending-question',
+      question: { kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1 },
+    })
+    const result = runConversationReplay({
+      id: 'recommendation-cancel-control-transition',
+      turns: [{
+        input: '추천 취소',
+        expected: {
+          route: 'recommendation-cancel',
+          action: 'respond',
+          controlIntent: 'cancel-recommendation',
+          move: 'cancel-recommendation',
+          transitionPlan: 'set-mode:conversation',
+          blockedBySession: false,
+          phase: 'conversation',
+          mode: 'conversation',
+          topic: 'smalltalk',
+          pendingQuestion: null,
+          suspendedQuestion: null,
+          safetyLocked: false,
         },
       }],
     }, createDialogueReplayPlayer(session))

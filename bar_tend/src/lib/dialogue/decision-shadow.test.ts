@@ -20,6 +20,7 @@ import type { DialogueAction } from './action-resolver.js'
 import {
   deriveRecommendationStateFromEvidence,
   dialogueActionKey,
+  compatibleControlTransitions,
   evaluateLegacyCocktailSelection,
   evaluateLegacyDialogueAction,
   evaluateLegacyQuestionSelection,
@@ -247,5 +248,15 @@ describe('DialogueMove shadow plan', () => {
       type: 'cancel-recommendation',
       transitions: [{ type: 'set-mode', mode: 'conversation' }],
     })
+    expect(compatibleControlTransitions('recommendation-cancel', move)).toEqual(move.transitions)
+  })
+
+  it('rejects a control transition plan that disagrees with the legacy route', () => {
+    const safetyMove = planShadowDialogueMove({ type: 'respond' }, understand('죽고 싶어'))
+
+    expect(compatibleControlTransitions('recommendation-cancel', safetyMove)).toBeNull()
+    expect(compatibleControlTransitions('safety', {
+      type: 'safety', action: { type: 'respond' }, transitions: [],
+    })).toBeNull()
   })
 })
