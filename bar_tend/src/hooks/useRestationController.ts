@@ -18,6 +18,7 @@ import { DialogueService, type DialogueResolution } from '@/lib/dialogue/dialogu
 import {
   appendRecommendationResume,
   classifyRecommendationInterruption,
+  planCompatibleRecommendationInterruption,
 } from '@/lib/dialogue/conversation-expansion.js'
 import {
   formatWelcomeDrinkFeedbackReply,
@@ -466,15 +467,21 @@ export function useRestationController(sfx?: SfxChannel) {
       userMessageCountRef.current += 1
 
       const effectiveActionSessionMode = forcedSessionMode ?? actionSessionMode
-      const interruption = activeQuestion
+      const legacyInterruption = activeQuestion
         ? classifyRecommendationInterruption(text, activeQuestion)
         : null
       const dialogueResolution = resolveDialogueInput(
         text,
         nextMessages,
-        interruption ? 'conversation' : forcedSessionMode,
+        legacyInterruption ? 'conversation' : forcedSessionMode,
         options.inputKind,
       )
+      const interruptionPlan = planCompatibleRecommendationInterruption(
+        legacyInterruption,
+        dialogueResolution.understanding,
+        dialogueResolution.move,
+      )
+      const interruption = interruptionPlan?.interruption ?? legacyInterruption
       const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
       const nextTopic = interruption?.topic ?? sessionTopicForRoute(routeResult.route)
       const recommendationQuestionInput = activeQuestion
@@ -491,7 +498,9 @@ export function useRestationController(sfx?: SfxChannel) {
       if (!options.switchSessionId) {
         if (interruption) {
           captureExtractedPreferences(text, dialogueResolution.understanding.preferenceSignals)
-          dispatchDialogueSession({ type: 'suspend-question', topic: interruption.topic })
+          dispatchDialogueSession(interruptionPlan?.transition ?? {
+            type: 'suspend-question', topic: interruption.topic,
+          })
         } else {
           dispatchDialogueSession({ type: 'resume-question' })
         }

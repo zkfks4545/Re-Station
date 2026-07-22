@@ -1,11 +1,18 @@
 import type { RecommendationQuestion } from '../../types/recommendation.js'
-import type { ConversationTopic } from '../session/dialogue-session.js'
+import type { ConversationTopic, DialogueSessionAction } from '../session/dialogue-session.js'
 import { extractRecommendationSignals } from '../recommendation/state.js'
 import { classifyRecommendationQuestionInput } from '../recommendation/question-context.js'
+import type { DialogueMove } from './decision-shadow.js'
+import type { InputUnderstanding, PrimaryTopic } from './input-understanding.js'
 
 export interface ConversationInterruption {
   topic: Exclude<ConversationTopic, 'none' | 'recommendation' | 'safety'>
   contractReply?: string
+}
+
+export interface ConversationInterruptionPlan {
+  interruption: ConversationInterruption
+  transition: Extract<DialogueSessionAction, { type: 'suspend-question' }>
 }
 
 export function classifyRecommendationInterruption(
@@ -60,6 +67,37 @@ export function appendRecommendationResume(
 ): string {
   const prompt = question.prompt.replace(/[.?!。？！]+$/, '')
   return `${reply}\n그 얘기는 여기 두고, 아까 질문인 “${prompt}”로 돌아가 볼까요?`
+}
+
+export function planCompatibleRecommendationInterruption(
+  interruption: ConversationInterruption | null,
+  understanding: InputUnderstanding,
+  move: DialogueMove,
+): ConversationInterruptionPlan | null {
+  if (
+    !interruption
+    || understanding.controlIntents.length > 0
+    || !['respond', 'discuss', 'continue-story'].includes(move.type)
+    || !INTERRUPTION_TOPICS[interruption.topic].includes(understanding.primaryTopic.value)
+  ) return null
+
+  return {
+    interruption,
+    transition: { type: 'suspend-question', topic: interruption.topic },
+  }
+}
+
+const INTERRUPTION_TOPICS: Record<ConversationInterruption['topic'], readonly PrimaryTopic[]> = {
+  'cocktail-story': ['story'],
+  'cocktail-info': ['cocktail', 'story'],
+  ingredient: ['cocktail'],
+  recipe: ['cocktail'],
+  smalltalk: ['smalltalk'],
+  'world-building': ['world-building'],
+  character: ['character'],
+  'daily-life': ['daily-life'],
+  worldview: ['smalltalk'],
+  knowledge: ['knowledge'],
 }
 
 function matchesChoice(input: string, question: RecommendationQuestion): boolean {

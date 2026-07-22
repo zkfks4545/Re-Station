@@ -28,6 +28,12 @@ import {
   type PreferenceEvidence,
 } from './decision-shadow.js'
 import { createRecommendationState, extractRecommendationSignals } from '../recommendation/state.js'
+import { getQuestionById } from '../recommendation/question-engine.js'
+import {
+  appendRecommendationResume,
+  classifyRecommendationInterruption,
+  planCompatibleRecommendationInterruption,
+} from './conversation-expansion.js'
 
 const service = new DialogueService(cocktails)
 const mojito = cocktails.find(({ name }) => name === '모히토')
@@ -45,6 +51,8 @@ function snapshot(overrides: Partial<ConversationReplaySnapshot> = {}): Conversa
     controlIntent: null,
     preferenceProjection: 'none',
     preferenceProjectionCompatible: true,
+    interruptionTopic: null,
+    interruptionPlanCompatible: null,
     move: 'respond',
     transitionPlan: 'none',
     blockedBySession: false,
@@ -83,14 +91,18 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
   const messages: Message[] = []
 
   return (input) => {
+    const activeQuestion = getQuestionById(session.pendingQuestion?.questionId ?? null)
+    const legacyInterruption = activeQuestion
+      ? classifyRecommendationInterruption(input, activeQuestion)
+      : null
     const request: DialogueServiceRequest = {
       text: input,
       messages: [...messages, { role: 'user', text: input }],
       conversationContext,
       session: {
         phase: session.phase,
-        activeRecommendationSession: session.mode === 'recommendation',
-        allowRecommendationRoutes: session.mode === 'recommendation',
+        activeRecommendationSession: session.mode === 'recommendation' && !legacyInterruption,
+        allowRecommendationRoutes: session.mode === 'recommendation' && !legacyInterruption,
         welcomeDrinkUsed: true,
         alcoholStarsTotal: session.order.alcoholStarTotal,
         totalUserMessages: messages.filter(({ role }) => role === 'user').length + 1,
@@ -104,6 +116,11 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
       continuationContext: createConversationContextSnapshot(session, conversationContext),
     }
     const resolution = service.resolve(request)
+    const interruptionPlan = planCompatibleRecommendationInterruption(
+      legacyInterruption,
+      resolution.understanding,
+      resolution.move,
+    )
     const preferenceConsumption = consumePreferenceEvidence(
       preferenceEvidence,
       legacyPreferenceState,
@@ -132,13 +149,19 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
         resolution.routeResult.route,
         resolution.move,
       )
-      const topicTransition = compatibleTopicTransition(resolution.move, resolution.understanding)
-        ?? {
-          type: 'set-topic' as const,
-          topic: sessionTopicForRoute(resolution.routeResult.route),
-          cocktailId: resolution.routeResult.matchedCocktailId ?? null,
-        }
-      session = dialogueSessionReducer(session, topicTransition)
+      if (legacyInterruption) {
+        session = dialogueSessionReducer(session, interruptionPlan?.transition ?? {
+          type: 'suspend-question', topic: legacyInterruption.topic,
+        })
+      } else {
+        const topicTransition = compatibleTopicTransition(resolution.move, resolution.understanding)
+          ?? {
+            type: 'set-topic' as const,
+            topic: sessionTopicForRoute(resolution.routeResult.route),
+            cocktailId: resolution.routeResult.matchedCocktailId ?? null,
+          }
+        session = dialogueSessionReducer(session, topicTransition)
+      }
       if (controlTransitions) {
         for (const transition of controlTransitions) {
           session = dialogueSessionReducer(session, transition)
@@ -157,7 +180,10 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
     }
 
     messages.push({ role: 'user', text: input })
-    if (turn) messages.push({ role: 'bartender', text: turn.reply })
+    const reply = turn && legacyInterruption && activeQuestion
+      ? appendRecommendationResume(turn.reply, activeQuestion)
+      : turn?.reply ?? null
+    if (reply) messages.push({ role: 'bartender', text: reply })
 
     return {
       input,
@@ -173,6 +199,8 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
         .sort()
         .join(',') || 'none',
       preferenceProjectionCompatible: preferenceConsumption.compatibleWithLegacy,
+      interruptionTopic: legacyInterruption?.topic ?? null,
+      interruptionPlanCompatible: legacyInterruption ? interruptionPlan !== null : null,
       move: resolution.move.type,
       transitionPlan: resolution.move.transitions.map(transitionKey).join(',') || 'none',
       blockedBySession: resolution.blockedBySession,
@@ -187,7 +215,7 @@ function createDialogueReplayPlayer(initialSession = createDialogueSessionState(
         ?? null,
       responsePlanId: turn?.responsePlanId ?? null,
       expression: turn?.expression ?? null,
-      reply: turn?.reply ?? null,
+      reply,
     }
   }
 }
@@ -293,6 +321,53 @@ describe('conversation replay', () => {
     }, createDialogueReplayPlayer())
 
     expect(result.blockingDifferences).toEqual([])
+  })
+
+  it('replays recommendation interruption planning, fallback, and exact-question resume', () => {
+    let session = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-mode', mode: 'recommendation',
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-topic', topic: 'recommendation', cocktailId: null,
+    })
+    session = dialogueSessionReducer(session, {
+      type: 'set-pending-question',
+      question: {
+        sessionId: 'recommendation-1', questionId: 'flavor-profile',
+        kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1,
+      },
+    })
+    const result = runConversationReplay({
+      id: 'recommendation-conversation-expansion',
+      turns: [
+        {
+          input: '시에스타는 어떤 사람이야?',
+          expected: {
+            interruptionTopic: 'character',
+            interruptionPlanCompatible: true,
+            mode: 'recommendation',
+            topic: 'character',
+            pendingQuestion: 'recommendation-flavor',
+            suspendedQuestion: 'recommendation-flavor',
+          },
+        },
+        {
+          input: '양자역학이 뭐야?',
+          expected: {
+            interruptionTopic: 'knowledge',
+            interruptionPlanCompatible: false,
+            mode: 'recommendation',
+            topic: 'knowledge',
+            pendingQuestion: 'recommendation-flavor',
+            suspendedQuestion: 'recommendation-flavor',
+          },
+        },
+      ],
+    }, createDialogueReplayPlayer(session))
+    const resumePrompt = getQuestionById('flavor-profile')!.prompt.replace(/[.?!…！？]+$/, '')
+
+    expect(result.blockingDifferences).toEqual([])
+    expect(result.snapshots.every(({ reply }) => reply?.includes(resumePrompt))).toBe(true)
   })
 
   it('fails closed when safety interrupts a pending recommendation question', () => {

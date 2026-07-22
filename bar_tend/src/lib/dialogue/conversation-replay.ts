@@ -11,6 +11,8 @@ export interface ConversationReplaySnapshot {
   controlIntent: string | null
   preferenceProjection: string
   preferenceProjectionCompatible: boolean
+  interruptionTopic: string | null
+  interruptionPlanCompatible: boolean | null
   move: string
   transitionPlan: string
   blockedBySession: boolean
@@ -70,6 +72,8 @@ export const REPLAY_FIELD_SEVERITY: Record<ConversationReplayField, ReplayDiffer
   controlIntent: 'critical',
   preferenceProjection: 'major',
   preferenceProjectionCompatible: 'critical',
+  interruptionTopic: 'major',
+  interruptionPlanCompatible: 'critical',
   move: 'critical',
   transitionPlan: 'critical',
   blockedBySession: 'critical',
