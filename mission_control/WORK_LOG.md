@@ -1,5 +1,15 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-804 Understand 계약
+
+- 구현 커밋: `daae94c` (`feat: define input understanding shadow contract`).
+- `TurnInput`과 `PrimaryTopic`, `SpeechAct`, `PreferenceSignal`, `Entity`, `ControlIntent`, 턴 단위 `ConversationStateCue`를 동시에 담는 `InputUnderstanding` 계약을 추가했다. 모든 신호는 confidence, source, 원문 evidence span을 가진다.
+- 기존 `IntentClassifier` 출력과 추천 신호 추출기를 읽기 전용 shadow adapter로 재사용했다. 런타임 `DialogueService`, 추천 FSM, 상태 reducer에는 연결하지 않았다.
+- 낮은 confidence이며 명시 취향·알려진 entity·ControlIntent·질문 답변이 없는 경우만 허용하는 호출 자격과 공급자 중립 `SemanticAssistPort`, fake/no-op adapter를 추가했다.
+- validator는 의미 후보와 정확한 원문 span만 허용하며 ControlIntent, 상태 patch, 추천 결과, ResponsePlan 등 추가 필드를 거부한다. 실제 API·공급자·네트워크 코드는 없다.
+- 검증: InputUnderstanding·Replay 2 files / 20 tests, 전체 64 files / 843 tests, TypeScript check, ESLint, production build 통과. main 543.44 kB(gzip 162.32 kB), 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-805 Evaluate·Select·Plan shadow다.
+
 ## 2026-07-22 / Codex / PIPE-803 Replay 기반
 
 - 구현 커밋: `d5d086c` (`test: add deterministic conversation replay gate`).

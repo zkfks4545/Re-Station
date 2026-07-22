@@ -146,7 +146,7 @@ IDLE
 |---|---|---|
 | 컨트롤러 통합 검증 한계 | 도메인·서비스 단위 테스트는 확장됐지만 React 컨트롤러 전체 흐름은 주로 하위 계약 테스트에 의존 | 세션 reducer와 UI 부수효과 연결의 통합 회귀 위험 |
 | 분산된 입력 판단 | IntentClassifier, router, recommendation, reaction, continuation, conversation expansion이 일부 판정을 중복 소유 | 복합 발화 충돌과 단계별 회귀 원인 추적이 어려움 |
-| Replay 기반 부재 | 현재 continuity 테스트는 있으나 단계별 old/new diff corpus는 아직 없음 | PIPE-803에서 새 소비자 연결 전 회귀 경계 구축 필요 |
+| Replay corpus 범위 | PIPE-803에서 smalltalk·safety·farewell 추천 차단 정적 corpus와 severity gate를 추가했으나 도메인별 corpus는 아직 좁음 | PIPE-805 이후 각 shadow·소비 전환마다 기존 corpus 확장 필요 |
 
 `useRestationController`의 응답 준비, 타이핑, 추천 카드, 화면 흔들림, 퇴장 지연 작업은 관리형 타이머 레지스트리를 사용한다. 퇴장, 초기화, 컴포넌트 언마운트 시 남은 작업을 모두 취소하며, 처리 상태는 `idle`, `processing`, `typing`, `exiting` 중 하나로 유지한다.
 
