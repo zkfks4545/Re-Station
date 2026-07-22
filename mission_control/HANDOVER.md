@@ -31,10 +31,12 @@
 3. `PIPE-803` Replay 기반은 구현 커밋 `d5d086c`로 완료됐다. 정적 corpus와 severity gate가 추가됐고 827 tests, check, lint, build가 통과했다.
 4. `PIPE-804` Understand 계약은 구현 커밋 `daae94c`로 완료됐다. shadow 계약만 존재하며 843 tests, check, lint, build가 통과했다.
 5. `PIPE-805` Evaluate·Select·Plan shadow는 구현 커밋 `a6129f7`로 완료됐다. legacy 선택을 감싼 비소비 계약이며 859 tests, check, lint, build가 통과했다.
-6. 다음 작업은 `PIPE-806` FSM 점진 적용이다. safety·ControlIntent부터 독립 Replay gate로 소비하고, topic/speech/entity와 preference, Conversation Expansion은 후속 독립 변경으로 순차 적용한다.
-7. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
-8. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.
-9. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`를 갱신한다.
+6. `PIPE-806-A` safety·ControlIntent 소비는 구현 커밋 `f691adf`로 완료됐다. route/Move 일치 gate와 fallback을 유지하며 861 tests, check, lint, build가 통과했다.
+7. 다음 작업은 `PIPE-806-B` topic·speech·entity 소비다. 현재 controller의 `sessionTopicForRoute`와 response 선택 경계를 한 영역씩 교체하고 각 변경에 Replay diff를 둔다.
+8. preference와 Conversation Expansion 소비는 B 검증 뒤 별도 커밋으로 진행한다. Pending/SuspendedQuestion 계약을 동시에 바꾸지 않는다.
+9. P0.5 Conversation Expansion은 완료됐다. 후속 대화 변경은 질문 보존·복귀와 `RecommendationState.extractedPreferences` 계약을 먼저 확인한다.
+10. `AUD-001` 실제 청취 QA와 `SPR-004~005`, `FLOW-003`은 기존 승인·환경 게이트를 유지한다.
+11. 작업 후 `WORK_LOG.md`, `CURRENT_STATE.md`, 필요 시 `TASK_BOARD.md`를 갱신한다.
 
 ## 4. 주의사항
 

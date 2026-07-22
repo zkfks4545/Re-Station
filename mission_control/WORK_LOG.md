@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-A safety·ControlIntent 점진 적용
+
+- 구현 커밋: `f691adf` (`refactor: consume planned control transitions`).
+- `DialogueService.resolve()`가 기존 classifier 결과에서 `InputUnderstanding`과 `DialogueMove`를 생성해 반환하도록 연결했다. Understand와 Plan은 상태를 직접 변경하지 않는다.
+- controller의 safety `lock-safety`와 추천 취소 `set-mode:conversation`만 DialogueMove transition으로 교체했다. legacy route와 move type·transition이 정확히 일치하지 않으면 기존 transition을 적용한다.
+- Replay snapshot에 `controlIntent`, move, transition plan을 critical 필드로 추가하고 추천 질문 중 safety 잠금, 추천 취소, farewell 추천 차단, 일반 대화의 구조 불변을 검증했다.
+- topic·speech·entity, PreferenceEvidence, Conversation Expansion 소비는 포함하지 않았다. PIPE-806은 DOING 상태를 유지한다.
+- 검증: Decision shadow·Replay·DialogueService·Continuity 4 files / 52 tests, 전체 65 files / 861 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 548.27 kB(gzip 163.64 kB), Understand·Plan runtime 연결로 직전보다 4.83 kB(gzip 1.32 kB) 증가. WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-806-B topic·speech·entity 소비다.
+
 ## 2026-07-22 / Codex / PIPE-805 Evaluate·Select·Plan shadow
 
 - 구현 커밋: `a6129f7` (`feat: add deterministic decision shadow`).
