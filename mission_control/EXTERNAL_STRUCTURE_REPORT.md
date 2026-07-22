@@ -87,7 +87,7 @@ App / ChatInput
 - ResponsePlan과 formatter는 이미 결정된 결과의 최종 표현을 렌더링한다.
 - Character Layer는 최종 문구와 표정의 말투 적합성을 검사한다.
 - 안전 입력은 모든 큐와 예약 작업보다 우선한다.
-- 제거 예정 WebLLM과 Rapport는 현재 구조에서 최종 대사 선택이나 추천 판단을 직접 바꾸지 않는다.
+- WebLLM 런타임은 제거됐다. Rapport는 현재 구조에서 최종 대사 선택이나 추천 판단을 직접 바꾸지 않는다.
 
 ## 5. Major Modules
 
@@ -192,7 +192,7 @@ App / ChatInput
 | `bar_tend/src/types.ts` | 공통 칵테일, 메시지, 표정 타입 |
 | `bar_tend/src/types/cocktail-db.ts` | 정규화 칵테일 DB 타입 |
 
-### 5.7 Storage, Timing, Audio, Relationship, WebLLM
+### 5.7 Storage, Timing, Audio, Relationship
 
 | 경로 | 책임 |
 |---|---|
@@ -202,10 +202,6 @@ App / ChatInput
 | `bar_tend/src/hooks/useAudioManager.ts` | BGM 상태, YouTube player lifecycle, 볼륨·음소거·저장/복원 소유 |
 | `bar_tend/src/lib/relationship/*` | 숨은 RapportState 타입, config, 상태 갱신, 구간 매핑 |
 | `bar_tend/src/lib/relationship/dialogue-selector.ts` | rapport 구간별 variation 선택 헬퍼 |
-| `bar_tend/src/hooks/useExperimentalWebLLMPreparation.ts` | WebLLM 준비 예약 |
-| `bar_tend/src/lib/webllm/service.ts` | 비차단 의미 분석 서비스 |
-| `bar_tend/src/lib/webllm/validator.ts` | 의미 분석 결과 허용 목록 검증 |
-| `bar_tend/src/lib/webllm/session-tags.ts` | 세션 전용 의미 태그 저장 |
 
 ## 6. Responsibility Boundaries
 
@@ -231,7 +227,7 @@ Character Layer는 문구와 표정을 보존하면서 말투 검증 메타데�
 
 ### 6.6 제한적 의미 보조
 
-WebLLM 런타임은 제거 대상이다. 향후 `SemanticAssistPort`는 내부 Understand가 확신하지 못한 미등록 은유·복합 발화·암시적 취향에만 사용한다. 출력은 허용된 의미 후보, confidence, 원문 evidence span으로 제한한다. ControlIntent, 상태, 추천 결과, 점수, 사실, DialogueMove, ResponsePlan, 최종 표현은 제안할 수 없다. 검증 실패나 timeout에는 상태를 변경하지 않고 내부 확인 질문 또는 기존 ResponsePlan을 사용한다.
+WebLLM 런타임과 의존성은 PIPE-802에서 제거됐다. 향후 `SemanticAssistPort`는 내부 Understand가 확신하지 못한 미등록 은유·복합 발화·암시적 취향에만 사용한다. 출력은 허용된 의미 후보, confidence, 원문 evidence span으로 제한한다. ControlIntent, 상태, 추천 결과, 점수, 사실, DialogueMove, ResponsePlan, 최종 표현은 제안할 수 없다. 검증 실패나 timeout에는 상태를 변경하지 않고 내부 확인 질문 또는 기존 ResponsePlan을 사용한다.
 
 ### 6.7 Rapport
 

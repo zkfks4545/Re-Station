@@ -136,7 +136,6 @@ IDLE
 | React 및 React DOM | 주 실행 경로에서 사용 |
 | TheCocktailDB | 과거 정적 데이터 생성·보강 출처. 현재 런타임 API 모듈은 제거됨 |
 | IBA 공식 칵테일 목록 | 클래식 칵테일 레시피 수치와 공식 분류 출처. URL을 정적 데이터에 기록 |
-| WebLLM | 현재 기본 OFF 실험 코드가 남아 있으나 DEC-029에 따라 제거 예정 |
 | 제한적 의미 보조 API | 아직 미구현. 향후 의미 후보와 evidence span만 제안 가능 |
 | 외부 이미지 URL | 일부 칵테일 이미지에 사용 |
 | 지도 링크 | 시그니처 칵테일의 제휴 바 위치에 사용 |
@@ -147,7 +146,7 @@ IDLE
 |---|---|---|
 | 컨트롤러 통합 검증 한계 | 도메인·서비스 단위 테스트는 확장됐지만 React 컨트롤러 전체 흐름은 주로 하위 계약 테스트에 의존 | 세션 reducer와 UI 부수효과 연결의 통합 회귀 위험 |
 | 분산된 입력 판단 | IntentClassifier, router, recommendation, reaction, continuation, conversation expansion이 일부 판정을 중복 소유 | 복합 발화 충돌과 단계별 회귀 원인 추적이 어려움 |
-| WebLLM 실험 코드 잔존 | 결정 경로에는 미연결이나 런타임·의존성·빌드 청크가 남아 있음 | PIPE-802에서 제거 필요 |
+| Replay 기반 부재 | 현재 continuity 테스트는 있으나 단계별 old/new diff corpus는 아직 없음 | PIPE-803에서 새 소비자 연결 전 회귀 경계 구축 필요 |
 
 `useRestationController`의 응답 준비, 타이핑, 추천 카드, 화면 흔들림, 퇴장 지연 작업은 관리형 타이머 레지스트리를 사용한다. 퇴장, 초기화, 컴포넌트 언마운트 시 남은 작업을 모두 취소하며, 처리 상태는 `idle`, `processing`, `typing`, `exiting` 중 하나로 유지한다.
 
@@ -251,7 +250,7 @@ affectState    # 어떤 얼굴인지: neutral, warm, curious, confident, playful
 | 내부 엔진 | Understand 이후 모든 Evaluate·Select·Plan 결정을 소유 |
 | 상태 변경 | Plan이 만든 transition을 reducer가 적용할 때만 허용 |
 | Present | ResponsePlan + Sprite + Audio. 결정된 결과를 변경하지 않음 |
-| WebLLM | 실행 경로와 의존성 제거, 과거 실험 기록만 보존 |
+| WebLLM | PIPE-802에서 실행 경로와 의존성 제거 완료, 과거 실험 기록만 보존 |
 | 외부 API | 실제 연결 시 same-origin 프록시 사용. 의미 후보와 evidence span만 제안 |
 | 복구 경로 | API 미사용·오류·시간 초과·검증 실패 시 상태 불변, 내부 확인 질문 또는 기존 ResponsePlan |
 

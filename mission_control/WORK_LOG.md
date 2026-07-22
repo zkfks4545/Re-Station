@@ -1,5 +1,14 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-802 WebLLM 제거
+
+- 구현 커밋: `0b29a0e` (`refactor: remove WebLLM runtime`).
+- App의 lazy 준비 컴포넌트, controller의 비차단 분석·세션 태그, 전용 hook/component, `src/lib/webllm` 19개 파일, 환경 변수와 `@mlc-ai/web-llm` 의존성을 제거했다.
+- `SignalSource`는 현재 사용하는 `rule | question`만 유지하고 Character Layer의 활성 설명을 외부 의미 보조 경계로 갱신했다. IntentClassifier, 추천 FSM, 후보·응답 로직은 변경하지 않았다.
+- 검증: 62 files / 823 tests, TypeScript check, ESLint, production build, Conversation Expansion·Continuity 2 files / 20 tests 통과. source/package/lock/dist에서 WebLLM 참조·청크 0건.
+- 번들: main 553.16→543.44 kB, gzip 166.01→162.32 kB. WebLLM worker 6,029.70 kB와 lib 5,895.35 kB 청크 제거. 기존 500 kB 경고는 유지.
+- 다음 작업은 PIPE-803 Replay 기반이며 InputUnderstanding과 FSM 소비는 포함하지 않는다.
+
 ## 2026-07-22 / Codex / PIPE-801 기준선 고정
 
 - 기준 커밋 `ad058ed`의 P0.5 Conversation Expansion과 결정론적 파이프라인 문서 상태를 migration baseline으로 고정했다.

@@ -15,7 +15,7 @@
 > *A virtual bar for real tastes.*<br>
 > *A few words about your mood, and a glass finds its way to you.*
 
-**Re:Station** is a web application that helps you find the perfect cocktail through conversation with the bartender *Karua*. It features a recommendation engine, a character-driven dialogue system, and a session-based flow, with experimental WebLLM semantic analysis support.
+**Re:Station** is a web application that helps you find the perfect cocktail through conversation with the bartender *Karua*. Its recommendation, dialogue, and session decisions run through an internal deterministic engine.
 
 ### Features
 
@@ -32,9 +32,9 @@
 |---|---|
 | Framework | React 19 + Vite 8 |
 | Language | TypeScript 6 |
-| Tests | Vitest (856 tests) |
+| Tests | Vitest (823 tests) |
 | Styling | Tailwind CSS 4 + custom theme |
-| Semantic Analysis | WebLLM (experimental, default OFF) |
+| Decision Engine | Internal deterministic rules and FSM |
 | Package Manager | npm |
 
 ### Getting Started
@@ -72,7 +72,6 @@ bar_tend/
       character/               — Karua speech validation, character profile
       banter/                  — Siesta banter event engine
       session/                 — Session flow, XYZ / Farewell
-      webllm/                  — WebLLM worker, semantic analysis, validator
       bartender/               — Intent classifier, keyword rules
       cocktails/               — Cocktail database, search, lore references
       storage/                 — localStorage persistence
@@ -89,7 +88,7 @@ bar_tend/
 > *バーチャルなバー、リアルな味わい。*<br>
 > *気分をひとこと、グラスが応える。*
 
-**Re:Station** は、バーテンダー *カルア* との会話を通じてぴったりのカクテルを見つけられるウェブアプリケーションです。レコメンドエンジン、キャラクター主導の対話システム、セッションベースのフローを備え、実験的にWebLLMによる意味分析をサポートしています。
+**Re:Station** は、バーテンダー *カルア* との会話を通じてぴったりのカクテルを見つけられるウェブアプリケーションです。レコメンド、対話、セッションの判断は内部の決定論的エンジンが担当します。
 
 ### 機能
 
@@ -106,9 +105,9 @@ bar_tend/
 |---|---|
 | フレームワーク | React 19 + Vite 8 |
 | 言語 | TypeScript 6 |
-| テスト | Vitest（856 tests） |
+| テスト | Vitest（823 tests） |
 | スタイリング | Tailwind CSS 4 + カスタムテーマ |
-| 意味分析 | WebLLM（実験的、デフォルトOFF） |
+| 判断エンジン | 内部の決定論的ルールとFSM |
 | パッケージ管理 | npm |
 
 ### 始め方
@@ -136,7 +135,7 @@ npm run dev
 > *가상의 바, 현실의 취향.*<br>
 > *취향 몇 마디면 잔 하나가 따라옵니다.*
 
-**Re:Station**은 바텐더 *카루아*와의 대화를 통해 나에게 딱 맞는 칵테일을 찾아주는 웹 애플리케이션입니다. 추천 엔진, 캐릭터 대화 시스템, 세션 기반 플로우를 갖추고 있으며 WebLLM을 통한 의미 분석 보조를 실험적으로 지원합니다.
+**Re:Station**은 바텐더 *카루아*와의 대화를 통해 나에게 딱 맞는 칵테일을 찾아주는 웹 애플리케이션입니다. 추천·대화·세션 판단은 내부 결정론적 엔진이 담당합니다.
 
 ### 주요 기능
 
@@ -153,9 +152,9 @@ npm run dev
 |---|---|
 | 프레임워크 | React 19 + Vite 8 |
 | 언어 | TypeScript 6 |
-| 테스트 | Vitest (856개 테스트) |
+| 테스트 | Vitest (823개 테스트) |
 | 스타일 | Tailwind CSS 4 + 수동 테마 |
-| 의미 분석 | WebLLM (실험적, 기본 OFF) |
+| 결정 엔진 | 내부 결정론적 규칙과 FSM |
 | 패키지 매니저 | npm |
 
 ### 시작하기

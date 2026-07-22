@@ -6,10 +6,10 @@
 | 항목 | 상태 |
 |---|---|
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
-| 단계 | 기존 MVP와 P0.5 완료. PIPE-801 기준선 고정 완료, 다음 PIPE-802 WebLLM 제거 |
-| 기술 | React+Vite+프론트엔드 단독. WebLLM 실험 경로는 아직 존재하지만 제거 결정. **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 553.16 kB, gzip 166.01 kB, WebLLM/lib 지연 청크 분리) |
-| 테스트 | **Vitest 856개 전체 통과** |
+| 단계 | PIPE-801 기준선·PIPE-802 WebLLM 제거 완료, 다음 PIPE-803 Replay 기반 |
+| 기술 | React+Vite+프론트엔드 단독, 내부 결정론적 대화·추천 엔진, **Hidden Relationship State** 탑재 (JSON 기반) |
+| 빌드/check | 통과 (메인 JS 543.44 kB, gzip 162.32 kB, WebLLM 청크 없음) |
+| 테스트 | **Vitest 823개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -59,9 +59,9 @@
 | 대화 | DialogueService + Conversation Context + 전체 ResponsePlan/Character QA 완료 | 유지. FLOW-003은 별도 승인 전 PROPOSED |
 | 입력·결정 구조 | 단일 IntentClassifier, 라우터, 추천·스토리·세션별 분산 판단 | `Input → Understand → Evaluate → Select → Plan → Present`로 점진 통일 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 | PreferenceEvidence, 공통 후보 평가 contribution, 문맥 기반 질문 점수로 점진 전환 |
-| 외부 의미 보조 | WebLLM 실험 코드가 기본 OFF 상태로 존재하며 결정 경로에는 미연결 | WebLLM 제거. 제한적 API는 의미 후보와 evidence span만 제안 |
-| 테스트 | 데이터·서비스·라우팅·설명 이력·저장소·웰컴·시에스타·UI·DialogueTurn·스프라이트·Audio·Conversation Expansion 등 856개 | 후속 기능별 계약 추가 |
-| 번들 | 메인 JS 553.16 kB, gzip 166.01 kB, WebLLM/lib 지연 청크 분리. 초기 Network ON/OFF 검수 완료 | 기능 추가 시 500 kB 경고 재평가 |
+| 외부 의미 보조 | WebLLM 런타임·의존성 제거 완료. 외부 의미 보조 없음 | PIPE-804에서 공급자 중립 계약만 정의. 실제 API는 PIPE-808 전까지 미연결 |
+| 테스트 | WebLLM 전용 7 files 제거 후 데이터·서비스·라우팅·세션·UI·Conversation Expansion 등 62 files / 823 tests | 후속 기능별 계약 추가 |
+| 번들 | 메인 JS 543.44 kB, gzip 162.32 kB. WebLLM worker/lib 청크 제거 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-22)
 
@@ -77,6 +77,7 @@
 - 상세 범위와 완료 조건은 `TASK_BOARD.md`, 불변식과 API 금지 경계는 DEC-029가 소유한다.
 - PIPE-801 기준 커밋은 `ad058ed`다. 69 files / 856 tests, check, lint, build와 Conversation Expansion·Continuity 2 files / 20 tests가 통과했다.
 - PIPE-802 비교 기준 번들은 main 553.16 kB(gzip 166.01 kB), WebLLM worker 6,029.70 kB, lib 5,895.35 kB다.
+- PIPE-802 구현 커밋은 `0b29a0e`다. WebLLM 전용 7 test files를 제거한 뒤 62 files / 823 tests, check, lint, build와 대표 20 tests가 통과했다. main은 543.44 kB(gzip 162.32 kB)이며 worker/lib 청크는 없다.
 
 ### Dialogue 과거 완료 기록
 
@@ -120,7 +121,7 @@ P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → Pending
 
 ---
 
-### WebLLM 실험의 현재 상태와 폐기 결정
+### WebLLM 실험 종료 결과
 
 | 역할 | 담당 |
 |---|---|
@@ -130,7 +131,7 @@ P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → Pending
 | 허용 목록·confidence 검증 | Semantic Validator |
 | 최종 대사 조립 | Rule Engine |
 
-위 표는 아직 남아 있는 현재 구현을 설명한다. DEC-029에 따라 이 경로는 새 기능 기반이 아니며 M1에서 런타임·의존성·기본 번들에서 제거한다. 과거 측정과 실패 복구 결과는 실험 기록으로 보존한다. 후속 외부 의미 보조는 브라우저 WebLLM이 아니라 `InputUnderstanding` 이후의 제한적 `SemanticAssistPort` 계약을 사용하며, 의미 후보와 원문 evidence span만 제안할 수 있다.
+위 표는 제거 전 과거 구조다. PIPE-802에서 App·controller 연결, hook/component, `src/lib/webllm`, 환경 변수, 패키지 의존성을 제거했다. 과거 측정과 실패 복구 결과만 실험 기록으로 보존한다. 후속 외부 의미 보조는 PIPE-804의 제한적 `SemanticAssistPort` 계약을 사용하며 의미 후보와 원문 evidence span만 제안할 수 있다.
 
 ### Phase 12 종료 결과: WebLLM 실측
 
@@ -149,7 +150,7 @@ P0 종료 기준은 실제 다중 턴 로그에서 `Intent → Topic → Pending
 | ISSUE-004 자동 테스트 부족 | 해결됨 | [`de40d39`] |
 | ISSUE-005 JS 번들 593kB | 해결됨 | [`dcbbda5`] |
 | ISSUE-006 OpenAI/Ollama 잔재 | 해결됨 | [`dcbbda5`] |
-| ISSUE-007 WebLLM 안정성 미검증 | 실험 종료. DEC-029에 따라 성능 검증을 재개하지 않고 M1에서 실행 경로 제거 | Phase 12/13, DEC-029 |
+| ISSUE-007 WebLLM 안정성 미검증 | 해결: 실험 종료 후 PIPE-802에서 실행 경로·의존성·빌드 청크 제거 | `0b29a0e` |
 | ISSUE-008 카루아 규칙 계약 | 해결됨 | [`bc23714`] |
 | ISSUE-009 안전 fallback/빈 응답 | 해결됨 | [`2ad13e4`] |
 | ISSUE-010 추천 UI 잔존 | 해결됨 | [`2ad13e4`] |
