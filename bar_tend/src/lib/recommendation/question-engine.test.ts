@@ -3,6 +3,7 @@ import { getAllCocktailData } from '../cocktails/index.js'
 import {
   applyQuestionAnswer,
   createRecommendationSourcePool,
+  evaluateRecommendationQuestions,
   formatQuestion,
   formatQuestionDialogueLine,
   getQuestionById,
@@ -16,15 +17,59 @@ import type { ResponsePlan } from '../dialogue/response-plan.js'
 import {
   addQuestionHistory,
   applyRecommendationSignals,
+  createRecommendationDecision,
   createRecommendationState,
   extractRecommendationSignals,
   filterCocktailsByRecommendationState,
   resolveCocktailsByRecommendationState,
+  selectRecommendationCandidate,
 } from './state.js'
 
 describe('adaptive recommendation questions', () => {
   it('starts with an accessible flavor question before specialist terminology', () => {
     expect(selectNextQuestion(getAllCocktailData(), createRecommendationState())?.topic).toBe('flavor')
+  })
+
+  it('evaluates questions from separation, continuity, difficulty, and fatigue contributions', () => {
+    const evaluations = evaluateRecommendationQuestions(
+      getAllCocktailData(),
+      createRecommendationState(),
+    )
+    const flavor = evaluations.find(({ candidate }) => candidate.topic === 'flavor')!
+
+    expect(flavor.contributions.map(({ code }) => code)).toEqual([
+      'candidate-separation',
+      'context-continuity',
+      'answer-difficulty',
+      'question-fatigue',
+    ])
+    expect(flavor.contributions.find(({ code }) => code === 'context-continuity')?.score).toBe(150)
+    expect(flavor.score).toBe(flavor.contributions.reduce(
+      (total, contribution) => total + contribution.score,
+      0,
+    ))
+  })
+
+  it('marks known and asked questions ineligible while applying fatigue deterministically', () => {
+    let state = applyRecommendationSignals(createRecommendationState(), [{
+      field: 'taste.fizz', value: 0.8, confidence: 1, source: 'question',
+    }])
+    state = addQuestionHistory(state, { topic: 'flavor', answer: '달콤하게' })
+    const first = evaluateRecommendationQuestions(getAllCocktailData(), state)
+    const second = evaluateRecommendationQuestions(getAllCocktailData(), state)
+
+    expect(second).toEqual(first)
+    expect(first.find(({ candidate }) => candidate.topic === 'fizz')?.hardConstraints).toContain('already-known')
+    expect(first.find(({ candidate }) => candidate.topic === 'flavor')?.hardConstraints).toContain('already-asked')
+    expect(first.find(({ candidate }) => candidate.topic === 'base')?.contributions.find(
+      ({ code }) => code === 'context-continuity',
+    )?.score).toBe(20)
+    expect(first.find(({ candidate }) => candidate.topic === 'alcohol')?.contributions.find(
+      ({ code }) => code === 'context-continuity',
+    )?.score).toBe(5)
+    expect(first.every(({ contributions }) => (
+      contributions.find(({ code }) => code === 'question-fatigue')?.score === -5
+    ))).toBe(true)
   })
 
   it('stores the first flavor choice before selecting the next recommendation question', () => {
@@ -300,11 +345,25 @@ describe('adaptive recommendation questions', () => {
         createRecommendationState(),
       )
       const resolved = resolveCocktailsByRecommendationState(cocktails, state)
+      const legacy = pickFromPool(resolved.cocktails, state.taste)
+      const selection = selectRecommendationCandidate(resolved.cocktails, state)
 
       expect(
         resolved.cocktails.length,
         choices.map((choice) => choice.label).join(' > '),
       ).toBeGreaterThan(0)
+      expect(selection.selected?.candidate.id).toBe(legacy?.id)
+      if (selection.selected) {
+        const decision = createRecommendationDecision(
+          selection.selected.candidate,
+          state,
+          undefined,
+          selection.selected,
+        )
+        expect(decision.reasons).toEqual(
+          decision.evaluation.contributions.flatMap(({ reason }) => reason ? [reason] : []),
+        )
+      }
     }
   })
 

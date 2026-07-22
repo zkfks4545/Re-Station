@@ -1,5 +1,7 @@
 import type { CocktailData } from '../../types.js'
 import type {
+  CandidateEvaluation,
+  EvaluationContribution,
   RecommendationQuestion,
   RecommendationSignal,
   RecommendationState,
@@ -10,7 +12,10 @@ import {
   createRecommendationState,
   resolveCocktailsByRecommendationState,
 } from '../recommendation/state.js'
-import { pickFromPool, selectNextQuestion } from '../recommendation/question-engine.js'
+import {
+  evaluateRecommendationQuestions,
+  pickFromPool,
+} from '../recommendation/question-engine.js'
 import type { DialogueAction } from './action-resolver.js'
 import type { InputRoute } from './input-router.js'
 import type {
@@ -21,32 +26,12 @@ import type {
   SpeechAct,
 } from './input-understanding.js'
 
-export interface EvaluationContribution {
-  code: string
-  score: number
-}
+export type { EvaluationContribution }
+export type CocktailEvaluation = CandidateEvaluation<CocktailData>
+export type QuestionEvaluation = CandidateEvaluation<RecommendationQuestion>
+export type DialogueEvaluation = CandidateEvaluation<DialogueAction>
 
-interface EvaluationBase {
-  candidateId: string
-  eligible: boolean
-  score: number
-  hardConstraints: readonly string[]
-  contributions: readonly EvaluationContribution[]
-}
-
-export interface CocktailEvaluation extends EvaluationBase {
-  candidate: CocktailData
-}
-
-export interface QuestionEvaluation extends EvaluationBase {
-  candidate: RecommendationQuestion
-}
-
-export interface DialogueEvaluation extends EvaluationBase {
-  candidate: DialogueAction
-}
-
-export interface Selection<T extends EvaluationBase> {
+export interface Selection<T extends CandidateEvaluation<unknown>> {
   selected: T | null
   evaluations: readonly T[]
 }
@@ -95,7 +80,7 @@ export interface DialogueMove {
   transitions: readonly DialogueSessionAction[]
 }
 
-export function selectDeterministically<T extends EvaluationBase>(
+export function selectDeterministically<T extends CandidateEvaluation<unknown>>(
   evaluations: readonly T[],
 ): Selection<T> {
   const selected = [...evaluations]
@@ -132,19 +117,7 @@ export function evaluateLegacyQuestionSelection(
   state: RecommendationState,
   questions: readonly RecommendationQuestion[],
 ): QuestionEvaluation[] {
-  const selectedId = selectNextQuestion([...pool], state)?.id ?? null
-  return questions.map((candidate) => {
-    const eligible = candidate.id === selectedId
-    const score = eligible ? 1 : 0
-    return {
-      candidate,
-      candidateId: candidate.id,
-      eligible,
-      score,
-      hardConstraints: eligible ? [] : ['legacy-not-selected'],
-      contributions: [{ code: 'legacy-selection', score }],
-    }
-  })
+  return evaluateRecommendationQuestions(pool, state, questions)
 }
 
 export function evaluateLegacyDialogueAction(

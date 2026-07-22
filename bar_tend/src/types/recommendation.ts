@@ -57,6 +57,23 @@ export interface RecommendationQuestionFlow {
   goal: 'open-preference' | 'narrow-candidates' | 'confirm-constraint'
 }
 
+export interface EvaluationContribution {
+  code: string
+  score: number
+}
+
+export interface CandidateEvaluation<
+  TCandidate,
+  TContribution extends EvaluationContribution = EvaluationContribution,
+> {
+  candidate: TCandidate
+  candidateId: string
+  eligible: boolean
+  score: number
+  hardConstraints: readonly string[]
+  contributions: readonly TContribution[]
+}
+
 export interface RecommendationQuestion {
   id: string
   topic: string
@@ -140,8 +157,30 @@ export interface RecommendationReason {
   evidence: string[]
 }
 
+export type RecommendationContributionCode =
+  | 'taste-distance'
+  | RecommendationReason['code']
+
+export interface RecommendationEvaluationContribution extends EvaluationContribution {
+  code: RecommendationContributionCode
+  score: number
+  evidence: string[]
+  reason: RecommendationReason | null
+}
+
+export type RecommendationCandidateEvaluation = CandidateEvaluation<
+  CocktailData,
+  RecommendationEvaluationContribution
+>
+
+export interface RecommendationCandidateSelection {
+  selected: RecommendationCandidateEvaluation | null
+  evaluations: RecommendationCandidateEvaluation[]
+}
+
 export interface RecommendationDecision {
   cocktail: CocktailData
+  evaluation: RecommendationCandidateEvaluation
   reasons: RecommendationReason[]
   state: RecommendationState
   dialogue: RecommendationDialogueContext

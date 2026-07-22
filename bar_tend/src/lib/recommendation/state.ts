@@ -5,8 +5,11 @@ import type {
   AlcoholPreference,
   DialogueState,
   QuestionHistoryEntry,
+  RecommendationCandidateEvaluation,
+  RecommendationCandidateSelection,
   RecommendationDecision,
   RecommendationDialogueContext,
+  RecommendationEvaluationContribution,
   RecommendationMood,
   RecommendationReason,
   RecommendationRoute,
@@ -15,6 +18,7 @@ import type {
   RecommendationSituation,
   RecommendationState,
 } from '../../types/recommendation.js'
+import { scoreCocktailMatch } from '../cocktails/cocktail-db.js'
 
 const FEATURE_DEFAULTS: Record<FeatureKey, number> = {
   sweetness: 0.5,
@@ -281,13 +285,53 @@ export function createRecommendationDecision(
   cocktail: CocktailData,
   state: RecommendationState,
   dialogue: RecommendationDialogueContext = inferRecommendationDialogueContext(state),
+  evaluation: RecommendationCandidateEvaluation = evaluateRecommendationCandidate(cocktail, state),
 ): RecommendationDecision {
   return {
     cocktail,
     state,
-    reasons: buildRecommendationReasons(cocktail, state),
+    evaluation,
+    reasons: reasonsFromContributions(evaluation.contributions),
     dialogue,
   }
+}
+
+export function evaluateRecommendationCandidate(
+  cocktail: CocktailData,
+  state: RecommendationState,
+  preference: TastePreference = state.taste,
+): RecommendationCandidateEvaluation {
+  const { expressed, weights } = selectionTaste(preference)
+  const distance = scoreCocktailMatch(cocktail, expressed, weights)
+  const contributions = buildRecommendationContributions(cocktail, state, distance)
+  const hardConstraints = cocktailHardConstraints(cocktail, state)
+
+  return {
+    candidate: cocktail,
+    candidateId: cocktail.id,
+    eligible: hardConstraints.length === 0,
+    score: contributions.reduce((total, contribution) => total + contribution.score, 0),
+    hardConstraints,
+    contributions,
+  }
+}
+
+export function selectRecommendationCandidate(
+  pool: readonly CocktailData[],
+  state: RecommendationState,
+  preference: TastePreference = state.taste,
+): RecommendationCandidateSelection {
+  const evaluations = pool.map((cocktail) => evaluateRecommendationCandidate(cocktail, state, preference))
+  const selected = [...evaluations]
+    .filter(({ eligible }) => eligible)
+    .sort((a, b) => {
+      const scoreDelta = b.score - a.score
+      if (Math.abs(scoreDelta) > 0.0001) return scoreDelta
+      const ingredientCountDelta = a.candidate.ingredients.length - b.candidate.ingredients.length
+      return ingredientCountDelta || a.candidate.name.localeCompare(b.candidate.name)
+    })[0] ?? null
+
+  return { selected, evaluations }
 }
 
 export function inferRecommendationDialogueContext(
@@ -354,28 +398,43 @@ export function buildRecommendationReasons(
   cocktail: CocktailData,
   state: RecommendationState,
 ): RecommendationReason[] {
-  const reasons: RecommendationReason[] = []
+  return reasonsFromContributions(evaluateRecommendationCandidate(cocktail, state).contributions)
+}
+
+function buildRecommendationContributions(
+  cocktail: CocktailData,
+  state: RecommendationState,
+  distance: number,
+): RecommendationEvaluationContribution[] {
+  const distanceScore = Number.isFinite(distance) ? -distance : 0
+  const contributions: RecommendationEvaluationContribution[] = []
   const tasteMatches = (Object.keys(state.taste) as FeatureKey[])
     .filter((key) => state.taste[key] !== undefined)
     .sort((a, b) => featureDelta(cocktail, state.taste, a) - featureDelta(cocktail, state.taste, b))
     .slice(0, 2)
 
   if (tasteMatches.length > 0) {
-    reasons.push({
+    const reason: RecommendationReason = {
       code: 'taste-match',
       label: '취향 일치',
       detail: `${tasteMatches.map((key) => FEATURE_LABELS[key]).join('·')} 취향과 잘 맞아요.`,
       evidence: tasteMatches.map((key) => `${key}:${cocktail.features[key]}`),
+    }
+    contributions.push({ code: reason.code, score: distanceScore, evidence: reason.evidence, reason })
+  } else {
+    contributions.push({
+      code: 'taste-distance', score: distanceScore, evidence: [], reason: null,
     })
   }
 
   if (state.alcoholPreference !== 'any') {
-    reasons.push({
+    const reason: RecommendationReason = {
       code: 'strength-match',
       label: '도수 조건',
       detail: `원하신 도수 조건(${state.alcoholPreference})과 잘 맞아요.`,
       evidence: [`alcohol_strength:${cocktail.features.alcohol_strength}`],
-    })
+    }
+    contributions.push({ code: reason.code, score: 0, evidence: reason.evidence, reason })
   }
 
   const ingredientMatches = state.preferredIngredients.filter((preferred) =>
@@ -386,38 +445,57 @@ export function buildRecommendationReasons(
     ),
   )
   if (ingredientMatches.length > 0) {
-    reasons.push({
+    const reason: RecommendationReason = {
       code: 'ingredient-match',
       label: '선호 재료',
       detail: `좋아하신다고 한 ${ingredientMatches.join(', ')}도 들어 있어요.`,
       evidence: ingredientMatches,
-    })
+    }
+    contributions.push({ code: reason.code, score: 0, evidence: reason.evidence, reason })
   }
 
   if (state.moods.length > 0 || state.situations.length > 0) {
-    reasons.push({
+    const reason: RecommendationReason = {
       code: 'context',
       label: '대화 맥락',
       detail: '말씀해 주신 기분과 상황도 함께 참고했어요.',
       evidence: [...state.moods, ...state.situations],
-    })
+    }
+    contributions.push({ code: reason.code, score: 0, evidence: reason.evidence, reason })
   }
 
-  return reasons
+  return contributions
+}
+
+function reasonsFromContributions(
+  contributions: readonly RecommendationEvaluationContribution[],
+): RecommendationReason[] {
+  return contributions.flatMap(({ reason }) => reason ? [reason] : [])
 }
 
 function matchesHardConstraints(cocktail: CocktailData, state: RecommendationState): boolean {
+  return cocktailHardConstraints(cocktail, state).length === 0
+}
+
+function cocktailHardConstraints(cocktail: CocktailData, state: RecommendationState): string[] {
+  const constraints: string[] = []
+  if (state.preferredIngredients.length === 0 && state.excludedIngredients.length === 0) {
+    return constraints
+  }
   const ingredients = cocktail.ingredients.map(normalize)
   const normalizedBase = normalize(cocktail.base_spirit ?? '')
   if (state.preferredIngredients.length > 0 && !state.preferredIngredients.some((preferred) => {
     return matchesPreferredIngredient(normalizedBase, ingredients, preferred)
-  })) return false
+  })) constraints.push('preferred-ingredient')
 
-  return !state.excludedIngredients.some((excluded) => {
+  for (const excluded of state.excludedIngredients) {
     const normalizedExcluded = normalize(excluded)
-    return normalizedBase.includes(normalizedExcluded)
-      || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))
-  })
+    if (normalizedBase.includes(normalizedExcluded)
+      || ingredients.some((ingredient) => ingredient.includes(normalizedExcluded))) {
+      constraints.push(`excluded-ingredient:${excluded}`)
+    }
+  }
+  return constraints
 }
 
 function recommendationDistance(cocktail: CocktailData, state: RecommendationState): number {
@@ -441,6 +519,22 @@ function recommendationDistance(cocktail: CocktailData, state: RecommendationSta
 
 function featureDelta(cocktail: CocktailData, taste: TastePreference, key: FeatureKey): number {
   return Math.abs(cocktail.features[key] - (taste[key] ?? FEATURE_DEFAULTS[key]))
+}
+
+function selectionTaste(preference: TastePreference): {
+  expressed: TastePreference
+  weights: Partial<Record<FeatureKey, number>>
+} {
+  const expressed: TastePreference = {}
+  const weights: Partial<Record<FeatureKey, number>> = {}
+  for (const key of Object.keys(FEATURE_DEFAULTS) as FeatureKey[]) {
+    const value = preference[key]
+    if (value !== undefined && Math.abs(value - FEATURE_DEFAULTS[key]) > 0.01) {
+      expressed[key] = value
+      weights[key] = 2
+    }
+  }
+  return { expressed, weights }
 }
 
 function addUnique<T>(items: T[], item: T): void {

@@ -5,12 +5,15 @@ import {
   answerLatestQuestion,
   applyRecommendationSignals,
   buildRecommendationReasons,
+  createRecommendationDecision,
   createRecommendationState,
+  evaluateRecommendationCandidate,
   extractRecommendationSignals,
   filterCocktailsByRecommendationState,
   getQuestionCandidatePool,
   inferRecommendationDialogueContext,
   resolveCocktailsByRecommendationState,
+  selectRecommendationCandidate,
 } from './state.js'
 
 describe('recommendation state', () => {
@@ -238,6 +241,48 @@ describe('recommendation state', () => {
     expect(codes).toContain('strength-match')
     expect(codes).toContain('ingredient-match')
     expect(codes).toContain('context')
+  })
+
+  it('derives recommendation reasons from the selected candidate contributions', () => {
+    const state = applyRecommendationSignals(createRecommendationState(), [
+      { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'rule' },
+      { field: 'alcoholPreference', value: 'high', confidence: 1, source: 'rule' },
+      { field: 'moods', value: 'excited', confidence: 1, source: 'rule' },
+    ])
+    const selection = selectRecommendationCandidate(getAllCocktailData(), state)
+    expect(selection.selected).not.toBeNull()
+    const decision = createRecommendationDecision(
+      selection.selected!.candidate,
+      state,
+      undefined,
+      selection.selected!,
+    )
+
+    expect(decision.reasons).toEqual(
+      decision.evaluation.contributions.flatMap(({ reason }) => reason ? [reason] : []),
+    )
+    expect(decision.reasons.every((reason) => (
+      decision.evaluation.contributions.some((contribution) => (
+        contribution.code === reason.code && contribution.evidence === reason.evidence
+      ))
+    ))).toBe(true)
+    expect(decision.evaluation.score).toBe(decision.evaluation.contributions.reduce(
+      (total, contribution) => total + contribution.score,
+      0,
+    ))
+  })
+
+  it('reports hard constraints on ineligible recommendation candidates', () => {
+    const cocktail = getAllCocktailData().find(({ ingredients }) => (
+      ingredients.some((ingredient) => ingredient.includes('민트'))
+    ))!
+    const state = applyRecommendationSignals(createRecommendationState(), [{
+      field: 'excludedIngredients', value: '민트', confidence: 1, source: 'rule',
+    }])
+    const evaluation = evaluateRecommendationCandidate(cocktail, state)
+
+    expect(evaluation.eligible).toBe(false)
+    expect(evaluation.hardConstraints).toContain('excluded-ingredient:민트')
   })
 
   it('filters cocktails by high alcohol preference', () => {

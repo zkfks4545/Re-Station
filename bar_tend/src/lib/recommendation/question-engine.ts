@@ -2,6 +2,8 @@ import questionsJson from '../../data/recommendation-questions.json'
 import type { CocktailData, DialogueLine } from '../../types.js'
 import type { FeatureKey, TastePreference } from '../../types/cocktail-db.js'
 import type {
+  CandidateEvaluation,
+  EvaluationContribution,
   RecommendationQuestion,
   RecommendationQuestionChoice,
   RecommendationState,
@@ -19,11 +21,24 @@ import {
 } from './state.js'
 
 const NUDGE = 0.2
-const QUESTION_UX_BONUS: Record<string, number> = {
-  flavor: 150,
-}
 export const MAX_RECOMMENDATION_QUESTIONS = 3
 export const RECOMMENDATION_QUESTIONS = questionsJson as RecommendationQuestion[]
+
+export type QuestionContributionCode =
+  | 'candidate-separation'
+  | 'context-continuity'
+  | 'answer-difficulty'
+  | 'question-fatigue'
+
+export interface QuestionEvaluationContribution extends EvaluationContribution {
+  code: QuestionContributionCode
+  score: number
+}
+
+export type RecommendationQuestionEvaluation = CandidateEvaluation<
+  RecommendationQuestion,
+  QuestionEvaluationContribution
+>
 
 export function isRecommendationIntent(text: string): boolean {
   if (kf(['추천', '골라', '마실', '칵테일', '한잔', '뭐 마실', '메뉴', '적당한', '다른\\s*(걸|거|술|칵테일)', '또.*추천', '별로', '다시\\s*(찾|추천)']).test(text)) return true
@@ -123,19 +138,42 @@ export function selectNextQuestion(
   pool: CocktailData[],
   state: RecommendationState,
 ): RecommendationQuestion | null {
-  if (pool.length <= 1 || state.questionHistory.length >= MAX_RECOMMENDATION_QUESTIONS) return null
+  return evaluateRecommendationQuestions(pool, state)
+    .filter(({ eligible, hardConstraints }) => eligible && hardConstraints.length === 0)
+    .sort((a, b) => b.score - a.score || a.candidateId.localeCompare(b.candidateId))[0]
+    ?.candidate ?? null
+}
 
+export function evaluateRecommendationQuestions(
+  pool: readonly CocktailData[],
+  state: RecommendationState,
+  questions: readonly RecommendationQuestion[] = RECOMMENDATION_QUESTIONS,
+): RecommendationQuestionEvaluation[] {
   const askedTopics = new Set(state.questionHistory.map((entry) => entry.topic))
   const knownTopics = getKnownTopics(state)
-  const available = RECOMMENDATION_QUESTIONS.filter(
-    (question) => !askedTopics.has(question.topic) && !knownTopics.has(question.topic),
-  )
 
-  return available
-    .map((question) => ({ question, score: scoreQuestion(question, pool, state) }))
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score || a.question.id.localeCompare(b.question.id))[0]
-    ?.question ?? null
+  return questions.map((candidate) => {
+    const hardConstraints = [
+      ...(pool.length <= 1 ? ['decisive-pool'] : []),
+      ...(state.questionHistory.length >= MAX_RECOMMENDATION_QUESTIONS ? ['question-limit'] : []),
+      ...(askedTopics.has(candidate.topic) ? ['already-asked'] : []),
+      ...(knownTopics.has(candidate.topic) ? ['already-known'] : []),
+    ]
+    const contributions = evaluateQuestionContributions(candidate, [...pool], state)
+    const score = contributions.reduce((total, contribution) => total + contribution.score, 0)
+    const separatesCandidates = contributions.some(
+      ({ code, score: contributionScore }) => code === 'candidate-separation' && contributionScore > 0,
+    )
+
+    return {
+      candidate,
+      candidateId: candidate.id,
+      eligible: hardConstraints.length === 0 && separatesCandidates,
+      score,
+      hardConstraints: separatesCandidates ? hardConstraints : [...hardConstraints, 'no-separation'],
+      contributions,
+    }
+  })
 }
 
 export function isRecommendationDecisive(
@@ -239,11 +277,11 @@ function getKnownTopics(state: RecommendationState): Set<string> {
   return topics
 }
 
-function scoreQuestion(
+function evaluateQuestionContributions(
   question: RecommendationQuestion,
   pool: CocktailData[],
   state: RecommendationState,
-): number {
+): QuestionEvaluationContribution[] {
   const groupSizes = question.choices
     .filter((choice) => choice.signals.length > 0)
     .map((choice) => {
@@ -252,11 +290,47 @@ function scoreQuestion(
     })
     .filter((size) => size > 0 && size < pool.length)
 
-  if (groupSizes.length < 2) return 0
-  const largestGroup = Math.max(...groupSizes)
-  return groupSizes.length * 100
-    + (pool.length - largestGroup)
-    + (QUESTION_UX_BONUS[question.topic] ?? 0)
+  const separation = groupSizes.length < 2
+    ? 0
+    : groupSizes.length * 100 + (pool.length - Math.max(...groupSizes))
+  const actionableChoiceCount = question.choices.filter(
+    (choice) => choice.signals.length > 0 && choice.finishRecommendation !== true,
+  ).length
+  const contextContinuity = scoreContextContinuity(question, state)
+  const answerDifficulty = Math.max(0, 5 - actionableChoiceCount) * 4
+  const questionFatigue = -state.questionHistory.length * 5
+
+  return [
+    { code: 'candidate-separation', score: separation },
+    { code: 'context-continuity', score: contextContinuity },
+    { code: 'answer-difficulty', score: answerDifficulty },
+    { code: 'question-fatigue', score: questionFatigue },
+  ]
+}
+
+function scoreContextContinuity(
+  question: RecommendationQuestion,
+  state: RecommendationState,
+): number {
+  if (state.questionHistory.length === 0) {
+    return question.dialogueFlow?.goal === 'open-preference' ? 150 : 0
+  }
+  if (!question.dialogueFlow?.continuation) return 0
+
+  const previousTopic = state.questionHistory[state.questionHistory.length - 1]?.topic
+  const previousGoal = RECOMMENDATION_QUESTIONS.find(
+    ({ topic }) => topic === previousTopic,
+  )?.dialogueFlow?.goal
+  const currentGoal = question.dialogueFlow.goal
+  if (!previousGoal) return 5
+
+  const rank = {
+    'open-preference': 0,
+    'narrow-candidates': 1,
+    'confirm-constraint': 2,
+  } as const
+  const step = rank[currentGoal] - rank[previousGoal]
+  return step >= 0 && step <= 1 ? 20 : 5
 }
 
 export function pickFromPool(pool: CocktailData[], preference: TastePreference): CocktailData | null {

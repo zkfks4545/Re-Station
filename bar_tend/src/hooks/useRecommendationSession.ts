@@ -7,7 +7,6 @@ import {
   ingestTasteSignals,
   isRecommendationDecisive,
   isRecommendationIntent,
-  pickFromPool,
   selectNextQuestion,
 } from '@/lib/recommendation/question-engine.js'
 import { findCocktailByName, getRandomCocktail } from '@/lib/cocktails/index.js'
@@ -33,6 +32,7 @@ import {
   inferRecommendationDialogueContext,
   getQuestionCandidatePool,
   resolveCocktailsByRecommendationState,
+  selectRecommendationCandidate,
 } from '@/lib/recommendation/state.js'
 import type { CocktailData, Expression } from '@/types.js'
 import type { TastePreference } from '@/types/cocktail-db.js'
@@ -256,9 +256,10 @@ export function useRecommendationSession() {
         )
       }
 
-      const cocktail = pickFromPool(resolved.cocktails, combinedTaste)
-      if (!cocktail) return null
-      const decision = createRecommendationDecision(cocktail, nextState)
+      const selection = selectRecommendationCandidate(resolved.cocktails, nextState, combinedTaste)
+      const cocktail = selection.selected?.candidate ?? null
+      if (!cocktail || !selection.selected) return null
+      const decision = createRecommendationDecision(cocktail, nextState, undefined, selection.selected)
       const selectedOpening = acknowledgement
         ? null
         : selectRecommendationOpening(decision, recentDialogueLineIds)
