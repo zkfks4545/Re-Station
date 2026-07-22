@@ -34,6 +34,8 @@ export type ConversationTopic =
 export type SessionTopic = ConversationTopic
 
 export interface PendingQuestion {
+  sessionId: string
+  questionId: string
   kind: 'recommendation-flavor' | 'recommendation-strength' | 'recommendation-base' | 'recommendation-carbonation' | 'clarification'
   topic: Exclude<SessionTopic, 'none'>
   askedAtTurn: number
@@ -45,6 +47,7 @@ export type SuspendedQuestion = PendingQuestion
 export interface DialogueSessionState {
   phase: SessionPhase
   mode: DialogueSessionMode
+  activeSessionId: string
   sessionAffect: SessionAffect
   affectTurnsRemaining: number | null
   affectRecoveryTurns: number
@@ -74,6 +77,7 @@ export type DialogueSessionAction =
   | { type: 'reset'; phase?: SessionPhase }
   | { type: 'set-phase'; phase: SessionPhase }
   | { type: 'set-mode'; mode: DialogueSessionMode }
+  | { type: 'switch-to-recommendation'; sessionId: string; question: PendingQuestion }
   | { type: 'set-session-affect'; affect: SessionAffectSnapshot }
   | { type: 'set-topic'; topic: SessionTopic; cocktailId?: string | null }
   | { type: 'set-pending-question'; question: PendingQuestion | null }
@@ -95,6 +99,7 @@ export function createDialogueSessionState(
   return {
     phase,
     mode: 'conversation',
+    activeSessionId: 'conversation',
     ...createSessionAffect('neutral'),
     sessionTopic: 'none',
     topicCocktailId: null,
@@ -134,8 +139,22 @@ export function dialogueSessionReducer(
       return {
         ...state,
         mode: action.mode,
+        activeSessionId: action.mode === 'conversation' ? 'conversation' : state.activeSessionId,
+        sessionTopic: action.mode === 'conversation' ? 'smalltalk' : state.sessionTopic,
+        topicCocktailId: action.mode === 'conversation' ? null : state.topicCocktailId,
         pendingQuestion: action.mode === 'conversation' ? null : state.pendingQuestion,
         suspendedQuestion: action.mode === 'conversation' ? null : state.suspendedQuestion,
+      }
+    case 'switch-to-recommendation':
+      return {
+        ...state,
+        mode: 'recommendation',
+        activeSessionId: action.sessionId,
+        sessionTopic: 'recommendation',
+        topicCocktailId: null,
+        pendingQuestion: { ...action.question, sessionId: action.sessionId },
+        suspendedQuestion: null,
+        dialogue: { turnCount: 0, recommendationPrompted: false },
       }
     case 'set-session-affect':
       return { ...state, ...action.affect }
@@ -191,6 +210,7 @@ export function dialogueSessionReducer(
       return {
         ...state,
         mode: 'conversation',
+        activeSessionId: 'conversation',
         sessionTopic: action.cocktailId ? 'cocktail-info' : state.sessionTopic,
         topicCocktailId: action.cocktailId ?? state.topicCocktailId,
         pendingQuestion: null,
@@ -206,6 +226,7 @@ export function dialogueSessionReducer(
         ...state,
         phase: 'safetyLocked',
         mode: 'conversation',
+        activeSessionId: 'conversation',
         ...createSessionAffect('firm'),
         sessionTopic: 'safety',
         topicCocktailId: null,
@@ -222,6 +243,7 @@ export function dialogueSessionReducer(
           ? 'xyz'
           : 'farewell',
         mode: 'conversation',
+        activeSessionId: 'conversation',
         sessionTopic: 'smalltalk',
         topicCocktailId: null,
         pendingQuestion: null,
@@ -248,6 +270,14 @@ export function dialogueSessionReducer(
 
 export function isWelcomeDrinkFeedbackPending(state: DialogueSessionState): boolean {
   return state.welcomeDrink.served && !state.welcomeDrink.resolved
+}
+
+export function isActiveSessionInput(
+  state: Pick<DialogueSessionState, 'mode' | 'activeSessionId'>,
+  sessionId: string,
+  mode: DialogueSessionMode,
+): boolean {
+  return state.mode === mode && state.activeSessionId === sessionId
 }
 
 export function sessionTopicForRoute(route: InputRoute): SessionTopic {

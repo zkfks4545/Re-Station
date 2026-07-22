@@ -27,6 +27,7 @@ import {
 import {
   createDialogueSessionState,
   dialogueSessionReducer,
+  isActiveSessionInput,
   isWelcomeDrinkFeedbackPending,
   sessionTopicForRoute,
 } from '@/lib/session/dialogue-session.js'
@@ -35,8 +36,11 @@ import {
   classifyRecommendationQuestionInput,
   createPendingRecommendationQuestion,
   explainRecommendationQuestion,
+  isCurrentRecommendationChoice,
   preservesPendingRecommendationQuestion,
+  type RecommendationChoiceInput,
 } from '@/lib/recommendation/question-context.js'
+import { getQuestionById } from '@/lib/recommendation/question-engine.js'
 import {
   isOrderingClosedPhase,
   nextPhaseAfterRoute,
@@ -115,6 +119,7 @@ export function useRestationController(sfx?: SfxChannel) {
   const siestaCooldownRef = useRef(0)
   const siestaRecentKeysRef = useRef(new Set<string>())
   const interactionQueueRef = useRef(createRestationInteractionQueue())
+  const recommendationSessionSequenceRef = useRef(0)
   const sfxRef = useRef<SfxChannel | undefined>(sfx)
   const [conversationContext, dispatchConversationContext] = useReducer(
     updateConversationContext,
@@ -143,7 +148,6 @@ export function useRestationController(sfx?: SfxChannel) {
     resetNight,
   } = useGuestPreferenceSession()
   const {
-    activeQuestion,
     captureExtractedPreferences,
     clearExcludedCocktailIds,
     excludeCocktailFromRecommendations,
@@ -153,6 +157,7 @@ export function useRestationController(sfx?: SfxChannel) {
     resolveLoreBasedCocktail,
     resolveRecommendation,
   } = useRecommendationSession()
+  const activeQuestion = getQuestionById(dialogueSession.pendingQuestion?.questionId ?? null)
   const { rapport, resetRapport, applyRapportUpdate } = useRapportSession()
 
   const recordConversationContext = useCallback((event: ConversationContextEvent) => {
@@ -392,10 +397,12 @@ export function useRestationController(sfx?: SfxChannel) {
     text: string,
     nextMessages: Message[],
     forcedSessionMode?: ActionSessionMode,
+    inputKind: 'text' | 'recommendation-answer' = 'text',
   ) => {
     const effectiveSessionMode = forcedSessionMode ?? actionSessionMode
     return dialogueService.resolve(createRestationDialogueRequest({
       text,
+      inputKind,
       messages: nextMessages,
       conversationContext,
       dialogueSession,
@@ -424,12 +431,17 @@ export function useRestationController(sfx?: SfxChannel) {
     secretPassphrase?: string,
   ) => executeDialogueAction({ action, text, secretPassphrase }, {
     getCocktail: (cocktailId) => getCocktailById(cocktailId) ?? null,
-    recommendByPreference: (input) => resolveRecommendation(input, preference),
+    recommendByPreference: (input) => resolveRecommendation(
+      input,
+      preference,
+      dialogueSession.pendingQuestion?.questionId ?? null,
+    ),
     recommendRandom: resolveRandomRecommendation,
     orderExplicit: resolveExplicitCocktail,
     orderByLore: resolveLoreBasedCocktail,
   }), [
     preference,
+    dialogueSession.pendingQuestion?.questionId,
     resolveExplicitCocktail,
     resolveLoreBasedCocktail,
     resolveRandomRecommendation,
@@ -437,7 +449,14 @@ export function useRestationController(sfx?: SfxChannel) {
   ])
 
   const performSend = useCallback(
-    (text: string, forcedSessionMode?: ActionSessionMode) => {
+    (
+      text: string,
+      forcedSessionMode?: ActionSessionMode,
+      options: {
+        inputKind?: 'text' | 'recommendation-answer'
+        switchSessionId?: string
+      } = {},
+    ) => {
       setErrorMessage(null)
       setInteractionStatus('processing')
       const userMessage: Message = { role: 'user', text }
@@ -454,13 +473,14 @@ export function useRestationController(sfx?: SfxChannel) {
         text,
         nextMessages,
         interruption ? 'conversation' : forcedSessionMode,
+        options.inputKind,
       )
       const { routeResult, action: dialogueAction, classifiedIntent } = dialogueResolution
       const nextTopic = interruption?.topic ?? sessionTopicForRoute(routeResult.route)
       const recommendationQuestionInput = activeQuestion
         ? classifyRecommendationQuestionInput(text)
         : null
-      if (!dialogueResolution.blockedBySession) {
+      if (!options.switchSessionId && !dialogueResolution.blockedBySession) {
         const topicTransition = interruption
           ? null
           : compatibleTopicTransition(dialogueResolution.move, dialogueResolution.understanding)
@@ -468,14 +488,16 @@ export function useRestationController(sfx?: SfxChannel) {
           type: 'set-topic', topic: nextTopic, cocktailId: routeResult.matchedCocktailId ?? null,
         })
       }
-      if (interruption) {
-        captureExtractedPreferences(text)
-        dispatchDialogueSession({ type: 'suspend-question', topic: interruption.topic })
-      } else {
-        dispatchDialogueSession({ type: 'resume-question' })
-      }
-      if (!interruption && !preservesPendingRecommendationQuestion(recommendationQuestionInput)) {
-        dispatchDialogueSession({ type: 'set-pending-question', question: null })
+      if (!options.switchSessionId) {
+        if (interruption) {
+          captureExtractedPreferences(text)
+          dispatchDialogueSession({ type: 'suspend-question', topic: interruption.topic })
+        } else {
+          dispatchDialogueSession({ type: 'resume-question' })
+        }
+        if (!interruption && !preservesPendingRecommendationQuestion(recommendationQuestionInput)) {
+          dispatchDialogueSession({ type: 'set-pending-question', question: null })
+        }
       }
       dispatchDialogueSession({
         type: 'set-session-affect',
@@ -663,13 +685,14 @@ export function useRestationController(sfx?: SfxChannel) {
             ? execution.outcome
             : null
           if (recommendation?.pendingQuestion) {
-            dispatchDialogueSession({
-              type: 'set-pending-question',
-              question: createPendingRecommendationQuestion(
-                recommendation.pendingQuestion,
-                dialogueSession.dialogue.turnCount,
-              ),
-            })
+            const question = createPendingRecommendationQuestion(
+              recommendation.pendingQuestion,
+              dialogueSession.dialogue.turnCount,
+              options.switchSessionId ?? dialogueSession.activeSessionId,
+            )
+            dispatchDialogueSession(options.switchSessionId
+              ? { type: 'switch-to-recommendation', sessionId: options.switchSessionId, question }
+              : { type: 'set-pending-question', question })
           }
           const turn = dialogueService.buildMainTurn(
             { text, messages: nextMessages },
@@ -822,6 +845,24 @@ export function useRestationController(sfx?: SfxChannel) {
     performSend(text)
   }, [dialogueSession.safetyLocked, enqueueInteraction, interactionStatus, performSend])
 
+  const performRecommendationAnswer = useCallback((input: RecommendationChoiceInput) => {
+    if (!isCurrentRecommendationChoice(input, dialogueSession)) {
+      setErrorMessage('이미 지난 선택지예요. 현재 질문에서 다시 골라주세요.')
+      return false
+    }
+    performSend(input.answerValue, 'recommendation', { inputKind: 'recommendation-answer' })
+    return true
+  }, [dialogueSession, performSend])
+
+  const handleRecommendationAnswer = useCallback((input: RecommendationChoiceInput) => {
+    if (dialogueSession.safetyLocked || interactionStatus === 'exiting') return
+    if (interactionStatus !== 'idle') {
+      enqueueInteraction({ type: 'recommendation-answer', input })
+      return
+    }
+    performRecommendationAnswer(input)
+  }, [dialogueSession.safetyLocked, enqueueInteraction, interactionStatus, performRecommendationAnswer])
+
   const performStartRecommendation = useCallback(() => {
     if (actionSessionMode === 'recommendation' && activeQuestion) return true
     if (isOrderingClosedPhase(sessionPhase)) {
@@ -830,9 +871,9 @@ export function useRestationController(sfx?: SfxChannel) {
       return true
     }
     setServedCocktail(null)
-    dispatchDialogueSession({ type: 'set-mode', mode: 'recommendation' })
-    dispatchDialogueSession({ type: 'reset-conversation-progress' })
-    performSend('추천받기', 'recommendation')
+    recommendationSessionSequenceRef.current += 1
+    const sessionId = `recommendation-${recommendationSessionSequenceRef.current}`
+    performSend('추천받기', 'recommendation', { switchSessionId: sessionId })
     return true
   }, [
     actionSessionMode,
@@ -970,21 +1011,27 @@ export function useRestationController(sfx?: SfxChannel) {
     recordConversationEvents(dialogueService.buildDiscussionContextEvents(cocktail))
   }, [recordConversationEvents, setServedCocktail, setServedCocktailMode])
 
-  const performCardStory = useCallback((cocktail: CocktailData) => {
+  const performCardStory = useCallback((cocktail: CocktailData, sessionId = dialogueSession.activeSessionId) => {
+    if (!isActiveSessionInput({
+      mode: dialogueSession.mode,
+      activeSessionId: dialogueSession.activeSessionId,
+    }, sessionId, 'conversation')) return false
     setServedCocktail(null)
     setServedCocktailMode('recommendation')
     performSend(`${cocktail.name} 이야기 들려줘`, 'conversation')
     return true
-  }, [performSend, setServedCocktail, setServedCocktailMode])
+  }, [dialogueSession.activeSessionId, dialogueSession.mode, performSend, setServedCocktail, setServedCocktailMode])
 
   const handleCardStory = useCallback((cocktail: CocktailData) => {
     if (interactionStatus === 'exiting') return
     if (interactionStatus !== 'idle') {
-      enqueueInteraction({ type: 'story-from-card', cocktail })
+      enqueueInteraction({
+        type: 'story-from-card', cocktail, sessionId: dialogueSession.activeSessionId,
+      })
       return
     }
     performCardStory(cocktail)
-  }, [enqueueInteraction, interactionStatus, performCardStory])
+  }, [dialogueSession.activeSessionId, enqueueInteraction, interactionStatus, performCardStory])
 
   const runQueuedInteraction = useCallback((interaction: QueuedInteraction): boolean => {
     return runRestationInteraction(interaction, {
@@ -993,12 +1040,14 @@ export function useRestationController(sfx?: SfxChannel) {
       startRecommendation: performStartRecommendation,
       orderCocktail: performOrderCocktail,
       storyFromCard: performCardStory,
+      recommendationAnswer: performRecommendationAnswer,
       cancelRecommendation: performCancelRecommendation,
     })
   }, [
     performCancelRecommendation,
     performCardStory,
     performOrderCocktail,
+    performRecommendationAnswer,
     performSend,
     performStartRecommendation,
     performWelcomeDrink,
@@ -1043,6 +1092,12 @@ export function useRestationController(sfx?: SfxChannel) {
       : welcomeDrinkFeedbackPending
         ? WELCOME_DRINK_FEEDBACK_QUESTION
         : activeQuestion,
+    activeQuestionOwner: activeQuestion && dialogueSession.mode === 'recommendation'
+      ? {
+          sessionId: dialogueSession.activeSessionId,
+          questionId: dialogueSession.pendingQuestion?.questionId ?? activeQuestion.id,
+        }
+      : null,
     actionSessionMode,
     errorMessage,
     servedCocktail,
@@ -1062,6 +1117,7 @@ export function useRestationController(sfx?: SfxChannel) {
     handleViewCocktail,
     handleWelcomeDrink,
     handleStartRecommendation,
+    handleRecommendationAnswer,
     handleSend,
     onTypingComplete,
     welcomeDrinkAvailable:

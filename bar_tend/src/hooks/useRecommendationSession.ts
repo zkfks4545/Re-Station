@@ -49,7 +49,6 @@ export interface RecommendationResult {
 
 export function useRecommendationSession() {
   const [candidatePool, setCandidatePool] = useState<CocktailData[] | null>(null)
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
   const [recommendationState, setRecommendationState] = useState<RecommendationState>(
     createRecommendationState,
   )
@@ -59,7 +58,6 @@ export function useRecommendationSession() {
 
   const resetRecommendation = useCallback(() => {
     setCandidatePool(null)
-    setActiveQuestionId(null)
     setRecommendationState(createRecommendationState())
   }, [])
 
@@ -145,7 +143,7 @@ export function useRecommendationSession() {
   }, [recommendationState, resetRecommendation])
 
   const resolveRecommendation = useCallback(
-    (text: string, preference: TastePreference): RecommendationResult | null => {
+    (text: string, preference: TastePreference, activeQuestionId: string | null = null): RecommendationResult | null => {
       const explicitCocktail = findCocktailByName(text)
       const isRecommendation =
         !explicitCocktail && (candidatePool !== null || isRecommendationIntent(text))
@@ -215,7 +213,6 @@ export function useRecommendationSession() {
         })
         setRecommendationState(nextState)
         setCandidatePool(pool)
-        setActiveQuestionId(nextQuestion.id)
         return assembleRecommendationResult(
           formatQuestion(
             nextQuestion,
@@ -267,7 +264,6 @@ export function useRecommendationSession() {
       )
     },
     [
-      activeQuestionId,
       candidatePool,
       recommendationState,
       resetRecommendation,
@@ -278,7 +274,6 @@ export function useRecommendationSession() {
   )
 
   return {
-    activeQuestion: getQuestionById(activeQuestionId),
     captureExtractedPreferences,
     clearExcludedCocktailIds,
     excludeCocktailFromRecommendations,

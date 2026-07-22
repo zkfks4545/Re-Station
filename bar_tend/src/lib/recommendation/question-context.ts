@@ -25,17 +25,43 @@ export function explainRecommendationQuestion(question: RecommendationQuestion):
 export function createPendingRecommendationQuestion(
   question: RecommendationQuestion,
   askedAtTurn: number,
+  sessionId = 'recommendation-session',
 ): PendingQuestion {
   const kindByTopic: Record<string, PendingQuestion['kind']> = {
     flavor: 'recommendation-flavor', alcohol: 'recommendation-strength',
     base: 'recommendation-base', fizz: 'recommendation-carbonation',
   }
   return {
+    sessionId,
+    questionId: question.id,
     kind: kindByTopic[question.topic] ?? 'clarification',
     topic: 'recommendation',
     askedAtTurn,
     sourcePlanId: question.promptPreset?.id ?? question.id,
   }
+}
+
+export interface RecommendationChoiceInput {
+  sessionId: string
+  questionId: string
+  answerValue: string
+}
+
+export function createRecommendationChoiceInput(
+  owner: Pick<RecommendationChoiceInput, 'sessionId' | 'questionId'>,
+  answerValue: string,
+): RecommendationChoiceInput {
+  return { ...owner, answerValue }
+}
+
+export function isCurrentRecommendationChoice(
+  input: RecommendationChoiceInput,
+  session: { mode: 'conversation' | 'recommendation'; activeSessionId: string; pendingQuestion: PendingQuestion | null },
+): boolean {
+  return session.mode === 'recommendation'
+    && session.activeSessionId === input.sessionId
+    && session.pendingQuestion?.sessionId === input.sessionId
+    && session.pendingQuestion.questionId === input.questionId
 }
 
 export function preservesPendingRecommendationQuestion(input: RecommendationQuestionInput): boolean {

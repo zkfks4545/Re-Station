@@ -60,6 +60,7 @@ export interface DialogueServiceSessionSnapshot {
 
 export interface DialogueServiceRequest {
   text: string
+  inputKind?: 'text' | 'recommendation-answer'
   messages: Message[]
   conversationContext: ConversationContextState
   session: DialogueServiceSessionSnapshot
@@ -113,11 +114,10 @@ export class DialogueService {
 
   resolve(request: DialogueServiceRequest): DialogueResolution {
     const dialogueContext = this.buildDialogueContext(request)
-    const classifiedIntent = this.applyContinuation(
-      this.classifier.classify(request.text, dialogueContext),
-      request.text,
-      request.continuationContext,
-    )
+    const classified = this.classifier.classify(request.text, dialogueContext)
+    const classifiedIntent = request.inputKind === 'recommendation-answer'
+      ? this.asRecommendationAnswer(classified)
+      : this.applyContinuation(classified, request.text, request.continuationContext)
     const routeResult = classifiedIntent.route
     const reaction = this.resolveReaction(request.text, classifiedIntent)
     const action = resolveDialogueAction(classifiedIntent, request.conversationContext, reaction)
@@ -495,6 +495,17 @@ export class DialogueService {
       intent: continuation,
       confidence: route.confidence,
       source: 'inference',
+    }
+  }
+
+  private asRecommendationAnswer(classified: ClassifiedIntent): ClassifiedIntent {
+    return {
+      ...classified,
+      route: { route: 'recommendation', confidence: 1 },
+      intent: 'recommendation-query',
+      confidence: 1,
+      source: 'input-router',
+      metadata: { ...classified.metadata, answersPendingQuestion: true },
     }
   }
 

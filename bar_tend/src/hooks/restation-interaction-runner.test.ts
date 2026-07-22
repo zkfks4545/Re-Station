@@ -10,6 +10,7 @@ function createHandlers(): RestationInteractionHandlers {
     send: vi.fn(),
     welcomeDrink: vi.fn(() => true),
     startRecommendation: vi.fn(() => true),
+    recommendationAnswer: vi.fn(() => true),
     orderCocktail: vi.fn(() => true),
     storyFromCard: vi.fn(() => true),
     cancelRecommendation: vi.fn(() => true),
@@ -24,15 +25,22 @@ describe('Restation interaction runner', () => {
     expect(runRestationInteraction({ type: 'send', text: 'hello' }, handlers)).toBe(true)
     runRestationInteraction({ type: 'welcome-drink' }, handlers)
     runRestationInteraction({ type: 'start-recommendation' }, handlers)
+    runRestationInteraction({
+      type: 'recommendation-answer',
+      input: { sessionId: 'recommendation-1', questionId: 'flavor-profile', answerValue: '달콤하게' },
+    }, handlers)
     runRestationInteraction({ type: 'order-cocktail', cocktail }, handlers)
-    runRestationInteraction({ type: 'story-from-card', cocktail }, handlers)
+    runRestationInteraction({ type: 'story-from-card', cocktail, sessionId: 'conversation' }, handlers)
     runRestationInteraction({ type: 'cancel-recommendation' }, handlers)
 
     expect(handlers.send).toHaveBeenCalledWith('hello')
     expect(handlers.welcomeDrink).toHaveBeenCalledOnce()
     expect(handlers.startRecommendation).toHaveBeenCalledOnce()
+    expect(handlers.recommendationAnswer).toHaveBeenCalledWith({
+      sessionId: 'recommendation-1', questionId: 'flavor-profile', answerValue: '달콤하게',
+    })
     expect(handlers.orderCocktail).toHaveBeenCalledWith(cocktail)
-    expect(handlers.storyFromCard).toHaveBeenCalledWith(cocktail)
+    expect(handlers.storyFromCard).toHaveBeenCalledWith(cocktail, 'conversation')
     expect(handlers.cancelRecommendation).toHaveBeenCalledOnce()
   })
 

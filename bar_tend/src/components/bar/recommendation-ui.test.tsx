@@ -55,7 +55,9 @@ describe('recommendation UI rendering contracts', () => {
         messages={[]}
         isTyping={false}
         activeQuestion={activeQuestion}
+        activeQuestionOwner={{ sessionId: 'recommendation-1', questionId: activeQuestion!.id }}
         onSend={() => undefined}
+        onRecommendationAnswer={() => undefined}
         onCancelRecommendation={() => undefined}
         disabled={false}
       />,
@@ -67,6 +69,9 @@ describe('recommendation UI rendering contracts', () => {
     expect(markup).toContain('aria-relevant="additions"')
     expect(markup).toContain(activeQuestion!.prompt)
     expect(markup).toContain(activeQuestion!.choices[0].label)
+    expect(markup).toContain('data-session-id="recommendation-1"')
+    expect(markup).toContain(`data-question-id="${activeQuestion!.id}"`)
+    expect(markup).toContain(`data-answer-value="${activeQuestion!.choices[0].label}"`)
     expect(markup).toContain('잘 모르겠어요')
     expect(markup).toContain('추천 질문 취소')
   })

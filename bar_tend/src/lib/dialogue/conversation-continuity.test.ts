@@ -280,6 +280,46 @@ describe('conversation continuity QA', () => {
     })
   })
 
+  it('does not let story routing consume a validated recommendation choice', () => {
+    const flavor = getQuestionById('flavor-profile')
+    if (!flavor) throw new Error('flavor question is missing')
+    const conversationContext = updateConversationContext(createConversationContext(), {
+      type: 'story-targeted', cocktailId: 'cocktail_classic_001',
+    })
+    let session = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-topic', topic: 'cocktail-story', cocktailId: 'cocktail_classic_001',
+    })
+    const question = createPendingRecommendationQuestion(flavor, 1, 'recommendation-1')
+    session = dialogueSessionReducer(session, {
+      type: 'switch-to-recommendation', sessionId: 'recommendation-1', question,
+    })
+
+    const resolution = service.resolve({
+      text: '이야기 더',
+      inputKind: 'recommendation-answer',
+      messages: [{ role: 'user', text: '이야기 더' }],
+      conversationContext,
+      session: {
+        phase: session.phase,
+        activeRecommendationSession: true,
+        allowRecommendationRoutes: true,
+        welcomeDrinkUsed: true,
+        alcoholStarsTotal: 0,
+        totalUserMessages: 1,
+        conversationTurnCount: 1,
+        sessionAffect: session.sessionAffect,
+        sessionTopic: session.sessionTopic,
+        pendingQuestion: session.pendingQuestion,
+      },
+      displayedCocktail: null,
+      continuationContext: createConversationContextSnapshot(session, conversationContext),
+    })
+
+    expect(resolution.routeResult.route).toBe('recommendation')
+    expect(resolution.action).toEqual({ type: 'recommend', mode: 'preference' })
+    expect(resolution.directResponse).toBeNull()
+  })
+
   it('hard-stops a pending recommendation with firm safety expression and cleared context', () => {
     const base = getQuestionById('base-spirit')
     if (!base) throw new Error('base question is missing')

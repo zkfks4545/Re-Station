@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   classifyRecommendationQuestionInput,
+  createRecommendationChoiceInput,
   createPendingRecommendationQuestion,
   explainRecommendationQuestion,
+  isCurrentRecommendationChoice,
   preservesPendingRecommendationQuestion,
 } from './question-context.js'
 
@@ -24,9 +26,11 @@ describe('recommendation question context', () => {
       topic: 'base',
       prompt: '베이스를 골라주세요.',
       choices: [],
-    }, 3)
+    }, 3, 'recommendation-3')
 
     expect(pending).toEqual({
+      sessionId: 'recommendation-3',
+      questionId: 'base-spirit',
       kind: 'recommendation-base',
       topic: 'recommendation',
       askedAtTurn: 3,
@@ -36,5 +40,22 @@ describe('recommendation question context', () => {
     expect(preservesPendingRecommendationQuestion('repeat')).toBe(true)
     expect(preservesPendingRecommendationQuestion('skip')).toBe(false)
     expect(preservesPendingRecommendationQuestion('delegate')).toBe(false)
+  })
+
+  it('accepts only the choice owned by the active recommendation question', () => {
+    const pendingQuestion = createPendingRecommendationQuestion({
+      id: 'flavor-profile', topic: 'flavor', prompt: '맛을 골라주세요.', choices: [],
+    }, 1, 'recommendation-1')
+    const session = {
+      mode: 'recommendation' as const,
+      activeSessionId: 'recommendation-1',
+      pendingQuestion,
+    }
+    const current = createRecommendationChoiceInput(pendingQuestion, '달콤하고 과일감 있게')
+
+    expect(isCurrentRecommendationChoice(current, session)).toBe(true)
+    expect(isCurrentRecommendationChoice({ ...current, sessionId: 'recommendation-0' }, session)).toBe(false)
+    expect(isCurrentRecommendationChoice({ ...current, questionId: 'base-spirit' }, session)).toBe(false)
+    expect(isCurrentRecommendationChoice(current, { ...session, mode: 'conversation' })).toBe(false)
   })
 })

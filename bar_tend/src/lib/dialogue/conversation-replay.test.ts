@@ -255,7 +255,10 @@ describe('conversation replay', () => {
     })
     session = dialogueSessionReducer(session, {
       type: 'set-pending-question',
-      question: { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 },
+      question: {
+        sessionId: 'recommendation-1', questionId: 'base-spirit',
+        kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1,
+      },
     })
 
     const result = runConversationReplay({
@@ -325,7 +328,10 @@ describe('conversation replay', () => {
     })
     session = dialogueSessionReducer(session, {
       type: 'set-pending-question',
-      question: { kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1 },
+      question: {
+        sessionId: 'recommendation-1', questionId: 'flavor-profile',
+        kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1,
+      },
     })
     const result = runConversationReplay({
       id: 'recommendation-cancel-control-transition',

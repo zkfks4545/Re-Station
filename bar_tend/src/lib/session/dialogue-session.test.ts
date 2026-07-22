@@ -3,6 +3,7 @@ import {
   createDialogueSessionState,
   decideFarewellEntry,
   dialogueSessionReducer,
+  isActiveSessionInput,
   isWelcomeDrinkFeedbackPending,
   sessionTopicForRoute,
 } from './dialogue-session.js'
@@ -89,6 +90,7 @@ describe('DialogueSessionState', () => {
     const served = dialogueSessionReducer(recommending, { type: 'cocktail-served' })
 
     expect(served.mode).toBe('conversation')
+    expect(served.activeSessionId).toBe('conversation')
     expect(served.pendingQuestion).toBeNull()
   })
 
@@ -106,10 +108,48 @@ describe('DialogueSessionState', () => {
     expect(sessionTopicForRoute('safety')).toBe('safety')
   })
 
+  it('atomically transfers story input ownership to the first recommendation question', () => {
+    let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
+      type: 'set-topic', topic: 'cocktail-story', cocktailId: 'paloma',
+    })
+    state = dialogueSessionReducer(state, {
+      type: 'set-pending-question',
+      question: {
+        sessionId: 'conversation', questionId: 'story-followup', kind: 'clarification',
+        topic: 'cocktail-story', askedAtTurn: 1,
+      },
+    })
+    const question = {
+      sessionId: 'recommendation-1', questionId: 'flavor-profile',
+      kind: 'recommendation-flavor' as const,
+      topic: 'recommendation' as const,
+      askedAtTurn: 2,
+    }
+
+    state = dialogueSessionReducer(state, {
+      type: 'switch-to-recommendation', sessionId: 'recommendation-1', question,
+    })
+
+    expect(state).toMatchObject({
+      mode: 'recommendation',
+      activeSessionId: 'recommendation-1',
+      sessionTopic: 'recommendation',
+      topicCocktailId: null,
+      pendingQuestion: question,
+      suspendedQuestion: null,
+      dialogue: { turnCount: 0, recommendationPrompted: false },
+    })
+    expect(isActiveSessionInput(state, 'conversation', 'conversation')).toBe(false)
+    expect(isActiveSessionInput(state, 'recommendation-1', 'recommendation')).toBe(true)
+  })
+
   it('clears pending recommendation context when service or farewell closes the question', () => {
     let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
       type: 'set-pending-question',
-      question: { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 },
+      question: {
+        sessionId: 'recommendation-1', questionId: 'base-spirit',
+        kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1,
+      },
     })
     expect(dialogueSessionReducer(state, { type: 'cocktail-served' }).pendingQuestion).toBeNull()
     expect(dialogueSessionReducer(state, { type: 'set-mode', mode: 'conversation' }).pendingQuestion).toBeNull()
@@ -120,7 +160,10 @@ describe('DialogueSessionState', () => {
   })
 
   it('keeps the pending question while a conversation topic temporarily suspends it', () => {
-    const question = { kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1 } as const
+    const question = {
+      sessionId: 'recommendation-1', questionId: 'base-spirit',
+      kind: 'recommendation-base', topic: 'recommendation', askedAtTurn: 1,
+    } as const
     let state = dialogueSessionReducer(createDialogueSessionState('conversation'), {
       type: 'set-mode', mode: 'recommendation',
     })
@@ -145,10 +188,16 @@ describe('DialogueSessionState', () => {
     })
     state = dialogueSessionReducer(state, {
       type: 'set-pending-question',
-      question: { kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1 },
+      question: {
+        sessionId: 'recommendation-2', questionId: 'flavor-profile',
+        kind: 'recommendation-flavor', topic: 'recommendation', askedAtTurn: 1,
+      },
     })
     state = dialogueSessionReducer(state, { type: 'set-mode', mode: 'conversation' })
-    expect(state).toMatchObject({ mode: 'conversation', pendingQuestion: null })
+    expect(state).toMatchObject({
+      mode: 'conversation', activeSessionId: 'conversation', sessionTopic: 'smalltalk',
+      topicCocktailId: null, pendingQuestion: null,
+    })
 
     state = dialogueSessionReducer(state, { type: 'set-mode', mode: 'recommendation' })
     expect(state.mode).toBe('recommendation')

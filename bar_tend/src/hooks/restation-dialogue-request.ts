@@ -10,6 +10,7 @@ import type {
 
 interface RestationDialogueRequestInput {
   text: string
+  inputKind?: 'text' | 'recommendation-answer'
   messages: Message[]
   conversationContext: ConversationContextState
   dialogueSession: DialogueSessionState
@@ -27,6 +28,7 @@ export function createRestationDialogueRequest(
 ): DialogueServiceRequest {
   return {
     text: input.text,
+    inputKind: input.inputKind ?? 'text',
     messages: input.messages,
     conversationContext: input.conversationContext,
     session: {

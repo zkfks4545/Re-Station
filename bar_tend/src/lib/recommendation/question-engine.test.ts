@@ -27,6 +27,21 @@ describe('adaptive recommendation questions', () => {
     expect(selectNextQuestion(getAllCocktailData(), createRecommendationState())?.topic).toBe('flavor')
   })
 
+  it('stores the first flavor choice before selecting the next recommendation question', () => {
+    const first = getQuestionById('flavor-profile')!
+    const answered = applyQuestionAnswer(
+      createRecommendationState(),
+      first,
+      '달콤하고 과일감 있게',
+    ).state
+    const pool = filterCocktailsByRecommendationState(getAllCocktailData(), answered)
+    const next = selectNextQuestion(pool, answered)
+
+    expect(answered.taste.sweetness).toBe(0.8)
+    expect(next).not.toBeNull()
+    expect(next?.id).not.toBe(first.id)
+  })
+
   it('skips topics already known from recommendation state', () => {
     const state = applyRecommendationSignals(createRecommendationState(), [
       { field: 'taste.sweetness', value: 0.8, confidence: 1, source: 'rule' },

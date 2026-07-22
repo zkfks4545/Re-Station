@@ -1,6 +1,10 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import type { Message } from '../../types.js'
 import type { RecommendationQuestion } from '../../types/recommendation.js'
+import {
+  createRecommendationChoiceInput,
+  type RecommendationChoiceInput,
+} from '../../lib/recommendation/question-context.js'
 import DialogueRenderer from './DialogueRenderer.jsx'
 
 function getSpeakerLabel(message: Message): string | null {
@@ -13,7 +17,9 @@ export default function DialogueBox({
   isTyping,
   onTypingComplete,
   activeQuestion,
+  activeQuestionOwner,
   onSend,
+  onRecommendationAnswer,
   onCancelRecommendation,
   disabled,
 }: {
@@ -21,7 +27,9 @@ export default function DialogueBox({
   isTyping: boolean
   onTypingComplete?: () => void
   activeQuestion?: RecommendationQuestion | null
+  activeQuestionOwner?: { sessionId: string; questionId: string } | null
   onSend?: (text: string) => void
+  onRecommendationAnswer?: (input: RecommendationChoiceInput) => void
   onCancelRecommendation?: () => void
   disabled?: boolean
 }) {
@@ -96,7 +104,12 @@ export default function DialogueBox({
                 type="button"
                 className="recommendation-choice"
                 disabled={disabled}
-                onClick={() => onSend?.(choice.label)}
+                data-session-id={activeQuestionOwner?.sessionId}
+                data-question-id={activeQuestionOwner?.questionId}
+                data-answer-value={activeQuestionOwner ? choice.label : undefined}
+                onClick={() => activeQuestionOwner
+                  ? onRecommendationAnswer?.(createRecommendationChoiceInput(activeQuestionOwner, choice.label))
+                  : onSend?.(choice.label)}
               >
                 {choice.label}
               </button>
@@ -105,7 +118,12 @@ export default function DialogueBox({
               type="button"
               className="recommendation-choice recommendation-choice--quiet"
               disabled={disabled}
-              onClick={() => onSend?.('잘 모르겠어요')}
+              data-session-id={activeQuestionOwner?.sessionId}
+              data-question-id={activeQuestionOwner?.questionId}
+              data-answer-value={activeQuestionOwner ? '잘 모르겠어요' : undefined}
+              onClick={() => activeQuestionOwner
+                ? onRecommendationAnswer?.(createRecommendationChoiceInput(activeQuestionOwner, '잘 모르겠어요'))
+                : onSend?.('잘 모르겠어요')}
             >
               잘 모르겠어요
             </button>

@@ -24,6 +24,7 @@ export default function App() {
     isProcessing,
     karuaPresentationAction,
     activeQuestion,
+    activeQuestionOwner,
     actionSessionMode,
     errorMessage,
     servedCocktail,
@@ -41,6 +42,7 @@ export default function App() {
     handleViewCocktail,
     handleWelcomeDrink,
     handleStartRecommendation,
+    handleRecommendationAnswer,
     handleSend,
     onTypingComplete,
     welcomeDrinkAvailable,
@@ -124,7 +126,9 @@ export default function App() {
                 isTyping={isBartenderTyping}
                 onTypingComplete={onTypingComplete}
                 activeQuestion={activeQuestion}
+                activeQuestionOwner={activeQuestionOwner}
                 onSend={handleSend}
+                onRecommendationAnswer={handleRecommendationAnswer}
                 onCancelRecommendation={handleCancelRecommendation}
                 disabled={isProcessing || isBartenderTyping}
               />

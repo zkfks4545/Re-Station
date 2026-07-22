@@ -16,7 +16,7 @@ describe('Restation interaction queue', () => {
     (type) => {
       const queue = createRestationInteractionQueue()
       const interaction = type === 'story-from-card'
-        ? { type, cocktail: {} as never }
+        ? { type, cocktail: {} as never, sessionId: 'conversation' }
         : { type }
 
       expect(queue.enqueue(interaction)).toBe(true)

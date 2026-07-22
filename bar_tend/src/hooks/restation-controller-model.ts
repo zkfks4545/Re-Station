@@ -1,6 +1,7 @@
 import type { CocktailData } from '@/types.js'
 import type { DialogueSessionMode } from '@/lib/session/dialogue-session.js'
 import type { IntentType } from '@/lib/bartender/intent-classifier.js'
+import type { RecommendationChoiceInput } from '@/lib/recommendation/question-context.js'
 
 export type InteractionStatus = 'idle' | 'processing' | 'typing' | 'preparing' | 'exiting'
 export type ServedCocktailMode = 'recommendation' | 'codex'
@@ -10,8 +11,9 @@ export type QueuedInteraction =
   | { type: 'send'; text: string }
   | { type: 'welcome-drink' }
   | { type: 'start-recommendation' }
+  | { type: 'recommendation-answer'; input: RecommendationChoiceInput }
   | { type: 'order-cocktail'; cocktail: CocktailData }
-  | { type: 'story-from-card'; cocktail: CocktailData }
+  | { type: 'story-from-card'; cocktail: CocktailData; sessionId: string }
   | { type: 'cancel-recommendation' }
 
 export const COCKTAIL_PREPARATION_DELAY_MS = 600
