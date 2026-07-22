@@ -1,6 +1,6 @@
 # 환상주점 세션 흐름 사양
 
-> 최종 갱신일: 2026-06-23
+> 최종 갱신일: 2026-07-22
 > 목적: 기존 JSON 기반 칵테일 DB, 대사 DB, 추천 로직 이후의 사용자 경험과 세션 종료 구조를 정의한다.
 
 ## 전제
@@ -56,12 +56,16 @@
 
 | 영역 | 필드 | 의미 |
 |---|---|---|
-| 진행 | `phase`, `mode` | 세션 단계와 conversation/recommendation 모드 |
+| 진행 | `phase`, `mode`, `activeSessionId` | 세션 단계와 단일 active conversation/recommendation 입력 소유권 |
 | 대화 | `dialogue.turnCount`, `dialogue.recommendationPrompted` | 일반 대화 진행과 추천 권유 여부 |
 | 웰컴 | `welcomeDrink.served`, `welcomeDrink.resolved` | 제공 여부와 피드백/건너뛰기 해결 여부 |
 | 주문 | `order.alcoholStarTotal` | XYZ 한계 판단용 누적 도수 별점 |
 | 종료 | `farewell.entryKind`, `farewell.turnCount` | 종료 진입 종류와 배웅 턴 수 |
 | 안전 | `safetyLocked` | safety-alert 이후 모든 대화·추천·주문·웰컴·farewell 흐름을 잠그는 Hard Stop |
+
+한 시점의 사용자 입력은 `mode + activeSessionId`가 가리키는 세션 하나만 소비한다. 선택지 payload는 `sessionId`, `questionId`, `answerValue`를 포함하며 현재 `pendingQuestion`과 일치하지 않으면 상태를 변경하지 않는다.
+
+story 대화 중 명시적으로 `추천받기`를 선택하면 첫 추천 질문이 준비된 시점에 단일 `switch-to-recommendation` transition으로 story topic·후속 질문 소유권을 닫고 recommendation mode·session ID·첫 pending question을 함께 등록한다. 이는 추천 중 잡담을 잠시 처리한 뒤 기존 질문으로 복귀하는 흐름과 다르다. 명시적 추천 전환 뒤 story는 자동 재개하지 않는다.
 
 `welcomeDrink`는 별도 session phase나 독립 FSM이 아니다. 피드백 대기는 `served && !resolved`에서 파생하며, 피드백 응답·건너뛰기·다른 입력 진행 시 `resolved=true`가 된다.
 

@@ -8,8 +8,8 @@
 | 목표 | Re:Station 카루아 중심 MVP + 시에스타 만담 |
 | 단계 | PIPE-801~805·PIPE-806-A/B 완료, 다음 PIPE-806-C PreferenceEvidence 적용 |
 | 기술 | React+Vite+프론트엔드 단독, 내부 결정론적 대화·추천 엔진, **Hidden Relationship State** 탑재 (JSON 기반) |
-| 빌드/check | 통과 (메인 JS 549.33 kB, gzip 164.01 kB, WebLLM 청크 없음) |
-| 테스트 | **Vitest 864개 전체 통과** |
+| 빌드/check | 통과 (메인 JS 552.02 kB, gzip 164.78 kB, WebLLM 청크 없음) |
+| 테스트 | **Vitest 868개 전체 통과** |
 | 세션/출처 테스트 | farewell-replies.test.ts + session-flow.test.ts + Phase 11 route/source 계약 통과 |
 
 ## 완료된 기반 (06-30 기준)
@@ -60,8 +60,8 @@
 | 입력·결정 구조 | `DialogueService`가 Understand·DialogueMove를 생성하고 control 및 topic·speech·entity 계획을 controller가 호환 gate 후 소비 | PreferenceEvidence, Conversation Expansion 순으로 점진 소비 |
 | 추천 | 43+2종, 4축, dialogueFlow, 평문재료 + 비소비 `PreferenceEvidence` 원장·legacy projection | 평가 contribution과 문맥 기반 질문 점수로 점진 전환 |
 | 외부 의미 보조 | 공급자 중립 `SemanticAssistPort`, 엄격 proposal validator, fake/no-op만 존재. 실제 API 없음 | 실제 API는 PIPE-808 승인 전까지 미연결 |
-| 테스트 | topic·speech·entity Replay 포함 데이터·서비스·라우팅·세션·UI 등 65 files / 864 tests | 후속 소비 단계별 Replay gate 추가 |
-| 번들 | 메인 JS 549.33 kB, gzip 164.01 kB. Understand·Plan runtime 포함, WebLLM 청크 없음 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
+| 테스트 | active session 소유권·stale 선택 거부 포함 데이터·서비스·라우팅·세션·UI 등 65 files / 868 tests | 후속 소비 단계별 Replay gate 추가 |
+| 번들 | 메인 JS 552.02 kB, gzip 164.78 kB. Understand·Plan runtime 포함, WebLLM 청크 없음 | 500 kB 경고는 후속 기능 단위 분할 시 재평가 |
 
 ## 승인된 후속 로드맵 (2026-07-22)
 
@@ -83,6 +83,7 @@
 - PIPE-805 구현 커밋은 `a6129f7`이다. 칵테일·질문·대화 legacy 결과를 감싸는 domain evaluation, hard constraint 우선의 결정적 selection, `DialogueMove` transition plan, 강도·범위·근거 기반 `PreferenceEvidence` 원장과 기존 상태 projection을 shadow로 추가했다. 65 files / 859 tests, check, lint, build가 통과했고 기존 추천·FSM 소비는 없다.
 - PIPE-806-A 구현 커밋은 `f691adf`다. `DialogueService`가 Understand·DialogueMove를 생성하고 controller는 legacy route와 safety·추천 취소 transition이 일치할 때만 계획을 소비한다. 불일치 시 기존 transition으로 fallback한다. 65 files / 861 tests, check, lint, build가 통과했다.
 - PIPE-806-B 구현 커밋은 `507abfc`다. controller가 검증된 topic transition과 SpeechAct를 소비하고 칵테일 entity를 세션 subject에 전달한다. Replay는 primaryTopic·speechAct·entityId를 비교하며 65 files / 864 tests, check, lint, build가 통과했다.
+- PIPE-806-B.1 세션 소유권 수정 커밋은 `ea3527c`다. story에서 `추천받기` 선택 시 첫 질문과 함께 recommendation active session으로 원자 전환하며, sessionId·questionId가 다른 오래된 선택과 story action을 거부한다. 65 files / 868 tests, check, lint, build가 통과했다.
 
 ### Dialogue 과거 완료 기록
 

@@ -1,5 +1,16 @@
 # 작업 이력 (축약)
 
+## 2026-07-22 / Codex / PIPE-806-B.1 active session 소유권 수정
+
+- 구현 커밋: `ea3527c` (`fix: transfer story ownership to recommendation`).
+- story 문맥에서 `추천받기`를 누르면 첫 추천 질문이 준비된 뒤 `switch-to-recommendation` reducer action이 mode, activeSessionId, topic, subject, pending question, conversation progress를 원자적으로 교체한다.
+- 추천 질문 ID의 별도 React state를 제거했다. UI는 reducer의 pending question에서 파생하며 선택 payload는 `sessionId`, `questionId`, `answerValue`를 전달한다.
+- 현재 active session·question과 불일치하는 오래된 추천 선택과 queued story action은 상태 변경 없이 거부한다. 검증된 추천 선택은 story/정보 라우팅보다 recommendation answer 소유권이 우선한다.
+- 명시적 추천 전환은 story를 종료한다. 추천 중 잡담·질문 보존·복귀 계약은 그대로 유지한다. 추천 완료는 conversation/cocktail-info, 취소는 conversation/smalltalk로 복귀한다.
+- 검증: 표적 7 files / 86 tests, 전체 65 files / 868 tests, TypeScript check, ESLint, production build 통과.
+- 번들: main 552.02 kB(gzip 164.78 kB), WebLLM 청크 없음, 기존 500 kB 경고 유지.
+- 다음 작업은 PIPE-806-C PreferenceEvidence 소비다.
+
 ## 2026-07-22 / Codex / PIPE-806-B topic·speech·entity 점진 적용
 
 - 구현 커밋: `507abfc` (`refactor: consume planned topic and speech signals`).
